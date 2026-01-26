@@ -23,6 +23,7 @@
     "@privy-io/node": "^0.8.0",
     "@supabase/supabase-js": "^2.93.1",
     "@trigger.dev/sdk": "^4.3.3",
+    "@vercel/og": "^0.8.6",
     "@zoralabs/protocol-deployments": "^0.6.5",
     "arweave": "^1.15.7",
     "image-meta": "^0.2.2",

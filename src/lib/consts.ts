@@ -1,0 +1,399 @@
+import { Point } from '@/types/spiral';
+import { baseSepolia, base } from 'viem/chains';
+import { Address } from 'viem';
+
+export const INPROCESS_GROUP_CHAT_ID = '-1002592953370';
+
+export const ETH_USDC_WRAPPER = '0x8b7e5b73a187aA50B1660455566E4818f88Fdd72';
+export const NULL_DATA =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+export const ERC1967_IMPLEMENTATION_SLOT =
+  '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
+
+export const IS_TESTNET =
+  process.env.NEXT_PUBLIC_IS_TESTNET === 'true' ? true : false;
+
+export const PRIVY_PROJECT_SECRET = process.env.PRIVY_PROJECT_SECRET as string;
+// Coinbase
+export const CDP_PAYMASTER_URL = `https://api.developer.coinbase.com/rpc/v1/base${IS_TESTNET ? '-sepolia' : ''}/${process.env.CDP_PAYMASTER_KEY}`;
+
+// Wagmi
+export const CHAIN = IS_TESTNET ? baseSepolia : base;
+export const CHAIN_ID = CHAIN.id;
+// Zora
+export const REFERRAL_RECIPIENT = '0x749B7b7A6944d72266Be9500FC8C221B6A7554Ce';
+export const ROYALTY_BPS_DEFAULT = 1000; // Default royalty bps (10%)
+// IPFS
+export const ONE_MB = 1024 * 1024;
+export const MAX_FILE_SIZE = 222 * ONE_MB;
+// TELEGRAM
+export const TELEGRAM_MAX_FILE_SIZE = 50 * 1024 * 1024;
+
+export const PERMISSION_BIT_ADMIN = 2;
+export const MULTICALL3_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';
+
+export const USDC_ADDRESS: Record<number, Address> = {
+  [base.id]: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+  [baseSepolia.id]: '0x14196F08a4Fa0B66B7331bC40dd6bCd8A1dEeA9F',
+} as const;
+
+export const SITE_ORIGINAL_URL = IS_TESTNET
+  ? 'https://in-process-git-test-sweetmantechs-projects.vercel.app'
+  : 'https://inprocess.world';
+export const BLOCKLISTS = [
+  '0x323e8bcb41ae2454c3f4899e094c599aab6b84bc',
+  '0x51027631b9def86e088c33368ec4e3a4be0ad264',
+  '0xf498624bbf806048296cf1757f0ea349228803a5',
+  '0x1053db8955355d967BB0f3cabe7a71FD23ebfAB7',
+];
+
+export const TELNYX_SECONDARY_PHONE_NUMBER = '+15135971101';
+export const TELNYX_TOLL_FREE_PHONE_NUMBER = '+18885993909';
+export const TELNYX_MESSAGING_PROFILE_ID =
+  '40019b4c-b5af-4052-966b-3f7546c2e7c0';
+export const INDEXER_ID = '802bf29';
+export const TIMLINE_STEP_OFFSET = 12;
+export const Z_BEHIND_PRIVY = 999999;
+
+export const PDFJS_DIST_VERSION = '2.16.105';
+
+/**
+ * Comprehensive list of event handler attributes to forbid
+ * Includes all on* event handlers to prevent XSS via event handlers
+ * Especially important: animation/transition handlers that can enable CSS-based XSS
+ */
+export const FORBIDDEN_EVENT_HANDLERS = [
+  // Mouse events
+  'onclick',
+  'ondblclick',
+  'onmousedown',
+  'onmouseup',
+  'onmouseover',
+  'onmousemove',
+  'onmouseout',
+  'onmouseenter',
+  'onmouseleave',
+  'oncontextmenu',
+  'onauxclick',
+  // Keyboard events
+  'onkeydown',
+  'onkeyup',
+  'onkeypress',
+  // Form events
+  'onchange',
+  'oninput',
+  'onsubmit',
+  'onreset',
+  'onselect',
+  'oninvalid',
+  'onsearch',
+  // Focus events
+  'onfocus',
+  'onblur',
+  'onfocusin',
+  'onfocusout',
+  // Load/error events
+  'onload',
+  'onerror',
+  'onabort',
+  'onbeforeunload',
+  'onunload',
+  // Media events
+  'onplay',
+  'onpause',
+  'onplaying',
+  'onended',
+  'onseeked',
+  'onseeking',
+  'onstalled',
+  'onsuspend',
+  'onwaiting',
+  'onvolumechange',
+  'ontimeupdate',
+  'onratechange',
+  'ondurationchange',
+  'oncanplay',
+  'oncanplaythrough',
+  'onloadeddata',
+  'onloadedmetadata',
+  'onloadstart',
+  'onprogress',
+  // CSS Animation/Transition events (critical for CSS-based XSS)
+  'onanimationstart',
+  'onanimationend',
+  'onanimationiteration',
+  'onanimationcancel',
+  'ontransitionstart',
+  'ontransitionend',
+  'ontransitionrun',
+  'ontransitioncancel',
+  // Touch events
+  'ontouchstart',
+  'ontouchend',
+  'ontouchmove',
+  'ontouchcancel',
+  // Pointer events
+  'onpointerdown',
+  'onpointerup',
+  'onpointermove',
+  'onpointerover',
+  'onpointerout',
+  'onpointerenter',
+  'onpointerleave',
+  'onpointercancel',
+  'ongotpointercapture',
+  'onlostpointercapture',
+  // Drag and drop events
+  'ondrag',
+  'ondragend',
+  'ondragenter',
+  'ondragleave',
+  'ondragover',
+  'ondragstart',
+  'ondrop',
+  // Clipboard events
+  'oncopy',
+  'oncut',
+  'onpaste',
+  // Selection events
+  'onselectstart',
+  'onselectionchange',
+  // Scroll events
+  'onscroll',
+  'onscrollend',
+  // Wheel events
+  'onwheel',
+  // Window events
+  'onresize',
+  'onhashchange',
+  'onpopstate',
+  'onpageshow',
+  'onpagehide',
+  'onbeforeprint',
+  'onafterprint',
+  'onlanguagechange',
+  'onmessage',
+  'onmessageerror',
+  'onoffline',
+  'ononline',
+  'onrejectionhandled',
+  'onunhandledrejection',
+  'onstorage',
+  'onvisibilitychange',
+  // Other events
+  'ontoggle',
+  'onshow',
+  'onsort',
+  'onwebkitfullscreenchange',
+  'onwebkitfullscreenerror',
+];
+
+export const SPIRAL_POINTS: Point[] = [
+  [14, 123],
+  [48, 115],
+  [80, 107],
+  [103, 101],
+  [135, 94],
+  [160, 88],
+  [185, 84],
+  [202, 78],
+  [227, 74],
+  [248, 70],
+  [266, 67],
+  [285, 64],
+  [307, 60],
+  [331, 55],
+  [355, 50],
+  [384, 45],
+  [414, 43],
+  [442, 38],
+  [476, 33],
+  [511, 30],
+  [547, 27],
+  [584, 21],
+  [627, 18],
+  [664, 16],
+  [713, 12],
+  [759, 11],
+  [802, 9],
+  [839, 10],
+  [870, 11],
+  [901, 14],
+  [935, 15],
+  [965, 18],
+  [997, 21],
+  [1029, 25],
+  [1080, 36],
+  [1125, 50],
+  [1164, 67],
+  [1195, 87],
+  [1224, 111],
+  [1246, 129],
+  [1270, 155],
+  [1294, 190],
+  [1309, 220],
+  [1324, 251],
+  [1330, 276],
+  [1335, 316],
+  [1338, 400],
+  [1326, 437],
+  [1313, 464],
+  [1294, 491],
+  [1270, 516],
+  [1246, 534],
+  [1224, 550],
+  [1195, 571],
+  [1174, 586],
+  [1155, 597],
+  [1117, 618],
+  [1075, 638],
+  [1042, 655],
+  [1018, 664],
+  [937, 696],
+  [899, 709],
+  [860, 720],
+  [827, 733],
+  [784, 744],
+  [756, 755],
+  [724, 759],
+  [695, 763],
+  [667, 767],
+  [617, 774],
+  [575, 777],
+  [537, 780],
+  [506, 782],
+  [471, 780],
+  [429, 775],
+  [386, 765],
+  [364, 755],
+  [340, 740],
+  [317, 718],
+  [303, 694],
+  [294, 671],
+  [291, 643],
+  [296, 617],
+  [306, 597],
+  [322, 575],
+  [342, 557],
+  [368, 538],
+  [385, 528],
+  [409, 512],
+  [439, 498],
+  [462, 486],
+  [496, 471],
+  [533, 455],
+  [566, 442],
+  [603, 429],
+  [634, 421],
+  [668, 411],
+  [710, 400],
+  [740, 391],
+  [769, 383],
+  [802, 375],
+  [829, 369],
+  [860, 366],
+  [892, 360],
+  [936, 357],
+  [972, 355],
+  [1007, 356],
+  [1041, 357],
+  [1076, 358],
+  [1118, 362],
+  [1162, 371],
+  [1200, 376],
+  [1228, 379],
+  [1267, 388],
+  [1305, 397],
+  [1333, 409],
+  [1375, 427],
+  [1402, 442],
+  [1427, 452],
+  [1453, 470],
+  [1477, 488],
+  [1503, 509],
+  [1528, 538],
+  [1544, 559],
+  [1565, 583],
+  [1580, 605],
+  [1583, 613],
+  [1589, 625],
+  [1601, 649],
+  [1613, 675],
+  [1631, 707],
+  [1641, 731],
+  [1651, 757],
+  [1659, 789],
+  [1671, 815],
+  [1681, 853],
+];
+
+export const MOBILE_SPIRAL_POINTS: Point[] = [
+  [7, 29],
+  [20, 26],
+  [31, 24],
+  [43, 21],
+  [58, 19],
+  [72, 17],
+  [84, 15],
+  [94, 13],
+  [111, 11],
+  [125, 10],
+  [139, 9],
+  [186, 9],
+  [200, 11],
+  [209, 11],
+  [220, 14],
+  [230, 16],
+  [240, 20],
+  [253, 25],
+  [260, 35],
+  [270, 44],
+  [276, 54],
+  [280, 66],
+  [280, 87],
+  [275, 103],
+  [271, 112],
+  [263, 120],
+  [256, 129],
+  [246, 136],
+  [235, 143],
+  [221, 150],
+  [204, 156],
+  [186, 163],
+  [170, 166],
+  [158, 169],
+  [143, 172],
+  [130, 174],
+  [121, 176],
+  [100, 175],
+  [87, 173],
+  [74, 170],
+  [65, 163],
+  [58, 152],
+  [57, 142],
+  [64, 131],
+  [74, 121],
+  [88, 110],
+  [104, 103],
+  [122, 97],
+  [139, 92],
+  [158, 87],
+  [177, 84],
+  [196, 82],
+  [217, 80],
+  [235, 82],
+  [254, 83],
+  [269, 87],
+  [282, 91],
+  [293, 97],
+  [305, 106],
+  [313, 111],
+  [322, 120],
+  [330, 130],
+  [338, 140],
+  [344, 154],
+  [350, 167],
+  [354, 180],
+  [356, 193],
+];
