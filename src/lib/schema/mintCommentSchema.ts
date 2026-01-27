@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import addressSchema from '../schema/addressSchema';
+import addressSchema from './addressSchema';
 
 export const tokenSchema = z.object({
   tokenId: z.number(),

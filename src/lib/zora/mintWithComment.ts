@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { zoraCreator1155ImplABI } from '@zoralabs/protocol-deployments';
 import { zoraCreatorFixedPriceSaleStrategyAddress } from '@/lib/protocolSdk/constants';
 
-import { mintCommentSchema } from '../coinbase/mintCommentSchema';
+import { mintCommentSchema } from '../schema/mintCommentSchema';
 import { base, baseSepolia } from 'viem/chains';
 
 export type MintMomentInput = z.infer<typeof mintCommentSchema>;
