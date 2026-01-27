@@ -1,4 +1,4 @@
-import type { InboundMessageWebhookEvent } from 'telnyx/resources/webhooks';
+import type { InboundMessagePayload } from 'telnyx/resources/shared';
 import createMomentFromMedia from '@/lib/phones/createMomentFromMedia';
 import { sendSms } from '@/lib/phones/sendSms';
 import { IS_TESTNET, SITE_ORIGINAL_URL } from '@/lib/consts';
@@ -8,8 +8,8 @@ export const processMmsMedia = async (
   phone: Database['public']['Tables']['in_process_artist_phones']['Row'] & {
     artist: Database['public']['Tables']['in_process_artists']['Row'];
   },
-  media: InboundMessageWebhookEvent.Data.Payload.Media,
-  payload: InboundMessageWebhookEvent.Data.Payload | undefined
+  media: NonNullable<InboundMessagePayload['media']>[number],
+  payload: InboundMessagePayload | undefined
 ): Promise<{ contractAddress: string; tokenId: string } | void> => {
   if (media.content_type?.includes('video')) {
     await sendSms(

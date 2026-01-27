@@ -1,11 +1,11 @@
 import { uploadJson } from '../arweave/uploadJson';
 import getMediaBlob from './getMediaBlob';
 import uploadToArweave from '../arweave/uploadToArweave';
-import { InboundMessageWebhookEvent } from 'telnyx/resources/webhooks.mjs';
+import { InboundMessagePayload } from 'telnyx/resources/shared';
 
 const uploadMetadata = async (
-  media: InboundMessageWebhookEvent.Data.Payload.Media,
-  payload: InboundMessageWebhookEvent.Data.Payload | undefined
+  media: NonNullable<InboundMessagePayload['media']>[number],
+  payload: InboundMessagePayload | undefined
 ) => {
   const blob = await getMediaBlob(media);
   const name = payload?.subject || payload?.text || `photo-${Date.now()}`;

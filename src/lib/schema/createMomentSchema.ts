@@ -58,54 +58,40 @@ const baseCreateMomentSchema = z.object({
 });
 
 // Unified schema that accepts the unified contract format
-export const createMomentSchema = baseCreateMomentSchema.refine(
-  (data) => {
+export const createMomentSchema = baseCreateMomentSchema.superRefine(
+  (data, ctx) => {
     if (!data.splits || data.splits.length === 0) {
-      return true;
+      return;
     }
 
     if (data.splits.length < 2) {
-      return false;
-    }
-
-    for (const split of data.splits) {
-      const addressError = validateSplitAddress(split.address);
-      if (addressError) {
-        return false;
-      }
-    }
-
-    return calculateTotalPercentage(data.splits) === 100;
-  },
-  (data) => {
-    if (!data.splits || data.splits.length === 0) {
-      return {
-        message: 'Splits total percentage must equal 100%',
-        path: ['splits'],
-      };
-    }
-
-    if (data.splits.length < 2) {
-      return {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
         message: 'Splits must have at least 2 recipients',
         path: ['splits'],
-      };
+      });
+      return;
     }
 
     for (let i = 0; i < data.splits.length; i++) {
       const addressError = validateSplitAddress(data.splits[i].address);
       if (addressError) {
-        return {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
           message: `Split ${i + 1}: ${addressError}`,
           path: ['splits', i, 'address'],
-        };
+        });
+        return;
       }
     }
 
-    return {
-      message: 'Splits total percentage must equal 100%',
-      path: ['splits'],
-    };
+    if (calculateTotalPercentage(data.splits) !== 100) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Splits total percentage must equal 100%',
+        path: ['splits'],
+      });
+    }
   }
 );
 
@@ -128,53 +114,37 @@ export const createWritingMomentSchema = z
     account: addressSchema,
     splits: z.array(splitSchema).optional(),
   })
-  .refine(
-    (data) => {
-      if (!data.splits || data.splits.length === 0) {
-        return true;
-      }
+  .superRefine((data, ctx) => {
+    if (!data.splits || data.splits.length === 0) {
+      return;
+    }
 
-      if (data.splits.length < 2) {
-        return false;
-      }
+    if (data.splits.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Splits must have at least 2 recipients',
+        path: ['splits'],
+      });
+      return;
+    }
 
-      for (const split of data.splits) {
-        const addressError = validateSplitAddress(split.address);
-        if (addressError) {
-          return false;
-        }
+    for (let i = 0; i < data.splits.length; i++) {
+      const addressError = validateSplitAddress(data.splits[i].address);
+      if (addressError) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Split ${i + 1}: ${addressError}`,
+          path: ['splits', i, 'address'],
+        });
+        return;
       }
+    }
 
-      return calculateTotalPercentage(data.splits) === 100;
-    },
-    (data) => {
-      if (!data.splits || data.splits.length === 0) {
-        return {
-          message: 'Splits total percentage must equal 100%',
-          path: ['splits'],
-        };
-      }
-
-      if (data.splits.length < 2) {
-        return {
-          message: 'Splits must have at least 2 recipients',
-          path: ['splits'],
-        };
-      }
-
-      for (let i = 0; i < data.splits.length; i++) {
-        const addressError = validateSplitAddress(data.splits[i].address);
-        if (addressError) {
-          return {
-            message: `Split ${i + 1}: ${addressError}`,
-            path: ['splits', i, 'address'],
-          };
-        }
-      }
-
-      return {
+    if (calculateTotalPercentage(data.splits) !== 100) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
         message: 'Splits total percentage must equal 100%',
         path: ['splits'],
-      };
+      });
     }
-  );
+  });

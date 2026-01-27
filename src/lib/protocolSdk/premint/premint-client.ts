@@ -3,7 +3,6 @@ import type {
   Account,
   Address,
   Hex,
-  SimulateContractParameters,
   TransactionReceipt,
   TypedDataDefinition,
   WalletClient,
@@ -780,16 +779,7 @@ export async function collectPremint({
 }: Omit<MakePremintMintParametersArguments, 'mintType'> & {
   premintGetter: IPremintGetter;
   publicClient: PublicClient;
-}): Promise<
-  SimulateContractParameters<
-    typeof zoraCreator1155PremintExecutorImplABI,
-    'premint',
-    any,
-    any,
-    any,
-    Account | Address
-  >
-> {
+}): Promise<SimulateContractParametersWithAccount> {
   if (typeof quantityToMint !== 'undefined' && quantityToMint < 1) {
     throw new Error('Quantity to mint cannot be below 1');
   }

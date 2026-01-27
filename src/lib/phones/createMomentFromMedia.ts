@@ -1,4 +1,4 @@
-import type { InboundMessageWebhookEvent } from 'telnyx/resources/webhooks';
+import type { InboundMessagePayload } from 'telnyx/resources/shared';
 import { maxUint64, parseUnits, Address } from 'viem';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { createMoment } from '@/lib/moment/createMoment';
@@ -6,8 +6,8 @@ import { MomentType } from '@/types/moment';
 import uploadMetadata from './uploadMetadata';
 
 const createMomentFromMedia = async (
-  media: InboundMessageWebhookEvent.Data.Payload.Media,
-  payload: InboundMessageWebhookEvent.Data.Payload | undefined,
+  media: NonNullable<InboundMessagePayload['media']>[number],
+  payload: InboundMessagePayload | undefined,
   artistAddress: string
 ) => {
   const { uri, name } = await uploadMetadata(media, payload);

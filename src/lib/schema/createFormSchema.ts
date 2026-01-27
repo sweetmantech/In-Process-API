@@ -24,7 +24,7 @@ export const createFormSchema = z
         { message: 'Price must be a valid number' }
       ),
     priceUnit: z.enum(['eth', 'usdc'], {
-      required_error: 'Currency is required',
+      message: 'Currency is required',
     }),
     description: z.string().optional(),
     startDate: z.date().optional(),
@@ -35,55 +35,39 @@ export const createFormSchema = z
       .min(1, 'Total supply must be at least 1')
       .optional(),
   })
-  .refine(
-    (data) => {
-      if (!data.splits || data.splits.length === 0) {
-        return true;
-      }
+  .superRefine((data, ctx) => {
+    if (!data.splits || data.splits.length === 0) {
+      return;
+    }
 
-      if (data.splits.length < 2) {
-        return false;
-      }
+    if (data.splits.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Splits must have at least 2 recipients',
+        path: ['splits'],
+      });
+      return;
+    }
 
-      for (const split of data.splits) {
-        const addressError = validateSplitAddress(split.address);
-        if (addressError) {
-          return false;
-        }
+    for (let i = 0; i < data.splits.length; i++) {
+      const addressError = validateSplitAddress(data.splits[i].address);
+      if (addressError) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Split ${i + 1}: ${addressError}`,
+          path: ['splits', i, 'address'],
+        });
+        return;
       }
+    }
 
-      return calculateTotalPercentage(data.splits) === 100;
-    },
-    (data) => {
-      if (!data.splits || data.splits.length === 0) {
-        return {
-          message: 'Splits total percentage must equal 100%',
-          path: ['splits'],
-        };
-      }
-
-      if (data.splits.length < 2) {
-        return {
-          message: 'Splits must have at least 2 recipients',
-          path: ['splits'],
-        };
-      }
-
-      for (let i = 0; i < data.splits.length; i++) {
-        const addressError = validateSplitAddress(data.splits[i].address);
-        if (addressError) {
-          return {
-            message: `Split ${i + 1}: ${addressError}`,
-            path: ['splits', i, 'address'],
-          };
-        }
-      }
-
-      return {
+    if (calculateTotalPercentage(data.splits) !== 100) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
         message: 'Splits total percentage must equal 100%',
         path: ['splits'],
-      };
+      });
     }
-  );
+  });
 
 export type CreateFormData = z.infer<typeof createFormSchema>;

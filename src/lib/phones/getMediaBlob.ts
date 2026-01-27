@@ -1,7 +1,7 @@
-import { InboundMessageWebhookEvent } from 'telnyx/resources/webhooks.mjs';
+import type { InboundMessagePayload } from 'telnyx/resources/shared';
 
 const getMediaBlob = async (
-  photo: InboundMessageWebhookEvent.Data.Payload.Media
+  photo: NonNullable<InboundMessagePayload['media']>[number]
 ): Promise<Blob> => {
   if (!photo.url) {
     throw new Error('Photo URL is missing');
