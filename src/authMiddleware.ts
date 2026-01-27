@@ -74,7 +74,6 @@ export async function authMiddleware(
       );
     }
 
-    // Re-throw other errors
     throw error;
   }
 
