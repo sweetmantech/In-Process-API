@@ -2,6 +2,8 @@
 
 Backend API for a blockchain-based creative platform managing digital moments (NFTs), collections, and artist profiles.
 
+**Note:** This is an API-only codebase. No client-side code (React hooks, browser APIs, `fetch('/api/...')` calls).
+
 ## Tech Stack
 
 - **Framework:** Next.js 16 (App Router, API-only)
@@ -11,6 +13,7 @@ Backend API for a blockchain-based creative platform managing digital moments (N
 - **Auth:** Privy (tokens), API keys
 - **Payments:** Coinbase CDP SDK, 0xSplits
 - **Media:** Mux (video), Arweave (decentralized storage)
+- **Validation:** Zod v4
 - **Package Manager:** pnpm
 
 ## Commands
@@ -62,8 +65,16 @@ Both return an `artistAddress` for the authenticated user.
 
 - All routes use `export const dynamic = 'force-dynamic'`
 - CORS headers via `getCorsHeader()`
-- Zod schemas for input validation
+- Zod v4 schemas for input validation (use `.superRefine()` for custom validation)
 - Standard error responses with status codes
+
+### Telnyx Types
+
+Use `InboundMessagePayload` from `telnyx/resources/shared`:
+```typescript
+import type { InboundMessagePayload } from 'telnyx/resources/shared';
+type Media = NonNullable<InboundMessagePayload['media']>[number];
+```
 
 ### Database
 
