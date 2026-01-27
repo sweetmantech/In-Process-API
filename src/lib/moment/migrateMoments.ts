@@ -51,13 +51,11 @@ const migrateMoments = async ({
   for (const collection of filtered) {
     const collectionAddress = getAddress(collection.address);
     const addPermissionCall = getAddPermissionCall(
-      collectionAddress,
-      '0',
+      { collectionAddress, tokenId: '0', chainId },
       artistWallet.address
     );
     const addSmartAccountPermissionCall = getAddPermissionCall(
-      collectionAddress,
-      '0',
+      { collectionAddress, tokenId: '0', chainId },
       artistWallet.smartWalletAddress
     );
     calls.push(addPermissionCall, addSmartAccountPermissionCall);
