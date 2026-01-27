@@ -12,8 +12,8 @@ export async function getAddressesByAuthToken(authToken: string): Promise<{
   const options = {
     method: 'GET',
     headers: {
-      'privy-app-id': process.env.NEXT_PUBLIC_PRIVY_APP_ID!,
-      Authorization: `Basic ${btoa(process.env.NEXT_PUBLIC_PRIVY_APP_ID! + ':' + process.env.PRIVY_API_KEY!)}`,
+      'privy-app-id': process.env.PRIVY_APP_ID!,
+      Authorization: `Basic ${btoa(process.env.PRIVY_APP_ID! + ':' + process.env.PRIVY_API_KEY!)}`,
     },
   };
 

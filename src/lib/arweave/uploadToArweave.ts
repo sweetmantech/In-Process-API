@@ -13,10 +13,7 @@ const uploadToArweave = async (
   getProgress: (progress: number) => void = () => {}
 ): Promise<string> => {
   const ARWEAVE_KEY = JSON.parse(
-    Buffer.from(
-      process.env.NEXT_PUBLIC_ARWEAVE_KEY as string,
-      'base64'
-    ).toString()
+    Buffer.from(process.env.ARWEAVE_KEY as string, 'base64').toString()
   );
   const buffer = await file.arrayBuffer();
 

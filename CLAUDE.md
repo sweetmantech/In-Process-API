@@ -52,6 +52,7 @@ src/
 ### Authentication
 
 Two methods supported via `authMiddleware`:
+
 1. **Bearer token** - `Authorization: Bearer <token>` (Privy auth)
 2. **API key** - `x-api-key: <key>` header
 
@@ -67,6 +68,7 @@ Both return an `artistAddress` for the authenticated user.
 ### Database
 
 Supabase tables prefixed with `in_process_`:
+
 - `artists`, `moments`, `collections`
 - `payments`, `sales`, `notifications`
 - `comments`, `api_keys`, `phone_numbers`

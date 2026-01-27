@@ -11,8 +11,7 @@ export const NULL_DATA =
 export const ERC1967_IMPLEMENTATION_SLOT =
   '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
 
-export const IS_TESTNET =
-  process.env.NEXT_PUBLIC_IS_TESTNET === 'true' ? true : false;
+export const IS_TESTNET = process.env.IS_TESTNET === 'true' ? true : false;
 
 export const PRIVY_PROJECT_SECRET = process.env.PRIVY_PROJECT_SECRET as string;
 // Coinbase

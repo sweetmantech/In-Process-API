@@ -7,7 +7,7 @@ const decodedJwtVerificationKey = Buffer.from(
 ).toString('utf8');
 
 const privyClient = new PrivyClient({
-  appId: process.env.NEXT_PUBLIC_PRIVY_APP_ID!,
+  appId: process.env.PRIVY_APP_ID!,
   appSecret: process.env.PRIVY_API_KEY!,
   jwtVerificationKey: decodedJwtVerificationKey,
 });
