@@ -1,44 +1,31 @@
 import Arweave from 'arweave';
+import { ARWEAVE_KEY } from '@/lib/consts';
 
 const arweave = Arweave.init({
   host: 'arweave.net',
   port: 443,
   protocol: 'https',
-  timeout: 20000,
-  logging: false,
 });
 
-const uploadToArweave = async (
-  file: File,
-  getProgress: (progress: number) => void = () => {}
-): Promise<string> => {
-  const ARWEAVE_KEY = JSON.parse(
-    Buffer.from(process.env.ARWEAVE_KEY as string, 'base64').toString()
-  );
-  const buffer = await file.arrayBuffer();
+export const uploadToArweave = async (file: File): Promise<string> => {
+  const mimeType = file.type;
+  const buffer = Buffer.from(await file.arrayBuffer());
 
-  const transaction = await arweave.createTransaction(
-    {
-      data: buffer,
-    },
-    ARWEAVE_KEY
-  );
-  transaction.addTag('Content-Type', file.type);
+  const transaction = await arweave.createTransaction({ data: buffer });
+  transaction.addTag('Content-Type', mimeType);
+
   await arweave.transactions.sign(transaction, ARWEAVE_KEY);
-  const uploader = await arweave.transactions.getUploader(transaction);
+  const response = await arweave.transactions.post(transaction);
 
-  while (!uploader.isComplete) {
-    console.log(
-      `${uploader.pctComplete}% complete, ${uploader.uploadedChunks}/${uploader.totalChunks}`
+  if (response.status !== 200) {
+    throw new Error(
+      `❌ Upload failed: ${response.status} ${response.statusText}`
     );
-    getProgress(uploader.pctComplete);
-    await uploader.uploadChunk();
   }
 
-  // Ensure progress callback is called with 100% when upload completes
-  getProgress(100);
-
-  return `ar://${transaction.id}`;
+  const arweaveURI = `ar://${transaction.id}`;
+  console.log('✅ Arweave URI received:', arweaveURI);
+  return arweaveURI;
 };
 
 export default uploadToArweave;
