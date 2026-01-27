@@ -71,6 +71,7 @@ Both return an `artistAddress` for the authenticated user.
 ### Telnyx Types
 
 Use `InboundMessagePayload` from `telnyx/resources/shared`:
+
 ```typescript
 import type { InboundMessagePayload } from 'telnyx/resources/shared';
 type Media = NonNullable<InboundMessagePayload['media']>[number];
