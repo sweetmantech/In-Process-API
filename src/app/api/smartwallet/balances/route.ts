@@ -1,18 +1,8 @@
 import { NextRequest } from 'next/server';
 import { Address, formatEther, formatUnits } from 'viem';
-import getCorsHeader from '@/lib/getCorsHeader';
 import { getSocialSmartWalletsBalances } from '@/lib/smartwallets/getSocialSmartWalletsBalances';
 import { getSmartWalletBalancesSchema } from '@/lib/schema/getSmartWalletBalancesSchema';
 import { validate } from '@/lib/schema/validate';
-
-const corsHeaders = getCorsHeader();
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,10 +43,10 @@ export async function GET(req: NextRequest) {
       total_usdc_balance: formatUnits(totalUsdcBalance, 6),
     };
 
-    return Response.json(response, { headers: corsHeaders });
+    return Response.json(response);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Failed to get balances';
-    return Response.json({ message }, { status: 500, headers: corsHeaders });
+    return Response.json({ message }, { status: 500 });
   }
 }
 

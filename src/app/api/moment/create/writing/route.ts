@@ -3,18 +3,7 @@ import { createMoment } from '@/lib/moment/createMoment';
 import { createWritingMomentSchema } from '@/lib/schema/createMomentSchema';
 import { convertWritingToContractSchema } from '@/lib/coinbase/convertWritingToContractSchema';
 import { uploadWritingWithJson } from '@/lib/writing/uploadWritingWithJson';
-import getCorsHeader from '@/lib/getCorsHeader';
 import { validate } from '@/lib/schema/validate';
-
-// CORS headers for allowing cross-origin requests
-const corsHeaders = getCorsHeader();
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,11 +24,11 @@ export async function POST(req: NextRequest) {
     );
     const convertedData = convertWritingToContractSchema(data, metadataUri);
     const result = await createMoment(convertedData);
-    return Response.json(result, { headers: corsHeaders });
+    return Response.json(result);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to create writing moment';
-    return Response.json({ message }, { status: 500, headers: corsHeaders });
+    return Response.json({ message }, { status: 500 });
   }
 }
 

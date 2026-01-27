@@ -1,24 +1,13 @@
 import { NextRequest } from 'next/server';
-import getCorsHeader from '@/lib/getCorsHeader';
 import { updateCollectionURI } from '@/lib/collection/updateCollectionURI';
 import { authMiddleware } from '@/authMiddleware';
 import { updateCollectionURISchema } from '@/lib/schema/updateCollectionURISchema';
 import { Address } from 'viem';
 import { validate } from '@/lib/schema/validate';
 
-// CORS headers for allowing cross-origin requests
-const corsHeaders = getCorsHeader();
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req, { corsHeaders });
+    const authResult = await authMiddleware(req);
     if (authResult instanceof Response) {
       return authResult;
     }
@@ -36,11 +25,11 @@ export async function POST(req: NextRequest) {
       newCollectionName: data.newCollectionName,
       artistAddress: artistAddress as Address,
     });
-    return Response.json(result, { headers: corsHeaders });
+    return Response.json(result);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to update collection URI';
-    return Response.json({ message }, { status: 500, headers: corsHeaders });
+    return Response.json({ message }, { status: 500 });
   }
 }
 

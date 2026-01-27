@@ -1,10 +1,7 @@
 import { NextRequest } from 'next/server';
-import getCorsHeader from '@/lib/getCorsHeader';
 import { distributeSchema } from '@/lib/schema/distributeSchema';
 import { distribute } from '@/lib/splits/distribute';
 import { validate } from '@/lib/schema/validate';
-
-const corsHeaders = getCorsHeader();
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -21,13 +18,10 @@ export async function POST(req: NextRequest) {
       tokenAddress,
       chainId,
     });
-    return Response.json(
-      {
-        status: 'success',
-        hash,
-      },
-      { headers: corsHeaders }
-    );
+    return Response.json({
+      status: 'success',
+      hash,
+    });
   } catch (error) {
     console.error('Error in distribute API:', error);
     return Response.json(
@@ -36,16 +30,9 @@ export async function POST(req: NextRequest) {
         message: 'An error occurred while distributing.',
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500, headers: corsHeaders }
+      { status: 500 }
     );
   }
-}
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
 }
 
 export const dynamic = 'force-dynamic';
