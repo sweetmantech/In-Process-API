@@ -6,11 +6,6 @@ export interface Moment {
   chainId: number;
 }
 
-export interface MomentCommentsInput {
-  moment: Moment;
-  offset: number;
-}
-
 export interface MomentCommentsResult {
   comments: MintComment[];
 }
