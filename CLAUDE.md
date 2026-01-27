@@ -1,0 +1,82 @@
+# In-Process API
+
+Backend API for a blockchain-based creative platform managing digital moments (NFTs), collections, and artist profiles.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router, API-only)
+- **Language:** TypeScript
+- **Database:** Supabase (PostgreSQL)
+- **Blockchain:** Viem, Zora Protocol, Base chain
+- **Auth:** Privy (tokens), API keys
+- **Payments:** Coinbase CDP SDK, 0xSplits
+- **Media:** Mux (video), Arweave (decentralized storage)
+- **Package Manager:** pnpm
+
+## Commands
+
+```bash
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm start        # Start production server
+pnpm lint         # Run ESLint
+pnpm format       # Format with Prettier
+pnpm format:check # Check formatting
+```
+
+## Project Structure
+
+```
+src/
+├── app/api/           # API route handlers
+│   ├── artists/       # Artist profile endpoints
+│   ├── collections/   # NFT collection management
+│   ├── moment/        # Moment (NFT) endpoints
+│   ├── smartwallet/   # Wallet operations
+│   ├── payments/      # Payment processing
+│   └── ...
+├── lib/               # Utilities and services
+│   ├── supabase/      # Database operations by table
+│   ├── protocolSdk/   # Zora Protocol wrapper
+│   ├── privy/         # Auth utilities
+│   ├── mux/           # Video processing
+│   ├── arweave/       # Decentralized storage
+│   └── ...
+├── types/             # TypeScript definitions
+├── authMiddleware.ts  # Auth middleware
+└── errors.ts          # Error definitions
+```
+
+## Key Patterns
+
+### Authentication
+
+Two methods supported via `authMiddleware`:
+1. **Bearer token** - `Authorization: Bearer <token>` (Privy auth)
+2. **API key** - `x-api-key: <key>` header
+
+Both return an `artistAddress` for the authenticated user.
+
+### API Routes
+
+- All routes use `export const dynamic = 'force-dynamic'`
+- CORS headers via `getCorsHeader()`
+- Zod schemas for input validation
+- Standard error responses with status codes
+
+### Database
+
+Supabase tables prefixed with `in_process_`:
+- `artists`, `moments`, `collections`
+- `payments`, `sales`, `notifications`
+- `comments`, `api_keys`, `phone_numbers`
+
+### Blockchain
+
+- **Mainnet:** Base (chain ID 8453)
+- **Testnet:** Base Sepolia (chain ID 84532)
+- Toggle via `NEXT_PUBLIC_IS_TESTNET` env var
+
+## Path Aliases
+
+- `@/*` → `./src/*`
