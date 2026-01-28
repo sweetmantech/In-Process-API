@@ -10,7 +10,9 @@ export async function momentComments({
   moment,
   offset,
 }: GetCommentsInput): Promise<MomentCommentsResult> {
-  const { data: moments, error: momentsError } = await selectMoments(moment);
+  const { data: moments, error: momentsError } = await selectMoments({
+    moment,
+  });
 
   if (momentsError) {
     throw new Error('Failed to get moments');
