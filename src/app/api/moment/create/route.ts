@@ -1,17 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
-import getCorsHeader from '@/lib/getCorsHeader';
 import { createMoment } from '@/lib/moment/createMoment';
 import { validate } from '@/lib/schema/validate';
-// CORS headers for allowing cross-origin requests
-const corsHeaders = getCorsHeader();
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,11 +12,11 @@ export async function POST(req: NextRequest) {
     }
     const data = validationResult.data;
     const result = await createMoment(data);
-    return Response.json(result, { headers: corsHeaders });
+    return Response.json(result);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to create moment';
-    return Response.json({ message }, { status: 500, headers: corsHeaders });
+    return Response.json({ message }, { status: 500 });
   }
 }
 

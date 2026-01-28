@@ -2,16 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getBearerToken } from '@/lib/api-keys/getBearerToken';
 import { getAddressesByAuthToken } from '@/lib/privy/getAddressesByAuthToken';
 import { getArtistAddressByApiKey } from '@/lib/api-keys/getArtistAddressByApiKey';
-import getCorsHeader from '@/lib/getCorsHeader';
 import { AuthErrorMessages, AuthErrorTypes } from './errors';
 
 export interface AuthResult {
   artistAddress: string;
   authMethod: 'token' | 'apiKey';
-}
-
-export interface AuthMiddlewareOptions {
-  corsHeaders?: Record<string, string>;
 }
 
 /**
@@ -22,11 +17,8 @@ export interface AuthMiddlewareOptions {
  * Returns the artist address and authentication method used.
  */
 export async function authMiddleware(
-  req: NextRequest,
-  options: AuthMiddlewareOptions = {}
+  req: NextRequest
 ): Promise<NextResponse | AuthResult> {
-  const corsHeaders = options.corsHeaders || getCorsHeader();
-
   const authHeader = req.headers.get('authorization');
   const authToken = getBearerToken(authHeader);
   const apiKey = req.headers.get('x-api-key');
@@ -35,7 +27,7 @@ export async function authMiddleware(
   if (!authToken && !apiKey) {
     return NextResponse.json(
       { message: AuthErrorTypes.UNAUTHORIZED },
-      { status: 401, headers: corsHeaders }
+      { status: 401 }
     );
   }
 
@@ -70,7 +62,7 @@ export async function authMiddleware(
     ) {
       return NextResponse.json(
         { message: AuthErrorTypes.INVALID_AUTHENTICATION },
-        { status: 401, headers: corsHeaders }
+        { status: 401 }
       );
     }
 

@@ -3,10 +3,7 @@ import { CHAIN_ID } from '@/lib/consts';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { createCollectionSchema } from '@/lib/schema/createCollectionSchema';
 import { createCollection } from '@/lib/collection/createCollection';
-import getCorsHeader from '@/lib/getCorsHeader';
 import { validate } from '@/lib/schema/validate';
-
-const corsHeaders = getCorsHeader();
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -56,13 +53,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -72,11 +62,11 @@ export async function POST(req: NextRequest) {
     }
     const data = validationResult.data;
     const result = await createCollection(data);
-    return Response.json(result, { headers: corsHeaders });
+    return Response.json(result);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'Failed to create collection';
-    return Response.json({ message }, { status: 500, headers: corsHeaders });
+    return Response.json({ message }, { status: 500 });
   }
 }
 

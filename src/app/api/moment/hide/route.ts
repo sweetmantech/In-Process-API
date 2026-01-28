@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import getCorsHeader from '@/lib/getCorsHeader';
 import { authMiddleware } from '@/authMiddleware';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
@@ -7,19 +6,9 @@ import upsertAdmins from '@/lib/supabase/in_process_admins/upsertAdmins';
 import { momentSchema } from '@/lib/schema/momentSchema';
 import { validate } from '@/lib/schema/validate';
 
-// CORS headers for allowing cross-origin requests
-const corsHeaders = getCorsHeader();
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req, { corsHeaders });
+    const authResult = await authMiddleware(req);
     if (authResult instanceof Response) {
       return authResult;
     }
@@ -41,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (collectionsError) {
       return Response.json(
         { success: false, message: collectionsError.message },
-        { status: 500, headers: corsHeaders }
+        { status: 500 }
       );
     }
 
@@ -49,7 +38,7 @@ export async function POST(req: NextRequest) {
     if (!collection) {
       return Response.json(
         { success: false, message: 'Collection not found' },
-        { status: 404, headers: corsHeaders }
+        { status: 404 }
       );
     }
 
@@ -70,7 +59,7 @@ export async function POST(req: NextRequest) {
     if (!admin) {
       return Response.json(
         { success: false, message: 'Admin not found' },
-        { status: 404, headers: corsHeaders }
+        { status: 404 }
       );
     }
 
@@ -86,17 +75,14 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    return Response.json(
-      {
-        success: true,
-        updated: upserted,
-      },
-      { headers: corsHeaders }
-    );
+    return Response.json({
+      success: true,
+      updated: upserted,
+    });
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to hide tokens';
-    return Response.json({ message }, { status: 500, headers: corsHeaders });
+    return Response.json({ message }, { status: 500 });
   }
 }
 
