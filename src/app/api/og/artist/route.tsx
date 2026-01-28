@@ -1,26 +1,29 @@
 import { NextRequest } from 'next/server';
-import { OG_HEIGHT, OG_WIDTH, VERCEL_OG } from '@/lib/og/consts';
+import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 import { Address } from 'viem';
 import getImageMetadata from '@/lib/getImageMetadata';
 import ArtistInfo from '@/components/Og/artist/ArtistInfo';
 import TokenImagePreview from '@/components/Og/artist/TokenImagePreview';
 import TokenWritingPreview from '@/components/Og/artist/TokenWritingPreview';
 import NoMoments from '@/components/Og/artist/NoMoments';
-import getLatestMoment from '@/lib/moment/getLatestMoment';
 import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
 import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
+import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
+import { TokenMetadataJson } from '@/lib/protocolSdk/ipfs/types';
+import { SITE_ORIGINAL_URL } from '@/lib/consts';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-const archivoFont = fetch(`${VERCEL_OG}/fonts/Archivo-Regular.ttf`).then(
-  (res) => res.arrayBuffer()
-);
+const archivoFont = fetch(
+  `${SITE_ORIGINAL_URL}/fonts/Archivo-Regular.ttf`
+).then((res) => res.arrayBuffer());
 
-const spectralFont = fetch(`${VERCEL_OG}/fonts/Spectral-Regular.ttf`).then(
-  (res) => res.arrayBuffer()
-);
+const spectralFont = fetch(
+  `${SITE_ORIGINAL_URL}/fonts/Spectral-Regular.ttf`
+).then((res) => res.arrayBuffer());
 
 export async function GET(req: NextRequest) {
   const queryParams = req.nextUrl.searchParams;
@@ -28,8 +31,20 @@ export async function GET(req: NextRequest) {
   const chainId = queryParams.get('chainId');
   const chainIdNum = parseInt(chainId as string, 10);
 
-  const metadata = await getLatestMoment(artistAddress as string, chainIdNum);
-  const { username } = await getArtistProfile(artistAddress as Address);
+  const { data: moments } = await selectMoments({
+    artists: [artistAddress?.toLowerCase() as Address],
+    chainId: chainIdNum,
+  });
+
+  let metadata: TokenMetadataJson | null = null;
+  const moment = moments?.[0];
+  if (!moment) metadata = null;
+  else {
+    metadata = await fetchTokenMetadata(moment.uri);
+  }
+  const { username } = await getArtistProfile(
+    artistAddress?.toLowerCase() as Address
+  );
 
   const { ImageResponse } = await import('@vercel/og');
   const [archivoFontData, spectralFontData] = await Promise.all([
@@ -42,8 +57,8 @@ export async function GET(req: NextRequest) {
   let imageMetadata = null;
 
   if (metadata) {
-    if (metadata.content.mime === 'text/plain') {
-      const fetchableUri = getFetchableUrl(metadata.content.uri);
+    if (metadata.content?.mime === 'text/plain') {
+      const fetchableUri = getFetchableUrl(metadata.content?.uri);
       if (fetchableUri) {
         const response = await fetch(fetchableUri);
         const data = await response.text();
@@ -76,7 +91,7 @@ export async function GET(req: NextRequest) {
         paddingRight: 32,
         display: 'flex',
         justifyContent: 'space-between',
-        background: `url('${VERCEL_OG}/bg-gray.png')`,
+        background: `url('${SITE_ORIGINAL_URL}/bg-gray.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
@@ -99,7 +114,7 @@ export async function GET(req: NextRequest) {
       >
         {metadata ? (
           <>
-            {metadata.content.mime === 'text/plain' ? (
+            {metadata.content?.mime === 'text/plain' ? (
               <TokenWritingPreview
                 writingText={writingText}
                 totalLines={totalLines}

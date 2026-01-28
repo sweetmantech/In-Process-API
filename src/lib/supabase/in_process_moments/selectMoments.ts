@@ -1,25 +1,46 @@
 import { supabase } from '../client';
 import { Moment } from '@/types/moment';
 
-const selectMoments = async (moment: Moment) => {
-  const { collectionAddress, chainId, tokenId } = moment;
+const selectMoments = async ({
+  moment,
+  artists,
+  chainId,
+}: {
+  moment?: Moment;
+  artists?: string[];
+  chainId?: number;
+}) => {
   let query = supabase
     .from('in_process_moments')
     .select('*, collection:in_process_collections!inner(*)');
 
+  if (moment) {
+    const { collectionAddress, chainId, tokenId } = moment;
+    if (chainId) {
+      query = query.eq('collection.chain_id', chainId);
+    }
+    if (collectionAddress) {
+      query = query.eq('collection.address', collectionAddress.toLowerCase());
+    }
+    if (tokenId) {
+      query = query.eq('token_id', Number(tokenId));
+    }
+  }
+
+  if (artists) {
+    query = query.in('collection.default_admin', artists);
+  }
+
   if (chainId) {
     query = query.eq('collection.chain_id', chainId);
   }
-  if (collectionAddress) {
-    query = query.eq('collection.address', collectionAddress.toLowerCase());
-  }
-  if (tokenId) {
-    query = query.eq('token_id', Number(tokenId));
-  }
 
+  query = query.order('created_at', { ascending: false });
   const { data, error } = await query;
-  if (error) throw error;
-  return data;
+  if (error) {
+    return { data: null, error };
+  }
+  return { data: data || [], error: null };
 };
 
 export default selectMoments;

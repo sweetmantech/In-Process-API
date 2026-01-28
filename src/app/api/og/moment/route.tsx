@@ -4,10 +4,10 @@ import {
   OG_HEIGHT,
   OG_WIDTH,
   rotation,
-  VERCEL_OG,
   WRITING_MAX_LINES,
   WRITING_SHORT_LINES,
 } from '@/lib/og/consts';
+import { SITE_ORIGINAL_URL } from '@/lib/consts';
 import { imageMeta } from 'image-meta';
 import { getMomentAdvancedInfo } from '@/lib/moment/getMomentAdvancedInfo';
 import { CHAIN_ID } from '@/lib/consts';
@@ -16,13 +16,13 @@ import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
 
-const archivoFont = fetch(`${VERCEL_OG}/fonts/Archivo-Regular.ttf`).then(
-  (res) => res.arrayBuffer()
-);
+const archivoFont = fetch(
+  `${SITE_ORIGINAL_URL}/fonts/Archivo-Regular.ttf`
+).then((res) => res.arrayBuffer());
 
-const spectralFont = fetch(`${VERCEL_OG}/fonts/Spectral-Regular.ttf`).then(
-  (res) => res.arrayBuffer()
-);
+const spectralFont = fetch(
+  `${SITE_ORIGINAL_URL}/fonts/Spectral-Regular.ttf`
+).then((res) => res.arrayBuffer());
 
 export async function GET(req: NextRequest) {
   const queryParams = req.nextUrl.searchParams;
