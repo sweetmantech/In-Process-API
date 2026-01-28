@@ -4,7 +4,10 @@ import { Address } from 'viem';
 export const INPROCESS_GROUP_CHAT_ID = '-1002592953370';
 
 export const IS_TESTNET =
-  process.env.VERCEL_ENV === 'development' ? true : false;
+  process.env.VERCEL_ENV === 'preview' ||
+  process.env.VERCEL_ENV === 'development'
+    ? true
+    : false;
 
 export const PRIVY_PROJECT_SECRET = process.env.PRIVY_PROJECT_SECRET as string;
 // Coinbase
