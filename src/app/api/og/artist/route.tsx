@@ -42,7 +42,9 @@ export async function GET(req: NextRequest) {
   else {
     metadata = await fetchTokenMetadata(moment.uri);
   }
-  const { username } = await getArtistProfile(artistAddress as Address);
+  const { username } = await getArtistProfile(
+    artistAddress?.toLowerCase() as Address
+  );
 
   const { ImageResponse } = await import('@vercel/og');
   const [archivoFontData, spectralFontData] = await Promise.all([
