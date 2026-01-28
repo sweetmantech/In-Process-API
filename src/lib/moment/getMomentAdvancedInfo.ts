@@ -8,9 +8,17 @@ import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 export const getMomentAdvancedInfo = async (
   moment: Moment
 ): Promise<MomentAdvancedInfo> => {
-  const moments = await selectMoments(moment);
+  const { data: moments, error: momentsError } = await selectMoments(moment);
 
-  const momentdata = moments[0];
+  if (momentsError) {
+    throw new Error('Failed to get moments');
+  }
+
+  const momentdata = moments?.[0];
+  if (!momentdata) {
+    throw new Error('Moment not found');
+  }
+
   if (momentdata) {
     const uri = momentdata.uri;
     const owner = momentdata.collection.default_admin;

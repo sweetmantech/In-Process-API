@@ -10,9 +10,13 @@ export async function momentComments({
   moment,
   offset,
 }: GetCommentsInput): Promise<MomentCommentsResult> {
-  const data = await selectMoments(moment);
+  const { data: moments, error: momentsError } = await selectMoments(moment);
 
-  const momentData = data[0];
+  if (momentsError) {
+    throw new Error('Failed to get moments');
+  }
+
+  const momentData = moments?.[0];
 
   if (!momentData) {
     throw new Error('Moment not found');
