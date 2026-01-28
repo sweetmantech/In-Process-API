@@ -1,0 +1,47 @@
+import { z } from 'zod';
+import addressSchema from './addressSchema';
+import { splitSchema } from './createMomentSchema';
+import { validateSplitAddress } from '@/lib/splits/validateSplitAddress';
+import { calculateTotalPercentage } from '@/lib/splits/calculateTotalPercentage';
+
+export const createCollectionSchema = z
+  .object({
+    account: addressSchema,
+    uri: z.string().min(1, 'URI is required'),
+    name: z.string().min(1, 'Collection name is required'),
+    splits: z.array(splitSchema).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.splits || data.splits.length === 0) {
+      return;
+    }
+
+    if (data.splits.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Splits must have at least 2 recipients',
+        path: ['splits'],
+      });
+      return;
+    }
+
+    for (let i = 0; i < data.splits.length; i++) {
+      const addressError = validateSplitAddress(data.splits[i].address);
+      if (addressError) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Split ${i + 1}: ${addressError}`,
+          path: ['splits', i, 'address'],
+        });
+        return;
+      }
+    }
+
+    if (calculateTotalPercentage(data.splits) !== 100) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Splits total percentage must equal 100%',
+        path: ['splits'],
+      });
+    }
+  });
