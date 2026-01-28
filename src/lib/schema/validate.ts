@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import getCorsHeader from '@/lib/getCorsHeader';
+
+const corsHeaders = getCorsHeader();
 
 /**
  * Validates and parses request body using zod schema.
@@ -22,7 +25,7 @@ export function validate<T extends z.ZodTypeAny>(
       success: false,
       response: Response.json(
         { message: 'Invalid input', errors: errorDetails },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       ),
     };
   }

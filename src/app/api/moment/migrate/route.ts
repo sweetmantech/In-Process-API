@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import getCorsHeader from '@/lib/getCorsHeader';
 import { authMiddleware } from '@/authMiddleware';
 import { selectSocialWallets } from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
 import { Address } from 'viem';
@@ -7,10 +8,20 @@ import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import migrateMoments from '@/lib/moment/migrateMoments';
 import { CHAIN_ID } from '@/lib/consts';
 
+// CORS headers for allowing cross-origin requests
+const corsHeaders = getCorsHeader();
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { chainId } = await req.json();
-    const authResult = await authMiddleware(req);
+    const authResult = await authMiddleware(req, { corsHeaders });
     if (authResult instanceof Response) {
       return authResult;
     }
@@ -20,10 +31,16 @@ export async function POST(req: NextRequest) {
       artistAddress: artistAddress as Address,
     });
     if (socialError) {
-      return Response.json({ message: socialError.message }, { status: 500 });
+      return Response.json(
+        { message: socialError.message },
+        { status: 500, headers: corsHeaders }
+      );
     }
     if (!socials) {
-      return Response.json({ message: 'no socials found' }, { status: 404 });
+      return Response.json(
+        { message: 'no socials found' },
+        { status: 404, headers: corsHeaders }
+      );
     }
 
     const smartAccount = await getOrCreateSmartWallet({
@@ -51,14 +68,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return Response.json({
-      message: 'success',
-      results: transactions,
-    });
+    return Response.json(
+      {
+        message: 'success',
+        results: transactions,
+      },
+      { headers: corsHeaders }
+    );
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to migrate moments';
-    return Response.json({ message }, { status: 500 });
+    return Response.json({ message }, { status: 500, headers: corsHeaders });
   }
 }
 

@@ -1,12 +1,22 @@
 import { NextRequest } from 'next/server';
+import getCorsHeader from '@/lib/getCorsHeader';
 import { authMiddleware } from '@/authMiddleware';
 import { tasks } from '@trigger.dev/sdk';
 import { triggerMuxToArweaveSchema } from '@/lib/schema/triggerMuxToArweaveSchema';
 import { validate } from '@/lib/schema/validate';
 
+const corsHeaders = getCorsHeader();
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
+    const authResult = await authMiddleware(req, { corsHeaders });
     if (authResult instanceof Response) {
       return authResult;
     }
@@ -28,15 +38,21 @@ export async function POST(req: NextRequest) {
       artistAddress: artistAddress as `0x${string}`,
     });
 
-    return Response.json({
-      success: true,
-      runId: handle.id,
-      message: `Migration task triggered successfully for ${tokenIds.length} token(s)`,
-    });
+    return Response.json(
+      {
+        success: true,
+        runId: handle.id,
+        message: `Migration task triggered successfully for ${tokenIds.length} token(s)`,
+      },
+      { headers: corsHeaders }
+    );
   } catch (e: any) {
     console.error('Error triggering MUX to Arweave migration:', e);
     const message = e?.message ?? 'Failed to trigger MUX to Arweave migration';
-    return Response.json({ message, success: false }, { status: 500 });
+    return Response.json(
+      { message, success: false },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
 

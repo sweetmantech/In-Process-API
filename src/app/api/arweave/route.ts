@@ -1,5 +1,16 @@
 import { NextRequest } from 'next/server';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
+import getCorsHeader from '@/lib/getCorsHeader';
+
+// CORS headers for allowing cross-origin requests
+const corsHeaders = getCorsHeader();
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
 
 export async function POST(request: NextRequest) {
   const data = await request.formData();

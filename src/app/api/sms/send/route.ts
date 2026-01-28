@@ -1,8 +1,18 @@
+import getCorsHeader from '@/lib/getCorsHeader';
 import client from '@/lib/telnyx/client';
 import {
   TELNYX_TOLL_FREE_PHONE_NUMBER,
   TELNYX_SECONDARY_PHONE_NUMBER,
 } from '@/lib/consts';
+
+const corsHeaders = getCorsHeader();
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
 
 export async function GET() {
   try {
@@ -22,7 +32,7 @@ export async function GET() {
       message_id: response.data?.id,
     };
 
-    return Response.json(result);
+    return Response.json(result, { headers: corsHeaders });
   } catch (e: any) {
     console.error('Error in send message API:', e);
     const message = e?.message ?? 'Failed to send message';
@@ -32,7 +42,7 @@ export async function GET() {
       error: message,
     };
 
-    return Response.json(result, { status: 500 });
+    return Response.json(result, { status: 500, headers: corsHeaders });
   }
 }
 

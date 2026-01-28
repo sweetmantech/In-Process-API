@@ -1,8 +1,19 @@
 import { NextRequest } from 'next/server';
+import getCorsHeader from '@/lib/getCorsHeader';
 import { commentsSchema } from '@/lib/schema/commentsSchema';
 import { momentComments } from '@/lib/moment/momentComments';
 import { Address } from 'viem';
 import { validate } from '@/lib/schema/validate';
+
+// CORS headers for allowing cross-origin requests
+const corsHeaders = getCorsHeader();
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -23,11 +34,11 @@ export async function GET(req: NextRequest) {
 
     const result = await momentComments(validationResult.data);
 
-    return Response.json(result);
+    return Response.json(result, { headers: corsHeaders });
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to get comments';
-    return Response.json({ message }, { status: 500 });
+    return Response.json({ message }, { status: 500, headers: corsHeaders });
   }
 }
 

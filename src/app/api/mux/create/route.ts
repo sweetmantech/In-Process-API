@@ -2,11 +2,22 @@ import { NextRequest } from 'next/server';
 import mux from '@/lib/mux';
 import { v4 as uuidv4 } from 'uuid';
 import { authMiddleware } from '@/authMiddleware';
+import getCorsHeader from '@/lib/getCorsHeader';
 import cleanTemporaryAssets from '@/lib/mux/cleanTemporaryAssets';
+
+// CORS headers for allowing cross-origin requests
+const corsHeaders = getCorsHeader();
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
+    const authResult = await authMiddleware(req, { corsHeaders });
     if (authResult instanceof Response) {
       return authResult;
     }
@@ -26,14 +37,17 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return Response.json({
-      uploadURL: upload.url,
-      uploadId: upload.id,
-    });
+    return Response.json(
+      {
+        uploadURL: upload.url,
+        uploadId: upload.id,
+      },
+      { headers: corsHeaders }
+    );
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to create upload intent';
-    return Response.json({ message }, { status: 500 });
+    return Response.json({ message }, { status: 500, headers: corsHeaders });
   }
 }
 

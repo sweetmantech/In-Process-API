@@ -1,10 +1,13 @@
 import { NextRequest } from 'next/server';
 import client from '@/lib/telnyx/client';
+import getCorsHeader from '@/lib/getCorsHeader';
 import type { InboundMessageWebhookEvent } from 'telnyx/resources/webhooks';
 import { sendSms } from '@/lib/phones/sendSms';
 import { processMmsMedia } from '@/lib/phones/processMmsMedia';
 import selectPhone from '@/lib/supabase/in_process_artist_phones/selectPhone';
 import verifyPhone from '@/lib/phones/verifyPhone';
+
+const corsHeaders = getCorsHeader();
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +31,7 @@ export async function POST(req: NextRequest) {
       console.error('Signature verification failed:', err);
       return Response.json(
         { message: 'Signature verification failed' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
     // Check if this is a message.received event
@@ -62,11 +65,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return Response.json({ success: true });
+    return Response.json({ success: true }, { headers: corsHeaders });
   } catch (e: any) {
     const message = e?.message || 'Failed to process webhook';
-    return Response.json({ message }, { status: 500 });
+    return Response.json({ message }, { status: 500, headers: corsHeaders });
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
 }
 
 export const dynamic = 'force-dynamic';

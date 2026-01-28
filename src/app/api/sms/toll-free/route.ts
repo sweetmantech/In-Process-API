@@ -1,6 +1,16 @@
 import { NextRequest } from 'next/server';
 import { TELNYX_MESSAGING_PROFILE_ID } from '@/lib/consts';
+import getCorsHeader from '@/lib/getCorsHeader';
 import client from '@/lib/telnyx/client';
+
+const corsHeaders = getCorsHeader();
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +30,7 @@ export async function GET(req: NextRequest) {
       message_id: response.data?.id,
     };
 
-    return Response.json(result);
+    return Response.json(result, { headers: corsHeaders });
   } catch (e: any) {
     console.error('Error in send message API:', e);
     const message = e?.message ?? 'Failed to send message';
@@ -30,7 +40,7 @@ export async function GET(req: NextRequest) {
       error: message,
     };
 
-    return Response.json(result, { status: 500 });
+    return Response.json(result, { status: 500, headers: corsHeaders });
   }
 }
 
