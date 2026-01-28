@@ -28,7 +28,7 @@ const selectMoments = async ({
   }
 
   if (artists) {
-    query = query.in('collection.default_admin.address', artists);
+    query = query.in('collection.default_admin', artists);
   }
 
   if (chainId) {
