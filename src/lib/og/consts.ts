@@ -1,4 +1,3 @@
-export const VERCEL_OG = 'https://stayinprocess.vercel.app';
 export const rotation: any = {
   1: 'rotate(0deg)',
   3: 'rotate(180deg)',

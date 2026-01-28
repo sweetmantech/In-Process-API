@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { OG_HEIGHT, OG_WIDTH, VERCEL_OG } from '@/lib/og/consts';
+import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 import { Address } from 'viem';
 import getImageMetadata from '@/lib/getImageMetadata';
 import ArtistInfo from '@/components/Og/artist/ArtistInfo';
@@ -12,17 +12,18 @@ import truncateAddress from '@/lib/truncateAddress';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import { TokenMetadataJson } from '@/lib/protocolSdk/ipfs/types';
+import { SITE_ORIGINAL_URL } from '@/lib/consts';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-const archivoFont = fetch(`${VERCEL_OG}/fonts/Archivo-Regular.ttf`).then(
-  (res) => res.arrayBuffer()
-);
+const archivoFont = fetch(
+  `${SITE_ORIGINAL_URL}/fonts/Archivo-Regular.ttf`
+).then((res) => res.arrayBuffer());
 
-const spectralFont = fetch(`${VERCEL_OG}/fonts/Spectral-Regular.ttf`).then(
-  (res) => res.arrayBuffer()
-);
+const spectralFont = fetch(
+  `${SITE_ORIGINAL_URL}/fonts/Spectral-Regular.ttf`
+).then((res) => res.arrayBuffer());
 
 export async function GET(req: NextRequest) {
   const queryParams = req.nextUrl.searchParams;
@@ -88,7 +89,7 @@ export async function GET(req: NextRequest) {
         paddingRight: 32,
         display: 'flex',
         justifyContent: 'space-between',
-        background: `url('${VERCEL_OG}/bg-gray.png')`,
+        background: `url('${SITE_ORIGINAL_URL}/bg-gray.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
