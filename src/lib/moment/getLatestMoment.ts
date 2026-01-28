@@ -1,8 +1,8 @@
 import { MomentMetadata } from '@/types/moment';
-import { VERCEL_OG } from './og/consts';
-import fetchTokenMetadata from './fetchTokenMetadata';
+import { VERCEL_OG } from '../og/consts';
+import fetchTokenMetadata from '../fetchTokenMetadata';
 
-const getArtistLatestMoment = async (
+const getLatestMoment = async (
   artistAddress: string,
   chainId: number
 ): Promise<MomentMetadata | null> => {
@@ -31,4 +31,4 @@ const getArtistLatestMoment = async (
   }
 };
 
-export default getArtistLatestMoment;
+export default getLatestMoment;

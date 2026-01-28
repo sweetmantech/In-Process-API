@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import getUsername from '@/lib/getUsername';
 import { OG_HEIGHT, OG_WIDTH, VERCEL_OG } from '@/lib/og/consts';
 import { Address } from 'viem';
 import getImageMetadata from '@/lib/getImageMetadata';
@@ -7,8 +6,10 @@ import ArtistInfo from '@/components/Og/artist/ArtistInfo';
 import TokenImagePreview from '@/components/Og/artist/TokenImagePreview';
 import TokenWritingPreview from '@/components/Og/artist/TokenWritingPreview';
 import NoMoments from '@/components/Og/artist/NoMoments';
-import getArtistLatestMoment from '@/lib/getArtistLatestMoment';
+import getLatestMoment from '@/lib/moment/getLatestMoment';
 import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
+import getArtistProfile from '@/lib/getArtistProfile';
+import truncateAddress from '@/lib/truncateAddress';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -27,11 +28,8 @@ export async function GET(req: NextRequest) {
   const chainId = queryParams.get('chainId');
   const chainIdNum = parseInt(chainId as string, 10);
 
-  const metadata = await getArtistLatestMoment(
-    artistAddress as string,
-    chainIdNum
-  );
-  const username = await getUsername(artistAddress as Address);
+  const metadata = await getLatestMoment(artistAddress as string, chainIdNum);
+  const { username } = await getArtistProfile(artistAddress as Address);
 
   const { ImageResponse } = await import('@vercel/og');
   const [archivoFontData, spectralFontData] = await Promise.all([
@@ -83,7 +81,9 @@ export async function GET(req: NextRequest) {
         backgroundPosition: 'center',
       }}
     >
-      <ArtistInfo nickName={username} />
+      <ArtistInfo
+        nickName={username || truncateAddress(artistAddress as Address)}
+      />
       <div
         style={{
           display: 'flex',
