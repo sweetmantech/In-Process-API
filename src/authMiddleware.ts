@@ -50,7 +50,6 @@ export async function authMiddleware(
       throw new Error(AuthErrorMessages.NO_VALID_AUTH_METHOD);
     }
   } catch (error: any) {
-    // Handle authentication errors specifically
     if (
       error?.message?.includes(AuthErrorMessages.INVALID_AUTH_TOKEN) ||
       error?.message?.includes(AuthErrorMessages.NO_SOCIAL_OR_ARTIST_WALLET) ||
