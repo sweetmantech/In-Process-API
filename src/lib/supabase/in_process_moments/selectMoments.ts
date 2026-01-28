@@ -35,6 +35,7 @@ const selectMoments = async ({
     query = query.eq('collection.chain_id', chainId);
   }
 
+  query = query.order('created_at', { ascending: false });
   const { data, error } = await query;
   if (error) {
     return { data: null, error };
