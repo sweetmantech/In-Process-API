@@ -14,7 +14,7 @@ export const processMmsMedia = async (
   if (media.content_type?.includes('video')) {
     await sendSms(
       phone.phone_number,
-      'Sorry, videos are not supported because their quality is significantly degraded when sent via SMS text message. Please post your video on a platform like YouTube or TikTok and send the link to the video here to add videos to your timeline.'
+      'Sorry, videos are not supported because their quality is significantly degraded when sent via SMS text message. Please go to https://inprocess.world/create to upload videos.'
     );
     return;
   }
