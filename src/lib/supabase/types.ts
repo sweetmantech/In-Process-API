@@ -314,6 +314,36 @@ export type Database = {
           },
         ];
       };
+      in_process_message_moment: {
+        Row: {
+          message: string;
+          moment: string;
+        };
+        Insert: {
+          message: string;
+          moment: string;
+        };
+        Update: {
+          message?: string;
+          moment?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_message_moment_message_fkey';
+            columns: ['message'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_messages';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'in_process_message_moment_moment_fkey';
+            columns: ['moment'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_moments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       in_process_messages: {
         Row: {
           id: string;
