@@ -287,22 +287,28 @@ export type Database = {
       };
       in_process_message_metadata: {
         Row: {
-          artist_address: string;
+          artist_address: string | null;
           client: Database['public']['Enums']['message_client'];
           created_at: string;
           id: string;
+          phone_number: string | null;
+          telegram_username: string | null;
         };
         Insert: {
-          artist_address: string;
+          artist_address?: string | null;
           client: Database['public']['Enums']['message_client'];
           created_at?: string;
           id?: string;
+          phone_number?: string | null;
+          telegram_username?: string | null;
         };
         Update: {
-          artist_address?: string;
+          artist_address?: string | null;
           client?: Database['public']['Enums']['message_client'];
           created_at?: string;
           id?: string;
+          phone_number?: string | null;
+          telegram_username?: string | null;
         };
         Relationships: [
           {
