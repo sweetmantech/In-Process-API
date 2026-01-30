@@ -87,7 +87,7 @@ export type Database = {
         Insert: {
           amount: number;
           id?: string;
-          moment?: string;
+          moment: string;
           recipient: string;
           updated_at: string;
         };
@@ -279,6 +279,35 @@ export type Database = {
           {
             foreignKeyName: 'in_process_collections_default_admin_fkey';
             columns: ['default_admin'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['address'];
+          },
+        ];
+      };
+      in_process_message_metadata: {
+        Row: {
+          artist_address: string;
+          client: Database['public']['Enums']['message_client'];
+          created_at: string;
+          id: string;
+        };
+        Insert: {
+          artist_address: string;
+          client: Database['public']['Enums']['message_client'];
+          created_at?: string;
+          id?: string;
+        };
+        Update: {
+          artist_address?: string;
+          client?: Database['public']['Enums']['message_client'];
+          created_at?: string;
+          id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_message_metadata_artist_address_fkey';
+            columns: ['artist_address'];
             isOneToOne: false;
             referencedRelation: 'in_process_artists';
             referencedColumns: ['address'];
@@ -587,7 +616,7 @@ export type Database = {
       };
     };
     Enums: {
-      [_ in never]: never;
+      message_client: 'telegram' | 'sms';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -720,6 +749,8 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      message_client: ['telegram', 'sms'],
+    },
   },
 } as const;
