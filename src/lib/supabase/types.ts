@@ -314,6 +314,35 @@ export type Database = {
           },
         ];
       };
+      in_process_messages: {
+        Row: {
+          id: string;
+          metadata: string;
+          parts: Json;
+          role: Database['public']['Enums']['message_role'];
+        };
+        Insert: {
+          id?: string;
+          metadata: string;
+          parts: Json;
+          role: Database['public']['Enums']['message_role'];
+        };
+        Update: {
+          id?: string;
+          metadata?: string;
+          parts?: Json;
+          role?: Database['public']['Enums']['message_role'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_messages_metadata_fkey';
+            columns: ['metadata'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_message_metadata';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       in_process_moment_comments: {
         Row: {
           artist_address: string;
@@ -617,6 +646,7 @@ export type Database = {
     };
     Enums: {
       message_client: 'telegram' | 'sms';
+      message_role: 'user' | 'assistant';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -751,6 +781,7 @@ export const Constants = {
   public: {
     Enums: {
       message_client: ['telegram', 'sms'],
+      message_role: ['user', 'assistant'],
     },
   },
 } as const;
