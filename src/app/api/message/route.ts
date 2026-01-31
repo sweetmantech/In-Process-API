@@ -1,48 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { messageIdSchema } from '@/lib/schema/messageSchema';
-import { validate } from '@/lib/schema/validate';
-import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
+import { validateMessageIdParam } from '@/lib/messages/validateMessageIdParam';
+import getMessageHandler from '@/lib/messages/getMessageHandler';
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const queryParams = {
-      messageId: searchParams.get('messageId'),
-    };
+    const validated = validateMessageIdParam(req);
 
-    const validationResult = validate(messageIdSchema, queryParams);
-    if (!validationResult.success) {
-      return validationResult.response;
+    if (validated instanceof NextResponse) {
+      return validated;
     }
+    const { messageId } = validated;
 
-    const { messageId } = validationResult.data;
-
-    const { data, error } = await selectMessage(messageId);
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return NextResponse.json(
-          { error: 'Message not found' },
-          { status: 404 }
-        );
-      }
-      console.error('Error fetching message:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch message' },
-        { status: 500 }
-      );
-    }
-
-    if (!data) {
-      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
-    }
-
-    const momentData = data.moment?.[0]?.in_process_moments ?? null;
-
-    return NextResponse.json({
-      ...data,
-      moment: momentData,
-    });
+    return getMessageHandler(messageId);
   } catch (error: any) {
     console.error('Error fetching message:', error);
     return NextResponse.json(

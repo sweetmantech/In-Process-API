@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { NextResponse } from 'next/server';
 
 /**
  * Validates and parses request body using zod schema.
@@ -9,7 +10,7 @@ export function validate<T extends z.ZodTypeAny>(
   body: unknown
 ):
   | { success: true; data: z.infer<T> }
-  | { success: false; response: Response } {
+  | { success: false; response: NextResponse } {
   const parseResult = schema.safeParse(body);
 
   if (!parseResult.success) {
@@ -20,7 +21,7 @@ export function validate<T extends z.ZodTypeAny>(
 
     return {
       success: false,
-      response: Response.json(
+      response: NextResponse.json(
         { message: 'Invalid input', errors: errorDetails },
         { status: 400 }
       ),
