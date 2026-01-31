@@ -33,6 +33,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    if (!data) {
+      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+    }
+
     const momentData = data.moment?.[0]?.in_process_moments ?? null;
 
     return NextResponse.json({
