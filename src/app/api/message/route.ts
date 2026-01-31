@@ -33,7 +33,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(data);
+    const momentData = data.moment?.[0]?.in_process_moments ?? null;
+
+    return NextResponse.json({
+      ...data,
+      moment: momentData,
+    });
   } catch (error: any) {
     console.error('Error fetching message:', error);
     return NextResponse.json(
