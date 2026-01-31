@@ -35,15 +35,7 @@ const selectMessage = async (
     return { data: null, error };
   }
 
-  const momentData = data.moment?.[0]?.in_process_moments ?? null;
-
-  return {
-    data: {
-      ...data,
-      moment: momentData,
-    },
-    error: null,
-  };
+  return { data, error };
 };
 
 export default selectMessage;
