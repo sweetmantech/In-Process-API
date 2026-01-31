@@ -20,7 +20,17 @@ export async function GET(req: NextRequest) {
     const { data, error } = await selectMessage(messageId);
 
     if (error) {
-      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+      if (error.code === 'PGRST116') {
+        return NextResponse.json(
+          { error: 'Message not found' },
+          { status: 404 }
+        );
+      }
+      console.error('Error fetching message:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch message' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(data);
