@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validate } from '@/lib/schema/validate';
 import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
 import { messageIdSchema } from '@/lib/schema/messageSchema';
-import isMomentMessage from '@/lib/messages/isMomentMessage';
 import getMomentFromMessage from '@/lib/messages/getMomentFromMessage';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { CHAIN_ID } from '@/lib/consts';
@@ -23,11 +22,8 @@ export async function GET(req: NextRequest) {
     const { data: message } = await selectMessage(messageId);
     if (!message) throw new Error('Message not found');
 
-    if (!isMomentMessage(message))
-      throw new Error('Message is not a moment message');
-
     const momentInfo = getMomentFromMessage(message);
-    if (!momentInfo) throw new Error('Moment not found');
+    if (!momentInfo) throw new Error('Message is not a moment message');
     const { collectionAddress, tokenId } = momentInfo;
 
     const { data: moment } = await selectMoments({
