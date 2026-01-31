@@ -7,13 +7,10 @@ import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { CHAIN_ID } from '@/lib/consts';
 import upsertMessageMoment from '@/lib/supabase/in_process_message_moment/upsertMessageMoment';
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const queryParams = {
-      messageId: searchParams.get('messageId'),
-    };
-    const validationResult = validate(messageIdSchema, queryParams);
+    const body = await req.json();
+    const validationResult = validate(messageIdSchema, body);
     if (!validationResult.success) {
       return validationResult.response;
     }
