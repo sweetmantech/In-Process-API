@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import selectMessage from '../supabase/in_process_messages/selectMessage';
+import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
 
 const getMessageHandler = async (messageId: string) => {
   const { data, error } = await selectMessage(messageId);

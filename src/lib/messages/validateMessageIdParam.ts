@@ -1,5 +1,5 @@
-import { validate } from '../schema/validate';
-import { messageIdSchema } from '../schema/messageSchema';
+import { validate } from '@/lib/schema/validate';
+import { messageIdSchema } from '@/lib/schema/messageSchema';
 import { NextRequest } from 'next/server';
 
 export const validateMessageIdParam = (request: NextRequest) => {
