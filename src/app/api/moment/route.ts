@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     const collection = collections?.[0] ?? null;
 
-    const { uri, owner, saleConfig } = await getMomentAdvancedInfo(moment);
+    const { uri, owner, saleConfig, id } = await getMomentAdvancedInfo(moment);
 
     if (!uri) {
       return NextResponse.json(
@@ -74,6 +74,7 @@ export async function GET(req: NextRequest) {
     );
 
     return NextResponse.json({
+      id,
       uri,
       owner,
       saleConfig,

@@ -28,6 +28,7 @@ export const getMomentAdvancedInfo = async (
 
     if (sale) {
       return {
+        id: momentdata.id,
         uri,
         owner,
         saleConfig: convertDatabaseSaleToApi(sale),
@@ -36,6 +37,7 @@ export const getMomentAdvancedInfo = async (
 
     const { saleConfig: onChainSale } = await getMomentOnChainInfo(moment);
     return {
+      id: momentdata.id,
       uri,
       owner,
       saleConfig: convertOnChainSaleToApi(onChainSale),
@@ -48,6 +50,7 @@ export const getMomentAdvancedInfo = async (
     tokenUri,
   } = await getMomentOnChainInfo(moment);
   return {
+    id: null,
     uri: tokenUri,
     owner: tokenOwner as string,
     saleConfig: convertOnChainSaleToApi(onChainSale),
