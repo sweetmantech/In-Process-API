@@ -30,25 +30,25 @@ export async function POST(req: NextRequest) {
         chainId: CHAIN_ID,
       },
     });
-    if (!moment) throw new Error('Moment not found');
 
-    const momentData = moment?.[0] ?? null;
-    if (momentData) {
-      const { data: messageMoment } = await upsertMessageMoment({
-        moment: momentData.id,
-        message: messageId,
-      });
-      if (messageMoment) {
-        return NextResponse.json({
-          success: true,
-          messageMoment,
-        });
-      }
+    const momentData = moment?.[0];
+    if (!momentData) throw new Error('Moment not found');
+
+    const { data: messageMoment } = await upsertMessageMoment({
+      moment: momentData.id,
+      message: messageId,
+    });
+    if (!messageMoment) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to index message' },
+        { status: 500 }
+      );
     }
-    return NextResponse.json(
-      { success: false, error: 'Failed to index message' },
-      { status: 500 }
-    );
+
+    return NextResponse.json({
+      success: true,
+      messageMoment,
+    });
   } catch (error: any) {
     console.error('Error fetching message:', error);
     return NextResponse.json(
