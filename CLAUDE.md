@@ -67,6 +67,42 @@ Both return an `artistAddress` for the authenticated user.
 - Zod v4 schemas for input validation (use `.superRefine()` for custom validation)
 - Standard error responses with status codes
 
+#### Route Handler Pattern
+
+Separate validation and business logic into `@/lib/<domain>/` files:
+
+```typescript
+// @/lib/messages/validateMessageIdBody.ts - Validation helper
+export const validateMessageIdBody = async (request: NextRequest) => {
+  const body = await request.json();
+  const validationResult = validate(messageIdSchema, body);
+  if (!validationResult.success) {
+    return validationResult.response;
+  }
+  return validationResult.data;
+};
+
+// @/lib/messages/indexMomentHandler.ts - Business logic handler
+const indexMomentHandler = async (messageId: string) => {
+  // ... business logic
+  return NextResponse.json({ success: true, data });
+};
+
+// @/app/api/message/index-moment/route.ts - Thin route file
+export async function POST(req: NextRequest) {
+  try {
+    const validated = await validateMessageIdBody(req);
+    if (validated instanceof NextResponse) {
+      return validated;
+    }
+    const { messageId } = validated;
+    return indexMomentHandler(messageId);
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message }, { status: 500 });
+  }
+}
+```
+
 ### Telnyx Types
 
 Use `InboundMessagePayload` from `telnyx/resources/shared`:
