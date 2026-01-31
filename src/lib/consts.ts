@@ -39,3 +39,6 @@ export const TELNYX_MESSAGING_PROFILE_ID =
 export const ARWEAVE_KEY = JSON.parse(
   Buffer.from(process.env.ARWEAVE_KEY as string, 'base64').toString()
 );
+
+export const MOMENT_URL_REGEX =
+  /https:\/\/inprocess\.world\/sms\/base:0x[a-fA-F0-9]+\/\d+/;

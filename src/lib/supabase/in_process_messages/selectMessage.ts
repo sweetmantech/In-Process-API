@@ -1,6 +1,22 @@
 import { supabase } from '../client';
+import { Tables } from '../types';
+import { PostgrestError } from '@supabase/supabase-js';
 
-const selectMessage = async (messageId: string) => {
+export type MessageWithRelations = Tables<'in_process_messages'> & {
+  metadata: Tables<'in_process_message_metadata'>;
+  moment:
+    | (Tables<'in_process_moments'> & {
+        collection: Tables<'in_process_collections'>;
+      })
+    | null;
+};
+
+const selectMessage = async (
+  messageId: string
+): Promise<{
+  data: MessageWithRelations | null;
+  error: PostgrestError | null;
+}> => {
   const { data, error } = await supabase
     .from('in_process_messages')
     .select(
