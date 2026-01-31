@@ -64,7 +64,6 @@ Both return an `artistAddress` for the authenticated user.
 ### API Routes
 
 - All routes use `export const dynamic = 'force-dynamic'`
-- CORS headers via `getCorsHeader()`
 - Zod v4 schemas for input validation (use `.superRefine()` for custom validation)
 - Standard error responses with status codes
 
