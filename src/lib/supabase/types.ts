@@ -316,14 +316,17 @@ export type Database = {
       };
       in_process_message_moment: {
         Row: {
+          id: string;
           message: string;
           moment: string;
         };
         Insert: {
+          id?: string;
           message: string;
           moment: string;
         };
         Update: {
+          id?: string;
           message?: string;
           moment?: string;
         };
