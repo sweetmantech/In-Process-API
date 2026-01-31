@@ -38,12 +38,7 @@ export async function POST(req: NextRequest) {
       moment: momentData.id,
       message: messageId,
     });
-    if (!messageMoment) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to index message' },
-        { status: 500 }
-      );
-    }
+    if (!messageMoment) throw new Error('Failed to index message');
 
     return NextResponse.json({
       success: true,
@@ -52,7 +47,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching message:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to fetch message' },
+      { error: error?.message || 'Failed to index message' },
       { status: 500 }
     );
   }
