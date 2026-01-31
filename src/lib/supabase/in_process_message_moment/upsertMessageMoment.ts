@@ -16,7 +16,7 @@ const upsertMessageMoment = async ({
         onConflict: 'message,moment',
       }
     )
-    .select()
+    .select('*, message(*), moment(*)')
     .single();
 
   if (error) return { error, data: null };

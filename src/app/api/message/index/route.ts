@@ -37,12 +37,21 @@ export async function GET(req: NextRequest) {
 
     const momentData = moment?.[0] ?? null;
     if (momentData) {
-      await upsertMessageMoment({
+      const { data: messageMoment } = await upsertMessageMoment({
         moment: momentData.id,
         message: messageId,
       });
+      if (messageMoment) {
+        return NextResponse.json({
+          success: true,
+          messageMoment,
+        });
+      }
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { success: false, error: 'Failed to index message' },
+      { status: 500 }
+    );
   } catch (error: any) {
     console.error('Error fetching message:', error);
     return NextResponse.json(
