@@ -14,7 +14,7 @@ export async function logMessage(
   artistAddress?: string
 ) {
   const { data: metadata } = await insertMessageMetadata({
-    client: 'telegram',
+    client: 'sms',
     artist_address: artistAddress,
   });
   if (metadata) {
