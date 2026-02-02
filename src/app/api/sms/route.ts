@@ -1,10 +1,12 @@
 import { NextRequest } from 'next/server';
 import client from '@/lib/telnyx/client';
 import type { InboundMessageWebhookEvent } from 'telnyx/resources/webhooks';
-import { sendSms } from '@/lib/phones/sendSms';
 import { processMmsMedia } from '@/lib/phones/processMmsMedia';
 import selectPhone from '@/lib/supabase/in_process_artist_phones/selectPhone';
-import verifyPhone from '@/lib/phones/verifyPhone';
+import { logMessage } from '@/lib/messages/logMessage';
+import { processMessageFromNewbie } from '@/lib/messages/processMessageFromNewbie';
+import { processVerificationRequestMessage } from '@/lib/messages/processVerificationRequestMessage';
+import processVerificationMessage from '@/lib/messages/processVerificationMessage';
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,25 +42,30 @@ export async function POST(req: NextRequest) {
       if (fromPhoneNumber) {
         const { data: phone } = await selectPhone(fromPhoneNumber);
         if (phone) {
+          await logMessage(
+            [
+              {
+                type: 'text',
+                text: messageText || '',
+              },
+            ],
+            'user',
+            phone.artist_address
+          );
           if (phone.verified) {
             if (media && media?.length > 0)
               await processMmsMedia(phone, media[0], event.data.payload);
           } else {
             if (messageText === 'yes') {
-              await verifyPhone(fromPhoneNumber);
-            } else {
-              await sendSms(
-                fromPhoneNumber,
-                "Your phone number is not verified. Please reply 'yes' to verify your phone number."
+              await processVerificationMessage(fromPhoneNumber);
+            } else
+              await processVerificationRequestMessage(
+                messageText || '',
+                fromPhoneNumber
               );
-            }
           }
-        } else {
-          await sendSms(
-            fromPhoneNumber,
-            'Welcome to In Process! To get started please visit https://inprocess.world/manage and link your phone number.'
-          );
-        }
+        } else
+          await processMessageFromNewbie(messageText || '', fromPhoneNumber);
       }
     }
 
