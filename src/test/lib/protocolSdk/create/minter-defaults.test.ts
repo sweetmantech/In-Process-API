@@ -1,5 +1,5 @@
 import { describe, it, expect, assert } from 'vitest';
-import { parseNameIntoSymbol } from './minter-defaults';
+import { parseNameIntoSymbol } from '@/lib/protocolSdk/create/minter-defaults';
 
 describe('parseNameIntoSymbol', () => {
   it('removes spaces and vowels and converts to uppercase', () => {

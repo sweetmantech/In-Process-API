@@ -1,8 +1,8 @@
 import type { InboundMessagePayload } from 'telnyx/resources/shared';
 import createMomentFromMedia from '@/lib/phones/createMomentFromMedia';
-import { sendSms } from '@/lib/phones/sendSms';
-import { IS_TESTNET, SITE_ORIGINAL_URL } from '@/lib/consts';
-import { Database } from '../supabase/types';
+import { Database } from '@/lib/supabase/types';
+import { processVideoMessage } from '@/lib/messages/processVideoMessage';
+import { processMomentMessage } from '@/lib/messages/processMomentMessage';
 
 export const processMmsMedia = async (
   phone: Database['public']['Tables']['in_process_artist_phones']['Row'] & {
@@ -12,10 +12,7 @@ export const processMmsMedia = async (
   payload: InboundMessagePayload | undefined
 ): Promise<{ contractAddress: string; tokenId: string } | void> => {
   if (media.content_type?.includes('video')) {
-    await sendSms(
-      phone.phone_number,
-      'Sorry, videos are not supported because their quality is significantly degraded when sent via SMS text message. Please go to https://inprocess.world/create to upload videos.'
-    );
+    await processVideoMessage(phone.phone_number, phone.artist.address);
     return;
   }
   const { contractAddress, tokenId } = await createMomentFromMedia(
@@ -23,9 +20,11 @@ export const processMmsMedia = async (
     payload,
     phone.artist.address
   );
-  await sendSms(
+  await processMomentMessage(
+    contractAddress,
+    tokenId,
     phone.phone_number,
-    `Moment created! ${SITE_ORIGINAL_URL}/sms/${IS_TESTNET ? 'bsep' : 'base'}:${contractAddress}/${tokenId}`
+    phone.artist.address
   );
   return { contractAddress, tokenId };
 };
