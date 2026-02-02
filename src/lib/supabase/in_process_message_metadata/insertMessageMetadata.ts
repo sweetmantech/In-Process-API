@@ -1,5 +1,5 @@
-import { supabase } from '../client';
-import { TablesInsert } from '../types';
+import { supabase } from '@/lib/supabase/client';
+import { TablesInsert } from '@/lib/supabase/types';
 
 const insertMessageMetadata = async ({
   artist_address,

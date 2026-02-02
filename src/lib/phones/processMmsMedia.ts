@@ -1,8 +1,8 @@
 import type { InboundMessagePayload } from 'telnyx/resources/shared';
 import createMomentFromMedia from '@/lib/phones/createMomentFromMedia';
-import { Database } from '../supabase/types';
-import { processVideoMessage } from '../messages/processVideoMessage';
-import { processMomentMessage } from '../messages/processMomentMessage';
+import { Database } from '@/lib/supabase/types';
+import { processVideoMessage } from '@/lib/messages/processVideoMessage';
+import { processMomentMessage } from '@/lib/messages/processMomentMessage';
 
 export const processMmsMedia = async (
   phone: Database['public']['Tables']['in_process_artist_phones']['Row'] & {
