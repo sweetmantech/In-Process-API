@@ -17,7 +17,8 @@ const selectMessages = async ({
   let query = supabase
     .from('in_process_messages')
     .select(
-      `*, metadata:in_process_message_metadata!inner(*), moment:in_process_message_moment${momentJoin}(in_process_moments!inner(*, collection:in_process_collections(*)))`
+      `*, metadata:in_process_message_metadata!inner(*), moment:in_process_message_moment${momentJoin}(in_process_moments!inner(*, collection:in_process_collections(*)))`,
+      { count: 'exact' }
     );
 
   if (messageId) {
@@ -32,11 +33,11 @@ const selectMessages = async ({
     }
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
   if (error) {
-    return { data: null, error };
+    return { data: null, error, count: null };
   }
-  return { data, error };
+  return { data, error, count };
 };
 
 export default selectMessages;

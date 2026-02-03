@@ -1,6 +1,8 @@
-import selectMessage from '@/lib/supabase/in_process_messages/selectMessages';
+import selectMessages from '@/lib/supabase/in_process_messages/selectMessages';
 
-type Message = NonNullable<Awaited<ReturnType<typeof selectMessage>>['data']>;
+type Message = NonNullable<
+  Awaited<ReturnType<typeof selectMessages>>['data']
+>[number];
 
 const getMomentFromMessage = (message: Message) => {
   if (!message.parts) return null;

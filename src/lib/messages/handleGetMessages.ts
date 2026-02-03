@@ -14,7 +14,7 @@ const handleGetMessages = async ({
   page: number;
   limit: number;
 }) => {
-  const { data, error } = await selectMessages({
+  const { data, error, count } = await selectMessages({
     artistAddress: ADMIN_ADDRESSES.includes(artistAddress.toLowerCase())
       ? undefined
       : artistAddress,
@@ -38,7 +38,10 @@ const handleGetMessages = async ({
     return NextResponse.json({ error: 'Message not found' }, { status: 404 });
   }
 
-  return NextResponse.json(formatMessages(data));
+  return NextResponse.json({
+    messages: formatMessages(data),
+    count,
+  });
 };
 
 export default handleGetMessages;

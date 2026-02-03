@@ -6,7 +6,8 @@ import { CHAIN_ID } from '@/lib/consts';
 import upsertMessageMoment from '@/lib/supabase/in_process_message_moment/upsertMessageMoment';
 
 const indexMomentHandler = async (messageId: string) => {
-  const { data: message } = await selectMessage(messageId);
+  const { data: messages } = await selectMessage({ messageId });
+  const message = messages?.[0];
   if (!message) {
     return NextResponse.json({ error: 'Message not found' }, { status: 404 });
   }
