@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import handleGetMessage from './handleGetMessage';
 import handleGetMessages from './handleGetMessages';
 
@@ -14,15 +15,23 @@ const getMessagesHandler = async ({
   page?: number;
   limit?: number;
 }) => {
-  if (messageId) return handleGetMessage({ messageId });
+  if (messageId) {
+    return handleGetMessage({ messageId });
+  }
 
-  if (artistAddress)
+  if (artistAddress) {
     return handleGetMessages({
       artistAddress,
-      moment: moment === 'true' ? true : false,
+      moment: moment === 'true',
       page,
       limit,
     });
+  }
+
+  return NextResponse.json(
+    { error: 'messageId or artistAddress required' },
+    { status: 400 }
+  );
 };
 
 export default getMessagesHandler;
