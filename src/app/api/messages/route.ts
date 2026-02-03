@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateMessageIdParam } from '@/lib/messages/validateMessageIdParam';
-import getMessageHandler from '@/lib/messages/getMessageHandler';
+import { validateMessagesParam } from '@/lib/messages/validateMessagesParam';
+import getMessagesHandler from '@/lib/messages/getMessagesHandler';
 
 export async function GET(req: NextRequest) {
   try {
-    const validated = validateMessageIdParam(req);
+    const validated = await validateMessagesParam(req);
 
     if (validated instanceof NextResponse) {
       return validated;
     }
-    const { messageId } = validated;
+    const { messageId, page, limit, artistAddress, moment } = validated;
 
-    return getMessageHandler(messageId);
+    return getMessagesHandler({
+      artistAddress,
+      moment,
+      messageId,
+      page,
+      limit,
+    });
   } catch (error: any) {
     console.error('Error fetching message:', error);
     return NextResponse.json(

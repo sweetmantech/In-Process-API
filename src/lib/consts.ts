@@ -39,3 +39,8 @@ export const TELNYX_MESSAGING_PROFILE_ID =
 export const ARWEAVE_KEY = JSON.parse(
   Buffer.from(process.env.ARWEAVE_KEY as string, 'base64').toString()
 );
+
+export const ADMIN_ADDRESSES = [
+  '0xaf1452d289e22fbd0dea9d5097353c72a90fac33',
+  '0xcfbf34d385ea2d5eb947063b67ea226dcda3dc38',
+];

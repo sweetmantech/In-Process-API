@@ -1,8 +1,11 @@
+import selectMessages from '@/lib/supabase/in_process_messages/selectMessages';
 import { NextResponse } from 'next/server';
-import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
+import formatMessages from './formatMessages';
 
-const getMessageHandler = async (messageId: string) => {
-  const { data, error } = await selectMessage(messageId);
+const handleGetMessage = async ({ messageId }: { messageId: string }) => {
+  const { data, error } = await selectMessages({
+    messageId,
+  });
 
   if (error) {
     if (error.code === 'PGRST116') {
@@ -19,12 +22,11 @@ const getMessageHandler = async (messageId: string) => {
     return NextResponse.json({ error: 'Message not found' }, { status: 404 });
   }
 
-  const momentData = data.moment?.[0]?.in_process_moments ?? null;
+  const formattedData = formatMessages(data)?.[0] ?? null;
 
   return NextResponse.json({
-    ...data,
-    moment: momentData,
+    ...formattedData,
   });
 };
 
-export default getMessageHandler;
+export default handleGetMessage;

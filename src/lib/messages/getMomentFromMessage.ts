@@ -1,4 +1,4 @@
-import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
+import selectMessage from '@/lib/supabase/in_process_messages/selectMessages';
 
 type Message = NonNullable<Awaited<ReturnType<typeof selectMessage>>['data']>;
 

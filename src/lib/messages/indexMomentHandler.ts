@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
+import selectMessage from '@/lib/supabase/in_process_messages/selectMessages';
 import getMomentFromMessage from '@/lib/messages/getMomentFromMessage';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { CHAIN_ID } from '@/lib/consts';
