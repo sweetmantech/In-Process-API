@@ -1,10 +1,6 @@
-import selectMessages from '@/lib/supabase/in_process_messages/selectMessages';
+import { FormattedMessage } from './formatMessages';
 
-type Message = NonNullable<
-  Awaited<ReturnType<typeof selectMessages>>['data']
->[number];
-
-const getMomentFromMessage = (message: Message) => {
+const getMomentFromMessage = (message: FormattedMessage) => {
   if (!message.parts) return null;
   const MOMENT_URL_REGEX =
     /https:\/\/inprocess\.world\/sms\/base:(0x[a-fA-F0-9]+)\/(\d+)/;

@@ -15,17 +15,18 @@ const selectMessages = async ({
 }) => {
   const momentJoin = moment ? '!inner' : '';
   let query = supabase
-    .from('in_process_messages')
+    .from('in_process_message_metadata')
     .select(
-      `*, metadata:in_process_message_metadata!inner(*), moment:in_process_message_moment${momentJoin}(in_process_moments!inner(*, collection:in_process_collections(*)))`,
+      `*, messages:in_process_messages!inner(*, moment:in_process_message_moment${momentJoin}(in_process_moments!inner(*, collection:in_process_collections(*))))`,
       { count: 'exact' }
-    );
+    )
+    .order('created_at', { ascending: false });
 
   if (messageId) {
-    query = query.eq('id', messageId);
+    query = query.eq('messages.id', messageId);
   } else {
     if (artistAddress) {
-      query = query.eq('metadata.artist_address', artistAddress);
+      query = query.eq('artist_address', artistAddress);
     }
 
     if (limit) {
@@ -38,6 +39,7 @@ const selectMessages = async ({
   if (error) {
     return { data: null, error, count: null };
   }
+
   return { data, error, count };
 };
 

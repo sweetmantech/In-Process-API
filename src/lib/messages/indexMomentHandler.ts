@@ -4,10 +4,16 @@ import getMomentFromMessage from '@/lib/messages/getMomentFromMessage';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { CHAIN_ID } from '@/lib/consts';
 import upsertMessageMoment from '@/lib/supabase/in_process_message_moment/upsertMessageMoment';
+import formatMessages from './formatMessages';
 
 const indexMomentHandler = async (messageId: string) => {
-  const { data: messages } = await selectMessage({ messageId });
-  const message = messages?.[0];
+  const { data } = await selectMessage({ messageId });
+  if (!data?.length) {
+    return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+  }
+
+  const messages = formatMessages(data);
+  const message = messages[0];
   if (!message) {
     return NextResponse.json({ error: 'Message not found' }, { status: 404 });
   }
