@@ -28,8 +28,9 @@ const selectMessages = async ({
       query = query.eq('metadata.artist_address', artistAddress);
     }
 
-    if (page && limit) {
-      query = query.range((page - 1) * limit, page * limit - 1);
+    if (limit) {
+      const p = page ?? 1;
+      query = query.range((p - 1) * limit, p * limit - 1);
     }
   }
 
