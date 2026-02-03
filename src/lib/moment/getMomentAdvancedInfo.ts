@@ -8,18 +8,11 @@ import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 export const getMomentAdvancedInfo = async (
   moment: Moment
 ): Promise<MomentAdvancedInfo> => {
-  const { data: moments, error: momentsError } = await selectMoments({
+  const { data: moments } = await selectMoments({
     moment,
   });
 
-  if (momentsError) {
-    throw new Error('Failed to get moments');
-  }
-
   const momentdata = moments?.[0];
-  if (!momentdata) {
-    throw new Error('Moment not found');
-  }
 
   if (momentdata) {
     const uri = momentdata.uri;
