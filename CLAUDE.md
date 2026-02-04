@@ -67,9 +67,15 @@ Both return an `artistAddress` for the authenticated user.
 - Zod v4 schemas for input validation (use `.superRefine()` for custom validation)
 - Standard error responses with status codes
 
-#### Route Handler Pattern
+#### Code Organization (SRP)
 
-Separate validation and business logic into `@/lib/<domain>/` files:
+Follow the Single Responsibility Principle:
+
+- **One function per file** - Each utility function should be in its own file with a default export
+- **Thin route files** - Route handlers should only call validators and handlers
+- Separate validation and business logic into `@/lib/<domain>/` files
+
+#### Route Handler Pattern
 
 ```typescript
 // @/lib/messages/validateMessageIdBody.ts - Validation helper

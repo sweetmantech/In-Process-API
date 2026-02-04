@@ -1,47 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
-
-interface StreamRange {
-  start: number;
-  end: number | undefined;
-}
-
-const parseRangeHeader = (
-  rangeHeader: string | null,
-  totalSize: number
-): StreamRange | null => {
-  if (!rangeHeader) return null;
-
-  const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
-  if (!match) return null;
-
-  const start = parseInt(match[1], 10);
-  const end = match[2] ? parseInt(match[2], 10) : undefined;
-
-  if (isNaN(start) || start < 0 || start >= totalSize) {
-    return null;
-  }
-
-  if (end !== undefined && (isNaN(end) || end < start || end >= totalSize)) {
-    return null;
-  }
-
-  return { start, end };
-};
-
-const getContentInfo = async (url: string) => {
-  const response = await fetch(url, { method: 'HEAD' });
-  const contentLength = response.headers.get('content-length');
-  const acceptRanges = response.headers.get('accept-ranges');
-  const contentType =
-    response.headers.get('content-type') || 'application/octet-stream';
-
-  return {
-    totalSize: contentLength ? parseInt(contentLength, 10) : null,
-    supportsRange: acceptRanges === 'bytes',
-    contentType,
-  };
-};
+import parseRangeHeader from './parseRangeHeader';
+import getContentInfo from './getContentInfo';
 
 const audioStreamHandler = async ({
   url,
