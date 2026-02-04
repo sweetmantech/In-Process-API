@@ -18,8 +18,18 @@ const audioStreamHandler = async ({
     );
   }
 
-  const { totalSize, supportsRange, contentType } =
-    await getContentInfo(fetchableUrl);
+  const contentInfo = await getContentInfo(fetchableUrl);
+
+  if (!contentInfo.ok) {
+    return NextResponse.json(
+      {
+        error: `Origin returned ${contentInfo.status}: ${contentInfo.statusText}`,
+      },
+      { status: contentInfo.status }
+    );
+  }
+
+  const { totalSize, supportsRange, contentType } = contentInfo;
 
   if (!totalSize) {
     return NextResponse.json(
@@ -57,6 +67,13 @@ const audioStreamHandler = async ({
     return NextResponse.json({ error: 'No response body' }, { status: 502 });
   }
 
+  const actuallyPartial = isPartial && response.status === 206;
+
+  if (!actuallyPartial) {
+    start = 0;
+    end = totalSize - 1;
+  }
+
   const contentLength = end - start + 1;
 
   const responseHeaders = new Headers({
@@ -66,12 +83,12 @@ const audioStreamHandler = async ({
     'Cache-Control': 'public, max-age=31536000, immutable',
   });
 
-  if (isPartial) {
+  if (actuallyPartial) {
     responseHeaders.set('Content-Range', `bytes ${start}-${end}/${totalSize}`);
   }
 
   return new Response(response.body, {
-    status: isPartial ? 206 : 200,
+    status: actuallyPartial ? 206 : 200,
     headers: responseHeaders,
   });
 };

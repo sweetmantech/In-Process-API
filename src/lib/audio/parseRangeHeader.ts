@@ -9,7 +9,9 @@ const parseRangeHeader = (
 ): StreamRange | null => {
   if (!rangeHeader) return null;
 
-  const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+  if (rangeHeader.includes(',')) return null;
+
+  const match = rangeHeader.match(/^bytes=(\d+)-(\d*)$/);
   if (!match) return null;
 
   const start = parseInt(match[1], 10);
