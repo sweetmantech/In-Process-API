@@ -3,6 +3,7 @@ export type ContentInfoSuccess = {
   totalSize: number | null;
   supportsRange: boolean;
   contentType: string;
+  finalUrl: string;
 };
 
 export type ContentInfoError = {
@@ -14,7 +15,7 @@ export type ContentInfoError = {
 export type ContentInfoResult = ContentInfoSuccess | ContentInfoError;
 
 const getContentInfo = async (url: string): Promise<ContentInfoResult> => {
-  const response = await fetch(url, { method: 'HEAD' });
+  const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
 
   if (!response.ok) {
     return {
@@ -29,11 +30,15 @@ const getContentInfo = async (url: string): Promise<ContentInfoResult> => {
   const contentType =
     response.headers.get('content-type') || 'application/octet-stream';
 
+  // Use the final URL after any redirects
+  const finalUrl = response.url || url;
+
   return {
     ok: true,
     totalSize: contentLength ? parseInt(contentLength, 10) : null,
     supportsRange: acceptRanges === 'bytes',
     contentType,
+    finalUrl,
   };
 };
 

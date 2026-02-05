@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import parseRangeHeader from '@/lib/audio/parseRangeHeader';
+import parseRangeHeader from '@/lib/media/parseRangeHeader';
 
 describe('parseRangeHeader', () => {
   const totalSize = 1000;

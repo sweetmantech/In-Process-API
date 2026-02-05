@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import getContentInfo from '@/lib/audio/getContentInfo';
+import getContentInfo from '@/lib/media/getContentInfo';
 
 describe('getContentInfo', () => {
   beforeEach(() => {
@@ -9,79 +9,110 @@ describe('getContentInfo', () => {
   it('should return success with content info on OK response', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
+      url: 'https://example.com/video.mp4',
       headers: new Headers({
         'content-length': '12345',
         'accept-ranges': 'bytes',
-        'content-type': 'audio/mpeg',
+        'content-type': 'video/mp4',
       }),
     } as Response);
 
-    const result = await getContentInfo('https://example.com/audio.mp3');
+    const result = await getContentInfo('https://example.com/video.mp4');
 
-    expect(fetch).toHaveBeenCalledWith('https://example.com/audio.mp3', {
+    expect(fetch).toHaveBeenCalledWith('https://example.com/video.mp4', {
       method: 'HEAD',
+      redirect: 'follow',
     });
     expect(result).toEqual({
       ok: true,
       totalSize: 12345,
       supportsRange: true,
-      contentType: 'audio/mpeg',
+      contentType: 'video/mp4',
+      finalUrl: 'https://example.com/video.mp4',
+    });
+  });
+
+  it('should return final URL after redirect', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      url: 'https://cdn.example.com/video.mp4',
+      headers: new Headers({
+        'content-length': '12345',
+        'accept-ranges': 'bytes',
+        'content-type': 'video/mp4',
+      }),
+    } as Response);
+
+    const result = await getContentInfo('https://example.com/video.mp4');
+
+    expect(result).toEqual({
+      ok: true,
+      totalSize: 12345,
+      supportsRange: true,
+      contentType: 'video/mp4',
+      finalUrl: 'https://cdn.example.com/video.mp4',
     });
   });
 
   it('should return supportsRange false when accept-ranges is not bytes', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
+      url: 'https://example.com/video.mp4',
       headers: new Headers({
         'content-length': '12345',
-        'content-type': 'audio/mpeg',
+        'content-type': 'video/mp4',
       }),
     } as Response);
 
-    const result = await getContentInfo('https://example.com/audio.mp3');
+    const result = await getContentInfo('https://example.com/video.mp4');
 
     expect(result).toEqual({
       ok: true,
       totalSize: 12345,
       supportsRange: false,
-      contentType: 'audio/mpeg',
+      contentType: 'video/mp4',
+      finalUrl: 'https://example.com/video.mp4',
     });
   });
 
   it('should return null totalSize when content-length is missing', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
+      url: 'https://example.com/video.mp4',
       headers: new Headers({
         'accept-ranges': 'bytes',
-        'content-type': 'audio/mpeg',
+        'content-type': 'video/mp4',
       }),
     } as Response);
 
-    const result = await getContentInfo('https://example.com/audio.mp3');
+    const result = await getContentInfo('https://example.com/video.mp4');
 
     expect(result).toEqual({
       ok: true,
       totalSize: null,
       supportsRange: true,
-      contentType: 'audio/mpeg',
+      contentType: 'video/mp4',
+      finalUrl: 'https://example.com/video.mp4',
     });
   });
 
   it('should return default content-type when missing', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
+      url: 'https://example.com/video.mp4',
       headers: new Headers({
         'content-length': '12345',
       }),
     } as Response);
 
-    const result = await getContentInfo('https://example.com/audio.mp3');
+    const result = await getContentInfo('https://example.com/video.mp4');
 
     expect(result).toEqual({
       ok: true,
       totalSize: 12345,
       supportsRange: false,
       contentType: 'application/octet-stream',
+      finalUrl: 'https://example.com/video.mp4',
     });
   });
 
@@ -93,7 +124,7 @@ describe('getContentInfo', () => {
       headers: new Headers(),
     } as Response);
 
-    const result = await getContentInfo('https://example.com/notfound.mp3');
+    const result = await getContentInfo('https://example.com/notfound.mp4');
 
     expect(result).toEqual({
       ok: false,
@@ -110,7 +141,7 @@ describe('getContentInfo', () => {
       headers: new Headers(),
     } as Response);
 
-    const result = await getContentInfo('https://example.com/private.mp3');
+    const result = await getContentInfo('https://example.com/private.mp4');
 
     expect(result).toEqual({
       ok: false,
@@ -127,7 +158,7 @@ describe('getContentInfo', () => {
       headers: new Headers(),
     } as Response);
 
-    const result = await getContentInfo('https://example.com/error.mp3');
+    const result = await getContentInfo('https://example.com/error.mp4');
 
     expect(result).toEqual({
       ok: false,
