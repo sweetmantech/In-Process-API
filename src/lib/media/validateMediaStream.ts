@@ -1,17 +1,17 @@
-import { audioStreamSchema } from '@/lib/schema/audioStreamSchema';
+import { mediaStreamSchema } from '@/lib/schema/mediaStreamSchema';
 import { NextRequest, NextResponse } from 'next/server';
 import { validate } from '@/lib/schema/validate';
 import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
 import getContentInfo from './getContentInfo';
 
-export const validateAudioStream = async (request: NextRequest) => {
+export const validateMediaStream = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
   const queryParams = {
     url: searchParams.get('url') ?? undefined,
   };
 
-  const validationResult = validate(audioStreamSchema, queryParams);
+  const validationResult = validate(mediaStreamSchema, queryParams);
   if (!validationResult.success) {
     return validationResult.response;
   }
