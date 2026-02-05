@@ -1,43 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
 import parseRangeHeader from './parseRangeHeader';
-import getContentInfo from './getContentInfo';
 
 const audioStreamHandler = async ({
-  url,
+  fetchableUrl,
+  totalSize,
+  supportsRange,
+  contentType,
   rangeHeader,
 }: {
-  url: string;
+  fetchableUrl: string;
+  totalSize: number;
+  supportsRange: boolean;
+  contentType: string;
   rangeHeader: string | null;
 }) => {
-  const fetchableUrl = getFetchableUrl(url);
-  if (!fetchableUrl) {
-    return NextResponse.json(
-      { error: 'Invalid or unsupported URL format' },
-      { status: 400 }
-    );
-  }
-
-  const contentInfo = await getContentInfo(fetchableUrl);
-
-  if (!contentInfo.ok) {
-    return NextResponse.json(
-      {
-        error: `Origin returned ${contentInfo.status}: ${contentInfo.statusText}`,
-      },
-      { status: contentInfo.status }
-    );
-  }
-
-  const { totalSize, supportsRange, contentType } = contentInfo;
-
-  if (!totalSize) {
-    return NextResponse.json(
-      { error: 'Unable to determine content length' },
-      { status: 502 }
-    );
-  }
-
   const range = parseRangeHeader(rangeHeader, totalSize);
   const isPartial = !!(range && supportsRange);
 
