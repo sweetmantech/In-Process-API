@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateAudioStream } from '@/lib/audio/validateAudioStream';
+import { validateAudioStreamParam } from '@/lib/audio/validateAudioStreamParam';
 import audioStreamHandler from '@/lib/audio/audioStreamHandler';
 
 export async function GET(req: NextRequest) {
   try {
-    const validated = await validateAudioStream(req);
+    const validated = await validateAudioStreamParam(req);
 
     if (validated instanceof NextResponse) {
       return validated;
     }
 
-    return audioStreamHandler(validated);
+    const { url, rangeHeader } = validated;
+
+    return audioStreamHandler({ url, rangeHeader });
   } catch (error: any) {
     console.error('Audio stream error:', error);
     return NextResponse.json(
