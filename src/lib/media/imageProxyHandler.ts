@@ -25,7 +25,7 @@ const imageProxyHandler = async ({
 
   if (!response.ok) {
     return NextResponse.json(
-      { error: `Failed to fetch image: ${response.status}` },
+      { status: 'error', message: `Failed to fetch image: ${response.status}` },
       { status: response.status }
     );
   }

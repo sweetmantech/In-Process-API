@@ -83,7 +83,8 @@ describe('validateImageProxy', () => {
       const response = result as NextResponse;
       expect(response.status).toBe(400);
       const body = await response.json();
-      expect(body.error).toBe('Invalid or unsupported URL format');
+      expect(body.status).toBe('error');
+      expect(body.message).toBe('Invalid or unsupported URL format');
     });
 
     it('should return 400 for http:// URL', async () => {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import parseRangeHeader from './parseRangeHeader';
 
-const audioStreamHandler = async ({
+const mediaStreamHandler = async ({
   fetchableUrl,
   totalSize,
   supportsRange,
@@ -34,7 +34,7 @@ const audioStreamHandler = async ({
 
   if (!response.ok && response.status !== 206) {
     return NextResponse.json(
-      { error: `Failed to fetch audio: ${response.status}` },
+      { error: `Failed to fetch media: ${response.status}` },
       { status: response.status }
     );
   }
@@ -69,4 +69,4 @@ const audioStreamHandler = async ({
   });
 };
 
-export default audioStreamHandler;
+export default mediaStreamHandler;

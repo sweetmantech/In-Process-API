@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextResponse } from 'next/server';
-import audioStreamHandler from '@/lib/audio/audioStreamHandler';
+import mediaStreamHandler from '@/lib/media/mediaStreamHandler';
 
 const createMockStream = () => {
   return new ReadableStream({
@@ -11,7 +11,7 @@ const createMockStream = () => {
   });
 };
 
-describe('audioStreamHandler', () => {
+describe('mediaStreamHandler', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -24,7 +24,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -46,7 +46,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -66,7 +66,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: false,
@@ -90,7 +90,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -113,7 +113,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -133,7 +133,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -155,7 +155,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -174,7 +174,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -192,7 +192,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -212,7 +212,7 @@ describe('audioStreamHandler', () => {
         body: null,
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -231,7 +231,7 @@ describe('audioStreamHandler', () => {
         body: null,
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -250,7 +250,7 @@ describe('audioStreamHandler', () => {
         body: null,
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -271,7 +271,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
@@ -291,7 +291,7 @@ describe('audioStreamHandler', () => {
         body: createMockStream(),
       } as Response);
 
-      const result = await audioStreamHandler({
+      const result = await mediaStreamHandler({
         fetchableUrl: 'https://example.com/audio.wav',
         totalSize: 1000,
         supportsRange: true,

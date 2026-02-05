@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
-vi.mock('@/lib/audio/getContentInfo', () => ({
+vi.mock('@/lib/media/getContentInfo', () => ({
   default: vi.fn(),
 }));
 
-import getContentInfo from '@/lib/audio/getContentInfo';
-import { validateAudioStream } from '@/lib/audio/validateAudioStream';
+import getContentInfo from '@/lib/media/getContentInfo';
+import { validateMediaStream } from '@/lib/media/validateMediaStream';
 
 const createMockRequest = (url: string, rangeHeader?: string): NextRequest => {
   const headers = new Headers();
@@ -22,15 +22,15 @@ const createMockRequest = (url: string, rangeHeader?: string): NextRequest => {
   } as unknown as NextRequest;
 };
 
-describe('validateAudioStream', () => {
+describe('validateMediaStream', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('schema validation', () => {
     it('should return 400 when url is missing', async () => {
-      const request = createMockRequest('https://api.example.com/audio/stream');
-      const result = await validateAudioStream(request);
+      const request = createMockRequest('https://api.example.com/media/stream');
+      const result = await validateMediaStream(request);
 
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
@@ -39,9 +39,9 @@ describe('validateAudioStream', () => {
 
     it('should return 400 when url is empty', async () => {
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url='
+        'https://api.example.com/media/stream?url='
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
@@ -52,9 +52,9 @@ describe('validateAudioStream', () => {
   describe('URL validation', () => {
     it('should return 400 for invalid URL format', async () => {
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=invalid-url'
+        'https://api.example.com/media/stream?url=invalid-url'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
@@ -65,9 +65,9 @@ describe('validateAudioStream', () => {
 
     it('should return 400 for http:// URL', async () => {
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=http://example.com/audio.mp3'
+        'https://api.example.com/media/stream?url=http://example.com/audio.mp3'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
@@ -84,9 +84,9 @@ describe('validateAudioStream', () => {
       });
 
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=https://example.com/notfound.mp3'
+        'https://api.example.com/media/stream?url=https://example.com/notfound.mp3'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
@@ -103,9 +103,9 @@ describe('validateAudioStream', () => {
       });
 
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=https://example.com/private.mp3'
+        'https://api.example.com/media/stream?url=https://example.com/private.mp3'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
@@ -120,9 +120,9 @@ describe('validateAudioStream', () => {
       });
 
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=https://example.com/error.mp3'
+        'https://api.example.com/media/stream?url=https://example.com/error.mp3'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
@@ -140,9 +140,9 @@ describe('validateAudioStream', () => {
       });
 
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=https://example.com/audio.mp3'
+        'https://api.example.com/media/stream?url=https://example.com/audio.mp3'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
@@ -162,9 +162,9 @@ describe('validateAudioStream', () => {
       });
 
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=https://example.com/audio.mp3'
+        'https://api.example.com/media/stream?url=https://example.com/audio.mp3'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
@@ -185,9 +185,9 @@ describe('validateAudioStream', () => {
       });
 
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=ar://abc123'
+        'https://api.example.com/media/stream?url=ar://abc123'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
@@ -208,10 +208,10 @@ describe('validateAudioStream', () => {
       });
 
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=https://example.com/audio.mp3',
+        'https://api.example.com/media/stream?url=https://example.com/audio.mp3',
         'bytes=0-1024'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
@@ -232,9 +232,9 @@ describe('validateAudioStream', () => {
       });
 
       const request = createMockRequest(
-        'https://api.example.com/audio/stream?url=https://example.com/audio.mp3'
+        'https://api.example.com/media/stream?url=https://example.com/audio.mp3'
       );
-      const result = await validateAudioStream(request);
+      const result = await validateMediaStream(request);
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toMatchObject({

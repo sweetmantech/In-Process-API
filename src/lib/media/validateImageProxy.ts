@@ -24,7 +24,7 @@ export const validateImageProxy = async (request: NextRequest) => {
   const fetchableUrl = getFetchableUrl(url);
   if (!fetchableUrl) {
     return NextResponse.json(
-      { error: 'Invalid or unsupported URL format' },
+      { status: 'error', message: 'Invalid or unsupported URL format' },
       { status: 400 }
     );
   }
