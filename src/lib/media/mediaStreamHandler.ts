@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import parseRangeHeader from './parseRangeHeader';
 
+const MAX_CHUNK_SIZE = 2 * 1024 * 1024; // 2MB
+
 const mediaStreamHandler = async ({
   fetchableUrl,
   totalSize,
@@ -22,7 +24,10 @@ const mediaStreamHandler = async ({
 
   if (isPartial && range) {
     start = range.start;
-    end = range.end !== undefined ? range.end : totalSize - 1;
+    end =
+      range.end !== undefined
+        ? range.end
+        : Math.min(start + MAX_CHUNK_SIZE - 1, totalSize - 1);
   }
 
   const headers: HeadersInit = {};
