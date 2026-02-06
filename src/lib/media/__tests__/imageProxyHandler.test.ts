@@ -5,6 +5,7 @@ import imageProxyHandler from '@/lib/media/imageProxyHandler';
 // Mock sharp
 vi.mock('sharp', () => {
   const mockSharp = vi.fn(() => ({
+    autoOrient: vi.fn().mockReturnThis(),
     resize: vi.fn().mockReturnThis(),
     webp: vi.fn().mockReturnThis(),
     avif: vi.fn().mockReturnThis(),
