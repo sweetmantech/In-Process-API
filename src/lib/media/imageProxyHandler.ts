@@ -33,7 +33,7 @@ const imageProxyHandler = async ({
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  let pipeline = sharp(buffer);
+  let pipeline = sharp(buffer).autoOrient();
 
   // Resize if dimensions provided
   if (width || height) {
