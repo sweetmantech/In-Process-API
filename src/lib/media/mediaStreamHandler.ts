@@ -25,7 +25,7 @@ const mediaStreamHandler = async ({
   if (isPartial && range) {
     start = range.start;
     const cappedEnd = Math.min(start + MAX_CHUNK_SIZE - 1, totalSize - 1);
-    end = range.end !== undefined ? Math.min(range.end, cappedEnd) : cappedEnd;
+    end = range.end !== undefined ? range.end : cappedEnd;
   }
 
   const headers: HeadersInit = {};
