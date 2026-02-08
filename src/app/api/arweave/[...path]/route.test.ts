@@ -5,10 +5,15 @@ import { GET, POST } from './route';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-const createRequest = (path: string, method: string, body?: string) =>
+const createRequest = (
+  path: string,
+  method: string,
+  options?: { body?: string; headers?: Record<string, string> }
+) =>
   new NextRequest(`http://localhost/api/arweave/${path}`, {
     method,
-    ...(body ? { body } : {}),
+    ...(options?.body ? { body: options.body } : {}),
+    headers: options?.headers,
   });
 
 beforeEach(() => {
@@ -27,11 +32,10 @@ describe('GET /api/arweave/[...path]', () => {
     const req = createRequest('tx/abc123', 'GET');
     const res = await GET(req);
 
-    expect(mockFetch).toHaveBeenCalledWith('https://arweave.net/tx/abc123', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      body: undefined,
-    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://arweave.net/tx/abc123',
+      expect.objectContaining({ method: 'GET', body: undefined })
+    );
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toBe('application/json');
   });
@@ -63,6 +67,23 @@ describe('GET /api/arweave/[...path]', () => {
 
     expect(res.headers.get('Content-Type')).toContain('text/plain');
   });
+
+  it('preserves query parameters', async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response('ok', {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain' },
+      })
+    );
+
+    const req = createRequest('graphql?network=mainnet&limit=10', 'GET');
+    await GET(req);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://arweave.net/graphql?network=mainnet&limit=10',
+      expect.objectContaining({ method: 'GET' })
+    );
+  });
 });
 
 describe('POST /api/arweave/[...path]', () => {
@@ -75,15 +96,35 @@ describe('POST /api/arweave/[...path]', () => {
       })
     );
 
-    const req = createRequest('tx', 'POST', postBody);
+    const req = createRequest('tx', 'POST', {
+      body: postBody,
+      headers: { 'Content-Type': 'application/json' },
+    });
     const res = await POST(req);
 
-    expect(mockFetch).toHaveBeenCalledWith('https://arweave.net/tx', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: postBody,
-    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://arweave.net/tx',
+      expect.objectContaining({ method: 'POST', body: postBody })
+    );
     expect(res.status).toBe(200);
+  });
+
+  it('forwards incoming Content-Type header', async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response('ok', {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain' },
+      })
+    );
+
+    const req = createRequest('tx', 'POST', {
+      body: 'raw data',
+      headers: { 'Content-Type': 'application/octet-stream' },
+    });
+    await POST(req);
+
+    const calledHeaders = mockFetch.mock.calls[0][1].headers;
+    expect(calledHeaders.get('Content-Type')).toBe('application/octet-stream');
   });
 
   it('handles nested paths', async () => {
@@ -94,12 +135,25 @@ describe('POST /api/arweave/[...path]', () => {
       })
     );
 
-    const req = createRequest('a/b/c/d', 'POST', 'data');
+    const req = createRequest('a/b/c/d', 'POST', { body: 'data' });
     await POST(req);
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://arweave.net/a/b/c/d',
       expect.objectContaining({ method: 'POST' })
     );
+  });
+});
+
+describe('error handling', () => {
+  it('returns 502 with error details on network failure', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network unreachable'));
+
+    const req = createRequest('tx/abc', 'GET');
+    const res = await GET(req);
+
+    expect(res.status).toBe(502);
+    const body = await res.json();
+    expect(body.error).toBe('Network unreachable');
   });
 });
