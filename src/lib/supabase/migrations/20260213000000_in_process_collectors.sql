@@ -21,4 +21,6 @@ alter table "public"."in_process_collectors" add constraint "in_process_collecto
 
 alter table "public"."in_process_collectors" validate constraint "in_process_collectors_collector_fkey";
 
+CREATE UNIQUE INDEX in_process_collectors_collector_transaction_moment_idx ON public.in_process_collectors USING btree (collector, transaction_hash, moment);
+
 CREATE INDEX in_process_collectors_moment_collector_idx ON public.in_process_collectors USING btree (moment, collector);
