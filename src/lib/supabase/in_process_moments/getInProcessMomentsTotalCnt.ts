@@ -8,7 +8,7 @@ export async function getInProcessMomentsTotalCnt(): Promise<{
 }> {
   const { count, error } = await supabase
     .from('in_process_moments')
-    .select('*, collection:in_process_collections!inner(*)', {
+    .select('id, collection:in_process_collections!inner(chain_id)', {
       count: 'exact',
       head: true,
     })

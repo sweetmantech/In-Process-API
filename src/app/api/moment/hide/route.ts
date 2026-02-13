@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const upserted = await upsertAdmins({
+    await upsertAdmins({
       admins: [
         {
           collection: collection.id,
@@ -77,7 +77,6 @@ export async function POST(req: NextRequest) {
 
     return Response.json({
       success: true,
-      updated: upserted,
     });
   } catch (e: any) {
     console.log(e);

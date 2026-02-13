@@ -9,7 +9,9 @@ const selectCollectors = async ({
 }) => {
   const { data, error } = await supabase
     .from('in_process_collectors')
-    .select('*, artist:in_process_artists!inner(*)')
+    .select(
+      'id, collector, amount, transaction_hash, collected_at, artist:in_process_artists!inner(username)'
+    )
     .eq('moment', momentId)
     .order('collected_at', { ascending: false })
     .range(offset, offset + 19);

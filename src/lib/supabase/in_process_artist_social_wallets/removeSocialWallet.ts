@@ -7,9 +7,7 @@ export async function removeSocialWallet({
   const { error } = await supabase
     .from('in_process_artist_social_wallets')
     .delete()
-    .eq('social_wallet', social_wallet as string)
-    .select()
-    .single();
+    .eq('social_wallet', social_wallet as string);
 
   if (error) return { error };
 
