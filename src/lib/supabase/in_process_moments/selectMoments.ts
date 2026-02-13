@@ -12,7 +12,9 @@ const selectMoments = async ({
 }) => {
   let query = supabase
     .from('in_process_moments')
-    .select('*, collection:in_process_collections!inner(*)');
+    .select(
+      '*, collection:in_process_collections!inner(id, address, chain_id, default_admin)'
+    );
 
   if (moment) {
     const { collectionAddress, chainId, tokenId } = moment;

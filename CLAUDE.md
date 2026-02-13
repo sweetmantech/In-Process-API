@@ -126,6 +126,14 @@ Supabase tables prefixed with `in_process_`:
 - `payments`, `sales`, `notifications`
 - `comments`, `api_keys`, `phone_numbers`
 
+#### Supabase Egress Optimization
+
+- **Select only needed fields** - Use `.select('field1, field2')` instead of `.select('*')` to reduce data transfer
+- **Limit entries** - Use `.limit()`, `.range()`, or pagination to avoid fetching unnecessary rows
+- **Optimize client code** - Reduce the number of queries by batching or caching where possible
+- **Minimal returns on mutations** - For `.insert()` and `.update()`, omit `.select()` if the returned row data is not needed
+- **Exclude unneeded tables from backups** - When running manual backups through Supavisor, remove unneeded tables and reduce backup frequency
+
 ### Blockchain
 
 - **Mainnet:** Base (chain ID 8453)

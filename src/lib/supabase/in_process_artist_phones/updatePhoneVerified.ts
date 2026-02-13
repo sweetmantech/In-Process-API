@@ -5,7 +5,7 @@ export async function updatePhoneVerified(phone_number: string) {
     .from('in_process_artist_phones')
     .update({ verified: true })
     .eq('phone_number', phone_number)
-    .select()
+    .select('artist_address')
     .single();
 
   if (error) {

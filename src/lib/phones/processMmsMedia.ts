@@ -1,12 +1,12 @@
 import type { InboundMessagePayload } from 'telnyx/resources/shared';
 import createMomentFromMedia from '@/lib/phones/createMomentFromMedia';
-import { Database } from '@/lib/supabase/types';
 import { processVideoMessage } from '@/lib/messages/processVideoMessage';
 import { processMomentMessage } from '@/lib/messages/processMomentMessage';
 
 export const processMmsMedia = async (
-  phone: Database['public']['Tables']['in_process_artist_phones']['Row'] & {
-    artist: Database['public']['Tables']['in_process_artists']['Row'];
+  phone: {
+    phone_number: string;
+    artist: { address: string };
   },
   media: NonNullable<InboundMessagePayload['media']>[number],
   payload: InboundMessagePayload | undefined

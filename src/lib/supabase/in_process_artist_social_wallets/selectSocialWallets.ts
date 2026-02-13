@@ -1,6 +1,5 @@
 import { supabase } from '../client';
 import { Address } from 'viem';
-import type { Database } from '../types';
 import type { PostgrestError } from '@supabase/supabase-js';
 
 export async function selectSocialWallets({
@@ -8,14 +7,12 @@ export async function selectSocialWallets({
 }: {
   artistAddress: Address;
 }): Promise<{
-  data:
-    | Database['public']['Tables']['in_process_artist_social_wallets']['Row'][]
-    | null;
+  data: { social_wallet: string }[] | null;
   error: PostgrestError | null;
 }> {
   const { error, data } = await supabase
     .from('in_process_artist_social_wallets')
-    .select()
+    .select('social_wallet')
     .eq('artist_address', artistAddress);
 
   if (error) return { data: null, error };

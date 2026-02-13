@@ -9,7 +9,9 @@ const selectComments = async ({
 }) => {
   let query = supabase
     .from('in_process_moment_comments')
-    .select('*, artist:in_process_artists!inner(*)')
+    .select(
+      'id, comment, commented_at, artist:in_process_artists!inner(address, username)'
+    )
     .order('commented_at', { ascending: false });
 
   if (momentId) {

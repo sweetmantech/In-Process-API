@@ -6,17 +6,13 @@ export async function insertApiKey({
   artist_address,
   key_hash,
 }: Database['public']['Tables']['in_process_api_keys']['Insert']) {
-  const { data, error } = await supabase
-    .from('in_process_api_keys')
-    .insert({
-      name,
-      artist_address,
-      key_hash,
-    })
-    .select()
-    .single();
+  const { error } = await supabase.from('in_process_api_keys').insert({
+    name,
+    artist_address,
+    key_hash,
+  });
 
-  if (error) return { data: null, error };
+  if (error) return { error };
 
-  return { data, error: null };
+  return { error: null };
 }

@@ -11,7 +11,7 @@ const insertMessageMetadata = async ({
       artist_address,
       client,
     })
-    .select()
+    .select('id')
     .single();
 
   if (error) return { error, data: null };

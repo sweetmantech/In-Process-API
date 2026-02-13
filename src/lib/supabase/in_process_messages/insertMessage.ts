@@ -13,7 +13,7 @@ const insertMessage = async ({
       parts,
       role,
     })
-    .select()
+    .select('id')
     .single();
 
   if (error) return { error, data: null };
