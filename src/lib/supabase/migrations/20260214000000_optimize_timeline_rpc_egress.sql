@@ -23,6 +23,9 @@ BEGIN
       m.id
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
+    INNER JOIN in_process_artists da ON c.default_admin = da.address
+      AND da.username IS NOT NULL
+      AND da.username != ''
     WHERE
       (p_chainid IS NULL OR c.chain_id = p_chainid)
       AND (
@@ -57,9 +60,18 @@ BEGIN
     INNER JOIN in_process_artists da ON c.default_admin = da.address
       AND da.username IS NOT NULL
       AND da.username != ''
-    LEFT JOIN in_process_admins da_admin ON m.collection = da_admin.collection
-      AND (da_admin.token_id = m.token_id OR da_admin.token_id = 0)
-      AND da_admin.artist_address = c.default_admin
+    LEFT JOIN LATERAL (
+      SELECT DISTINCT ON (da_admin.artist_address)
+        da_admin.hidden
+      FROM in_process_admins da_admin
+      WHERE da_admin.collection = m.collection
+        AND (da_admin.token_id = m.token_id OR da_admin.token_id = 0)
+        AND da_admin.artist_address = c.default_admin
+      ORDER BY da_admin.artist_address,
+        CASE WHEN da_admin.token_id = m.token_id THEN 0 ELSE 1 END,
+        da_admin.granted_at ASC
+      LIMIT 1
+    ) da_admin ON true
     WHERE
       (p_chainid IS NULL OR c.chain_id = p_chainid)
       AND (

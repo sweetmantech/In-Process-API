@@ -24,6 +24,7 @@ BEGIN
       m.id
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
+    INNER JOIN in_process_artists da ON c.default_admin = da.address
     WHERE
       c.address = LOWER(p_collection)
       AND (p_chainid IS NULL OR c.chain_id = p_chainid)

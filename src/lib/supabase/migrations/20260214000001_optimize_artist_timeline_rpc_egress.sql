@@ -25,6 +25,7 @@ BEGIN
       m.id
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
+    INNER JOIN in_process_artists da ON c.default_admin = da.address
     WHERE
       (p_chainid IS NULL OR c.chain_id = p_chainid)
       AND (
@@ -38,8 +39,9 @@ BEGIN
             COALESCE(
               (SELECT hidden FROM in_process_admins
                WHERE collection = m.collection
-                 AND token_id = m.token_id
+                 AND (token_id = m.token_id OR token_id = 0)
                  AND artist_address = c.default_admin
+               ORDER BY CASE WHEN token_id = m.token_id THEN 0 ELSE 1 END
                LIMIT 1),
               false
             ) = false
@@ -80,8 +82,9 @@ BEGIN
       COALESCE(
         (SELECT hidden FROM in_process_admins
          WHERE collection = m.collection
-           AND token_id = m.token_id
+           AND (token_id = m.token_id OR token_id = 0)
            AND artist_address = c.default_admin
+         ORDER BY CASE WHEN token_id = m.token_id THEN 0 ELSE 1 END
          LIMIT 1),
         false
       ) AS default_admin_hidden
@@ -101,8 +104,9 @@ BEGIN
             COALESCE(
               (SELECT hidden FROM in_process_admins
                WHERE collection = m.collection
-                 AND token_id = m.token_id
+                 AND (token_id = m.token_id OR token_id = 0)
                  AND artist_address = c.default_admin
+               ORDER BY CASE WHEN token_id = m.token_id THEN 0 ELSE 1 END
                LIMIT 1),
               false
             ) = false
