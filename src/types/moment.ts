@@ -39,7 +39,6 @@ export enum MomentType {
 export interface TimelineMoment {
   address: string;
   token_id: string;
-  max_supply: number;
   chain_id: number;
   id: string;
   uri: string;
@@ -50,11 +49,9 @@ export interface TimelineMoment {
   };
   admins: Array<{
     address: string;
-    username: string | null;
     hidden: boolean;
   }>;
   created_at: string;
-  updated_at: string;
 }
 
 export interface TimelinePagination {
