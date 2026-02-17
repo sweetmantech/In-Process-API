@@ -31,9 +31,10 @@ const getEmailsHandler = async (
 
   const { emails, next_cursor } = await getAllEmails(cursor, limit);
 
-  const { data: walletRows } = await getArtistAddresses(
+  const { data: walletRows, error } = await getArtistAddresses(
     emails.map((e) => e.address.toLowerCase())
   );
+  if (error) throw new Error(error.message);
   const artistAddressMap: Record<
     string,
     { artist_address: string; username: string | null }
