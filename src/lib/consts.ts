@@ -43,4 +43,6 @@ export const ARWEAVE_KEY = JSON.parse(
 export const ADMIN_ADDRESSES = [
   '0xaf1452d289e22fbd0dea9d5097353c72a90fac33',
   '0xcfbf34d385ea2d5eb947063b67ea226dcda3dc38',
+  '0x7b753919b953b1021a33f55671716dc13c1eae08',
+  '0x6e786fcfcb98da9df87ab0b7a2d64067c90daba9',
 ];

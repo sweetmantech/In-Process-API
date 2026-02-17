@@ -126,6 +126,28 @@ Supabase tables prefixed with `in_process_`:
 - `payments`, `sales`, `notifications`
 - `comments`, `api_keys`, `phone_numbers`
 
+#### lib/supabase Functions
+
+Functions in `@/lib/supabase/` are **pure Supabase operations only** — no formatting, transformation, or business logic. They execute a query and return the raw Supabase result (`{ data, error }`). All data shaping belongs in the caller.
+
+```typescript
+// CORRECT - pure query, return raw result
+const getArtistAddresses = async (socialWallets: string[]) => {
+  return supabase
+    .from('in_process_artist_social_wallets')
+    .select('social_wallet, artist_address')
+    .in('social_wallet', socialWallets);
+};
+
+// WRONG - formatting/mapping inside a supabase function
+const getArtistAddresses = async (socialWallets: string[]) => {
+  const { data } = await supabase...;
+  const map: Record<string, string> = {};
+  for (const row of data ?? []) map[row.social_wallet] = row.artist_address; // ← not here
+  return map;
+};
+```
+
 #### Supabase Egress Optimization
 
 - **Select only needed fields** - Use `.select('field1, field2')` instead of `.select('*')` to reduce data transfer

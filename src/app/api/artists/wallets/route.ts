@@ -3,19 +3,20 @@ import { NextRequest } from 'next/server';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { Address } from 'viem';
 import { insertSocialWallet } from '@/lib/supabase/in_process_artist_social_wallets/insertSocialWallet';
-import { getArtistWallet } from '@/lib/supabase/in_process_artist_social_wallets/getArtistWallet';
+import getArtistAddresses from '@/lib/supabase/in_process_artist_social_wallets/getArtistAddresses';
 import { removeSocialWallet } from '@/lib/supabase/in_process_artist_social_wallets/removeSocialWallet';
 
 export async function GET(req: NextRequest) {
   try {
     const social_wallet = req.nextUrl.searchParams.get('social_wallet');
     const social_wallet_address = social_wallet?.toLowerCase();
-    const { data, error } = await getArtistWallet({
-      social_wallet: social_wallet_address as Address,
-    });
-    if (error) throw new Error('artist is not connected.');
+    const { data: walletRows } = await getArtistAddresses([
+      social_wallet_address as string,
+    ]);
+    const artist_address = walletRows?.[0]?.artist_address;
+    if (!artist_address) throw new Error('artist is not connected.');
     return Response.json({
-      address: data.artist_address,
+      address: artist_address,
     });
   } catch (e: any) {
     console.log(e);

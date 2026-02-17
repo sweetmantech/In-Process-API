@@ -1,4 +1,4 @@
-import { getArtistWallet } from '../supabase/in_process_artist_social_wallets/getArtistWallet';
+import getArtistAddresses from '../supabase/in_process_artist_social_wallets/getArtistAddresses';
 import privyClient from './client';
 
 export async function getAddressesByAuthToken(authToken: string): Promise<{
@@ -23,17 +23,17 @@ export async function getAddressesByAuthToken(authToken: string): Promise<{
     (account: any) => account.wallet_client_type === 'privy'
   );
   if (socialAccount?.address) {
-    const { data: artistData } = await getArtistWallet({
-      social_wallet: socialAccount.address.toLowerCase(),
-    });
-    if (artistData)
+    const socialWallet = socialAccount.address.toLowerCase();
+    const { data: walletRows } = await getArtistAddresses([socialWallet]);
+    const artistAddress = walletRows?.[0]?.artist_address;
+    if (artistAddress)
       return {
-        artistAddress: artistData.artist_address,
-        socialWallet: socialAccount.address.toLowerCase(),
+        artistAddress,
+        socialWallet,
       };
     return {
       artistAddress: undefined,
-      socialWallet: socialAccount.address.toLowerCase(),
+      socialWallet,
     };
   }
   const externalAccount = data.linked_accounts.find(
