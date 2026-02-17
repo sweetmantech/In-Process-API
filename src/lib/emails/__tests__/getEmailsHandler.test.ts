@@ -51,7 +51,8 @@ describe('getEmailsHandler', () => {
         'artist@example.com'
       );
 
-      const res = await getEmailsHandler(NON_ADMIN_ADDRESS, '0xartist');
+      // self-lookup: caller is the artist
+      const res = await getEmailsHandler(NON_ADMIN_ADDRESS, NON_ADMIN_ADDRESS);
       const json = await res.json();
 
       expect(json).toEqual({ email: 'artist@example.com' });
@@ -63,7 +64,8 @@ describe('getEmailsHandler', () => {
         error: null,
       } as any);
 
-      const res = await getEmailsHandler(NON_ADMIN_ADDRESS, '0xartist');
+      // self-lookup: caller is the artist
+      const res = await getEmailsHandler(NON_ADMIN_ADDRESS, NON_ADMIN_ADDRESS);
       const json = await res.json();
 
       expect(json).toEqual({ email: null });
