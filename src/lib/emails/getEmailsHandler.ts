@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Address } from 'viem';
 import { ADMIN_ADDRESSES } from '@/lib/consts';
-import { validate } from '@/lib/schema/validate';
-import emailsQuerySchema from '@/lib/schema/emailsQuerySchema';
 import { selectSocialWallets } from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
 import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 import getAllEmails from '@/lib/privy/getAllEmails';
@@ -14,29 +12,15 @@ const getEmailsHandler = async (
   cursor?: string,
   limit?: number
 ) => {
-  const validation = validate(emailsQuerySchema, {
-    callerAddress,
-    artistAddress,
-    cursor,
-    limit,
-  });
-  if (!validation.success) return validation.response;
-  const {
-    callerAddress: validatedCaller,
-    artistAddress: validatedArtist,
-    cursor: validatedCursor,
-    limit: validatedLimit,
-  } = validation.data;
-  if (validatedArtist) {
-    const isAdmin = ADMIN_ADDRESSES.includes(validatedCaller.toLowerCase());
-    const isSelf =
-      validatedCaller.toLowerCase() === validatedArtist.toLowerCase();
+  if (artistAddress) {
+    const isAdmin = ADMIN_ADDRESSES.includes(callerAddress.toLowerCase());
+    const isSelf = callerAddress.toLowerCase() === artistAddress.toLowerCase();
     if (!isAdmin && !isSelf) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
     }
     const { data: socialWallets, error: socialWalletsError } =
       await selectSocialWallets({
-        artistAddress: validatedArtist as Address,
+        artistAddress: artistAddress as Address,
       });
     if (socialWalletsError) throw new Error(socialWalletsError.message);
     const socialWallet = socialWallets?.[0]?.social_wallet;
@@ -47,15 +31,12 @@ const getEmailsHandler = async (
     return NextResponse.json({ email });
   }
 
-  const isAdmin = ADMIN_ADDRESSES.includes(validatedCaller.toLowerCase());
+  const isAdmin = ADMIN_ADDRESSES.includes(callerAddress.toLowerCase());
   if (!isAdmin) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
 
-  const { emails, next_cursor } = await getAllEmails(
-    validatedCursor,
-    validatedLimit
-  );
+  const { emails, next_cursor } = await getAllEmails(cursor, limit);
 
   const { data: walletRows, error } = await getArtistAddresses(
     emails.map((e) => e.address.toLowerCase())
