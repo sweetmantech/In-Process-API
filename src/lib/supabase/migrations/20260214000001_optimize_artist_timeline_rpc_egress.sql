@@ -57,7 +57,18 @@ BEGIN
             WHERE adm_check.collection = m.collection
             AND (adm_check.token_id = m.token_id OR adm_check.token_id = 0)
             AND adm_check.artist_address = LOWER(p_artist)
-            AND (p_hidden = true OR adm_check.hidden = false)
+          )
+          AND (
+            p_hidden = true OR
+            COALESCE(
+              (SELECT hidden FROM in_process_admins
+               WHERE collection = m.collection
+                 AND (token_id = m.token_id OR token_id = 0)
+                 AND artist_address = LOWER(p_artist)
+               ORDER BY CASE WHEN token_id = m.token_id THEN 0 ELSE 1 END
+               LIMIT 1),
+              false
+            ) = false
           )
         )
       )
@@ -122,7 +133,18 @@ BEGIN
             WHERE adm_check.collection = m.collection
             AND (adm_check.token_id = m.token_id OR adm_check.token_id = 0)
             AND adm_check.artist_address = LOWER(p_artist)
-            AND (p_hidden = true OR adm_check.hidden = false)
+          )
+          AND (
+            p_hidden = true OR
+            COALESCE(
+              (SELECT hidden FROM in_process_admins
+               WHERE collection = m.collection
+                 AND (token_id = m.token_id OR token_id = 0)
+                 AND artist_address = LOWER(p_artist)
+               ORDER BY CASE WHEN token_id = m.token_id THEN 0 ELSE 1 END
+               LIMIT 1),
+              false
+            ) = false
           )
         )
       )
