@@ -135,7 +135,7 @@ Functions in `@/lib/supabase/` are **pure Supabase operations only** — no form
 const getArtistAddresses = async (socialWallets: string[]) => {
   return supabase
     .from('in_process_artist_social_wallets')
-    .select('social_wallet, artist_address')
+    .select('social_wallet, artist_address, in_process_artists(username)')
     .in('social_wallet', socialWallets);
 };
 

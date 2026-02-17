@@ -9,10 +9,19 @@ import { removeSocialWallet } from '@/lib/supabase/in_process_artist_social_wall
 export async function GET(req: NextRequest) {
   try {
     const social_wallet = req.nextUrl.searchParams.get('social_wallet');
-    const social_wallet_address = social_wallet?.toLowerCase();
-    const { data: walletRows } = await getArtistAddresses([
-      social_wallet_address as string,
+    if (!social_wallet) {
+      return Response.json(
+        { message: 'missing required param: social_wallet' },
+        { status: 400 }
+      );
+    }
+    const social_wallet_address = social_wallet.toLowerCase();
+    const { data: walletRows, error } = await getArtistAddresses([
+      social_wallet_address,
     ]);
+    if (error) {
+      return Response.json({ message: error.message }, { status: 500 });
+    }
     const artist_address = walletRows?.[0]?.artist_address;
     if (!artist_address) throw new Error('artist is not connected.');
     return Response.json({

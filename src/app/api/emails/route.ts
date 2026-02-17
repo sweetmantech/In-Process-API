@@ -1,6 +1,17 @@
 import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import { authMiddleware } from '@/authMiddleware';
 import getEmailsHandler from '@/lib/emails/getEmailsHandler';
+
+const EmailQuerySchema = z.object({
+  artist_address: z.string().optional(),
+  cursor: z.string().optional(),
+  limit: z
+    .string()
+    .optional()
+    .transform((v) => (v !== undefined ? parseInt(v, 10) : undefined))
+    .pipe(z.number().int().min(1).max(1000).optional()),
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,11 +21,15 @@ export async function GET(req: NextRequest) {
     }
     const { artistAddress: callerAddress } = authResult;
 
-    const artistAddress =
-      req.nextUrl.searchParams.get('artist_address') || undefined;
-    const cursor = req.nextUrl.searchParams.get('cursor') || undefined;
-    const limitParam = req.nextUrl.searchParams.get('limit');
-    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+    const params = Object.fromEntries(req.nextUrl.searchParams.entries());
+    const parsed = EmailQuerySchema.safeParse(params);
+    if (!parsed.success) {
+      return Response.json(
+        { message: parsed.error.issues[0]?.message ?? 'Invalid query params' },
+        { status: 400 }
+      );
+    }
+    const { artist_address: artistAddress, cursor, limit } = parsed.data;
 
     return getEmailsHandler(callerAddress, artistAddress, cursor, limit);
   } catch (e: any) {

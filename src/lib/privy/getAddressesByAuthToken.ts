@@ -24,7 +24,10 @@ export async function getAddressesByAuthToken(authToken: string): Promise<{
   );
   if (socialAccount?.address) {
     const socialWallet = socialAccount.address.toLowerCase();
-    const { data: walletRows } = await getArtistAddresses([socialWallet]);
+    const { data: walletRows, error } = await getArtistAddresses([
+      socialWallet,
+    ]);
+    if (error) throw new Error(error.message);
     const artistAddress = walletRows?.[0]?.artist_address;
     if (artistAddress)
       return {
