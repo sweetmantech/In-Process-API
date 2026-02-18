@@ -12,12 +12,8 @@ const getEmailsHandler = async (
 ) => {
   const isAdmin = ADMIN_ADDRESSES.includes(callerAddress.toLowerCase());
 
-  if (!isAdmin) {
-    return lookupEmail(callerAddress);
-  }
-
-  if (artistAddress) {
-    return lookupEmail(artistAddress);
+  if (!isAdmin || artistAddress) {
+    return lookupEmail(isAdmin ? artistAddress! : callerAddress);
   }
 
   const { emails, next_cursor } = await getAllEmails(cursor, limit);
