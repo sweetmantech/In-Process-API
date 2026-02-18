@@ -61,14 +61,14 @@ describe('updateSaleHandler', () => {
       saleConfig: null,
     } as any);
 
-    const res = await updateSaleHandler(moment, CALLER, '1000');
+    const res = await updateSaleHandler({ moment, callerAddress: CALLER, pricePerToken: '1000' });
     expect(res.status).toBe(404);
     const json = await res.json();
     expect(json.message).toBe('Sale config not found');
   });
 
   it('overrides pricePerToken when provided', async () => {
-    await updateSaleHandler(moment, CALLER, '9999');
+    await updateSaleHandler({ moment, callerAddress: CALLER, pricePerToken: '9999' });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -78,7 +78,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('keeps existing pricePerToken when not provided', async () => {
-    await updateSaleHandler(moment, CALLER, undefined, 1748736000);
+    await updateSaleHandler({ moment, callerAddress: CALLER, saleStart: 1748736000 });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -88,7 +88,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('overrides saleStart when provided', async () => {
-    await updateSaleHandler(moment, CALLER, undefined, 1748736000);
+    await updateSaleHandler({ moment, callerAddress: CALLER, saleStart: 1748736000 });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -98,7 +98,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('keeps existing saleStart when not provided', async () => {
-    await updateSaleHandler(moment, CALLER, '1000');
+    await updateSaleHandler({ moment, callerAddress: CALLER, pricePerToken: '1000' });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -116,7 +116,7 @@ describe('updateSaleHandler', () => {
       },
     } as any);
 
-    await updateSaleHandler(moment, CALLER, '1000');
+    await updateSaleHandler({ moment, callerAddress: CALLER, pricePerToken: '1000' });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -128,7 +128,7 @@ describe('updateSaleHandler', () => {
   it('uses base-sepolia network for baseSepolia chainId', async () => {
     const sepoliaMoment = { ...moment, chainId: 84532 };
 
-    await updateSaleHandler(sepoliaMoment, CALLER, '1000');
+    await updateSaleHandler({ moment: sepoliaMoment, callerAddress: CALLER, pricePerToken: '1000' });
 
     expect(sendUserOperation).toHaveBeenCalledWith(
       expect.objectContaining({ network: 'base-sepolia' })
@@ -136,7 +136,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('uses base network for mainnet chainId', async () => {
-    await updateSaleHandler(moment, CALLER, '1000');
+    await updateSaleHandler({ moment, callerAddress: CALLER, pricePerToken: '1000' });
 
     expect(sendUserOperation).toHaveBeenCalledWith(
       expect.objectContaining({ network: 'base' })
@@ -144,7 +144,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('returns hash and chainId on success', async () => {
-    const res = await updateSaleHandler(moment, CALLER, '1000');
+    const res = await updateSaleHandler({ moment, callerAddress: CALLER, pricePerToken: '1000' });
     const json = await res.json();
 
     expect(json.hash).toBe(TX_HASH);
@@ -152,7 +152,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('overrides saleEnd when provided', async () => {
-    await updateSaleHandler(moment, CALLER, undefined, undefined, 1780272000);
+    await updateSaleHandler({ moment, callerAddress: CALLER, saleEnd: 1780272000 });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -162,7 +162,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('keeps existing saleEnd when not provided', async () => {
-    await updateSaleHandler(moment, CALLER, '1000');
+    await updateSaleHandler({ moment, callerAddress: CALLER, pricePerToken: '1000' });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -172,14 +172,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('overrides maxTokensPerAddress when provided', async () => {
-    await updateSaleHandler(
-      moment,
-      CALLER,
-      undefined,
-      undefined,
-      undefined,
-      10
-    );
+    await updateSaleHandler({ moment, callerAddress: CALLER, maxTokensPerAddress: 10 });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -191,15 +184,7 @@ describe('updateSaleHandler', () => {
   it('overrides fundsRecipient when provided', async () => {
     const newRecipient = '0x000000000000000000000000000000000000beef';
 
-    await updateSaleHandler(
-      moment,
-      CALLER,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      newRecipient
-    );
+    await updateSaleHandler({ moment, callerAddress: CALLER, fundsRecipient: newRecipient });
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -213,7 +198,7 @@ describe('updateSaleHandler', () => {
       new Error('Paymaster failed')
     );
 
-    await expect(updateSaleHandler(moment, CALLER, '1000')).rejects.toThrow(
+    await expect(updateSaleHandler({ moment, callerAddress: CALLER, pricePerToken: '1000' })).rejects.toThrow(
       'Paymaster failed'
     );
   });
