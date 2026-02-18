@@ -78,12 +78,7 @@ describe('updateSaleHandler', () => {
   });
 
   it('keeps existing pricePerToken when not provided', async () => {
-    await updateSaleHandler(
-      moment,
-      CALLER,
-      undefined,
-      '2026-06-01T00:00:00.000Z'
-    );
+    await updateSaleHandler(moment, CALLER, undefined, 1748736000);
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
@@ -93,17 +88,12 @@ describe('updateSaleHandler', () => {
   });
 
   it('overrides saleStart when provided', async () => {
-    const saleStart = '2026-06-01T00:00:00.000Z';
-    const expectedTimestamp = BigInt(
-      Math.floor(new Date(saleStart).getTime() / 1000)
-    );
-
-    await updateSaleHandler(moment, CALLER, undefined, saleStart);
+    await updateSaleHandler(moment, CALLER, undefined, 1748736000);
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
       MomentType.FixedPriceMint,
-      expect.objectContaining({ saleStart: expectedTimestamp })
+      expect.objectContaining({ saleStart: BigInt(1748736000) })
     );
   });
 
@@ -162,17 +152,12 @@ describe('updateSaleHandler', () => {
   });
 
   it('overrides saleEnd when provided', async () => {
-    const saleEnd = '2027-01-01T00:00:00.000Z';
-    const expectedTimestamp = BigInt(
-      Math.floor(new Date(saleEnd).getTime() / 1000)
-    );
-
-    await updateSaleHandler(moment, CALLER, undefined, undefined, saleEnd);
+    await updateSaleHandler(moment, CALLER, undefined, undefined, 1780272000);
 
     expect(getUpdateSaleCall).toHaveBeenCalledWith(
       moment,
       MomentType.FixedPriceMint,
-      expect.objectContaining({ saleEnd: expectedTimestamp })
+      expect.objectContaining({ saleEnd: BigInt(1780272000) })
     );
   });
 

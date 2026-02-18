@@ -11,8 +11,8 @@ const updateSaleHandler = async (
   moment: Moment,
   callerAddress: string,
   pricePerToken?: string,
-  saleStart?: string,
-  saleEnd?: string,
+  saleStart?: number,
+  saleEnd?: number,
   maxTokensPerAddress?: number,
   fundsRecipient?: string
 ) => {
@@ -27,17 +27,10 @@ const updateSaleHandler = async (
 
   const { type, ...rawSale } = saleConfig;
 
-  const saleStartDate = saleStart ? new Date(saleStart) : null;
-  const saleEndDate = saleEnd ? new Date(saleEnd) : null;
-
   const newSale = {
     ...rawSale,
-    saleStart: saleStartDate
-      ? BigInt(Number(saleStartDate.getTime() / 1000).toFixed(0))
-      : rawSale.saleStart,
-    saleEnd: saleEndDate
-      ? BigInt(Number(saleEndDate.getTime() / 1000).toFixed(0))
-      : BigInt(rawSale.saleEnd),
+    saleStart: saleStart !== undefined ? BigInt(saleStart) : rawSale.saleStart,
+    saleEnd: saleEnd !== undefined ? BigInt(saleEnd) : BigInt(rawSale.saleEnd),
     pricePerToken: pricePerToken
       ? BigInt(pricePerToken)
       : BigInt(rawSale.pricePerToken),

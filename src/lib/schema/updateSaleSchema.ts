@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { momentSchema } from './momentSchema';
+import addressSchema from './addressSchema';
 
 export const updateSaleSchema = z
   .object({
@@ -10,10 +11,10 @@ export const updateSaleSchema = z
         message: 'pricePerToken must be a non-negative integer string',
       })
       .optional(),
-    saleStart: z.string().datetime().optional(),
-    saleEnd: z.string().datetime().optional(),
+    saleStart: z.number().int().nonnegative().optional(),
+    saleEnd: z.number().int().nonnegative().optional(),
     maxTokensPerAddress: z.number().int().nonnegative().optional(),
-    fundsRecipient: z.string().optional(),
+    fundsRecipient: addressSchema.optional(),
   })
   .superRefine((val, ctx) => {
     const hasUpdate =

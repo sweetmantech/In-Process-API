@@ -69,9 +69,18 @@ describe('validateUpdateSaleBody', () => {
     expect((result as NextResponse).status).toBe(400);
   });
 
-  it('returns 400 when saleStart is not a valid datetime', async () => {
+  it('returns 400 when saleStart is not a number', async () => {
     const result = await validateUpdateSaleBody(
-      makeRequest({ moment: validMoment, saleStart: 'not-a-date' })
+      makeRequest({ moment: validMoment, saleStart: 'not-a-timestamp' })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+  });
+
+  it('returns 400 when saleStart is negative', async () => {
+    const result = await validateUpdateSaleBody(
+      makeRequest({ moment: validMoment, saleStart: -1 })
     );
 
     expect(result).toBeInstanceOf(NextResponse);
@@ -90,41 +99,42 @@ describe('validateUpdateSaleBody', () => {
   });
 
   it('returns validated data with callerAddress when saleStart is provided', async () => {
-    const saleStart = '2026-06-01T00:00:00.000Z';
     const result = await validateUpdateSaleBody(
-      makeRequest({ moment: validMoment, saleStart })
+      makeRequest({ moment: validMoment, saleStart: 1748736000 })
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).callerAddress).toBe(CALLER);
-    expect((result as any).saleStart).toBe(saleStart);
+    expect((result as any).saleStart).toBe(1748736000);
     expect((result as any).pricePerToken).toBeUndefined();
   });
 
   it('returns validated data when both pricePerToken and saleStart are provided', async () => {
-    const saleStart = '2026-06-01T00:00:00.000Z';
     const result = await validateUpdateSaleBody(
-      makeRequest({ moment: validMoment, pricePerToken: '500', saleStart })
+      makeRequest({
+        moment: validMoment,
+        pricePerToken: '500',
+        saleStart: 1748736000,
+      })
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).pricePerToken).toBe('500');
-    expect((result as any).saleStart).toBe(saleStart);
+    expect((result as any).saleStart).toBe(1748736000);
   });
 
   it('returns validated data when saleEnd is provided', async () => {
-    const saleEnd = '2027-01-01T00:00:00.000Z';
     const result = await validateUpdateSaleBody(
-      makeRequest({ moment: validMoment, saleEnd })
+      makeRequest({ moment: validMoment, saleEnd: 1780272000 })
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect((result as any).saleEnd).toBe(saleEnd);
+    expect((result as any).saleEnd).toBe(1780272000);
   });
 
-  it('returns 400 when saleEnd is not a valid datetime', async () => {
+  it('returns 400 when saleEnd is not a number', async () => {
     const result = await validateUpdateSaleBody(
-      makeRequest({ moment: validMoment, saleEnd: 'not-a-date' })
+      makeRequest({ moment: validMoment, saleEnd: 'not-a-timestamp' })
     );
 
     expect(result).toBeInstanceOf(NextResponse);
