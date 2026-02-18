@@ -5,7 +5,7 @@ import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 
 const lookupEmail = async (artistAddress: string) => {
   const { data: socialWallets, error } = await selectSocialWallets({
-    artistAddress: artistAddress as Address,
+    artistAddress: artistAddress.toLowerCase() as Address,
   });
   if (error) throw new Error(error.message);
   const socialWallet = socialWallets?.[0]?.social_wallet;
