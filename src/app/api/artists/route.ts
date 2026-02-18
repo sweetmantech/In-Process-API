@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const validated = await validateArtistsQuery(req);
     if (validated instanceof NextResponse) return validated;
     const { callerAddress, type, limit, page } = validated;
-    return getArtistsHandler(callerAddress, type, limit, page);
+    return await getArtistsHandler(callerAddress, type, limit, page);
   } catch (e: any) {
     const message = e?.message ?? 'Failed to fetch artists';
     return Response.json({ message }, { status: 500 });
