@@ -35,14 +35,15 @@ import getEmailsHandler from '@/lib/emails/getEmailsHandler';
 
 const ADMIN_ADDRESS = '0xaf1452d289e22fbd0dea9d5097353c72a90fac33';
 const NON_ADMIN_ADDRESS = '0x0000000000000000000000000000000000000001';
+const OTHER_ADDRESS = '0x0000000000000000000000000000000000000002';
 
 describe('getEmailsHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('single artist lookup (artistAddress provided)', () => {
-    it('returns email when social wallet and email exist', async () => {
+  describe('non-admin (normal API key)', () => {
+    it('returns own email using callerAddress', async () => {
       vi.mocked(selectSocialWallets).mockResolvedValue({
         data: [{ social_wallet: '0xsocialwallet' }],
         error: null,
@@ -51,11 +52,13 @@ describe('getEmailsHandler', () => {
         'artist@example.com'
       );
 
-      // self-lookup: caller is the artist
-      const res = await getEmailsHandler(NON_ADMIN_ADDRESS, NON_ADMIN_ADDRESS);
+      const res = await getEmailsHandler(NON_ADMIN_ADDRESS);
       const json = await res.json();
 
       expect(json).toEqual({ email: 'artist@example.com' });
+      expect(selectSocialWallets).toHaveBeenCalledWith({
+        artistAddress: NON_ADMIN_ADDRESS,
+      });
     });
 
     it('returns null email when no social wallet found', async () => {
@@ -64,8 +67,56 @@ describe('getEmailsHandler', () => {
         error: null,
       } as any);
 
-      // self-lookup: caller is the artist
-      const res = await getEmailsHandler(NON_ADMIN_ADDRESS, NON_ADMIN_ADDRESS);
+      const res = await getEmailsHandler(NON_ADMIN_ADDRESS);
+      const json = await res.json();
+
+      expect(json).toEqual({ email: null });
+      expect(getEmailByWalletAddress).not.toHaveBeenCalled();
+    });
+
+    it('ignores artist_address param and returns own email', async () => {
+      vi.mocked(selectSocialWallets).mockResolvedValue({
+        data: [{ social_wallet: '0xsocialwallet' }],
+        error: null,
+      } as any);
+      vi.mocked(getEmailByWalletAddress).mockResolvedValue('own@example.com');
+
+      const res = await getEmailsHandler(NON_ADMIN_ADDRESS, OTHER_ADDRESS);
+      const json = await res.json();
+
+      expect(json).toEqual({ email: 'own@example.com' });
+      expect(selectSocialWallets).toHaveBeenCalledWith({
+        artistAddress: NON_ADMIN_ADDRESS,
+      });
+    });
+  });
+
+  describe('admin with artist_address', () => {
+    it('returns email for specified artist', async () => {
+      vi.mocked(selectSocialWallets).mockResolvedValue({
+        data: [{ social_wallet: '0xsocialwallet' }],
+        error: null,
+      } as any);
+      vi.mocked(getEmailByWalletAddress).mockResolvedValue(
+        'artist@example.com'
+      );
+
+      const res = await getEmailsHandler(ADMIN_ADDRESS, OTHER_ADDRESS);
+      const json = await res.json();
+
+      expect(json).toEqual({ email: 'artist@example.com' });
+      expect(selectSocialWallets).toHaveBeenCalledWith({
+        artistAddress: OTHER_ADDRESS,
+      });
+    });
+
+    it('returns null email when no social wallet found', async () => {
+      vi.mocked(selectSocialWallets).mockResolvedValue({
+        data: [],
+        error: null,
+      } as any);
+
+      const res = await getEmailsHandler(ADMIN_ADDRESS, OTHER_ADDRESS);
       const json = await res.json();
 
       expect(json).toEqual({ email: null });
@@ -74,14 +125,6 @@ describe('getEmailsHandler', () => {
   });
 
   describe('admin list (no artistAddress)', () => {
-    it('returns 403 for non-admin caller', async () => {
-      const res = await getEmailsHandler(NON_ADMIN_ADDRESS);
-
-      expect(res.status).toBe(403);
-      const json = await res.json();
-      expect(json).toEqual({ message: 'Forbidden' });
-    });
-
     it('returns enriched emails with artist_address and username', async () => {
       vi.mocked(getAllEmails).mockResolvedValue({
         emails: [{ address: '0xsocial', email: 'user@example.com' }],

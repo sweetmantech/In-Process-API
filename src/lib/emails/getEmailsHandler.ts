@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { Address } from 'viem';
 import { ADMIN_ADDRESSES } from '@/lib/consts';
-import { selectSocialWallets } from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
-import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 import getAllEmails from '@/lib/privy/getAllEmails';
 import getArtistAddresses from '@/lib/supabase/in_process_artist_social_wallets/getArtistAddresses';
+import lookupEmail from '@/lib/emails/lookupEmail';
 
 const getEmailsHandler = async (
   callerAddress: string,
@@ -12,28 +10,14 @@ const getEmailsHandler = async (
   cursor?: string,
   limit?: number
 ) => {
-  if (artistAddress) {
-    const isAdmin = ADMIN_ADDRESSES.includes(callerAddress.toLowerCase());
-    const isSelf = callerAddress.toLowerCase() === artistAddress.toLowerCase();
-    if (!isAdmin && !isSelf) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-    }
-    const { data: socialWallets, error: socialWalletsError } =
-      await selectSocialWallets({
-        artistAddress: artistAddress as Address,
-      });
-    if (socialWalletsError) throw new Error(socialWalletsError.message);
-    const socialWallet = socialWallets?.[0]?.social_wallet;
-    if (!socialWallet) {
-      return NextResponse.json({ email: null });
-    }
-    const email = await getEmailByWalletAddress(socialWallet);
-    return NextResponse.json({ email });
+  const isAdmin = ADMIN_ADDRESSES.includes(callerAddress.toLowerCase());
+
+  if (!isAdmin) {
+    return lookupEmail(callerAddress);
   }
 
-  const isAdmin = ADMIN_ADDRESSES.includes(callerAddress.toLowerCase());
-  if (!isAdmin) {
-    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+  if (artistAddress) {
+    return lookupEmail(artistAddress);
   }
 
   const { emails, next_cursor } = await getAllEmails(cursor, limit);
