@@ -1,10 +1,12 @@
 import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
 import { Address } from 'viem';
-import { selectArtist } from '../supabase/in_process_artists/selectArtist';
+import selectArtists from '../supabase/in_process_artists/selectArtists';
 
 const getSmartWalletAddress = async (address: Address) => {
   const lowercasedAddress = address.toLowerCase() as Address;
-  const artist = await selectArtist(lowercasedAddress);
+  const { data, error } = await selectArtists({ address: lowercasedAddress });
+  if (error) throw error;
+  const artist = data?.[0];
 
   // If artist exists and has a smart_wallet, return it (lowercased)
   if (artist && artist.smart_wallet) {

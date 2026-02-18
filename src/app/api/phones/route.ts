@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
 import { upsertPhone } from '@/lib/supabase/in_process_artist_phones/upsertPhone';
 import { deletePhone } from '@/lib/supabase/in_process_artist_phones/deletePhone';
-import { selectArtist } from '@/lib/supabase/in_process_artists/selectArtist';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import truncateAddress from '@/lib/truncateAddress';
 import { registerPhoneSchema } from '@/lib/schema/phoneNumberSchema';
 import { sendSms } from '@/lib/phones/sendSms';
@@ -37,7 +37,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Get artist name for SMS message
-    const artist = await selectArtist(artistAddress.toLowerCase());
+    const { data: artistData, error: artistError } = await selectArtists({
+      address: artistAddress.toLowerCase(),
+    });
+    if (artistError) throw artistError;
+    const artist = artistData?.[0];
     const artistName = artist?.username || truncateAddress(artistAddress);
 
     // Send SMS verification message

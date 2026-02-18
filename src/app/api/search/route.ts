@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getArtists } from '@/lib/supabase/in_process_artists/getArtists';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 
 export async function GET(req: NextRequest) {
   const query = req.nextUrl.searchParams.get('query') || '';
@@ -10,7 +10,11 @@ export async function GET(req: NextRequest) {
     );
   }
   try {
-    const artists = await getArtists(query, 1);
+    const { data: artists, error } = await selectArtists({
+      q: query,
+      limit: 1,
+    });
+    if (error) throw error;
     if (artists?.length) {
       return Response.json({ artist: artists[0] });
     }
