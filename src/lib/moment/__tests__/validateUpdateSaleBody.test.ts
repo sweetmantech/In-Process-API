@@ -42,7 +42,12 @@ const validMoment = {
 
 const mockMomentRow = {
   token_id: 1,
-  collection: { id: 'collection-uuid', address: COLLECTION, chain_id: 8453, default_admin: CALLER },
+  collection: {
+    id: 'collection-uuid',
+    address: COLLECTION,
+    chain_id: 8453,
+    default_admin: CALLER,
+  },
 };
 
 describe('validateUpdateSaleBody', () => {
@@ -55,7 +60,9 @@ describe('validateUpdateSaleBody', () => {
       data: [mockMomentRow],
       error: null,
     } as any);
-    vi.mocked(selectAdmins).mockResolvedValue([{ artist_address: CALLER }] as any);
+    vi.mocked(selectAdmins).mockResolvedValue([
+      { artist_address: CALLER },
+    ] as any);
   });
 
   it('returns 401 when auth fails', async () => {
@@ -122,7 +129,10 @@ describe('validateUpdateSaleBody', () => {
   });
 
   it('returns 403 when moment is not found', async () => {
-    vi.mocked(selectMoments).mockResolvedValue({ data: [], error: null } as any);
+    vi.mocked(selectMoments).mockResolvedValue({
+      data: [],
+      error: null,
+    } as any);
 
     const result = await validateUpdateSaleBody(
       makeRequest({ moment: validMoment, pricePerToken: '1000' })

@@ -46,17 +46,13 @@ const updateSaleHandler = async ({
       maxTokensPerAddress !== undefined
         ? BigInt(maxTokensPerAddress)
         : BigInt(rawSale.maxTokensPerAddress),
-    fundsRecipient: (
-      fundsRecipient ?? rawSale.fundsRecipient
-    ).toLowerCase() as Address,
+    fundsRecipient: (fundsRecipient ?? rawSale.fundsRecipient) as Address,
   };
-
-  const normalizedCaller = callerAddress.toLowerCase() as Address;
 
   const updateSaleCall = getUpdateSaleCall(moment, type, newSale);
 
   const smartAccount = await getOrCreateSmartWallet({
-    address: normalizedCaller,
+    address: callerAddress as Address,
   });
 
   const transaction = await sendUserOperation({
