@@ -31,7 +31,7 @@ const selectArtists = async ({
   if (type === 'human') {
     query = query.not('username', 'is', null).neq('username', '');
   } else {
-    query = query.or('username.is.null,username.eq.');
+    query = query.or('username.is.null,username.eq.""');
   }
 
   return query.range((page - 1) * limit, page * limit - 1);
