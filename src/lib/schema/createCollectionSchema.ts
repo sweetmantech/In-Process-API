@@ -18,7 +18,8 @@ export const createCollectionSchema = z
 
     if (data.splits.length < 2) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
+        input: data,
         message: 'Splits must have at least 2 recipients',
         path: ['splits'],
       });
@@ -29,7 +30,8 @@ export const createCollectionSchema = z
       const addressError = validateSplitAddress(data.splits[i].address);
       if (addressError) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
+          input: data,
           message: `Split ${i + 1}: ${addressError}`,
           path: ['splits', i, 'address'],
         });
@@ -39,7 +41,8 @@ export const createCollectionSchema = z
 
     if (calculateTotalPercentage(data.splits) !== 100) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
+        input: data,
         message: 'Splits total percentage must equal 100%',
         path: ['splits'],
       });

@@ -66,7 +66,8 @@ export const createMomentSchema = baseCreateMomentSchema.superRefine(
 
     if (data.splits.length < 2) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
+        input: data,
         message: 'Splits must have at least 2 recipients',
         path: ['splits'],
       });
@@ -77,7 +78,8 @@ export const createMomentSchema = baseCreateMomentSchema.superRefine(
       const addressError = validateSplitAddress(data.splits[i].address);
       if (addressError) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
+          input: data,
           message: `Split ${i + 1}: ${addressError}`,
           path: ['splits', i, 'address'],
         });
@@ -87,7 +89,8 @@ export const createMomentSchema = baseCreateMomentSchema.superRefine(
 
     if (calculateTotalPercentage(data.splits) !== 100) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
+        input: data,
         message: 'Splits total percentage must equal 100%',
         path: ['splits'],
       });
@@ -121,7 +124,8 @@ export const createWritingMomentSchema = z
 
     if (data.splits.length < 2) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
+        input: data,
         message: 'Splits must have at least 2 recipients',
         path: ['splits'],
       });
@@ -132,7 +136,8 @@ export const createWritingMomentSchema = z
       const addressError = validateSplitAddress(data.splits[i].address);
       if (addressError) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
+          input: data,
           message: `Split ${i + 1}: ${addressError}`,
           path: ['splits', i, 'address'],
         });
@@ -142,7 +147,8 @@ export const createWritingMomentSchema = z
 
     if (calculateTotalPercentage(data.splits) !== 100) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
+        input: data,
         message: 'Splits total percentage must equal 100%',
         path: ['splits'],
       });
