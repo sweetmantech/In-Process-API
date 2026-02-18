@@ -14,6 +14,7 @@ import {
   zoraCreator1155ImplABI,
   zoraCreatorFixedPriceSaleStrategyABI,
 } from '@zoralabs/protocol-deployments';
+import { baseSepolia } from 'viem/chains';
 
 const updateSaleHandler = async (
   moment: Moment,
@@ -74,7 +75,7 @@ const updateSaleHandler = async (
 
   const transaction = await sendUserOperation({
     smartAccount,
-    network: IS_TESTNET ? 'base-sepolia' : 'base',
+    network: moment.chainId === baseSepolia.id ? 'base-sepolia' : 'base',
     calls: [{ to: moment.collectionAddress, data: callSaleData }],
   });
 
