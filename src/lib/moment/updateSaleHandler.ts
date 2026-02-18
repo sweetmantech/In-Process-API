@@ -7,15 +7,23 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';
 import { baseSepolia } from 'viem/chains';
 
-const updateSaleHandler = async (
-  moment: Moment,
-  callerAddress: string,
-  pricePerToken?: string,
-  saleStart?: number,
-  saleEnd?: number,
-  maxTokensPerAddress?: number,
-  fundsRecipient?: string
-) => {
+const updateSaleHandler = async ({
+  moment,
+  callerAddress,
+  pricePerToken,
+  saleStart,
+  saleEnd,
+  maxTokensPerAddress,
+  fundsRecipient,
+}: {
+  moment: Moment;
+  callerAddress: string;
+  pricePerToken?: string;
+  saleStart?: number;
+  saleEnd?: number;
+  maxTokensPerAddress?: number;
+  fundsRecipient?: string;
+}) => {
   const { saleConfig } = await getMomentOnChainInfo(moment);
 
   if (!saleConfig) {
@@ -38,13 +46,17 @@ const updateSaleHandler = async (
       maxTokensPerAddress !== undefined
         ? BigInt(maxTokensPerAddress)
         : BigInt(rawSale.maxTokensPerAddress),
-    fundsRecipient: (fundsRecipient ?? rawSale.fundsRecipient) as Address,
+    fundsRecipient: (
+      fundsRecipient ?? rawSale.fundsRecipient
+    ).toLowerCase() as Address,
   };
+
+  const normalizedCaller = callerAddress.toLowerCase() as Address;
 
   const updateSaleCall = getUpdateSaleCall(moment, type, newSale);
 
   const smartAccount = await getOrCreateSmartWallet({
-    address: callerAddress as Address,
+    address: normalizedCaller,
   });
 
   const transaction = await sendUserOperation({
