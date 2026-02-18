@@ -59,12 +59,12 @@ describe('validateEmailsQuery', () => {
     expect((result as NextResponse).status).toBe(400);
   });
 
-  it('returns 400 when limit is out of bounds', async () => {
+  it('returns 400 when limit exceeds 100', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
       artistAddress: CALLER,
     } as any);
 
-    const result = await validateEmailsQuery(makeRequest({ limit: '9999' }));
+    const result = await validateEmailsQuery(makeRequest({ limit: '101' }));
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);

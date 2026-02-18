@@ -7,7 +7,7 @@ const emailQuerySchema = z.object({
     .string()
     .optional()
     .transform((v) => (v !== undefined ? parseInt(v, 10) : undefined))
-    .pipe(z.number().int().min(1).max(1000).optional()),
+    .pipe(z.number().int().min(1).max(100).optional()),
 });
 
 export default emailQuerySchema;
