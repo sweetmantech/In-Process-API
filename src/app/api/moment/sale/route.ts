@@ -6,24 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateUpdateSaleBody(req);
     if (validated instanceof NextResponse) return validated;
-    const {
-      callerAddress,
-      moment,
-      pricePerToken,
-      saleStart,
-      saleEnd,
-      maxTokensPerAddress,
-      fundsRecipient,
-    } = validated;
-    return await updateSaleHandler(
-      moment,
-      callerAddress,
-      pricePerToken,
-      saleStart,
-      saleEnd,
-      maxTokensPerAddress,
-      fundsRecipient
-    );
+    return await updateSaleHandler(validated);
   } catch (e: any) {
     const message = e?.message ?? 'Failed to update sale';
     return Response.json({ message }, { status: 500 });

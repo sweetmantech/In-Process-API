@@ -7,15 +7,23 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';
 import { baseSepolia } from 'viem/chains';
 
-const updateSaleHandler = async (
-  moment: Moment,
-  callerAddress: string,
-  pricePerToken?: string,
-  saleStart?: number,
-  saleEnd?: number,
-  maxTokensPerAddress?: number,
-  fundsRecipient?: string
-) => {
+const updateSaleHandler = async ({
+  moment,
+  callerAddress,
+  pricePerToken,
+  saleStart,
+  saleEnd,
+  maxTokensPerAddress,
+  fundsRecipient,
+}: {
+  moment: Moment;
+  callerAddress: string;
+  pricePerToken?: string;
+  saleStart?: number;
+  saleEnd?: number;
+  maxTokensPerAddress?: number;
+  fundsRecipient?: string;
+}) => {
   const { saleConfig } = await getMomentOnChainInfo(moment);
 
   if (!saleConfig) {

@@ -11,7 +11,17 @@ vi.mock('@/authMiddleware', () => ({
   authMiddleware: vi.fn(),
 }));
 
+vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+  default: vi.fn(),
+}));
+
+vi.mock('@/lib/supabase/in_process_admins/selectAdmins', () => ({
+  default: vi.fn(),
+}));
+
 import { authMiddleware } from '@/authMiddleware';
+import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import validateUpdateSaleBody from '@/lib/moment/validateUpdateSaleBody';
 
 const CALLER = '0xcaller000000000000000000000000000000000';
@@ -30,12 +40,29 @@ const validMoment = {
   chainId: 8453,
 };
 
+const mockMomentRow = {
+  token_id: 1,
+  collection: {
+    id: 'collection-uuid',
+    address: COLLECTION,
+    chain_id: 8453,
+    default_admin: CALLER,
+  },
+};
+
 describe('validateUpdateSaleBody', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(authMiddleware).mockResolvedValue({
       artistAddress: CALLER,
     } as any);
+    vi.mocked(selectMoments).mockResolvedValue({
+      data: [mockMomentRow],
+      error: null,
+    } as any);
+    vi.mocked(selectAdmins).mockResolvedValue([
+      { artist_address: CALLER },
+    ] as any);
   });
 
   it('returns 401 when auth fails', async () => {
@@ -85,6 +112,45 @@ describe('validateUpdateSaleBody', () => {
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);
+  });
+
+  it('returns 500 when selectMoments errors', async () => {
+    vi.mocked(selectMoments).mockResolvedValue({
+      data: null,
+      error: { message: 'DB error' },
+    } as any);
+
+    const result = await validateUpdateSaleBody(
+      makeRequest({ moment: validMoment, pricePerToken: '1000' })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(500);
+  });
+
+  it('returns 403 when moment is not found', async () => {
+    vi.mocked(selectMoments).mockResolvedValue({
+      data: [],
+      error: null,
+    } as any);
+
+    const result = await validateUpdateSaleBody(
+      makeRequest({ moment: validMoment, pricePerToken: '1000' })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(403);
+  });
+
+  it('returns 403 when caller is not in admins list', async () => {
+    vi.mocked(selectAdmins).mockResolvedValue([] as any);
+
+    const result = await validateUpdateSaleBody(
+      makeRequest({ moment: validMoment, pricePerToken: '1000' })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(403);
   });
 
   it('returns validated data with callerAddress when pricePerToken is provided', async () => {

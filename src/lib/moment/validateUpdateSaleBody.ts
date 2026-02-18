@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import { updateSaleSchema } from '@/lib/schema/updateSaleSchema';
+import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 
 const validateUpdateSaleBody = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
@@ -11,6 +13,28 @@ const validateUpdateSaleBody = async (req: NextRequest) => {
   const body = await req.json();
   const result = validate(updateSaleSchema, body);
   if (!result.success) return result.response;
+
+  const { data, error } = await selectMoments({ moment: result.data.moment });
+
+  if (error)
+    return NextResponse.json({ message: error.message }, { status: 500 });
+
+  const momentRow = data?.[0];
+  if (!momentRow)
+    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+
+  const admins = await selectAdmins({
+    moments: [
+      {
+        collectionId: String(momentRow.collection.id),
+        token_id: momentRow.token_id,
+      },
+    ],
+    artist_address: callerAddress,
+  });
+  if (admins.length === 0) {
+    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+  }
 
   return { callerAddress, ...result.data };
 };
