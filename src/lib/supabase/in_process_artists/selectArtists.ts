@@ -15,10 +15,7 @@ const selectArtists = async ({
 } = {}) => {
   let query = supabase
     .from('in_process_artists')
-    .select(
-      'address, username, smart_wallet, bio, instagram_username, twitter_username, farcaster_username, telegram_username',
-      { count: 'exact' }
-    );
+    .select('*', { count: 'exact' });
 
   if (address) {
     return query.eq('address', address.toLowerCase()).limit(1);
