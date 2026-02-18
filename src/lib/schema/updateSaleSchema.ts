@@ -6,12 +6,21 @@ export const updateSaleSchema = z
     moment: momentSchema,
     pricePerToken: z.string().optional(),
     saleStart: z.string().datetime().optional(),
+    saleEnd: z.string().datetime().optional(),
+    maxTokensPerAddress: z.number().int().nonnegative().optional(),
+    fundsRecipient: z.string().optional(),
   })
   .superRefine((val, ctx) => {
-    if (!val.pricePerToken && !val.saleStart) {
+    const hasUpdate =
+      val.pricePerToken ||
+      val.saleStart ||
+      val.saleEnd ||
+      val.maxTokensPerAddress !== undefined ||
+      val.fundsRecipient;
+    if (!hasUpdate) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'At least one of pricePerToken or saleStart must be provided',
+        message: 'At least one sale field must be provided',
       });
     }
   });
