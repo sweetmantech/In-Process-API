@@ -4,7 +4,8 @@ import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 import { getMomentAdvancedInfo } from '@/lib/moment/getMomentAdvancedInfo';
 import { CHAIN_ID } from '@/lib/consts';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
-import { archivoFont, spectralFont } from '@/lib/og/fonts';
+import getArchivoFont from '@/lib/og/getArchivoFont';
+import getSpectralFont from '@/lib/og/getSpectralFont';
 import getWritingData from '@/lib/og/getWritingData';
 import getMomentImageData from '@/lib/og/getMomentImageData';
 import { ImageMetadata } from '@/types/og';
@@ -52,8 +53,8 @@ export async function GET(req: NextRequest) {
 
   const { ImageResponse } = await import('next/og');
   const [archivoFontData, spectralFontData] = await Promise.all([
-    archivoFont,
-    spectralFont,
+    getArchivoFont(),
+    getSpectralFont(),
   ]);
 
   return new ImageResponse(
