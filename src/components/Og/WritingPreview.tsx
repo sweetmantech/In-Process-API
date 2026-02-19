@@ -1,20 +1,24 @@
-const TokenWritingPreview = ({
+const WritingPreview = ({
   writingText,
   totalLines,
+  maxLines = 6,
+  shortLines = 2,
+  padding = 24,
 }: {
   writingText: string;
   totalLines: number;
+  maxLines?: number;
+  shortLines?: number;
+  padding?: number;
 }) => {
-  const WRITING_MAX_LINES = 6;
-  const WRITING_SHORT_LINES = 2;
   return (
     <div
       style={{
         display: 'flex',
-        paddingTop: 24,
-        paddingLeft: 24,
-        paddingRight: 24,
-        paddingBottom: totalLines > WRITING_MAX_LINES ? 0 : 24,
+        paddingTop: padding,
+        paddingLeft: padding,
+        paddingRight: padding,
+        paddingBottom: totalLines > maxLines ? 0 : padding,
         width: '100%',
         height: '100%',
         position: 'relative',
@@ -26,7 +30,7 @@ const TokenWritingPreview = ({
           height: '100%',
           overflow: 'hidden',
           display: 'flex',
-          alignItems: totalLines > WRITING_MAX_LINES ? 'flex-start' : 'center',
+          alignItems: totalLines > maxLines ? 'flex-start' : 'center',
           justifyContent: totalLines > 1 ? 'flex-start' : 'center',
         }}
       >
@@ -35,13 +39,13 @@ const TokenWritingPreview = ({
             wordWrap: 'break-word',
             whiteSpace: 'pre-wrap',
             fontFamily: 'Spectral',
-            fontSize: totalLines <= WRITING_SHORT_LINES ? 32 : 16,
+            fontSize: totalLines <= shortLines ? 32 : 16,
           }}
         >
           {writingText}
         </pre>
       </div>
-      {totalLines > WRITING_MAX_LINES && (
+      {totalLines > maxLines && (
         <div
           style={{
             position: 'absolute',
@@ -58,4 +62,4 @@ const TokenWritingPreview = ({
   );
 };
 
-export default TokenWritingPreview;
+export default WritingPreview;
