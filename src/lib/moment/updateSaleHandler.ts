@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { Address } from 'viem';
-import { Moment } from '@/types/moment';
 import getMomentOnChainInfo from '@/lib/viem/getMomentOnChainInfo';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';
 import { baseSepolia } from 'viem/chains';
+import { UpdateSaleBody } from '@/lib/moment/validateUpdateSaleBody';
 
 const updateSaleHandler = async ({
   moment,
@@ -15,15 +15,7 @@ const updateSaleHandler = async ({
   saleEnd,
   maxTokensPerAddress,
   fundsRecipient,
-}: {
-  moment: Moment;
-  callerAddress: string;
-  pricePerToken?: string;
-  saleStart?: number;
-  saleEnd?: number;
-  maxTokensPerAddress?: number;
-  fundsRecipient?: string;
-}) => {
+}: UpdateSaleBody) => {
   const { saleConfig } = await getMomentOnChainInfo(moment);
 
   if (!saleConfig) {

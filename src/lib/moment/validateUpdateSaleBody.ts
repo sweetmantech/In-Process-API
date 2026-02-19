@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import { updateSaleSchema } from '@/lib/schema/updateSaleSchema';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
+
+export type UpdateSaleBody = { callerAddress: string } & z.infer<
+  typeof updateSaleSchema
+>;
 
 const validateUpdateSaleBody = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
