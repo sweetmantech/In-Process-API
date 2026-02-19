@@ -44,8 +44,8 @@ export async function GET(req: NextRequest) {
   let totalLines = 0;
   let imageMetadata: ImageMetadata | null = null;
 
-  if (isWriting) {
-    ({ writingText, totalLines } = await getWritingData(metadata.content?.uri));
+  if (isWriting && metadata.content?.uri) {
+    ({ writingText, totalLines } = await getWritingData(metadata.content.uri));
   } else if (previewBackgroundUrl) {
     imageMetadata = await getMomentImageData(previewBackgroundUrl);
   }
