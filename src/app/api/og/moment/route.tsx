@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
     imageMetadata = await getMomentImageData(previewBackgroundUrl);
   }
 
-  const { ImageResponse } = await import('@vercel/og');
+  const { ImageResponse } = await import('next/og');
   const [archivoFontData, spectralFontData] = await Promise.all([
     archivoFont,
     spectralFont,
