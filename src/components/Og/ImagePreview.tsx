@@ -42,11 +42,9 @@ const ImagePreview = ({
     transform: rotation[orientation],
     left: shouldRotate ? paddingLeft : 0,
   };
-  if (originalWidth > originalHeight) style.height = '100%';
-  else
-    style.width = shouldRotate
-      ? (containerWidth / originalHeight) * originalWidth
-      : '100%';
+  if (shouldRotate)
+    style.width = (containerWidth / originalHeight) * originalWidth;
+  else style.width = '100%';
   return (
     // eslint-disable-next-line
     <img src={previewUrl} style={style} />
