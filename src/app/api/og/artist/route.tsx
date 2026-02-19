@@ -2,10 +2,10 @@ import { NextRequest } from 'next/server';
 import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 import { Address } from 'viem';
 import getImageMetadata from '@/lib/getImageMetadata';
-import ArtistInfo from '@/components/Og/ArtistInfo';
-import ImagePreview from '@/components/Og/ImagePreview';
-import WritingPreview from '@/components/Og/WritingPreview';
-import NoMoments from '@/components/Og/NoMoments';
+import ArtistInfo from '@/components/Og/artist/ArtistInfo';
+import TokenImagePreview from '@/components/Og/artist/TokenImagePreview';
+import TokenWritingPreview from '@/components/Og/artist/TokenWritingPreview';
+import NoMoments from '@/components/Og/artist/NoMoments';
 import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
 import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
@@ -115,12 +115,12 @@ export async function GET(req: NextRequest) {
         {metadata ? (
           <>
             {metadata.content?.mime === 'text/plain' ? (
-              <WritingPreview
+              <TokenWritingPreview
                 writingText={writingText}
                 totalLines={totalLines}
               />
             ) : (
-              <ImagePreview imageMetadata={imageMetadata} />
+              <TokenImagePreview imageMetadata={imageMetadata} />
             )}
           </>
         ) : (
