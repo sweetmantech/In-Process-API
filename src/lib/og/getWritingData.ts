@@ -12,6 +12,10 @@ const getWritingData = async (
   if (!fetchableUrl)
     throw Error('failed to convert content uri to fetchable url');
   const response = await fetch(fetchableUrl);
+  if (!response.ok)
+    throw Error(
+      `failed to fetch writing content from ${fetchableUrl}: ${response.status}`
+    );
   const writingText = await response.text();
   let totalLines = 0;
   const paragraphs = writingText.split('\n');

@@ -7,6 +7,7 @@ vi.mock('@/lib/protocolSdk/ipfs/gateway', () => ({
 
 const mockFetch = (text: string) => {
   vi.spyOn(global, 'fetch').mockResolvedValue({
+    ok: true,
     text: () => Promise.resolve(text),
   } as Response);
 };

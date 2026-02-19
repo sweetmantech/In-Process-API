@@ -7,6 +7,7 @@ import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import { archivoFont, spectralFont } from '@/lib/og/fonts';
 import getWritingData from '@/lib/og/getWritingData';
 import getMomentImageData from '@/lib/og/getMomentImageData';
+import { ImageMetadata } from '@/types/og';
 import WritingPreview from '@/components/Og/WritingPreview';
 import ImagePreview from '@/components/Og/ImagePreview';
 import { WRITING_MAX_LINES, WRITING_SHORT_LINES } from '@/lib/og/consts';
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
 
   let writingText = '';
   let totalLines = 0;
-  let imageMetadata = null;
+  let imageMetadata: ImageMetadata | null = null;
 
   if (isWriting) {
     ({ writingText, totalLines } = await getWritingData(metadata.content?.uri));
