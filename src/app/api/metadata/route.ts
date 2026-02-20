@@ -14,17 +14,20 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
     }
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
     try {
       const response = await fetch(fetchableUrl, {
-        signal: controller.signal,
+        cache: 'no-store',
       });
-      clearTimeout(timeoutId);
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        return Response.json(
+          { message: 'URI did not return JSON' },
+          { status: 400 }
+        );
+      }
       const data = await response.json();
       return Response.json(data);
     } catch (err) {
-      clearTimeout(timeoutId);
       if (err instanceof Error && err.name === 'AbortError') {
         return Response.json({
           image: '',
@@ -37,7 +40,7 @@ export async function GET(req: NextRequest) {
     }
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'failed to generate JWT';
+    const message = e?.message ?? 'failed to get metadata';
     return Response.json({ message }, { status: 500 });
   }
 }
