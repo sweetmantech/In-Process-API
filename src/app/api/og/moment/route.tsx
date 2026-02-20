@@ -12,6 +12,7 @@ import { ImageMetadata } from '@/types/og';
 import WritingPreview from '@/components/Og/WritingPreview';
 import ImagePreview from '@/components/Og/ImagePreview';
 import { WRITING_MAX_LINES, WRITING_SHORT_LINES } from '@/lib/og/consts';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +31,21 @@ export async function GET(req: NextRequest) {
     chainId: Number(chainId || CHAIN_ID),
   };
 
-  const { uri } = await getMomentAdvancedInfo(moment);
+  let uri: string | null = null;
+
+  if (moment.tokenId === '0') {
+    const { data: collections } = await selectCollections({
+      collectionAddress: moment.collectionAddress,
+      chainId: moment.chainId,
+    });
+    const collection = collections?.[0];
+    if (!collection) throw Error('no collection');
+    uri = collection.uri;
+  } else {
+    const { uri: momentUri } = await getMomentAdvancedInfo(moment);
+    uri = momentUri;
+  }
+
   if (!uri) throw Error('failed to get moment uri');
 
   const metadataUrl = getFetchableUrl(uri);
