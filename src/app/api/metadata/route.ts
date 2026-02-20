@@ -19,14 +19,20 @@ export async function GET(req: NextRequest) {
         cache: 'no-store',
       });
       const contentType = response.headers.get('content-type');
-      if (!contentType?.includes('application/json')) {
+      if (contentType?.includes('application/json')) {
+        const data = await response.json();
+        return Response.json(data);
+      }
+      const text = await response.text();
+      try {
+        const data = JSON.parse(text);
+        return Response.json(data);
+      } catch {
         return Response.json(
           { message: 'URI did not return JSON' },
           { status: 400 }
         );
       }
-      const data = await response.json();
-      return Response.json(data);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         return Response.json({
