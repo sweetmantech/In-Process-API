@@ -18,12 +18,12 @@ export async function POST(req: NextRequest) {
       return validationResult.response;
     }
 
-    const { collectionAddress, tokenIds, chainId } = validationResult.data;
+    const { collectionAddress, tokenId, chainId } = validationResult.data;
 
     // Trigger the migration task
     const handle = await tasks.trigger('migrate-mux-to-arweave', {
       collectionAddress: collectionAddress as `0x${string}`,
-      tokenIds,
+      tokenId,
       chainId,
       artistAddress: artistAddress as `0x${string}`,
     });
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     return Response.json({
       success: true,
       runId: handle.id,
-      message: `Migration task triggered successfully for ${tokenIds.length} token(s)`,
+      message: `Migration task triggered successfully`,
     });
   } catch (e: any) {
     console.error('Error triggering MUX to Arweave migration:', e);
