@@ -191,7 +191,7 @@ describe('validateMediaStream', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
-        fetchableUrl: 'https://arweave.net/abc123',
+        fetchableUrl: 'https://ar-io.net/abc123',
         totalSize: 54321,
         supportsRange: true,
         contentType: 'audio/wav',

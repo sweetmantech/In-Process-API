@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe('GET /api/arweave/[...path]', () => {
-  it('proxies GET request to arweave.net', async () => {
+  it('proxies GET request to ar-io.net', async () => {
     mockFetch.mockResolvedValueOnce(
       new Response(JSON.stringify({ data: 'test' }), {
         status: 200,
@@ -33,7 +33,7 @@ describe('GET /api/arweave/[...path]', () => {
     const res = await GET(req);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://arweave.net/tx/abc123',
+      'https://ar-io.net/tx/abc123',
       expect.objectContaining({ method: 'GET', body: undefined })
     );
     expect(res.status).toBe(200);
@@ -80,14 +80,14 @@ describe('GET /api/arweave/[...path]', () => {
     await GET(req);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://arweave.net/graphql?network=mainnet&limit=10',
+      'https://ar-io.net/graphql?network=mainnet&limit=10',
       expect.objectContaining({ method: 'GET' })
     );
   });
 });
 
 describe('POST /api/arweave/[...path]', () => {
-  it('proxies POST request with body to arweave.net', async () => {
+  it('proxies POST request with body to ar-io.net', async () => {
     const postBody = JSON.stringify({ key: 'value' });
     mockFetch.mockResolvedValueOnce(
       new Response(JSON.stringify({ success: true }), {
@@ -103,7 +103,7 @@ describe('POST /api/arweave/[...path]', () => {
     const res = await POST(req);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://arweave.net/tx',
+      'https://ar-io.net/tx',
       expect.objectContaining({ method: 'POST', body: postBody })
     );
     expect(res.status).toBe(200);
@@ -139,7 +139,7 @@ describe('POST /api/arweave/[...path]', () => {
     await POST(req);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://arweave.net/a/b/c/d',
+      'https://ar-io.net/a/b/c/d',
       expect.objectContaining({ method: 'POST' })
     );
   });

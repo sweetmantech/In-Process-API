@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-const ARWEAVE_BASE = 'https://arweave.net';
+const ARWEAVE_BASE = 'https://ar-io.net';
 
 const METHODS_WITH_BODY = new Set(['POST', 'PUT', 'PATCH']);
 
