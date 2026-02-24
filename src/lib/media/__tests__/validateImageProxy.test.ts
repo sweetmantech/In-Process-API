@@ -140,7 +140,7 @@ describe('validateImageProxy', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
-        fetchableUrl: 'https://arweave.net/abc123',
+        fetchableUrl: 'https://ar-io.net/abc123',
         width: 400,
         height: undefined,
         quality: 80,
