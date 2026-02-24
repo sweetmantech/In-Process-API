@@ -118,7 +118,14 @@ export async function fetchTokenMetadata(tokenMetadataURI: string) {
     );
   }
 
-  const json = JSON.parse(text) as TokenMetadataJson | undefined;
+  if (!text) {
+    return null;
+  }
 
-  return json ?? null;
+  try {
+    const json = JSON.parse(text) as TokenMetadataJson | undefined;
+    return json ?? null;
+  } catch {
+    return null;
+  }
 }
