@@ -105,13 +105,27 @@ export async function fetchTokenMetadata(tokenMetadataURI: string) {
     throw new Error(`Invalid token metadata URI: ${tokenMetadataURI}`);
   }
 
-  const json = (await (await fetch(fetchableUrl)).json()) as
-    | TokenMetadataJson
-    | undefined;
+  const response = await fetch(fetchableUrl);
+  const text = await response.text();
 
-  if (!json) {
-    throw new Error(`Failed to fetch metadata from ${fetchableUrl}`);
+  if (text.includes('Not Found')) {
+    return null;
   }
 
-  return json;
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch metadata from ${fetchableUrl}: ${response.status}`
+    );
+  }
+
+  if (!text) {
+    return null;
+  }
+
+  try {
+    const json = JSON.parse(text) as TokenMetadataJson | undefined;
+    return json ?? null;
+  } catch {
+    return null;
+  }
 }
