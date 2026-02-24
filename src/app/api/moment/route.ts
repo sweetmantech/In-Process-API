@@ -79,13 +79,15 @@ export async function GET(req: NextRequest) {
       owner,
       saleConfig,
       momentAdmins: uniqueAdminAddresses,
-      metadata: {
-        name: metadata.name || '',
-        image: metadata.image || '',
-        description: metadata.description || '',
-        content: metadata.content || null,
-        animation_url: metadata.animation_url || '',
-      },
+      metadata: metadata
+        ? {
+            name: metadata.name || '',
+            image: metadata.image || '',
+            description: metadata.description || '',
+            content: metadata.content || null,
+            animation_url: metadata.animation_url || '',
+          }
+        : null,
     });
   } catch (error: any) {
     console.error('Error fetching moment info:', error);

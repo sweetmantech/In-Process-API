@@ -106,12 +106,19 @@ export async function fetchTokenMetadata(tokenMetadataURI: string) {
   }
 
   const response = await fetch(fetchableUrl);
+  const text = await response.text();
 
-  if (!response.ok) {
+  if (text.includes('Not Found')) {
     return null;
   }
 
-  const json = (await response.json()) as TokenMetadataJson | undefined;
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch metadata from ${fetchableUrl}: ${response.status}`
+    );
+  }
+
+  const json = JSON.parse(text) as TokenMetadataJson | undefined;
 
   return json ?? null;
 }
