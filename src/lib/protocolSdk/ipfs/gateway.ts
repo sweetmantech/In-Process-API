@@ -1,9 +1,8 @@
+import { ARWEAVE_GATEWAY } from '@/lib/consts';
 import { isArweaveURL } from './arweave';
 import { isNormalizeableIPFSUrl, normalizeIPFSUrl } from './ipfs';
 
 const IPFS_GATEWAY = 'https://magic.decentralized-content.com';
-
-const ARWEAVE_GATEWAY = 'https://ar-io.net';
 
 export function arweaveGatewayUrl(normalizedArweaveUrl: string | null) {
   if (!normalizedArweaveUrl || typeof normalizedArweaveUrl !== 'string')

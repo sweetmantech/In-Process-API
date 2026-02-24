@@ -36,9 +36,9 @@ export const TELNYX_TOLL_FREE_PHONE_NUMBER = '+18885993909';
 export const TELNYX_MESSAGING_PROFILE_ID =
   '40019b4c-b5af-4052-966b-3f7546c2e7c0';
 
-export const ARWEAVE_KEY = JSON.parse(
-  Buffer.from(process.env.ARWEAVE_KEY as string, 'base64').toString()
-);
+export const ARWEAVE_KEY = process.env.ARWEAVE_KEY
+  ? JSON.parse(Buffer.from(process.env.ARWEAVE_KEY, 'base64').toString())
+  : null;
 
 export const ADMIN_ADDRESSES = [
   '0xaf1452d289e22fbd0dea9d5097353c72a90fac33',
@@ -46,3 +46,5 @@ export const ADMIN_ADDRESSES = [
   '0x7b753919b953b1021a33f55671716dc13c1eae08',
   '0x6e786fcfcb98da9df87ab0b7a2d64067c90daba9',
 ];
+
+export const ARWEAVE_GATEWAY = 'https://ar-io.net';
