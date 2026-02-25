@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { GET, POST } from './route';
 
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
+
+vi.mock('@/lib/arweave/wayfinderClient', () => ({
+  getArweaveGateway: vi.fn().mockResolvedValue(new URL('https://ar-io.net')),
+}));
+
+import { GET, POST } from './route';
 
 const createRequest = (
   path: string,

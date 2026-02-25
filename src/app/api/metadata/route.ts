@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     if (!uri) {
       return Response.json({ message: 'No URI provided' }, { status: 400 });
     }
-    const fetchableUrl = getFetchableUrl(uri as string);
+    const fetchableUrl = await getFetchableUrl(uri as string);
     if (!fetchableUrl) {
       return Response.json(
         { message: 'Invalid or unsupported URI' },

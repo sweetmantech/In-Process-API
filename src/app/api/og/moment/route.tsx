@@ -48,13 +48,13 @@ export async function GET(req: NextRequest) {
 
   if (!uri) throw Error('failed to get moment uri');
 
-  const metadataUrl = getFetchableUrl(uri);
+  const metadataUrl = await getFetchableUrl(uri);
   if (!metadataUrl) throw Error('failed to convert uri to fetchable url');
   const metadata = await fetchTokenMetadata(metadataUrl);
   if (!metadata) throw Error('failed to get token metadata');
 
   const isWriting = metadata.content?.mime === 'text/plain';
-  const previewBackgroundUrl = getFetchableUrl(metadata.image);
+  const previewBackgroundUrl = await getFetchableUrl(metadata.image);
 
   let writingText = '';
   let totalLines = 0;

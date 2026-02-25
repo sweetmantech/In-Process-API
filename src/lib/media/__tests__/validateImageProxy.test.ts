@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
+
+vi.mock('@/lib/arweave/wayfinderClient', () => ({
+  getArweaveGateway: vi.fn().mockResolvedValue(new URL('https://ar-io.net')),
+}));
+
 import { validateImageProxy } from '@/lib/media/validateImageProxy';
 
 const createMockRequest = (url: string): NextRequest => {

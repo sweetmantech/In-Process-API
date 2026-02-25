@@ -54,7 +54,7 @@ export const makeMediaTokenMetadata = async ({
   thumbnailUrl,
 }: MakeMediaMetadataParams): Promise<TokenMetadataJson> => {
   const contentUrl = mediaUrl;
-  const fetchableContentUrl = getFetchableUrl(contentUrl);
+  const fetchableContentUrl = await getFetchableUrl(contentUrl);
 
   if (!fetchableContentUrl)
     throw new Error(`Content url (${contentUrl}) is not fetchable`);
@@ -99,7 +99,7 @@ export const makeMediaTokenMetadata = async ({
 };
 
 export async function fetchTokenMetadata(tokenMetadataURI: string) {
-  const fetchableUrl = getFetchableUrl(tokenMetadataURI);
+  const fetchableUrl = await getFetchableUrl(tokenMetadataURI);
 
   if (!fetchableUrl) {
     throw new Error(`Invalid token metadata URI: ${tokenMetadataURI}`);

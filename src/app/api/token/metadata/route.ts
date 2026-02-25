@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       collection as Address,
       parseInt(tokenId as string, 10)
     );
-    const fetchableUrl = getFetchableUrl(uri);
+    const fetchableUrl = await getFetchableUrl(uri);
     if (!fetchableUrl) {
       return Response.json(
         { message: 'Invalid or unsupported URI' },

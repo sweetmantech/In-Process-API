@@ -15,13 +15,15 @@ const mockFetch = (text: string) => {
 beforeEach(async () => {
   vi.clearAllMocks();
   const { getFetchableUrl } = await import('@/lib/protocolSdk/ipfs/gateway');
-  vi.mocked(getFetchableUrl).mockReturnValue('https://cdn.example.com/content');
+  vi.mocked(getFetchableUrl).mockResolvedValue(
+    'https://cdn.example.com/content'
+  );
 });
 
 describe('getWritingData', () => {
   it('throws if getFetchableUrl returns null', async () => {
     const { getFetchableUrl } = await import('@/lib/protocolSdk/ipfs/gateway');
-    vi.mocked(getFetchableUrl).mockReturnValue(null);
+    vi.mocked(getFetchableUrl).mockResolvedValue(null);
 
     await expect(getWritingData('ipfs://some-uri')).rejects.toThrow(
       'failed to convert content uri to fetchable url'

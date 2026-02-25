@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
 
   if (metadata) {
     if (metadata.content?.mime === 'text/plain') {
-      const fetchableUri = getFetchableUrl(metadata.content?.uri);
+      const fetchableUri = await getFetchableUrl(metadata.content?.uri);
       if (fetchableUri) {
         const response = await fetch(fetchableUri);
         const data = await response.text();
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
         );
       }
     } else {
-      const fetchableImageUrl = getFetchableUrl(metadata.image);
+      const fetchableImageUrl = await getFetchableUrl(metadata.image);
       if (fetchableImageUrl) {
         imageMetadata = await getImageMetadata(fetchableImageUrl);
       }

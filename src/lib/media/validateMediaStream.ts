@@ -18,7 +18,7 @@ export const validateMediaStream = async (request: NextRequest) => {
 
   const { url } = validationResult.data;
 
-  const fetchableUrl = getFetchableUrl(url);
+  const fetchableUrl = await getFetchableUrl(url);
   if (!fetchableUrl) {
     return NextResponse.json(
       { error: 'Invalid or unsupported URL format' },

@@ -1,14 +1,8 @@
-import { ARWEAVE_GATEWAY } from '@/lib/consts';
+import { getArweaveGateway } from '@/lib/arweave/wayfinderClient';
 import { isArweaveURL } from './arweave';
 import { isNormalizeableIPFSUrl, normalizeIPFSUrl } from './ipfs';
 
 const IPFS_GATEWAY = 'https://magic.decentralized-content.com';
-
-export function arweaveGatewayUrl(normalizedArweaveUrl: string | null) {
-  if (!normalizedArweaveUrl || typeof normalizedArweaveUrl !== 'string')
-    return null;
-  return normalizedArweaveUrl.replace('ar://', `${ARWEAVE_GATEWAY}/`);
-}
 
 export function ipfsGatewayUrl(url: string | null) {
   if (!url || typeof url !== 'string') return null;
@@ -19,7 +13,9 @@ export function ipfsGatewayUrl(url: string | null) {
   return null;
 }
 
-export function getFetchableUrl(uri: string | null | undefined): string | null {
+export async function getFetchableUrl(
+  uri: string | null | undefined
+): Promise<string | null> {
   if (!uri || typeof uri !== 'string') return null;
 
   // Prevent fetching from insecure URLs
@@ -33,8 +29,9 @@ export function getFetchableUrl(uri: string | null | undefined): string | null {
 
   // If it is a ar:// url
   if (isArweaveURL(uri)) {
-    // Return a fetchable gateway url
-    return arweaveGatewayUrl(uri);
+    // Resolve via Wayfinder for dynamic gateway selection
+    const gateway = await getArweaveGateway();
+    return uri.replace('ar://', `${gateway.origin}/`);
   }
 
   // If it is already a url (or blob or data-uri)
