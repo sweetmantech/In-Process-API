@@ -1,3 +1,6 @@
+export const IN_PROCESS_LOGO_URL =
+  'https://arweave.net/GlRVqkN9sLPSmN09CSLTAgc5lW-GaUg23I0-wRd2MwI';
+
 export const rotation: any = {
   1: 'rotate(0deg)',
   3: 'rotate(180deg)',

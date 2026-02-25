@@ -1,7 +1,6 @@
 import { mediaStreamSchema } from '@/lib/schema/mediaStreamSchema';
 import { NextRequest, NextResponse } from 'next/server';
 import { validate } from '@/lib/schema/validate';
-import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
 import getContentInfo from './getContentInfo';
 
 export const validateMediaStream = async (request: NextRequest) => {
@@ -18,15 +17,7 @@ export const validateMediaStream = async (request: NextRequest) => {
 
   const { url } = validationResult.data;
 
-  const fetchableUrl = await getFetchableUrl(url);
-  if (!fetchableUrl) {
-    return NextResponse.json(
-      { error: 'Invalid or unsupported URL format' },
-      { status: 400 }
-    );
-  }
-
-  const contentInfo = await getContentInfo(fetchableUrl);
+  const contentInfo = await getContentInfo(url);
 
   if (!contentInfo.ok) {
     return NextResponse.json(
@@ -49,7 +40,7 @@ export const validateMediaStream = async (request: NextRequest) => {
   const rangeHeader = request.headers.get('range');
 
   return {
-    fetchableUrl,
+    uri: url,
     totalSize,
     supportsRange,
     contentType,

@@ -6,7 +6,7 @@ import ArtistInfo from '@/components/Og/ArtistInfo';
 import ImagePreview from '@/components/Og/ImagePreview';
 import WritingPreview from '@/components/Og/WritingPreview';
 import NoMoments from '@/components/Og/NoMoments';
-import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
+import fetchUri from '@/lib/arweave/fetchUri';
 import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
@@ -58,10 +58,12 @@ export async function GET(req: NextRequest) {
 
   if (metadata) {
     if (metadata.content?.mime === 'text/plain') {
-      const fetchableUri = await getFetchableUrl(metadata.content?.uri);
-      if (fetchableUri) {
-        const response = await fetch(fetchableUri);
-        const data = await response.text();
+      const contentUri = metadata.content?.uri;
+      let contentResponse: Response | null = null;
+      if (contentUri)
+        contentResponse = await fetchUri(contentUri).catch(() => null);
+      if (contentResponse?.ok) {
+        const data = await contentResponse.text();
         writingText = data;
         const paragraphs = writingText.split('\n');
         paragraphs.map(
@@ -73,10 +75,7 @@ export async function GET(req: NextRequest) {
         );
       }
     } else {
-      const fetchableImageUrl = await getFetchableUrl(metadata.image);
-      if (fetchableImageUrl) {
-        imageMetadata = await getImageMetadata(fetchableImageUrl);
-      }
+      imageMetadata = await getImageMetadata(metadata.image);
     }
   }
 

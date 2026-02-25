@@ -1,12 +1,11 @@
 import { imageMeta } from 'image-meta';
-import { getFetchableUrl } from './protocolSdk/ipfs/gateway';
+import fetchUri from './arweave/fetchUri';
 
 const getImageMetadata = async (previewBackgroundUrl: string | undefined) => {
   try {
     if (!previewBackgroundUrl) return null;
-    const fetchableUrl = await getFetchableUrl(previewBackgroundUrl);
-    if (!fetchableUrl) return null;
-    const response = await fetch(fetchableUrl);
+
+    const response = await fetchUri(previewBackgroundUrl);
     if (!response.ok) throw new Error();
 
     const data = await response.arrayBuffer();
@@ -14,12 +13,15 @@ const getImageMetadata = async (previewBackgroundUrl: string | undefined) => {
     const meta = imageMeta(uint8Array);
     if (!meta.width || !meta.height) throw new Error();
 
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const previewUrl = `data:${contentType};base64,${Buffer.from(data).toString('base64')}`;
+
     return {
       orientation: meta?.orientation || 1,
       originalWidth: meta.width || 1,
       originalHeight: meta.height,
       shouldRotate: meta?.orientation === 6 || meta?.orientation === 8,
-      previewUrl: fetchableUrl,
+      previewUrl,
     };
   } catch (error) {
     console.error(error);

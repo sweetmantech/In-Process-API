@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
+import fetchUri from '@/lib/arweave/fetchUri';
 
 const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',
@@ -9,19 +10,19 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 const imageProxyHandler = async ({
-  fetchableUrl,
+  url,
   width,
   height,
   quality,
   format,
 }: {
-  fetchableUrl: string;
+  url: string;
   width?: number;
   height?: number;
   quality: number;
   format: 'webp' | 'avif' | 'jpeg' | 'png';
 }) => {
-  const response = await fetch(fetchableUrl);
+  const response = await fetchUri(url);
 
   if (!response.ok) {
     return NextResponse.json(

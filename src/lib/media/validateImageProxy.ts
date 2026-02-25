@@ -1,7 +1,6 @@
 import { imageProxySchema } from '@/lib/schema/imageProxySchema';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { validate } from '@/lib/schema/validate';
-import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
 
 export const validateImageProxy = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
@@ -21,16 +20,8 @@ export const validateImageProxy = async (request: NextRequest) => {
 
   const { url, w, h, q, f } = validationResult.data;
 
-  const fetchableUrl = await getFetchableUrl(url);
-  if (!fetchableUrl) {
-    return NextResponse.json(
-      { status: 'error', message: 'Invalid or unsupported URL format' },
-      { status: 400 }
-    );
-  }
-
   return {
-    fetchableUrl,
+    url,
     width: w,
     height: h,
     quality: q,

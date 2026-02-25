@@ -1,6 +1,5 @@
 import { getFetchableUrl } from './gateway';
-import { isArweaveURL } from './arweave';
-import readFromArweave from '@/lib/arweave/readFromArweave';
+import fetchUri from '@/lib/arweave/fetchUri';
 import {
   DEFAULT_THUMBNAIL_CID_HASHES,
   TEXT_PLAIN,
@@ -56,7 +55,7 @@ export const makeMediaTokenMetadata = async ({
   thumbnailUrl,
 }: MakeMediaMetadataParams): Promise<TokenMetadataJson> => {
   const contentUrl = mediaUrl;
-  const fetchableContentUrl = await getFetchableUrl(contentUrl);
+  const fetchableContentUrl = getFetchableUrl(contentUrl);
 
   if (!fetchableContentUrl)
     throw new Error(`Content url (${contentUrl}) is not fetchable`);
@@ -101,17 +100,7 @@ export const makeMediaTokenMetadata = async ({
 };
 
 export async function fetchTokenMetadata(tokenMetadataURI: string) {
-  let response: Response;
-
-  if (isArweaveURL(tokenMetadataURI)) {
-    response = await readFromArweave(tokenMetadataURI);
-  } else {
-    const fetchableUrl = await getFetchableUrl(tokenMetadataURI);
-    if (!fetchableUrl) {
-      throw new Error(`Invalid token metadata URI: ${tokenMetadataURI}`);
-    }
-    response = await fetch(fetchableUrl);
-  }
+  const response = await fetchUri(tokenMetadataURI);
 
   const text = await response.text();
 

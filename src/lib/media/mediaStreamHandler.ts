@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import parseRangeHeader from './parseRangeHeader';
+import fetchUri from '@/lib/arweave/fetchUri';
 
 const mediaStreamHandler = async ({
-  fetchableUrl,
+  uri,
   totalSize,
   supportsRange,
   contentType,
   rangeHeader,
 }: {
-  fetchableUrl: string;
+  uri: string;
   totalSize: number;
   supportsRange: boolean;
   contentType: string;
@@ -33,7 +34,7 @@ const mediaStreamHandler = async ({
     headers['Range'] = `bytes=${start}-${end}`;
   }
 
-  const response = await fetch(fetchableUrl, { headers });
+  const response = await fetchUri(uri, { headers });
 
   if (!response.ok && response.status !== 206) {
     return NextResponse.json(

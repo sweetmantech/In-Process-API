@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
-vi.mock('@/lib/arweave/wayfinderClient', () => ({
-  getArweaveGateway: vi.fn().mockResolvedValue(new URL('https://ar-io.net')),
-}));
-
 vi.mock('@/lib/media/getContentInfo', () => ({
   default: vi.fn(),
 }));
@@ -64,7 +60,7 @@ describe('validateMediaStream', () => {
       const response = result as NextResponse;
       expect(response.status).toBe(400);
       const body = await response.json();
-      expect(body.error).toBe('Invalid or unsupported URL format');
+      expect(body.errors[0].message).toBe('Invalid or unsupported URL format');
     });
 
     it('should return 400 for http:// URL', async () => {
@@ -172,7 +168,7 @@ describe('validateMediaStream', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 12345,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -195,7 +191,7 @@ describe('validateMediaStream', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
-        fetchableUrl: 'https://ar-io.net/abc123',
+        uri: 'ar://abc123',
         totalSize: 54321,
         supportsRange: true,
         contentType: 'audio/wav',
@@ -219,7 +215,7 @@ describe('validateMediaStream', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 12345,
         supportsRange: true,
         contentType: 'audio/mpeg',

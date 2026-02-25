@@ -1,10 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
-vi.mock('@/lib/arweave/wayfinderClient', () => ({
-  getArweaveGateway: vi.fn().mockResolvedValue(new URL('https://ar-io.net')),
-}));
-
 import { validateImageProxy } from '@/lib/media/validateImageProxy';
 
 const createMockRequest = (url: string): NextRequest => {
@@ -87,9 +83,6 @@ describe('validateImageProxy', () => {
       expect(result).toBeInstanceOf(NextResponse);
       const response = result as NextResponse;
       expect(response.status).toBe(400);
-      const body = await response.json();
-      expect(body.status).toBe('error');
-      expect(body.message).toBe('Invalid or unsupported URL format');
     });
 
     it('should return 400 for http:// URL', async () => {
@@ -113,7 +106,7 @@ describe('validateImageProxy', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
-        fetchableUrl: 'https://example.com/image.jpg',
+        url: 'https://example.com/image.jpg',
         width: undefined,
         height: undefined,
         quality: 80,
@@ -129,7 +122,7 @@ describe('validateImageProxy', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
-        fetchableUrl: 'https://example.com/image.jpg',
+        url: 'https://example.com/image.jpg',
         width: 800,
         height: 600,
         quality: 75,
@@ -145,7 +138,7 @@ describe('validateImageProxy', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toEqual({
-        fetchableUrl: 'https://ar-io.net/abc123',
+        url: 'ar://abc123',
         width: 400,
         height: undefined,
         quality: 80,
@@ -161,6 +154,7 @@ describe('validateImageProxy', () => {
 
       expect(result).not.toBeInstanceOf(NextResponse);
       expect(result).toMatchObject({
+        url: 'ipfs://QmTest123',
         width: undefined,
         height: undefined,
         quality: 80,

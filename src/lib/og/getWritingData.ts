@@ -1,6 +1,4 @@
-import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
-import { isArweaveURL } from '@/lib/protocolSdk/ipfs/arweave';
-import readFromArweave from '@/lib/arweave/readFromArweave';
+import fetchUri from '@/lib/arweave/fetchUri';
 
 interface WritingData {
   writingText: string;
@@ -10,16 +8,9 @@ interface WritingData {
 const getWritingData = async (
   contentUri: string | undefined
 ): Promise<WritingData> => {
-  let response: Response;
-
-  if (isArweaveURL(contentUri)) {
-    response = await readFromArweave(contentUri!);
-  } else {
-    const fetchableUrl = await getFetchableUrl(contentUri);
-    if (!fetchableUrl)
-      throw Error('failed to convert content uri to fetchable url');
-    response = await fetch(fetchableUrl);
-  }
+  if (!contentUri)
+    throw Error('failed to convert content uri to fetchable url');
+  const response = await fetchUri(contentUri);
 
   if (!response.ok)
     throw Error(
