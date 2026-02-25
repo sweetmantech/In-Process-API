@@ -26,10 +26,10 @@ const wayfinderClient = createWayfinderClient({
   routingSettings: {
     strategy: new SimpleCacheRoutingStrategy({
       routingStrategy: new FastestPingRoutingStrategy({
-        timeoutMs: 500,
+        timeoutMs: 5000,
         gatewaysProvider,
       }),
-      ttlSeconds: 60,
+      ttlSeconds: 300,
     }),
   },
   verificationSettings: {

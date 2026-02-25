@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 import { Address } from 'viem';
-import getImageMetadata from '@/lib/getImageMetadata';
+import getImageMetadata from '@/lib/og/getImageMetadata';
 import ArtistInfo from '@/components/Og/ArtistInfo';
 import ImagePreview from '@/components/Og/ImagePreview';
 import WritingPreview from '@/components/Og/WritingPreview';

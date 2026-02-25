@@ -1,5 +1,5 @@
 import { imageMeta } from 'image-meta';
-import fetchUri from './arweave/fetchUri';
+import fetchUri from '../arweave/fetchUri';
 
 const getImageMetadata = async (previewBackgroundUrl: string | undefined) => {
   try {
