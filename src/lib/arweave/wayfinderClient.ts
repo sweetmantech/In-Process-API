@@ -1,6 +1,8 @@
 import {
   createWayfinderClient,
   HashVerificationStrategy,
+  SimpleCacheRoutingStrategy,
+  FastestPingRoutingStrategy,
 } from '@ar.io/wayfinder-core';
 
 const wayfinderClient = createWayfinderClient({
@@ -9,6 +11,14 @@ const wayfinderClient = createWayfinderClient({
     info: () => {},
     warn: console.warn,
     error: console.error,
+  },
+  routingSettings: {
+    strategy: new SimpleCacheRoutingStrategy({
+      routingStrategy: new FastestPingRoutingStrategy({
+        timeoutMs: 500,
+      }),
+      ttlSeconds: 60,
+    }),
   },
   verificationSettings: {
     enabled: true,
