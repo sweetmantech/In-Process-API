@@ -13,7 +13,11 @@ const wayfinderClient = createWayfinderClient({
   verificationSettings: {
     enabled: true,
     strategy: new HashVerificationStrategy({
-      trustedGateways: [new URL('https://arweave.net')],
+      trustedGateways: [
+        new URL('https://arweave.net'),
+        new URL('https://permagate.io'),
+        new URL('https://ar-io.net'),
+      ],
     }),
   },
 });

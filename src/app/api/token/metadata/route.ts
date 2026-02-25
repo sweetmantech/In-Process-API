@@ -3,6 +3,8 @@ import { Address } from 'viem';
 import { NextRequest } from 'next/server';
 import getTokenURI from '@/lib/zora/getTokenURI';
 import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
+import { isArweaveURL } from '@/lib/protocolSdk/ipfs/arweave';
+import readFromArweave from '@/lib/arweave/readFromArweave';
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,14 +16,19 @@ export async function GET(req: NextRequest) {
       collection as Address,
       parseInt(tokenId as string, 10)
     );
-    const fetchableUrl = await getFetchableUrl(uri);
-    if (!fetchableUrl) {
-      return Response.json(
-        { message: 'Invalid or unsupported URI' },
-        { status: 400 }
-      );
+    let response: Response;
+    if (isArweaveURL(uri)) {
+      response = await readFromArweave(uri);
+    } else {
+      const fetchableUrl = await getFetchableUrl(uri);
+      if (!fetchableUrl) {
+        return Response.json(
+          { message: 'Invalid or unsupported URI' },
+          { status: 400 }
+        );
+      }
+      response = await fetch(fetchableUrl);
     }
-    const response = await fetch(fetchableUrl);
     const metadata = await response.json();
 
     return Response.json({

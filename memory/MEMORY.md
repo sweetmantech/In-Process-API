@@ -21,7 +21,7 @@ All Arweave **reads** go through `@ar.io/wayfinder-core` for dynamic gateway sel
 
 - Gateway provider: `TrustedPeersGatewaysProvider` → `permagate.io/ar-io/peers` (691+ gateways), cached 300s in-memory.
 - Routing: `RandomRoutingStrategy` — no per-request pinging overhead.
-- Verification: `HashVerificationStrategy` (SHA-256 vs arweave.net) — only on `wayfinderClient.request()` calls.
+- Verification: `HashVerificationStrategy` (SHA-256) — trusted gateways: arweave.net, permagate.io, ar-io.net. Only on `wayfinderClient.request()` calls. Multiple trusted gateways so if one is offline, others are used.
 - Logger: warn/error only (debug/info suppressed to avoid noise).
 
 ## Arweave Uploads (unchanged)

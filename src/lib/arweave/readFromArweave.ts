@@ -1,7 +1,7 @@
 import wayfinderClient from './wayfinderClient';
 
-const readFromArweave = async (txId: string): Promise<Response> => {
-  return wayfinderClient.request(`ar://${txId}`);
+const readFromArweave = async (arUri: string): Promise<Response> => {
+  return wayfinderClient.request(arUri);
 };
 
 export default readFromArweave;

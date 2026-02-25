@@ -48,9 +48,7 @@ export async function GET(req: NextRequest) {
 
   if (!uri) throw Error('failed to get moment uri');
 
-  const metadataUrl = await getFetchableUrl(uri);
-  if (!metadataUrl) throw Error('failed to convert uri to fetchable url');
-  const metadata = await fetchTokenMetadata(metadataUrl);
+  const metadata = await fetchTokenMetadata(uri);
   if (!metadata) throw Error('failed to get token metadata');
 
   const isWriting = metadata.content?.mime === 'text/plain';

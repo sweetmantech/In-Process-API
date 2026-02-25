@@ -1,4 +1,6 @@
 import { getFetchableUrl } from './gateway';
+import { isArweaveURL } from './arweave';
+import readFromArweave from '@/lib/arweave/readFromArweave';
 import {
   DEFAULT_THUMBNAIL_CID_HASHES,
   TEXT_PLAIN,
@@ -99,13 +101,18 @@ export const makeMediaTokenMetadata = async ({
 };
 
 export async function fetchTokenMetadata(tokenMetadataURI: string) {
-  const fetchableUrl = await getFetchableUrl(tokenMetadataURI);
+  let response: Response;
 
-  if (!fetchableUrl) {
-    throw new Error(`Invalid token metadata URI: ${tokenMetadataURI}`);
+  if (isArweaveURL(tokenMetadataURI)) {
+    response = await readFromArweave(tokenMetadataURI);
+  } else {
+    const fetchableUrl = await getFetchableUrl(tokenMetadataURI);
+    if (!fetchableUrl) {
+      throw new Error(`Invalid token metadata URI: ${tokenMetadataURI}`);
+    }
+    response = await fetch(fetchableUrl);
   }
 
-  const response = await fetch(fetchableUrl);
   const text = await response.text();
 
   if (text.includes('Not Found')) {
@@ -114,7 +121,7 @@ export async function fetchTokenMetadata(tokenMetadataURI: string) {
 
   if (!response.ok) {
     throw new Error(
-      `Failed to fetch metadata from ${fetchableUrl}: ${response.status}`
+      `Failed to fetch metadata from ${tokenMetadataURI}: ${response.status}`
     );
   }
 
