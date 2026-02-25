@@ -8,12 +8,14 @@ export async function getInProcessMomentsTotalCnt(): Promise<{
 }> {
   const { count, error } = await supabase
     .from('in_process_moments')
-    .select('id, collection:in_process_collections!inner(chain_id)', {
-      count: 'exact',
-      head: true,
-    })
+    .select(
+      'id, collection:in_process_collections!inner(chain_id, default_admin, artist:in_process_artists!inner(username))',
+      { count: 'exact', head: true }
+    )
     .neq('uri', '')
-    .eq('collection.chain_id', CHAIN_ID);
+    .eq('collection.chain_id', CHAIN_ID)
+    .not('collection.artist.username', 'is', null)
+    .neq('collection.artist.username', '');
 
   return { count, error };
 }
