@@ -35,7 +35,7 @@ describe('loginWithCodeHandler', () => {
         body: JSON.stringify({
           email: 'user@example.com',
           code: '123456',
-          mode: 'login',
+          mode: 'login-or-sign-up',
         }),
         headers: expect.objectContaining({
           'privy-app-id': 'test-privy-app-id',
@@ -46,17 +46,25 @@ describe('loginWithCodeHandler', () => {
     );
   });
 
-  it('returns Privy response data on success', async () => {
+  it('returns only token and refresh_token on success', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => ({ token: 'privy-token-abc' }),
+      json: async () => ({
+        token: 'privy-token-abc',
+        refresh_token: 'refresh-xyz',
+        user: { id: 'did:privy:abc', linked_accounts: [] },
+        is_new_user: false,
+      }),
     });
 
     const res = await loginWithCodeHandler('user@example.com', '123456');
     const json = await res.json();
 
     expect(res).toBeInstanceOf(NextResponse);
-    expect(json).toEqual({ token: 'privy-token-abc' });
+    expect(json).toEqual({
+      token: 'privy-token-abc',
+      message: 'Token expires in 1 hour.',
+    });
   });
 
   it('throws with Privy error message when response is not ok', async () => {

@@ -14,17 +14,24 @@ const loginWithCodeHandler = async (
         'Content-Type': 'application/json',
         origin: SITE_ORIGINAL_URL,
       },
-      body: JSON.stringify({ email, code, mode: 'login' }),
+      body: JSON.stringify({ email, code, mode: 'login-or-sign-up' }),
     }
   );
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    console.error('[loginWithCodeHandler] Privy error:', {
+      status: response.status,
+      data,
+    });
     throw new Error(data?.message ?? 'Failed to authenticate');
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json({
+    token: data.token,
+    message: 'Token expires in 1 hour.',
+  });
 };
 
 export default loginWithCodeHandler;
