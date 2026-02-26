@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { SITE_ORIGINAL_URL } from '@/lib/consts';
 
 const sendCodeHandler = async (email: string): Promise<NextResponse> => {
   const response = await fetch(
@@ -8,6 +9,7 @@ const sendCodeHandler = async (email: string): Promise<NextResponse> => {
       headers: {
         'privy-app-id': process.env.PRIVY_APP_ID!,
         'Content-Type': 'application/json',
+        origin: SITE_ORIGINAL_URL,
       },
       body: JSON.stringify({ email }),
     }
