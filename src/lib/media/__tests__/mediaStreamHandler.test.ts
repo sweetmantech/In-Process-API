@@ -25,7 +25,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -47,7 +47,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -67,7 +67,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: false,
         contentType: 'audio/mpeg',
@@ -91,7 +91,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -114,7 +114,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -134,7 +134,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -156,7 +156,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -175,7 +175,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -193,7 +193,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -213,7 +213,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -232,7 +232,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -251,7 +251,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -272,7 +272,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.mp3',
+        uri: 'https://example.com/audio.mp3',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/mpeg',
@@ -292,7 +292,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        fetchableUrl: 'https://example.com/audio.wav',
+        uri: 'https://example.com/audio.wav',
         totalSize: 1000,
         supportsRange: true,
         contentType: 'audio/wav',

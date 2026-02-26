@@ -1,4 +1,4 @@
-import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
+import fetchUri from '@/lib/arweave/fetchUri';
 
 interface WritingData {
   writingText: string;
@@ -8,14 +8,14 @@ interface WritingData {
 const getWritingData = async (
   contentUri: string | undefined
 ): Promise<WritingData> => {
-  const fetchableUrl = getFetchableUrl(contentUri);
-  if (!fetchableUrl)
-    throw Error('failed to convert content uri to fetchable url');
-  const response = await fetch(fetchableUrl);
+  if (!contentUri) throw Error('missing or invalid contentUri');
+  const response = await fetchUri(contentUri);
+
   if (!response.ok)
     throw Error(
-      `failed to fetch writing content from ${fetchableUrl}: ${response.status}`
+      `failed to fetch writing content from ${contentUri}: ${response.status}`
     );
+
   const writingText = await response.text();
   let totalLines = 0;
   const paragraphs = writingText.split('\n');

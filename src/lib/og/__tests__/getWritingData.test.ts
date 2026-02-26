@@ -1,30 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import getWritingData from '@/lib/og/getWritingData';
 
-vi.mock('@/lib/protocolSdk/ipfs/gateway', () => ({
-  getFetchableUrl: vi.fn(),
-}));
+vi.mock('@/lib/arweave/fetchUri');
+
+import fetchUri from '@/lib/arweave/fetchUri';
 
 const mockFetch = (text: string) => {
-  vi.spyOn(global, 'fetch').mockResolvedValue({
+  vi.mocked(fetchUri).mockResolvedValue({
     ok: true,
     text: () => Promise.resolve(text),
   } as Response);
 };
 
-beforeEach(async () => {
+beforeEach(() => {
   vi.clearAllMocks();
-  const { getFetchableUrl } = await import('@/lib/protocolSdk/ipfs/gateway');
-  vi.mocked(getFetchableUrl).mockReturnValue('https://cdn.example.com/content');
+  mockFetch('');
 });
 
 describe('getWritingData', () => {
-  it('throws if getFetchableUrl returns null', async () => {
-    const { getFetchableUrl } = await import('@/lib/protocolSdk/ipfs/gateway');
-    vi.mocked(getFetchableUrl).mockReturnValue(null);
-
-    await expect(getWritingData('ipfs://some-uri')).rejects.toThrow(
-      'failed to convert content uri to fetchable url'
+  it('throws if contentUri is undefined', async () => {
+    await expect(getWritingData(undefined)).rejects.toThrow(
+      'missing or invalid contentUri'
     );
   });
 

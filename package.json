@@ -19,6 +19,7 @@
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
     "@0xsplits/splits-sdk": "^6.4.1",
+    "@ar.io/wayfinder-core": "^1.9.1",
     "@coinbase/cdp-sdk": "^1.43.1",
     "@coinbase/coinbase-sdk": "^0.25.0",
     "@mux/mux-node": "^12.8.1",

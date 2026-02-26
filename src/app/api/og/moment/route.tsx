@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
 import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 import { getMomentAdvancedInfo } from '@/lib/moment/getMomentAdvancedInfo';
 import { CHAIN_ID } from '@/lib/consts';
@@ -48,13 +47,10 @@ export async function GET(req: NextRequest) {
 
   if (!uri) throw Error('failed to get moment uri');
 
-  const metadataUrl = getFetchableUrl(uri);
-  if (!metadataUrl) throw Error('failed to convert uri to fetchable url');
-  const metadata = await fetchTokenMetadata(metadataUrl);
+  const metadata = await fetchTokenMetadata(uri);
   if (!metadata) throw Error('failed to get token metadata');
 
   const isWriting = metadata.content?.mime === 'text/plain';
-  const previewBackgroundUrl = getFetchableUrl(metadata.image);
 
   let writingText = '';
   let totalLines = 0;
@@ -62,8 +58,8 @@ export async function GET(req: NextRequest) {
 
   if (isWriting && metadata.content?.uri) {
     ({ writingText, totalLines } = await getWritingData(metadata.content.uri));
-  } else if (previewBackgroundUrl) {
-    imageMetadata = await getMomentImageData(previewBackgroundUrl);
+  } else if (metadata.image) {
+    imageMetadata = await getMomentImageData(metadata.image);
   }
 
   const { ImageResponse } = await import('next/og');

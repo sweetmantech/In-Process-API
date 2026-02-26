@@ -1,3 +1,5 @@
+import { IN_PROCESS_LOGO_URL } from '@/lib/og/consts';
+
 const ArtistInfo = ({ nickName }: { nickName: string }) => {
   return (
     <div
@@ -8,10 +10,7 @@ const ArtistInfo = ({ nickName }: { nickName: string }) => {
       }}
     >
       {/* eslint-disable-next-line */}
-      <img
-        src="https://arweave.net/GlRVqkN9sLPSmN09CSLTAgc5lW-GaUg23I0-wRd2MwI"
-        width="100%"
-      />
+      <img src={IN_PROCESS_LOGO_URL} width="100%" />
       <p
         style={{
           fontFamily: 'Archivo',

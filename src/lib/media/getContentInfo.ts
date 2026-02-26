@@ -1,3 +1,5 @@
+import fetchUri from '@/lib/arweave/fetchUri';
+
 export type ContentInfoSuccess = {
   ok: true;
   totalSize: number | null;
@@ -13,8 +15,8 @@ export type ContentInfoError = {
 
 export type ContentInfoResult = ContentInfoSuccess | ContentInfoError;
 
-const getContentInfo = async (url: string): Promise<ContentInfoResult> => {
-  const response = await fetch(url, { method: 'HEAD' });
+const getContentInfo = async (uri: string): Promise<ContentInfoResult> => {
+  const response = await fetchUri(uri, { method: 'HEAD' });
 
   if (!response.ok) {
     return {

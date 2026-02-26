@@ -1,11 +1,10 @@
-import { ARWEAVE_GATEWAY } from '@/lib/consts';
+import getArweaveGateway from '@/lib/arweave/getArweaveGateway';
 import { NextRequest } from 'next/server';
 
 const METHODS_WITH_BODY = new Set(['POST', 'PUT', 'PATCH']);
 
 const handler = async (req: NextRequest) => {
   const path = req.nextUrl.pathname.replace('/api/arweave/', '');
-  const url = `${ARWEAVE_GATEWAY}/${path}${req.nextUrl.search}`;
 
   const headers = new Headers();
   const contentType = req.headers.get('Content-Type');
@@ -14,6 +13,8 @@ const handler = async (req: NextRequest) => {
   }
 
   try {
+    const gateway = await getArweaveGateway();
+    const url = `${gateway.origin}/${path}${req.nextUrl.search}`;
     const res = await fetch(url, {
       method: req.method,
       headers,

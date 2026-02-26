@@ -17,6 +17,14 @@ beforeEach(() => {
   vi.restoreAllMocks();
 });
 
+const mockFetchOk = (type = 'jpg') => {
+  vi.spyOn(global, 'fetch').mockResolvedValue({
+    ok: true,
+    arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+    headers: { get: vi.fn().mockReturnValue(`image/${type}`) },
+  } as unknown as Response);
+};
+
 describe('getMomentImageData', () => {
   it('throws if fetch response is not ok', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
@@ -28,11 +36,8 @@ describe('getMomentImageData', () => {
     ).rejects.toThrow('failed to get image metadata');
   });
 
-  it('returns ImageMetadata for a JPEG image without converting', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-    } as Response);
+  it('returns ImageMetadata for a JPEG image as data URL', async () => {
+    mockFetchOk('jpeg');
     const { imageMeta } = await import('image-meta');
     vi.mocked(imageMeta).mockReturnValue({
       type: 'jpg',
@@ -47,14 +52,11 @@ describe('getMomentImageData', () => {
     expect(result.originalWidth).toBe(800);
     expect(result.originalHeight).toBe(600);
     expect(result.shouldRotate).toBe(false);
-    expect(result.previewUrl).toBe('https://example.com/image.jpg');
+    expect(result.previewUrl).toMatch(/^data:image\/jpeg;base64,/);
   });
 
   it('converts WebP to PNG data URL', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-    } as Response);
+    mockFetchOk('webp');
     const { imageMeta } = await import('image-meta');
     vi.mocked(imageMeta).mockReturnValue({
       type: 'webp',
@@ -69,10 +71,7 @@ describe('getMomentImageData', () => {
   });
 
   it('sets shouldRotate true for orientation 6', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-    } as Response);
+    mockFetchOk();
     const { imageMeta } = await import('image-meta');
     vi.mocked(imageMeta).mockReturnValue({
       type: 'jpg',
@@ -87,10 +86,7 @@ describe('getMomentImageData', () => {
   });
 
   it('sets shouldRotate true for orientation 8', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-    } as Response);
+    mockFetchOk();
     const { imageMeta } = await import('image-meta');
     vi.mocked(imageMeta).mockReturnValue({
       type: 'jpg',
@@ -105,10 +101,7 @@ describe('getMomentImageData', () => {
   });
 
   it('falls back to defaults when image-meta returns no dimensions', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-    } as Response);
+    mockFetchOk();
     const { imageMeta } = await import('image-meta');
     vi.mocked(imageMeta).mockReturnValue({
       type: 'jpg',

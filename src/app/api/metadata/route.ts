@@ -1,4 +1,4 @@
-import { getFetchableUrl } from '@/lib/protocolSdk/ipfs/gateway';
+import fetchUri from '@/lib/arweave/fetchUri';
 import { NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest) {
@@ -7,17 +7,16 @@ export async function GET(req: NextRequest) {
     if (!uri) {
       return Response.json({ message: 'No URI provided' }, { status: 400 });
     }
-    const fetchableUrl = getFetchableUrl(uri as string);
-    if (!fetchableUrl) {
+    let response: Response;
+    try {
+      response = await fetchUri(uri, { cache: 'no-store' });
+    } catch (e: any) {
       return Response.json(
-        { message: 'Invalid or unsupported URI' },
+        { message: e?.message ?? 'Invalid or unsupported URI' },
         { status: 400 }
       );
     }
     try {
-      const response = await fetch(fetchableUrl, {
-        cache: 'no-store',
-      });
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {
         const data = await response.json();
