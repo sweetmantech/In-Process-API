@@ -28,10 +28,7 @@ const loginWithCodeHandler = async (
     throw new Error(data?.message ?? 'Failed to authenticate');
   }
 
-  return NextResponse.json({
-    token: data.token,
-    message: 'Token expires in 1 hour.',
-  });
+  return NextResponse.json({ token: data.token });
 };
 
 export default loginWithCodeHandler;

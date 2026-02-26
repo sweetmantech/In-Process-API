@@ -61,10 +61,7 @@ describe('loginWithCodeHandler', () => {
     const json = await res.json();
 
     expect(res).toBeInstanceOf(NextResponse);
-    expect(json).toEqual({
-      token: 'privy-token-abc',
-      message: 'Token expires in 1 hour.',
-    });
+    expect(json).toEqual({ token: 'privy-token-abc' });
   });
 
   it('throws with Privy error message when response is not ok', async () => {
