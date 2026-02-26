@@ -46,7 +46,7 @@ describe('loginWithCodeHandler', () => {
     );
   });
 
-  it('returns only token and refresh_token on success', async () => {
+  it('returns only token on success', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
