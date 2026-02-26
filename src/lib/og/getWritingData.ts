@@ -8,8 +8,7 @@ interface WritingData {
 const getWritingData = async (
   contentUri: string | undefined
 ): Promise<WritingData> => {
-  if (!contentUri)
-    throw Error('failed to convert content uri to fetchable url');
+  if (!contentUri) throw Error('missing or invalid contentUri');
   const response = await fetchUri(contentUri);
 
   if (!response.ok)

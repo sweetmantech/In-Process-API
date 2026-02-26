@@ -20,7 +20,7 @@ beforeEach(() => {
 describe('getWritingData', () => {
   it('throws if contentUri is undefined', async () => {
     await expect(getWritingData(undefined)).rejects.toThrow(
-      'failed to convert content uri to fetchable url'
+      'missing or invalid contentUri'
     );
   });
 

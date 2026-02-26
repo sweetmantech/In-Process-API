@@ -7,7 +7,15 @@ export async function GET(req: NextRequest) {
     if (!uri) {
       return Response.json({ message: 'No URI provided' }, { status: 400 });
     }
-    const response = await fetchUri(uri, { cache: 'no-store' });
+    let response: Response;
+    try {
+      response = await fetchUri(uri, { cache: 'no-store' });
+    } catch (e: any) {
+      return Response.json(
+        { message: e?.message ?? 'Invalid or unsupported URI' },
+        { status: 400 }
+      );
+    }
     try {
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {

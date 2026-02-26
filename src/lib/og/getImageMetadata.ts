@@ -1,5 +1,6 @@
 import { imageMeta } from 'image-meta';
 import fetchUri from '../arweave/fetchUri';
+import getSafeImageContentType from './getSafeImageContentType';
 
 const getImageMetadata = async (previewBackgroundUrl: string | undefined) => {
   try {
@@ -13,7 +14,7 @@ const getImageMetadata = async (previewBackgroundUrl: string | undefined) => {
     const meta = imageMeta(uint8Array);
     if (!meta.width || !meta.height) throw new Error();
 
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const contentType = getSafeImageContentType(response.headers);
     const previewUrl = `data:${contentType};base64,${Buffer.from(data).toString('base64')}`;
 
     return {

@@ -1,4 +1,4 @@
-import { getArweaveGateway } from '@/lib/arweave/wayfinderClient';
+import getArweaveGateway from '@/lib/arweave/getArweaveGateway';
 import { NextRequest } from 'next/server';
 
 const METHODS_WITH_BODY = new Set(['POST', 'PUT', 'PATCH']);

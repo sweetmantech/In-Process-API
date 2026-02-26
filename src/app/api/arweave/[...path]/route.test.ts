@@ -4,8 +4,8 @@ import { NextRequest } from 'next/server';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-vi.mock('@/lib/arweave/wayfinderClient', () => ({
-  getArweaveGateway: vi.fn().mockResolvedValue(new URL('https://ar-io.net')),
+vi.mock('@/lib/arweave/getArweaveGateway', () => ({
+  default: vi.fn().mockResolvedValue(new URL('https://ar-io.net')),
 }));
 
 import { GET, POST } from './route';

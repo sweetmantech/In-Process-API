@@ -2,6 +2,7 @@ import { imageMeta } from 'image-meta';
 import sharp from 'sharp';
 import { ImageMetadata } from '@/types/og';
 import fetchUri from '../arweave/fetchUri';
+import getSafeImageContentType from './getSafeImageContentType';
 
 const getMomentImageData = async (
   previewBackgroundUrl: string
@@ -20,7 +21,7 @@ const getMomentImageData = async (
     const pngBuffer = await sharp(Buffer.from(data)).png().toBuffer();
     previewUrl = `data:image/png;base64,${pngBuffer.toString('base64')}`;
   } else {
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const contentType = getSafeImageContentType(response.headers);
     previewUrl = `data:${contentType};base64,${Buffer.from(data).toString('base64')}`;
   }
 
