@@ -7,6 +7,7 @@ import { logMessage } from '@/lib/messages/logMessage';
 import { processMessageFromNewbie } from '@/lib/messages/processMessageFromNewbie';
 import { processVerificationRequestMessage } from '@/lib/messages/processVerificationRequestMessage';
 import processVerificationMessage from '@/lib/messages/processVerificationMessage';
+import truncateAddress from '@/lib/truncateAddress';
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,7 +58,10 @@ export async function POST(req: NextRequest) {
               await processMmsMedia(phone, media[0], event.data.payload);
           } else {
             if (messageText === 'yes') {
-              await processVerificationMessage(fromPhoneNumber);
+              await processVerificationMessage(
+                phone.artist.username || truncateAddress(phone.artist_address),
+                fromPhoneNumber
+              );
             } else
               await processVerificationRequestMessage(
                 messageText || '',
