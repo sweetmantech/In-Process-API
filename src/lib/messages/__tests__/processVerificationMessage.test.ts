@@ -38,13 +38,13 @@ describe('processVerificationMessage', () => {
     } as any);
   });
 
-  it('should verify phone, log message, and send SMS', async () => {
+  it('should verify phone, log message, and send SMS with hello name', async () => {
     vi.mocked(updatePhoneVerified).mockResolvedValue({
       data: { artist_address: '0xArtist123' },
       error: null,
     } as any);
 
-    await processVerificationMessage('+1234567890');
+    await processVerificationMessage('testuser', '+1234567890');
 
     expect(updatePhoneVerified).toHaveBeenCalledWith('+1234567890');
     expect(insertMessageMetadata).toHaveBeenCalledWith({
@@ -53,7 +53,7 @@ describe('processVerificationMessage', () => {
     });
     expect(sendSms).toHaveBeenCalledWith(
       '+1234567890',
-      'Your phone number has been verified! You can now text photos and descriptions to post them on In Process.'
+      'Hello testuser, Your phone number has been verified! You can now text photos and descriptions to post them on In Process.'
     );
   });
 
@@ -63,9 +63,9 @@ describe('processVerificationMessage', () => {
       error: { message: 'Error' },
     } as any);
 
-    await expect(processVerificationMessage('+1234567890')).rejects.toThrow(
-      'Failed to verify phone.'
-    );
+    await expect(
+      processVerificationMessage('testuser', '+1234567890')
+    ).rejects.toThrow('Failed to verify phone.');
 
     expect(sendSms).not.toHaveBeenCalled();
   });

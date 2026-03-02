@@ -2,13 +2,18 @@ import { logMessage } from './logMessage';
 import { updatePhoneVerified } from '../supabase/in_process_artist_phones/updatePhoneVerified';
 import { sendSms } from '../phones/sendSms';
 
-const processVerificationMessage = async (phoneNumber: string) => {
+const processVerificationMessage = async (
+  username: string,
+  phoneNumber: string
+) => {
   const { error, data } = await updatePhoneVerified(phoneNumber);
   if (error || !data) {
     throw new Error('Failed to verify phone.');
   }
   const verificationMessage =
-    'Your phone number has been verified! You can now text photos and descriptions to post them on In Process.';
+    'Hello ' +
+    username +
+    ', Your phone number has been verified! You can now text photos and descriptions to post them on In Process.';
   await logMessage(
     [
       {
