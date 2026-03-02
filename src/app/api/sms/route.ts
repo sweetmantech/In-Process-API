@@ -64,8 +64,8 @@ export async function POST(req: NextRequest) {
               );
             } else
               await processVerificationRequestMessage(
-                fromPhoneNumber,
-                phone.artist_address
+                messageText || '',
+                fromPhoneNumber
               );
           }
         } else
