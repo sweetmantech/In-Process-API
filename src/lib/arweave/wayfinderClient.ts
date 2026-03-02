@@ -5,15 +5,11 @@ import {
   FastestPingRoutingStrategy,
   StaticGatewaysProvider,
 } from '@ar.io/wayfinder-core';
+import gateways from './gateways';
 
 // Curated list of reliable, high-quality Arweave gateways
 const gatewaysProvider = new StaticGatewaysProvider({
-  gateways: [
-    'https://arweave.net',
-    'https://permagate.io',
-    'https://ar-io.net',
-    'https://g8way.io',
-  ],
+  gateways,
 });
 
 const wayfinderClient = createWayfinderClient({
@@ -36,11 +32,7 @@ const wayfinderClient = createWayfinderClient({
     enabled: true,
     strict: false, // non-blocking: log verification failures but don't reject the response
     strategy: new HashVerificationStrategy({
-      trustedGateways: [
-        new URL('https://arweave.net'),
-        new URL('https://permagate.io'),
-        new URL('https://ar-io.net'),
-      ],
+      trustedGateways: gateways.map((g) => new URL(g)),
     }),
   },
 });
