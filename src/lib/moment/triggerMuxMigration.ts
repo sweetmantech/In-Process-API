@@ -15,7 +15,7 @@ const triggerMuxMigration = async ({
   artistAddress: Address;
 }) => {
   const mimeType = await getMomentMime(uri);
-  if (!mimeType?.includes('video')) return;
+  if (!mimeType || !mimeType.trim().toLowerCase().startsWith('video/')) return;
 
   await tasks.trigger('migrate-mux-to-arweave', {
     collectionAddress,

@@ -48,6 +48,14 @@ describe('triggerMuxMigration', () => {
     expect(tasks.trigger).not.toHaveBeenCalled();
   });
 
+  it('does not trigger for a mime type that contains "video" but is not video/*', async () => {
+    vi.mocked(getMomentMime).mockResolvedValue('application/x-video-codec');
+
+    await triggerMuxMigration(baseInput);
+
+    expect(tasks.trigger).not.toHaveBeenCalled();
+  });
+
   it('does not trigger when getMomentMime returns null', async () => {
     vi.mocked(getMomentMime).mockResolvedValue(null);
 
