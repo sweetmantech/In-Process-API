@@ -28,12 +28,8 @@ vi.mock('@/lib/moment/parseMomentTransaction', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/moment/getMomentMime', () => ({
+vi.mock('@/lib/moment/triggerMuxMigration', () => ({
   default: vi.fn(),
-}));
-
-vi.mock('@trigger.dev/sdk', () => ({
-  tasks: { trigger: vi.fn() },
 }));
 
 vi.mock('@/lib/protocolSdk/create/factory-addresses', () => ({
@@ -53,8 +49,7 @@ import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
 import { create1155 } from '@/lib/zora/create1155';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import parseMomentTransaction from '@/lib/moment/parseMomentTransaction';
-import getMomentMime from '@/lib/moment/getMomentMime';
-import { tasks } from '@trigger.dev/sdk';
+import triggerMuxMigration from '@/lib/moment/triggerMuxMigration';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import {
   createMoment,
@@ -115,7 +110,7 @@ describe('createMoment', () => {
       tokenId: '7',
     } as any);
 
-    vi.mocked(getMomentMime).mockResolvedValue(null);
+    vi.mocked(triggerMuxMigration).mockResolvedValue(undefined);
   });
 
   it('returns contractAddress, tokenId, hash, and chainId', async () => {
@@ -127,39 +122,15 @@ describe('createMoment', () => {
     expect(result.chainId).toBe(8453);
   });
 
-  it('triggers migration when mime type is a video', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue('video/mp4');
-
+  it('calls triggerMuxMigration with the correct args', async () => {
     await createMoment(baseInput);
 
-    expect(tasks.trigger).toHaveBeenCalledWith('migrate-mux-to-arweave', {
+    expect(triggerMuxMigration).toHaveBeenCalledWith({
+      uri: 'ar://metadata-hash',
       collectionAddress: RESULT_CONTRACT,
       tokenId: '7',
-      chainId: 8453,
       artistAddress: ARTIST,
     });
-  });
-
-  it('does not trigger migration for image mime type', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue('image/jpeg');
-
-    await createMoment(baseInput);
-
-    expect(tasks.trigger).not.toHaveBeenCalled();
-  });
-
-  it('does not trigger migration when getMomentMime returns null', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue(null);
-
-    await createMoment(baseInput);
-
-    expect(tasks.trigger).not.toHaveBeenCalled();
-  });
-
-  it('calls getMomentMime with the token metadata URI', async () => {
-    await createMoment(baseInput);
-
-    expect(getMomentMime).toHaveBeenCalledWith('ar://metadata-hash');
   });
 
   it('passes transaction logs to parseMomentTransaction', async () => {
@@ -184,9 +155,8 @@ describe('createMoment', () => {
     await expect(createMoment(baseInput)).rejects.toThrow('Paymaster failed');
   });
 
-  it('propagates errors from tasks.trigger', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue('video/mp4');
-    vi.mocked(tasks.trigger).mockRejectedValue(
+  it('propagates errors from triggerMuxMigration', async () => {
+    vi.mocked(triggerMuxMigration).mockRejectedValue(
       new Error('Trigger.dev unavailable')
     );
 

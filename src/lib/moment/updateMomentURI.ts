@@ -3,6 +3,7 @@ import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import getUpdateTokenURICall from '@/lib/viem/getUpdateTokenURICall';
+import triggerMuxMigration from './triggerMuxMigration';
 import { UpdateMomentURIInput, UpdateMomentURIResult } from '@/types/moment';
 
 /**
@@ -25,6 +26,13 @@ export async function updateMomentURI({
     smartAccount,
     network: IS_TESTNET ? 'base-sepolia' : 'base',
     calls: [updateTokenURICall],
+  });
+
+  await triggerMuxMigration({
+    uri: newUri,
+    collectionAddress: moment.collectionAddress,
+    tokenId: moment.tokenId,
+    artistAddress,
   });
 
   return {
