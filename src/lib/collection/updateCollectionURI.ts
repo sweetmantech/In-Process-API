@@ -7,7 +7,7 @@ import {
   UpdateCollectionURIResult,
 } from '@/types/collections';
 import getUpdateCollectionURICall from '../viem/getUpdateCollectionURICall';
-import triggerMuxMigration from '../trigger.dev/triggerMuxMigration';
+import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 /**
  * Updates collection URI using a smart account via Coinbase CDP.
  * Handles the transaction on the backend side.
