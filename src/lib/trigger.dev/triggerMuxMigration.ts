@@ -1,7 +1,7 @@
 import { Address } from 'viem';
 import { tasks } from '@trigger.dev/sdk';
 import { CHAIN_ID } from '@/lib/consts';
-import getMomentMime from '../moment/getMomentMime';
+import getMomentMime from '@/lib/moment/getMomentMime';
 
 const triggerMuxMigration = async ({
   uri,
