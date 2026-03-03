@@ -19,6 +19,10 @@ const parseMomentTransaction = ({
     eventName: 'SetupNewToken',
   });
 
+  if (!collectionLogs[0]) {
+    throw new Error('SetupNewToken event not found in transaction logs');
+  }
+
   let contractAddress: Address;
   if (isNewContract) {
     const factoryLogs = parseEventLogs({
@@ -26,6 +30,9 @@ const parseMomentTransaction = ({
       logs,
       eventName: 'SetupNewContract',
     });
+    if (!factoryLogs[0]) {
+      throw new Error('SetupNewContract event not found in transaction logs');
+    }
     contractAddress = (factoryLogs[0].args as { newContract: Address })
       .newContract;
   } else {

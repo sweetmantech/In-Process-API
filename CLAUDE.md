@@ -185,7 +185,7 @@ const getArtistAddresses = async (socialWallets: string[]) => {
 
 - **Mainnet:** Base (chain ID 8453)
 - **Testnet:** Base Sepolia (chain ID 84532)
-- Toggle via `NEXT_PUBLIC_IS_TESTNET` env var
+- Toggle via `IS_TESTNET` env var
 
 ## Path Aliases
 

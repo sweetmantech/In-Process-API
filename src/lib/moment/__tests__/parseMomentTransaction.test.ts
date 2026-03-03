@@ -83,4 +83,26 @@ describe('parseMomentTransaction', () => {
       'Expected contract.address when adding token to existing contract'
     );
   });
+
+  it('throws when SetupNewToken event is absent from logs', () => {
+    mockParseEventLogs.mockReturnValueOnce([] as any);
+
+    expect(() =>
+      parseMomentTransaction({
+        logs: LOGS,
+        isNewContract: false,
+        existingContractAddress: CONTRACT,
+      })
+    ).toThrow('SetupNewToken event not found in transaction logs');
+  });
+
+  it('throws when SetupNewContract event is absent from logs for new contract', () => {
+    mockParseEventLogs
+      .mockReturnValueOnce([{ args: { tokenId: 1n } }] as any) // SetupNewToken present
+      .mockReturnValueOnce([] as any); // SetupNewContract absent
+
+    expect(() =>
+      parseMomentTransaction({ logs: LOGS, isNewContract: true })
+    ).toThrow('SetupNewContract event not found in transaction logs');
+  });
 });
