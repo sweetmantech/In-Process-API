@@ -7,7 +7,7 @@ import {
   UpdateCollectionURIResult,
 } from '@/types/collections';
 import getUpdateCollectionURICall from '../viem/getUpdateCollectionURICall';
-
+import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 /**
  * Updates collection URI using a smart account via Coinbase CDP.
  * Handles the transaction on the backend side.
@@ -33,6 +33,12 @@ export async function updateCollectionURI({
     smartAccount,
     network: IS_TESTNET ? 'base-sepolia' : 'base',
     calls: [updateCollectionURICall],
+  });
+
+  await triggerMuxMigration({
+    uri: newUri,
+    collectionAddress: collection.address,
+    artistAddress,
   });
 
   return {
