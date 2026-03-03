@@ -1,17 +1,17 @@
 import { Address } from 'viem';
 import { tasks } from '@trigger.dev/sdk';
 import { CHAIN_ID } from '@/lib/consts';
-import getMomentMime from './getMomentMime';
+import getMomentMime from '../moment/getMomentMime';
 
 const triggerMuxMigration = async ({
   uri,
   collectionAddress,
-  tokenId,
+  tokenId = '0',
   artistAddress,
 }: {
   uri: string;
   collectionAddress: Address;
-  tokenId: string;
+  tokenId?: string;
   artistAddress: Address;
 }) => {
   const mimeType = await getMomentMime(uri);

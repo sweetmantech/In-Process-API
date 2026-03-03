@@ -12,14 +12,14 @@ vi.mock('@/lib/viem/getUpdateTokenURICall', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/moment/triggerMuxMigration', () => ({
+vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({
   default: vi.fn(),
 }));
 
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateTokenURICall from '@/lib/viem/getUpdateTokenURICall';
-import triggerMuxMigration from '@/lib/moment/triggerMuxMigration';
+import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 import { updateMomentURI } from '@/lib/moment/updateMomentURI';
 
 const COLLECTION = '0x1111111111111111111111111111111111111111' as const;

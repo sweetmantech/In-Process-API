@@ -9,7 +9,7 @@ import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import parseMomentTransaction from './parseMomentTransaction';
 import resolvePayoutRecipient from './resolvePayoutRecipient';
-import triggerMuxMigration from './triggerMuxMigration';
+import triggerMuxMigration from '../trigger.dev/triggerMuxMigration';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 
 export type CreateMomentContractInput = z.infer<typeof createMomentSchema>;

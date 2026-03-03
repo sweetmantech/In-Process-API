@@ -3,7 +3,7 @@ import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import getUpdateTokenURICall from '@/lib/viem/getUpdateTokenURICall';
-import triggerMuxMigration from './triggerMuxMigration';
+import triggerMuxMigration from '../trigger.dev/triggerMuxMigration';
 import { UpdateMomentURIInput, UpdateMomentURIResult } from '@/types/moment';
 
 /**

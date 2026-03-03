@@ -10,7 +10,7 @@ vi.mock('@trigger.dev/sdk', () => ({
 
 import getMomentMime from '@/lib/moment/getMomentMime';
 import { tasks } from '@trigger.dev/sdk';
-import triggerMuxMigration from '@/lib/moment/triggerMuxMigration';
+import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 
 const COLLECTION = '0x1111111111111111111111111111111111111111' as const;
 const ARTIST = '0x2222222222222222222222222222222222222222' as const;

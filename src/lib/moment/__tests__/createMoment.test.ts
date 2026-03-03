@@ -28,7 +28,7 @@ vi.mock('@/lib/moment/parseMomentTransaction', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/moment/triggerMuxMigration', () => ({
+vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({
   default: vi.fn(),
 }));
 
@@ -49,7 +49,7 @@ import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
 import { create1155 } from '@/lib/zora/create1155';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import parseMomentTransaction from '@/lib/moment/parseMomentTransaction';
-import triggerMuxMigration from '@/lib/moment/triggerMuxMigration';
+import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import {
   createMoment,
