@@ -1,6 +1,5 @@
 import { Address, encodeFunctionData, Hash, getAddress } from 'viem';
 import { z } from 'zod';
-import { tasks } from '@trigger.dev/sdk';
 import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
 import { create1155 } from '@/lib/zora/create1155';
@@ -9,8 +8,8 @@ import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
 import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import parseMomentTransaction from './parseMomentTransaction';
-import getMomentMime from './getMomentMime';
 import resolvePayoutRecipient from './resolvePayoutRecipient';
+import triggerMuxMigration from './triggerMuxMigration';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 
 export type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
@@ -75,15 +74,12 @@ export async function createMoment(
     existingContractAddress: input.contract.address,
   });
 
-  const mimeType = await getMomentMime(input.token.tokenMetadataURI);
-  if (mimeType?.includes('video')) {
-    await tasks.trigger('migrate-mux-to-arweave', {
-      collectionAddress: contractAddress,
-      tokenId,
-      chainId: CHAIN_ID,
-      artistAddress: input.account as `0x${string}`,
-    });
-  }
+  await triggerMuxMigration({
+    uri: input.token.tokenMetadataURI,
+    collectionAddress: contractAddress,
+    tokenId,
+    artistAddress: input.account as `0x${string}`,
+  });
 
   return {
     contractAddress,
