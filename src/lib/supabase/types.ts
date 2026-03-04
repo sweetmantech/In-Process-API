@@ -250,6 +250,7 @@ export type Database = {
           id: string;
           name: string;
           payout_recipient: string;
+          protocol: Database['public']['Enums']['collection_protocol'];
           updated_at: string;
           uri: string;
         };
@@ -261,6 +262,7 @@ export type Database = {
           id?: string;
           name?: string;
           payout_recipient: string;
+          protocol?: Database['public']['Enums']['collection_protocol'];
           updated_at: string;
           uri: string;
         };
@@ -272,6 +274,7 @@ export type Database = {
           id?: string;
           name?: string;
           payout_recipient?: string;
+          protocol?: Database['public']['Enums']['collection_protocol'];
           updated_at?: string;
           uri?: string;
         };
@@ -720,6 +723,7 @@ export type Database = {
       };
     };
     Enums: {
+      collection_protocol: 'in_process' | 'catalog';
       message_client: 'telegram' | 'sms';
       message_role: 'user' | 'assistant';
     };
@@ -855,6 +859,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      collection_protocol: ['in_process', 'catalog'],
       message_client: ['telegram', 'sms'],
       message_role: ['user', 'assistant'],
     },
