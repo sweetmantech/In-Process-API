@@ -46,7 +46,7 @@ const mockMomentRow = {
     id: 'collection-uuid',
     address: COLLECTION,
     chain_id: 8453,
-    default_admin: CALLER,
+    creator: CALLER,
   },
 };
 

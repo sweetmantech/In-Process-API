@@ -13,7 +13,7 @@ const selectMoments = async ({
   let query = supabase
     .from('in_process_moments')
     .select(
-      '*, collection:in_process_collections!inner(id, address, chain_id, default_admin)'
+      '*, collection:in_process_collections!inner(id, address, chain_id, creator)'
     );
 
   if (moment) {
@@ -30,7 +30,7 @@ const selectMoments = async ({
   }
 
   if (artists) {
-    query = query.in('collection.default_admin', artists);
+    query = query.in('collection.creator', artists);
   }
 
   if (chainId) {
