@@ -40,6 +40,7 @@ export interface TimelineMoment {
   address: string;
   token_id: string;
   chain_id: number;
+  protocol: string;
   id: string;
   uri: string;
   creator: {
