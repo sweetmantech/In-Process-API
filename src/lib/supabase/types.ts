@@ -249,7 +249,6 @@ export type Database = {
           creator: string;
           id: string;
           name: string;
-          payout_recipient: string;
           protocol: Database['public']['Enums']['collection_protocol'];
           updated_at: string;
           uri: string;
@@ -261,7 +260,6 @@ export type Database = {
           creator: string;
           id?: string;
           name?: string;
-          payout_recipient: string;
           protocol?: Database['public']['Enums']['collection_protocol'];
           updated_at: string;
           uri: string;
@@ -273,7 +271,6 @@ export type Database = {
           creator?: string;
           id?: string;
           name?: string;
-          payout_recipient?: string;
           protocol?: Database['public']['Enums']['collection_protocol'];
           updated_at?: string;
           uri?: string;
