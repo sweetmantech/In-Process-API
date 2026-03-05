@@ -173,6 +173,12 @@ const getArtistAddresses = async (socialWallets: string[]) => {
 };
 ```
 
+#### Supabase Migrations
+
+- **Never copy from old migration files** — always read the **most recent** migration for a given function before writing a new one. Schema changes (renames, new columns) are applied in later migrations and won't appear in older files.
+- **Never edit existing migration files** — Supabase tracks migrations by filename and will not re-run a modified file. Always create a new migration file with a later timestamp.
+- **Before writing any migration that touches a table or function**, read the latest migration file that affects it to confirm current column names, types, and function signatures.
+
 #### Supabase Egress Optimization
 
 - **Select only needed fields** - Use `.select('field1, field2')` instead of `.select('*')` to reduce data transfer
