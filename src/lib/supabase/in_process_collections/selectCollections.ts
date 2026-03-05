@@ -21,7 +21,7 @@ const selectCollections = async ({
   let query = supabase
     .from('in_process_collections')
     .select(
-      `*, default_admin:in_process_artists!inner(username, address), admins:in_process_admins!inner(artist_address, token_id)`,
+      `*, creator:in_process_artists!inner(username, address), admins:in_process_admins!inner(artist_address, token_id)`,
       { count: 'exact' }
     );
 
@@ -40,7 +40,7 @@ const selectCollections = async ({
   }
 
   if (artists) {
-    query = query.in('default_admin.address', artists);
+    query = query.in('creator.address', artists);
   }
 
   if (chainId) {

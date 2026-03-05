@@ -12,9 +12,9 @@ const selectAirdrops = async ({
   let query = supabase
     .from('in_process_airdrops')
     .select(
-      'amount, recipient:in_process_artists!inner(address, username), moment:in_process_moments!inner(token_id, collection:in_process_collections!inner(default_admin, address, chain_id))'
+      'amount, recipient:in_process_artists!inner(address, username), moment:in_process_moments!inner(token_id, collection:in_process_collections!inner(creator, address, chain_id))'
     )
-    .eq('moment.collection.default_admin', artist_address.toLowerCase());
+    .eq('moment.collection.creator', artist_address.toLowerCase());
 
   if (chainId) {
     query = query.eq('moment.collection.chain_id', chainId);

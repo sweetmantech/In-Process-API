@@ -33,7 +33,7 @@ export async function selectNotifications({
          id, amount, transaction_hash, transferred_at,
          moment:in_process_moments!inner(
            id, token_id, uri, collection:in_process_collections!inner(
-             id, address, chain_id, default_admin, payout_recipient
+             id, address, chain_id, creator, payout_recipient
            )
          ),
          buyer:in_process_artists!inner(

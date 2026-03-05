@@ -246,7 +246,7 @@ export type Database = {
           address: string;
           chain_id: number;
           created_at: string;
-          default_admin: string;
+          creator: string;
           id: string;
           name: string;
           payout_recipient: string;
@@ -258,7 +258,7 @@ export type Database = {
           address: string;
           chain_id: number;
           created_at: string;
-          default_admin: string;
+          creator: string;
           id?: string;
           name?: string;
           payout_recipient: string;
@@ -270,7 +270,7 @@ export type Database = {
           address?: string;
           chain_id?: number;
           created_at?: string;
-          default_admin?: string;
+          creator?: string;
           id?: string;
           name?: string;
           payout_recipient?: string;
@@ -280,8 +280,8 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'in_process_collections_default_admin_fkey';
-            columns: ['default_admin'];
+            foreignKeyName: 'in_process_collections_creator_fkey';
+            columns: ['creator'];
             isOneToOne: false;
             referencedRelation: 'in_process_artists';
             referencedColumns: ['address'];

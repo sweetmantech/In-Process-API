@@ -16,7 +16,7 @@ export const getMomentAdvancedInfo = async (
 
   if (momentdata) {
     const uri = momentdata.uri;
-    const owner = momentdata.collection.default_admin;
+    const owner = momentdata.collection.creator;
     const sale = await selectSale(momentdata.id);
 
     if (sale) {
