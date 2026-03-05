@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     }
     let response: Response;
     try {
-      response = await fetchUri(uri, { cache: 'no-store' });
+      response = await fetchUri(uri);
     } catch (e: any) {
       return Response.json(
         { message: e?.message ?? 'Invalid or unsupported URI' },
