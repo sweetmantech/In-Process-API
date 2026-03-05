@@ -1,4 +1,5 @@
 import fetchUri from '@/lib/arweave/fetchUri';
+import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 import { NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest) {
@@ -20,12 +21,12 @@ export async function GET(req: NextRequest) {
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {
         const data = await response.json();
-        return Response.json(data);
+        return Response.json(normalizeMetadata(data));
       }
       const text = await response.text();
       try {
         const data = JSON.parse(text);
-        return Response.json(data);
+        return Response.json(normalizeMetadata(data));
       } catch {
         return Response.json(
           { message: 'URI did not return JSON' },
