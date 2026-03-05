@@ -1,3 +1,3 @@
-const gateways = ['https://turbo-gateway.com', 'https://gateway.irys.xyz/mutable'];
+const gateways = ['https://turbo-gateway.com'];
 
 export default gateways;

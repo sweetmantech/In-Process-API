@@ -4,7 +4,12 @@ const readFromArweave = async (
   arUri: string,
   init?: RequestInit
 ): Promise<Response> => {
-  return wayfinderClient.request(arUri, init);
+  try {
+    return await wayfinderClient.request(arUri, init);
+  } catch {
+    const txId = arUri.replace(/^ar:\/\//, '');
+    return fetch(`https://gateway.irys.xyz/mutable/${txId}`, init);
+  }
 };
 
 export default readFromArweave;
