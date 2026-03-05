@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import { getMomentAdvancedInfo } from '@/lib/moment/getMomentAdvancedInfo';
@@ -78,16 +79,9 @@ export async function GET(req: NextRequest) {
       uri,
       owner,
       saleConfig,
+      protocol: collection?.protocol ?? null,
       momentAdmins: uniqueAdminAddresses,
-      metadata: metadata
-        ? {
-            name: metadata.name || '',
-            image: metadata.image || '',
-            description: metadata.description || '',
-            content: metadata.content || null,
-            animation_url: metadata.animation_url || '',
-          }
-        : null,
+      metadata: metadata ? normalizeMetadata(metadata) : null,
     });
   } catch (error: any) {
     console.error('Error fetching moment info:', error);
