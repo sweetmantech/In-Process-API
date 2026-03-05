@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
       uri,
       owner,
       saleConfig,
+      protocol: collection?.protocol ?? null,
       momentAdmins: uniqueAdminAddresses,
       metadata: metadata ? normalizeMetadata(metadata) : null,
     });
