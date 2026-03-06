@@ -12,6 +12,7 @@ import WritingPreview from '@/components/Og/WritingPreview';
 import ImagePreview from '@/components/Og/ImagePreview';
 import { WRITING_MAX_LINES, WRITING_SHORT_LINES } from '@/lib/og/consts';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,8 +48,9 @@ export async function GET(req: NextRequest) {
 
   if (!uri) throw Error('failed to get moment uri');
 
-  const metadata = await fetchTokenMetadata(uri);
-  if (!metadata) throw Error('failed to get token metadata');
+  const rawMetadata = await fetchTokenMetadata(uri);
+  if (!rawMetadata) throw Error('failed to get token metadata');
+  const metadata = normalizeMetadata(rawMetadata);
 
   const isWriting = metadata.content?.mime === 'text/plain';
 
