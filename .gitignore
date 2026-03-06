@@ -40,4 +40,4 @@ next-env.d.ts
 #supabase
 /src/lib/supabase/.temp
 /src/lib/supabase/snippets
-
+contracts
