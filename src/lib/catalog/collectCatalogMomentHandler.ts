@@ -11,7 +11,6 @@ import { NextResponse } from 'next/server';
 import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { getPublicClient } from '@/lib/viem/publicClient';
 import {
   CATALOG_MINT_CONTROLLER,
   CHAIN_ID,
@@ -19,6 +18,7 @@ import {
   USDC_ADDRESS,
 } from '@/lib/consts';
 import getAllowance from '@/lib/viem/getAllowance';
+import getCatalogTokenPrice from '@/lib/viem/getCatalogTokenPrice';
 import getUsdcBalance from '@/lib/balance/getUsdcBalance';
 import { z } from 'zod';
 import { catalogCollectSchema } from '@/lib/schema/catalogCollectSchema';
@@ -43,13 +43,7 @@ const collectCatalogMomentHandler = async ({
     address: artistAddress as Address,
   });
 
-  const publicClient = getPublicClient(CHAIN_ID);
-  const pricePerToken = await publicClient.readContract({
-    address: collectionAddress,
-    abi: cr1155Abi,
-    functionName: 'tokenPrice',
-    args: [BigInt(tokenId)],
-  });
+  const pricePerToken = await getCatalogTokenPrice(collectionAddress, tokenId);
 
   const totalPrice = pricePerToken * BigInt(amount);
   const totalPriceFormatted = Number(formatUnits(totalPrice, 6));
