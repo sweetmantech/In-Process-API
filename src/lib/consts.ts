@@ -48,3 +48,6 @@ export const ADMIN_ADDRESSES = [
 ];
 
 export const ARWEAVE_GATEWAY = 'https://ar-io.net';
+
+export const CATALOG_MINT_CONTROLLER: Address =
+  '0xbcEaBFcC30a0e050367A6A5FaEa247A43C314709';
