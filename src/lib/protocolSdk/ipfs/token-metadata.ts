@@ -99,8 +99,14 @@ export const makeMediaTokenMetadata = async ({
   };
 };
 
-export async function fetchTokenMetadata(tokenMetadataURI: string) {
-  const response = await fetchUri(tokenMetadataURI);
+export async function fetchTokenMetadata(
+  tokenMetadataURI: string,
+  customGateway?: string
+) {
+  const metadataURI = customGateway
+    ? tokenMetadataURI.replace(/^ar:\/\//, customGateway)
+    : tokenMetadataURI;
+  const response = await fetchUri(metadataURI);
 
   const text = await response.text();
 
