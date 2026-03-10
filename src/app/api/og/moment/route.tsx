@@ -32,13 +32,21 @@ export async function GET(req: NextRequest) {
   };
 
   let uri: string | null = null;
+  let customGateway: string | undefined;
+
+  const { data: collections } = await selectCollections({
+    collectionAddress: moment.collectionAddress,
+    chainId: moment.chainId,
+  });
+  const collection = collections?.[0];
+
+  if (collection)
+    customGateway =
+      collection.protocol === 'catalog'
+        ? 'https://gateway.irys.xyz/mutable/'
+        : undefined;
 
   if (moment.tokenId === '0') {
-    const { data: collections } = await selectCollections({
-      collectionAddress: moment.collectionAddress,
-      chainId: moment.chainId,
-    });
-    const collection = collections?.[0];
     if (!collection) throw Error('no collection');
     uri = collection.uri;
   } else {
@@ -48,7 +56,7 @@ export async function GET(req: NextRequest) {
 
   if (!uri) throw Error('failed to get moment uri');
 
-  const rawMetadata = await fetchTokenMetadata(uri);
+  const rawMetadata = await fetchTokenMetadata(uri, customGateway);
   if (!rawMetadata) throw Error('failed to get token metadata');
   const metadata = normalizeMetadata(rawMetadata);
 
