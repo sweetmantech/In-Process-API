@@ -39,12 +39,10 @@ export async function GET(req: NextRequest) {
     chainId: moment.chainId,
   });
   const collection = collections?.[0];
+  const isCatalog = collection && collection.protocol === 'catalog';
 
   if (collection)
-    customGateway =
-      collection.protocol === 'catalog'
-        ? 'https://gateway.irys.xyz/mutable/'
-        : undefined;
+    customGateway = isCatalog ? 'https://gateway.irys.xyz/mutable/' : undefined;
 
   if (moment.tokenId === '0') {
     if (!collection) throw Error('no collection');
@@ -69,7 +67,14 @@ export async function GET(req: NextRequest) {
   if (isWriting && metadata.content?.uri) {
     ({ writingText, totalLines } = await getWritingData(metadata.content.uri));
   } else if (metadata.image) {
-    imageMetadata = await getMomentImageData(metadata.image);
+    imageMetadata = await getMomentImageData(
+      isCatalog
+        ? metadata.image.replace(
+            /^ar:\/\//,
+            'https://gateway.irys.xyz/mutable/'
+          )
+        : metadata.image
+    );
   }
 
   const { ImageResponse } = await import('next/og');
