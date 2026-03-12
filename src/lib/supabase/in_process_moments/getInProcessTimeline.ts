@@ -9,6 +9,7 @@ const getInProcessTimeline = async ({
   page = 1,
   chainId,
   hidden = false,
+  mime,
 }: GetInProcessTimelineParams = {}): Promise<{
   data: GetInProcessTimelineResponse | null;
   error: Error | null;
@@ -18,6 +19,7 @@ const getInProcessTimeline = async ({
     p_page: page,
     p_chainid: chainId,
     p_hidden: hidden,
+    p_mime: mime,
   });
 
   if (error) {

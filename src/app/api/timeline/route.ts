@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
   const chainId = chainIdParam ? Number(chainIdParam) : CHAIN_ID;
   const hiddenParam = searchParams.get('hidden');
   const hidden = hiddenParam === null ? false : hiddenParam === 'true';
+  const audioOnly = searchParams.get('audioOnly') === 'true';
+  const mime = audioOnly ? 'audio/%' : undefined;
 
   // Validate type parameter with runtime validation
   const typeParam = searchParams.get('type');
@@ -41,6 +43,7 @@ export async function GET(req: NextRequest) {
       page,
       chainId,
       hidden,
+      mime,
     });
 
     if (error) {
@@ -73,6 +76,7 @@ export async function GET(req: NextRequest) {
       page,
       chainId,
       hidden,
+      mime,
     });
 
     if (error) {
@@ -102,6 +106,7 @@ export async function GET(req: NextRequest) {
     page,
     chainId,
     hidden,
+    mime,
   });
 
   if (error) {
