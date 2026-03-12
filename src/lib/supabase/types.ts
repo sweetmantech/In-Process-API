@@ -418,6 +418,50 @@ export type Database = {
           },
         ];
       };
+      in_process_metadata: {
+        Row: {
+          animation_url: string | null;
+          content: Json | null;
+          created_at: string;
+          description: string | null;
+          external_url: string | null;
+          id: string;
+          image: string | null;
+          moment: string;
+          name: string | null;
+        };
+        Insert: {
+          animation_url?: string | null;
+          content?: Json | null;
+          created_at?: string;
+          description?: string | null;
+          external_url?: string | null;
+          id?: string;
+          image?: string | null;
+          moment: string;
+          name?: string | null;
+        };
+        Update: {
+          animation_url?: string | null;
+          content?: Json | null;
+          created_at?: string;
+          description?: string | null;
+          external_url?: string | null;
+          id?: string;
+          image?: string | null;
+          moment?: string;
+          name?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_metadata_moment_fkey';
+            columns: ['moment'];
+            isOneToOne: true;
+            referencedRelation: 'in_process_moments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       in_process_moment_comments: {
         Row: {
           artist_address: string;
