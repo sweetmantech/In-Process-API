@@ -58,7 +58,7 @@ BEGIN
       da.username AS creator_username,
       -- Get creator hidden status from admins table (if they have an admin entry)
       COALESCE(da_admin.hidden, false) AS creator_hidden,
-      row_to_json(meta) AS metadata
+      to_jsonb(meta) AS metadata
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
     INNER JOIN in_process_artists da ON c.creator = da.address
@@ -270,7 +270,7 @@ BEGIN
          LIMIT 1),
         false
       ) AS creator_hidden,
-      row_to_json(meta) AS metadata
+      to_jsonb(meta) AS metadata
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
     INNER JOIN in_process_artists da ON c.creator = da.address
@@ -460,7 +460,7 @@ BEGIN
       -- Get creator hidden status from admins table (if they have an admin entry)
       -- Prioritize token-specific admin entry over collection-level (token_id = 0)
       COALESCE(da_admin.hidden, false) AS creator_hidden,
-      row_to_json(meta) AS metadata
+      to_jsonb(meta) AS metadata
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
     INNER JOIN in_process_artists da ON c.creator = da.address
