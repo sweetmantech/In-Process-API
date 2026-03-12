@@ -58,7 +58,8 @@ BEGIN
       da.username AS creator_username,
       -- Get creator hidden status from admins table (if they have an admin entry)
       -- Prioritize token-specific admin entry over collection-level (token_id = 0)
-      COALESCE(da_admin.hidden, false) AS creator_hidden
+      COALESCE(da_admin.hidden, false) AS creator_hidden,
+      meta.content AS metadata
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
     INNER JOIN in_process_artists da ON c.creator = da.address
@@ -124,7 +125,8 @@ BEGIN
       'uri', moment_result.uri,
       'creator', moment_result.creator,
       'admins', moment_result.admins,
-      'created_at', moment_result.created_at
+      'created_at', moment_result.created_at,
+      'metadata', moment_result.metadata
     )
   ) INTO v_moments
   FROM (
@@ -141,7 +143,8 @@ BEGIN
         'hidden', md.creator_hidden
       ) AS creator,
       COALESCE(ad.admins_array, '[]'::json) AS admins,
-      md.created_at
+      md.created_at,
+      md.metadata
     FROM moment_data md
     LEFT JOIN admin_data ad ON md.id = ad.moment_id
     ORDER BY md.created_at DESC
