@@ -502,6 +502,7 @@ export type Database = {
           created_at: string;
           id: string;
           max_supply: number;
+          mime: string | null;
           token_id: number;
           updated_at: string;
           uri: string;
@@ -511,6 +512,7 @@ export type Database = {
           created_at: string;
           id?: string;
           max_supply: number;
+          mime?: string | null;
           token_id: number;
           updated_at: string;
           uri: string;
@@ -520,6 +522,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           max_supply?: number;
+          mime?: string | null;
           token_id?: number;
           updated_at?: string;
           uri?: string;
