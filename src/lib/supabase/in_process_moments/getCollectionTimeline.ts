@@ -10,6 +10,7 @@ const getCollectionTimeline = async ({
   page = 1,
   chainId,
   hidden = false,
+  mime,
 }: GetCollectionTimelineParams): Promise<{
   data: GetCollectionTimelineResponse | null;
   error: Error | null;
@@ -20,6 +21,7 @@ const getCollectionTimeline = async ({
     p_page: page,
     p_chainid: chainId,
     p_hidden: hidden,
+    p_mime: mime,
   });
 
   if (error) {

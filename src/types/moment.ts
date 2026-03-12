@@ -66,6 +66,7 @@ export interface GetInProcessTimelineParams {
   page?: number;
   chainId?: number;
   hidden?: boolean;
+  mime?: string;
 }
 
 export interface GetInProcessTimelineResponse {
@@ -80,6 +81,7 @@ export interface GetArtistTimelineParams {
   page?: number;
   chainId?: number;
   hidden?: boolean;
+  mime?: string;
 }
 
 export interface GetArtistTimelineResponse {
@@ -93,6 +95,7 @@ export interface GetCollectionTimelineParams {
   page?: number;
   chainId?: number;
   hidden?: boolean;
+  mime?: string;
 }
 
 export interface GetCollectionTimelineResponse {

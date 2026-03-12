@@ -11,6 +11,7 @@ const getArtistTimeline = async ({
   page = 1,
   chainId,
   hidden = false,
+  mime,
 }: GetArtistTimelineParams): Promise<{
   data: GetArtistTimelineResponse | null;
   error: Error | null;
@@ -22,6 +23,7 @@ const getArtistTimeline = async ({
     p_page: page,
     p_chainid: chainId,
     p_hidden: hidden,
+    p_mime: mime,
   });
 
   if (error) {
