@@ -42,7 +42,14 @@ export async function GET(req: NextRequest) {
         { status: 404 }
       );
     }
-    const metadata = await fetchTokenMetadata(uri);
+
+    let metadata = null;
+
+    try {
+      metadata = await fetchTokenMetadata(uri);
+    } catch (err) {
+      console.error(err);
+    }
 
     let adminAddresses: Address[] = [];
     if (collection) {
