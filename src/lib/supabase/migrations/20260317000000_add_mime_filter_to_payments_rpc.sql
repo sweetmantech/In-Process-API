@@ -32,7 +32,7 @@ BEGIN
       (p_chainid IS NULL OR c.chain_id = p_chainid)
       AND (p_mime IS NULL OR meta.content->>'mime' LIKE p_mime)
       AND (
-        (p_artists IS NULL OR COALESCE(array_length(p_artists, 1), 0) = 0 OR c.default_admin = ANY(p_artists))
+        (p_artists IS NULL OR COALESCE(array_length(p_artists, 1), 0) = 0 OR c.creator = ANY(p_artists))
         OR
         (p_collectors IS NULL OR COALESCE(array_length(p_collectors, 1), 0) = 0 OR p.buyer = ANY(p_collectors))
       )
@@ -95,7 +95,7 @@ BEGIN
       (p_chainid IS NULL OR c.chain_id = p_chainid)
       AND (p_mime IS NULL OR meta.content->>'mime' LIKE p_mime)
       AND (
-        (p_artists IS NULL OR COALESCE(array_length(p_artists, 1), 0) = 0 OR c.default_admin = ANY(p_artists))
+        (p_artists IS NULL OR COALESCE(array_length(p_artists, 1), 0) = 0 OR c.creator = ANY(p_artists))
         OR
         (p_collectors IS NULL OR COALESCE(array_length(p_collectors, 1), 0) = 0 OR p.buyer = ANY(p_collectors))
       )
