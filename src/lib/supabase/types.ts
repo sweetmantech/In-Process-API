@@ -708,82 +708,50 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      get_artist_timeline:
-        | {
-            Args: {
-              p_artist: string;
-              p_chainid?: number;
-              p_hidden?: boolean;
-              p_limit?: number;
-              p_page?: number;
-              p_type?: string;
-            };
-            Returns: Json;
-          }
-        | {
-            Args: {
-              p_artist: string;
-              p_chainid?: number;
-              p_hidden?: boolean;
-              p_limit?: number;
-              p_mime?: string;
-              p_page?: number;
-              p_type?: string;
-            };
-            Returns: Json;
-          };
-      get_collection_timeline:
-        | {
-            Args: {
-              p_chainid?: number;
-              p_collection: string;
-              p_hidden?: boolean;
-              p_limit?: number;
-              p_page?: number;
-            };
-            Returns: Json;
-          }
-        | {
-            Args: {
-              p_chainid?: number;
-              p_collection: string;
-              p_hidden?: boolean;
-              p_limit?: number;
-              p_mime?: string;
-              p_page?: number;
-            };
-            Returns: Json;
-          };
+      get_artist_timeline: {
+        Args: {
+          p_artist: string;
+          p_chainid?: number;
+          p_hidden?: boolean;
+          p_limit?: number;
+          p_mime?: string;
+          p_page?: number;
+          p_type?: string;
+        };
+        Returns: Json;
+      };
+      get_collection_timeline: {
+        Args: {
+          p_chainid?: number;
+          p_collection: string;
+          p_hidden?: boolean;
+          p_limit?: number;
+          p_mime?: string;
+          p_page?: number;
+        };
+        Returns: Json;
+      };
       get_in_process_payments: {
         Args: {
           p_artists?: string[];
           p_chainid?: number;
           p_collectors?: string[];
           p_limit?: number;
+          p_mime?: string;
           p_page?: number;
         };
         Returns: Json;
       };
-      get_in_process_timeline:
-        | {
-            Args: {
-              p_chainid?: number;
-              p_hidden?: boolean;
-              p_limit?: number;
-              p_page?: number;
-            };
-            Returns: Json;
-          }
-        | {
-            Args: {
-              p_chainid?: number;
-              p_hidden?: boolean;
-              p_limit?: number;
-              p_mime?: string;
-              p_page?: number;
-            };
-            Returns: Json;
-          };
+      get_in_process_timeline: {
+        Args: {
+          p_chainid?: number;
+          p_hidden?: boolean;
+          p_limit?: number;
+          p_mime?: string;
+          p_page?: number;
+        };
+        Returns: Json;
+      };
       get_in_process_tokens: {
         Args: {
           p_addresses?: string[];

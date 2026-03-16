@@ -14,6 +14,8 @@ export async function GET(req: NextRequest) {
   const chainId = searchParams.get('chainId')
     ? Number(searchParams.get('chainId'))
     : undefined;
+  const audioOnly = searchParams.get('audioOnly') === 'true';
+  const mime = audioOnly ? 'audio/%' : undefined;
 
   try {
     const collectors: string[] = [];
@@ -38,6 +40,7 @@ export async function GET(req: NextRequest) {
       artists,
       collectors,
       chainId,
+      mime,
     });
 
     if (error) {

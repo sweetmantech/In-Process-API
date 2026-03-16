@@ -16,6 +16,7 @@ export type InProcessPayment = {
       artist_address: string;
       percent_allocation: number;
     }>;
+    metadata: Record<string, unknown> | null;
   };
   buyer: {
     address: string;
@@ -33,6 +34,7 @@ export interface InProcessPaymentsQuery {
   artists?: string[];
   collectors: string[];
   chainId?: number;
+  mime?: string;
 }
 
 export async function selectPayments({
@@ -41,6 +43,7 @@ export async function selectPayments({
   artists,
   collectors,
   chainId = CHAIN_ID,
+  mime,
 }: InProcessPaymentsQuery) {
   const { data, error } = await supabase.rpc('get_in_process_payments', {
     p_limit: limit,
@@ -48,6 +51,7 @@ export async function selectPayments({
     p_artists: artists && artists.length > 0 ? artists : undefined,
     p_collectors: collectors && collectors.length > 0 ? collectors : undefined,
     p_chainid: chainId,
+    p_mime: mime,
   });
 
   if (error) return { data: null, count: null, error };
