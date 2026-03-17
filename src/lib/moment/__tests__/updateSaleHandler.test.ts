@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/viem/getMomentOnChainInfo', () => ({
+vi.mock('@/lib/viem/getInProcessMomentInfo', () => ({
   default: vi.fn(),
 }));
 
@@ -16,7 +16,7 @@ vi.mock('@/lib/sales/getUpdateSaleCall', () => ({
   default: vi.fn(),
 }));
 
-import getMomentOnChainInfo from '@/lib/viem/getMomentOnChainInfo';
+import getMomentOnChainInfo from '@/lib/viem/getInProcessMomentInfo';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';

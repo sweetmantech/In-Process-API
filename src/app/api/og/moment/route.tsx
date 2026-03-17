@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
-import { getMomentAdvancedInfo } from '@/lib/moment/getMomentAdvancedInfo';
+import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import { CHAIN_ID } from '@/lib/consts';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import getArchivoFont from '@/lib/og/getArchivoFont';
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     if (!collection) throw Error('no collection');
     uri = collection.uri;
   } else {
-    const { uri: momentUri } = await getMomentAdvancedInfo(moment);
+    const { uri: momentUri } = await resolveMomentInfo(moment);
     uri = momentUri;
   }
 

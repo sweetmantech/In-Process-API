@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Address } from 'viem';
-import getMomentOnChainInfo from '@/lib/viem/getMomentOnChainInfo';
+import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';
@@ -16,7 +16,7 @@ const updateSaleHandler = async ({
   maxTokensPerAddress,
   fundsRecipient,
 }: UpdateSaleBody) => {
-  const { saleConfig } = await getMomentOnChainInfo(moment);
+  const { saleConfig } = await getInProcessMomentInfo(moment);
 
   if (!saleConfig) {
     return NextResponse.json(
