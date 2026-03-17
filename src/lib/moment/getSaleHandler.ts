@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getMomentAdvancedInfo } from '@/lib/moment/getMomentAdvancedInfo';
+import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import { Moment } from '@/types/moment';
 
 const getSaleHandler = async (moment: Moment) => {
-  const { saleConfig } = await getMomentAdvancedInfo(moment);
+  const { saleConfig } = await resolveMomentInfo(moment);
   if (saleConfig == null) {
     return NextResponse.json(
       { message: 'Sale config not found' },

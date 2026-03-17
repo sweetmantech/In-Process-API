@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
-import { getMomentAdvancedInfo } from '@/lib/moment/getMomentAdvancedInfo';
+import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { momentSchema } from '@/lib/schema/momentSchema';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     const collection = collections?.[0] ?? null;
 
-    const { uri, owner, saleConfig, id } = await getMomentAdvancedInfo(moment);
+    const { uri, owner, saleConfig, id } = await resolveMomentInfo(moment);
 
     if (!uri) {
       return NextResponse.json(

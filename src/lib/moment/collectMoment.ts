@@ -7,7 +7,7 @@ import { collectSchema } from '../schema/collectSchema';
 import getCollectCall from '../viem/getCollectCall';
 import { validateBalanceAndAllowance } from '@/lib/sales/validateBalanceAndAllowance';
 import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
-import { getMomentAdvancedInfo } from './getMomentAdvancedInfo';
+import { resolveMomentInfo } from './resolveMomentInfo';
 
 export type CollectMomentInput = z.infer<typeof collectSchema> & {
   artistAddress: Address;
@@ -34,7 +34,7 @@ export async function collectMoment({
   });
 
   // Get token info and sale config
-  const { saleConfig } = await getMomentAdvancedInfo(moment);
+  const { saleConfig } = await resolveMomentInfo(moment);
 
   if (!saleConfig) {
     throw new Error('Sale config not found');

@@ -7,6 +7,29 @@ const cr1155Abi = [
     outputs: [{ name: '', type: 'uint256' }],
   },
   {
+    name: 'tokenMintConfiguration',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '_tokenId', type: 'uint256' }],
+    outputs: [
+      {
+        type: 'tuple',
+        internalType: 'struct ICRMintController.MintConfiguration',
+        components: [
+          { name: 'pricePerToken', type: 'uint96', internalType: 'uint96' },
+          { name: 'fundsRecipient', type: 'address', internalType: 'address' },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'uri',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '_id', type: 'uint256', internalType: 'uint256' }],
+    outputs: [{ name: '', type: 'string', internalType: 'string' }],
+  },
+  {
     name: 'purchaseTokenWithValue',
     type: 'function',
     stateMutability: 'payable',
