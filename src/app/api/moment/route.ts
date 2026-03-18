@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
-import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
-import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
+import getMetadata from '@/lib/moment/getMetadata';
+import getMomentAdmins from '@/lib/moment/getMomentAdmins';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { momentSchema } from '@/lib/schema/momentSchema';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
-import { Address } from 'viem';
-import getPermission from '@/lib/zora/getPermission';
 import { validate } from '@/lib/schema/validate';
 
 export async function GET(req: NextRequest) {
@@ -43,43 +40,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    let metadata = null;
-
-    try {
-      metadata = await fetchTokenMetadata(uri);
-    } catch (err) {
-      console.error(err);
-    }
-
-    let adminAddresses: Address[] = [];
-    if (collection) {
-      const admins = await selectAdmins({
-        moments: [
-          {
-            collectionId: collection.id,
-            token_id: Number(moment.tokenId),
-          },
-        ],
-      });
-      adminAddresses = admins.map((admin) => admin.artist_address as Address);
-    } else {
-      const smartAccount = await getOrCreateSmartWallet({
-        address: owner as Address,
-      });
-      const permission = await getPermission(
-        moment.collectionAddress,
-        smartAccount.address,
-        moment.chainId
-      );
-      if (permission) {
-        adminAddresses.push(smartAccount.address.toLowerCase() as Address);
-      }
-      adminAddresses.push(owner.toLowerCase() as Address);
-    }
-
-    const uniqueAdminAddresses = Array.from(new Set(adminAddresses)).sort(
-      (b, a) => b.localeCompare(a)
-    );
+    const [metadata, momentAdmins] = await Promise.all([
+      getMetadata(id, uri),
+      getMomentAdmins({ collection, owner, moment }),
+    ]);
 
     return NextResponse.json({
       id,
@@ -87,7 +51,7 @@ export async function GET(req: NextRequest) {
       owner,
       saleConfig,
       protocol: collection?.protocol ?? null,
-      momentAdmins: uniqueAdminAddresses,
+      momentAdmins,
       metadata: metadata ? normalizeMetadata(metadata) : null,
     });
   } catch (error: any) {
