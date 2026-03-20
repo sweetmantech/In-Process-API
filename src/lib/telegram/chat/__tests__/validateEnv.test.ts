@@ -57,9 +57,7 @@ describe('validateTelegramChatEnv', () => {
     process.env.TELEGRAM_CHAT_WEBHOOK_SECRET_TOKEN = 'secret';
     delete process.env.TELEGRAM_CHAT_BOT_USERNAME;
 
-    expect(() => validateTelegramChatEnv()).toThrow(
-      '- TELEGRAM_CHAT_BOT_USERNAME'
-    );
+    expect(() => validateTelegramChatEnv()).toThrow('- TELEGRAM_CHAT_BOT_USERNAME');
     expect(() => validateTelegramChatEnv()).not.toThrow(
       expect.stringContaining('TELEGRAM_CHAT_BOT_TOKEN')
     );
