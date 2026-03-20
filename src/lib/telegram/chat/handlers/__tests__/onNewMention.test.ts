@@ -4,7 +4,9 @@ import { registerOnNewMention } from '../onNewMention';
 function makeBot() {
   let handler: ((thread: any, message: any) => Promise<void>) | undefined;
   return {
-    onNewMention: vi.fn((cb: any) => { handler = cb; }),
+    onNewMention: vi.fn((cb: any) => {
+      handler = cb;
+    }),
     triggerMention: (thread: any, message: any) => handler!(thread, message),
   };
 }
