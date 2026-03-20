@@ -9,10 +9,14 @@ const pollMuxAsset = async (uploadId: string): Promise<MuxUploadResult> => {
     const upload = await mux.video.uploads.retrieve(uploadId);
     if (upload.asset_id) {
       const asset = await mux.video.assets.retrieve(upload.asset_id);
-      if (asset.status === 'ready' && asset.playback_ids?.[0]) {
+      if (
+        asset.status === 'ready' &&
+        asset.playback_ids?.[0] &&
+        asset.master?.status === 'ready'
+      ) {
         return {
           playbackUrl: `https://stream.mux.com/${asset.playback_ids[0].id}.m3u8`,
-          downloadUrl: asset.master?.url ?? '',
+          downloadUrl: asset.master.url ?? '',
         };
       }
     }
