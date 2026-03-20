@@ -1,22 +1,27 @@
 import type { Attachment } from 'chat';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import { uploadJson } from '@/lib/arweave/uploadJson';
+import getTelegramFilePath from './getTelegramFilePath';
+import getMimeTypeFromFilePath from './getMimeTypeFromFilePath';
 
 const uploadTelegramAttachment = async (
   attachment: Attachment,
+  fileId: string,
   name: string
 ) => {
   if (!attachment.fetchData) throw new Error('Attachment has no fetchData');
 
-  const buffer = await attachment.fetchData();
-  const mimeType =
-    attachment.mimeType ??
-    (attachment.type === 'image' ? 'image/jpeg' : 'application/octet-stream');
+  const [buffer, filePath] = await Promise.all([
+    attachment.fetchData(),
+    getTelegramFilePath(fileId),
+  ]);
+
+  const mimeType = attachment.mimeType ?? getMimeTypeFromFilePath(filePath);
 
   console.log('[uploadTelegramAttachment]', {
     attachmentType: attachment.type,
-    rawMimeType: attachment.mimeType,
-    resolvedMimeType: mimeType,
+    filePath,
+    mimeType,
     bufferSize: buffer.byteLength,
   });
 

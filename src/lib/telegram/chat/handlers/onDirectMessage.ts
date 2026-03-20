@@ -71,8 +71,21 @@ export function registerOnDirectMessage(bot: TelegramChatBot) {
         attachment &&
         (attachment.type === 'image' || attachment.type === 'video')
       ) {
+        const raw = message.raw as {
+          photo?: Array<{ file_id: string }>;
+          video?: { file_id: string };
+        };
+        const fileId =
+          raw.photo?.[raw.photo.length - 1]?.file_id ??
+          raw.video?.file_id ??
+          '';
+
         const name = text || `moment-${Date.now()}`;
-        const uploaded = await uploadTelegramAttachment(attachment, name);
+        const uploaded = await uploadTelegramAttachment(
+          attachment,
+          fileId,
+          name
+        );
 
         await logMessage(
           [{ type: 'text', text }],
