@@ -1,6 +1,5 @@
 import type { Address } from 'viem';
 import type { Thread, Message, Attachment } from 'chat';
-import { logMessage } from '@/lib/messages/logMessage';
 import extractTelegramFileIds from './extractTelegramFileIds';
 import processTelegramMedia from './processTelegramMedia';
 import isTooBigForTelegram, { TOO_BIG_MESSAGE } from './isTooBigForTelegram';
@@ -24,7 +23,6 @@ const handleTelegramMedia = async (
 
   const { fileId, thumbFileId } = extractTelegramFileIds(message);
 
-  await logMessage([{ type: 'text', text }], 'user', artistAddress, 'telegram');
   await thread.post(
     '⏳ In Process will post your moment. Please wait a few seconds...'
   );

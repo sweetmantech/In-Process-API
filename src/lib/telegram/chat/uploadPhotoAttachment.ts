@@ -24,7 +24,7 @@ const uploadPhotoAttachment = async (
     content: { mime: mimeType, uri: imageUri },
   });
 
-  return { uri, mimeType };
+  return { uri, mimeType, mediaUri: imageUri };
 };
 
 export default uploadPhotoAttachment;
