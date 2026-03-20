@@ -1,19 +1,8 @@
 import type { Address } from 'viem';
 import type { TelegramChatBot } from '../bot';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import uploadTelegramAttachment from '../uploadTelegramAttachment';
-import createMomentFromTelegramAttachment from '../createMomentFromTelegramAttachment';
 import { logMessage } from '@/lib/messages/logMessage';
-import handleMomentSuccess from '../handleMomentSuccess';
-
-type PendingMedia = {
-  uri: string;
-  mimeType: string;
-};
-
-type BotState = {
-  pendingMedia?: PendingMedia;
-};
+import handleTelegramMedia from '../handleTelegramMedia';
 
 export function registerOnDirectMessage(bot: TelegramChatBot) {
   bot.onDirectMessage(async (thread, message) => {
@@ -27,8 +16,20 @@ export function registerOnDirectMessage(bot: TelegramChatBot) {
       const artist = data?.[0] ?? null;
 
       if (!artist) {
-        await thread.post(
-          'Welcome to In Process! To get started please visit https://inprocess.world/manage and link your telegram account.'
+        const welcomeMessage =
+          'Welcome to In Process! To get started please visit https://inprocess.world/manage and link your telegram account.';
+        await logMessage(
+          [{ type: 'text', text: message.text ?? '' }],
+          'user',
+          undefined,
+          'telegram'
+        );
+        await thread.post(welcomeMessage);
+        await logMessage(
+          [{ type: 'text', text: welcomeMessage }],
+          'assistant',
+          undefined,
+          'telegram'
         );
         return;
       }
@@ -37,90 +38,33 @@ export function registerOnDirectMessage(bot: TelegramChatBot) {
       const text = message.text?.trim() ?? '';
 
       if (text === '/start') {
-        await thread.post(
-          `Hello ${artist.username || telegramUsername}, welcome to In Process! Your telegram has been verified! You can now send photos and captions to post them on In Process.`
+        const startMessage = `Hello ${artist.username || telegramUsername}, welcome to In Process! Your telegram has been verified! You can now send photos and captions to post them on In Process.`;
+        await thread.post(startMessage);
+        await logMessage(
+          [{ type: 'text', text: startMessage }],
+          'assistant',
+          artistAddress,
+          'telegram'
         );
         return;
       }
 
-      // Check for pending media awaiting a title
-      const state = ((await thread.state) ?? {}) as BotState;
-      if (state.pendingMedia && text) {
-        await thread.post(
-          '⏳ In Process will post your moment. Please wait a few seconds...'
-        );
-        const { contractAddress, tokenId } =
-          await createMomentFromTelegramAttachment({
-            uri: state.pendingMedia.uri,
-            name: text,
-            artistAddress,
-          });
-        await thread.setState({ pendingMedia: undefined });
-        await handleMomentSuccess(
-          thread,
-          contractAddress.toString(),
-          tokenId,
-          artistAddress
-        );
-        return;
-      }
-
-      // Handle new attachment
       const attachment = message.attachments?.[0];
       if (
         attachment &&
         (attachment.type === 'image' || attachment.type === 'video')
       ) {
-        const raw = message.raw as {
-          photo?: Array<{ file_id: string }>;
-          video?: { file_id: string };
-        };
-        const fileId =
-          raw.photo?.[raw.photo.length - 1]?.file_id ??
-          raw.video?.file_id ??
-          '';
-
-        const name = text || `moment-${Date.now()}`;
-        const uploaded = await uploadTelegramAttachment(
+        await handleTelegramMedia(
+          thread,
+          message,
           attachment,
-          fileId,
-          name
+          text,
+          artistAddress
         );
-
-        await logMessage(
-          [{ type: 'text', text }],
-          'user',
-          artistAddress,
-          'telegram'
-        );
-
-        if (text) {
-          await thread.post(
-            '⏳ In Process will post your moment. Please wait a few seconds...'
-          );
-          const { contractAddress, tokenId } =
-            await createMomentFromTelegramAttachment({
-              uri: uploaded.uri,
-              name,
-              artistAddress,
-            });
-          await handleMomentSuccess(
-            thread,
-            contractAddress.toString(),
-            tokenId,
-            artistAddress
-          );
-        } else {
-          await thread.setState({
-            pendingMedia: { uri: uploaded.uri, mimeType: uploaded.mimeType },
-          });
-          await thread.post('📝 Please send the title for your moment:');
-        }
-      } else {
-        await thread.post(
-          'Please send a photo or video with a caption or text.'
-        );
+        return;
       }
+
+      await thread.post('Please send a photo or video with a caption.');
     } catch (error) {
       console.error('[telegram-dm] onDirectMessage error:', error);
       const errorMessage =
