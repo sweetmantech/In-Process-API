@@ -1,11 +1,10 @@
-import { tasks } from '@trigger.dev/sdk';
 import type { Address } from 'viem';
 import type { TelegramChatBot } from '../bot';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import uploadTelegramAttachment from '../uploadTelegramAttachment';
 import createMomentFromTelegramAttachment from '../createMomentFromTelegramAttachment';
 import { logMessage } from '@/lib/messages/logMessage';
-import { IS_TESTNET, SITE_ORIGINAL_URL } from '@/lib/consts';
+import handleMomentSuccess from '../handleMomentSuccess';
 
 type PendingMedia = {
   uri: string;
@@ -116,27 +115,4 @@ export function registerOnDirectMessage(bot: TelegramChatBot) {
       await thread.post(`❌ ${errorMessage}`);
     }
   });
-}
-
-async function handleMomentSuccess(
-  thread: Parameters<Parameters<TelegramChatBot['onDirectMessage']>[0]>[0],
-  contractAddress: string,
-  tokenId: string,
-  artistAddress: string
-) {
-  const chain = IS_TESTNET ? 'bsep' : 'base';
-  const successMessage = `✅ Moment created! ${SITE_ORIGINAL_URL}/sms/${chain}:${contractAddress}/${tokenId}`;
-
-  const messageId = await logMessage(
-    [{ type: 'text', text: successMessage }],
-    'assistant',
-    artistAddress,
-    'telegram'
-  );
-
-  if (messageId) {
-    await tasks.trigger('process-message-moment', { messageId });
-  }
-
-  await thread.post(successMessage);
 }
