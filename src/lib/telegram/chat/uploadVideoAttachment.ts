@@ -26,7 +26,6 @@ const uploadVideoAttachment = async (
     thumbFileId ? fetchTelegramFile(thumbFileId) : Promise.resolve(null),
   ]);
 
-  console.log('mux uploaded', playbackUrl, downloadUrl);
   const imageUri = thumbResult
     ? await uploadToArweave(
         toFile(thumbResult.buffer, `${name}-thumb`, thumbResult.mimeType)
