@@ -9,7 +9,8 @@ const extractTelegramFileIds = (
   };
 
   const fileId =
-    raw.photo?.[raw.photo.length - 1]?.file_id ?? raw.video?.file_id ?? '';
+    raw.photo?.[raw.photo.length - 1]?.file_id ?? raw.video?.file_id;
+  if (!fileId) throw new Error('No Telegram media file_id found');
   const thumbFileId = raw.video?.thumb?.file_id;
 
   return { fileId, thumbFileId };
