@@ -11,10 +11,11 @@ type MessagePart = {
 export async function logMessage(
   parts: MessagePart[],
   role: 'user' | 'assistant',
-  artistAddress?: string
+  artistAddress?: string,
+  client: 'sms' | 'telegram' = 'sms'
 ) {
   const { data: metadata } = await insertMessageMetadata({
-    client: 'sms',
+    client,
     artist_address: artistAddress,
   });
   if (metadata) {
