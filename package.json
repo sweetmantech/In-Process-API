@@ -20,8 +20,6 @@
   "dependencies": {
     "@0xsplits/splits-sdk": "^6.4.1",
     "@ar.io/wayfinder-core": "^1.9.1",
-    "@chat-adapter/state-memory": "^4.20.2",
-    "@chat-adapter/telegram": "^4.20.2",
     "@coinbase/cdp-sdk": "^1.43.1",
     "@coinbase/coinbase-sdk": "^0.25.0",
     "@mux/mux-node": "^12.8.1",
@@ -33,7 +31,6 @@
     "@vercel/og": "^0.8.6",
     "@zoralabs/protocol-deployments": "^0.6.5",
     "arweave": "^1.15.7",
-    "chat": "^4.20.2",
     "image-meta": "^0.2.2",
     "link-preview-js": "^4.0.0",
     "multiformats": "^13.4.2",
