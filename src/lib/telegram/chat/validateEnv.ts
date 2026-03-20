@@ -1,6 +1,7 @@
 const REQUIRED_ENV_VARS = [
   'TELEGRAM_CHAT_BOT_TOKEN',
   'TELEGRAM_CHAT_WEBHOOK_SECRET_TOKEN',
+  'TELEGRAM_CHAT_BOT_USERNAME',
 ] as const;
 
 export function validateTelegramChatEnv(): void {

@@ -13,7 +13,7 @@ export function createTelegramChatBot() {
   });
 
   const bot = new Chat({
-    userName: process.env.TELEGRAM_CHAT_BOT_USERNAME ?? 'in_process_chat_bot',
+    userName: process.env.TELEGRAM_CHAT_BOT_USERNAME!,
     adapters: { telegram: telegramAdapter },
     state: createMemoryState(),
   });
