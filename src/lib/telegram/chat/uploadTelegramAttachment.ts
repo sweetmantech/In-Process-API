@@ -9,7 +9,17 @@ const uploadTelegramAttachment = async (
   if (!attachment.fetchData) throw new Error('Attachment has no fetchData');
 
   const buffer = await attachment.fetchData();
-  const mimeType = attachment.mimeType ?? 'application/octet-stream';
+  const mimeType =
+    attachment.mimeType ??
+    (attachment.type === 'image' ? 'image/jpeg' : 'application/octet-stream');
+
+  console.log('[uploadTelegramAttachment]', {
+    attachmentType: attachment.type,
+    rawMimeType: attachment.mimeType,
+    resolvedMimeType: mimeType,
+    bufferSize: buffer.byteLength,
+  });
+
   const arrayBuffer = buffer.buffer.slice(
     buffer.byteOffset,
     buffer.byteOffset + buffer.byteLength
