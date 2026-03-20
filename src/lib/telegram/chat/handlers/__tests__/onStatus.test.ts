@@ -5,7 +5,10 @@ function makeBot() {
   let pattern: RegExp | undefined;
   let handler: ((thread: any) => Promise<void>) | undefined;
   return {
-    onNewMessage: vi.fn((p: any, cb: any) => { pattern = p; handler = cb; }),
+    onNewMessage: vi.fn((p: any, cb: any) => {
+      pattern = p;
+      handler = cb;
+    }),
     triggerMessage: (thread: any) => handler!(thread),
     getPattern: () => pattern,
   };
