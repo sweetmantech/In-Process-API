@@ -6,7 +6,7 @@ import { calculateTotalPercentage } from '@/lib/splits/calculateTotalPercentage'
 
 export const salesConfigSchema = z.object({
   type: z.string(),
-  pricePerToken: z.string(),
+  pricePerToken: bigIntString,
   saleStart: bigIntString,
   saleEnd: bigIntString,
   currency: addressSchema.optional(),

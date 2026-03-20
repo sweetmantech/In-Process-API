@@ -21,7 +21,7 @@ const createMomentFromMedia = async (
       createReferral: REFERRAL_RECIPIENT as Address,
       salesConfig: {
         type: MomentType.Erc20Mint,
-        pricePerToken: parseUnits('1', 6).toString(),
+        pricePerToken: parseUnits('1', 6),
         saleStart: BigInt(Number(new Date().getTime() / 1000).toFixed(0)),
         saleEnd: maxUint64,
         currency: USDC_ADDRESS[CHAIN_ID],
