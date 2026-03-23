@@ -2,6 +2,7 @@ import type { Thread, Attachment } from 'chat';
 import type { TelegramChatBot } from '../bot';
 import type { TelegramThreadState } from '../telegramThreadState';
 import processTelegramMedia from '../processTelegramMedia';
+import fetchTelegramFile from '../fetchTelegramFile';
 
 export function registerOnSubscribedMessage(bot: TelegramChatBot) {
   bot.onSubscribedMessage(async (rawThread, message) => {
@@ -37,12 +38,15 @@ export function registerOnSubscribedMessage(bot: TelegramChatBot) {
       await thread.post(
         '⏳ In Process will post your moment. Please wait a few seconds...'
       );
+      const pendingAttachment: Attachment = {
+        type: pending.attachmentType,
+        size: pending.attachmentSize,
+        fetchData: () =>
+          fetchTelegramFile(pending.fileId).then((r) => r.buffer),
+      };
       await processTelegramMedia(
         thread,
-        {
-          type: pending.attachmentType,
-          size: pending.attachmentSize,
-        } as Attachment,
+        pendingAttachment,
         pending.fileId,
         text,
         pending.artistAddress,
