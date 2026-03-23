@@ -20,6 +20,7 @@ const handleTelegramMedia = async (
   const { fileId, thumbFileId } = extractTelegramFileIds(message);
 
   if (!text) {
+    await thread.subscribe();
     await thread.setState({
       pendingMedia: {
         fileId,
@@ -29,7 +30,7 @@ const handleTelegramMedia = async (
         artistAddress,
       },
     });
-    await thread.post('📝 Please send a title for your moment.');
+    await thread.post('📝 Please send a title for your moment:');
     return;
   }
 
