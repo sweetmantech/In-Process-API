@@ -1,4 +1,4 @@
-import fileIdSchema from './fileIdSchema';
+import fileIdSchema from '@/lib/schema/fileIdSchema';
 
 const getTelegramFilePath = async (fileId: string): Promise<string> => {
   fileIdSchema.parse(fileId);
