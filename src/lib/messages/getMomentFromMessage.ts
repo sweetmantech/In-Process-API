@@ -1,9 +1,12 @@
 import { FormattedMessage } from './formatMessages';
+import { SITE_ORIGINAL_URL } from '@/lib/consts';
 
 const getMomentFromMessage = (message: FormattedMessage) => {
   if (!message.parts) return null;
-  const MOMENT_URL_REGEX =
-    /https:\/\/inprocess\.world\/sms\/base:(0x[a-fA-F0-9]+)\/(\d+)/;
+  const escapedBase = SITE_ORIGINAL_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const MOMENT_URL_REGEX = new RegExp(
+    `${escapedBase}/sms/(?:base|bsep):(0x[a-fA-F0-9]+)/(\\d+)`
+  );
 
   for (const part of message.parts as unknown as {
     type: string;

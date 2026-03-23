@@ -1,31 +1,29 @@
-import Arweave from 'arweave';
-import { ARWEAVE_KEY } from '@/lib/consts';
-
-const arweave = Arweave.init({
-  host: 'arweave.net',
-  port: 443,
-  protocol: 'https',
-});
+import { Readable } from 'stream';
+import turboClient from './turboClient';
+import patchFetch from './patchFetch';
 
 export const uploadToArweave = async (file: File): Promise<string> => {
-  const mimeType = file.type;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const uint8Array = new Uint8Array(await file.arrayBuffer());
+  const restoreFetch = patchFetch();
 
-  const transaction = await arweave.createTransaction({ data: buffer });
-  transaction.addTag('Content-Type', mimeType);
+  try {
+    const { id } = await turboClient.uploadFile({
+      fileStreamFactory: () => Readable.from(Buffer.from(uint8Array)),
+      fileSizeFactory: () => file.size,
+      dataItemOpts: {
+        tags: [
+          { name: 'Content-Type', value: file.type },
+          { name: 'File-Name', value: file.name },
+        ],
+      },
+    });
 
-  await arweave.transactions.sign(transaction, ARWEAVE_KEY);
-  const response = await arweave.transactions.post(transaction);
-
-  if (response.status !== 200) {
-    throw new Error(
-      `❌ Upload failed: ${response.status} ${response.statusText}`
-    );
+    const arweaveURI = `ar://${id}`;
+    console.log('✅ Arweave URI received:', arweaveURI);
+    return arweaveURI;
+  } finally {
+    restoreFetch();
   }
-
-  const arweaveURI = `ar://${transaction.id}`;
-  console.log('✅ Arweave URI received:', arweaveURI);
-  return arweaveURI;
 };
 
 export default uploadToArweave;
