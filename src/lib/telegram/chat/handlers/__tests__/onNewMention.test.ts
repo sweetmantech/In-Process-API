@@ -7,16 +7,21 @@ vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
 }));
 vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
 vi.mock('../../handleTelegramMedia', () => ({ default: vi.fn() }));
+vi.mock('../../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
+vi.mock('../../handleMomentSuccess', () => ({ default: vi.fn() }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { logMessage } from '@/lib/messages/logMessage';
 import handleTelegramMedia from '../../handleTelegramMedia';
+import createMomentFromYoutubeLink from '../../createMomentFromYoutubeLink';
+import handleMomentSuccess from '../../handleMomentSuccess';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
 const ARTIST = { address: ARTIST_ADDRESS, username: 'alice' };
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
+  startTyping: vi.fn().mockResolvedValue(undefined),
 });
 
 const makeMessage = (
@@ -51,6 +56,11 @@ const setup = () => {
   return { bot, invoke };
 };
 
+const MOMENT_RESULT = {
+  contractAddress: '0xContract' as Address,
+  tokenId: '1',
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(selectArtists).mockResolvedValue({
@@ -58,6 +68,10 @@ beforeEach(() => {
     error: null,
   } as never);
   vi.mocked(logMessage).mockResolvedValue('msg-id' as never);
+  vi.mocked(createMomentFromYoutubeLink).mockResolvedValue(
+    MOMENT_RESULT as never
+  );
+  vi.mocked(handleMomentSuccess).mockResolvedValue(undefined);
 });
 
 describe('registerOnNewMention', () => {
@@ -207,6 +221,55 @@ describe('registerOnNewMention', () => {
       expect(thread.post).toHaveBeenCalledWith(
         'Please send a photo or video with a caption.'
       );
+      expect(handleTelegramMedia).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('when a linked artist sends a YouTube link', () => {
+    const YOUTUBE_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+
+    it('calls createMomentFromYoutubeLink with the URL and artist address', async () => {
+      const { invoke } = setup();
+      const thread = makeThread();
+
+      await invoke(thread, makeMessage({ text: YOUTUBE_URL }));
+
+      expect(createMomentFromYoutubeLink).toHaveBeenCalledWith(
+        YOUTUBE_URL,
+        ARTIST_ADDRESS
+      );
+    });
+
+    it('calls handleMomentSuccess with the created moment details', async () => {
+      const { invoke } = setup();
+      const thread = makeThread();
+
+      await invoke(thread, makeMessage({ text: YOUTUBE_URL }));
+
+      expect(handleMomentSuccess).toHaveBeenCalledWith(
+        thread,
+        MOMENT_RESULT.contractAddress,
+        MOMENT_RESULT.tokenId,
+        ARTIST_ADDRESS
+      );
+    });
+
+    it('does not post the fallback prompt', async () => {
+      const { invoke } = setup();
+      const thread = makeThread();
+
+      await invoke(thread, makeMessage({ text: YOUTUBE_URL }));
+
+      expect(thread.post).not.toHaveBeenCalledWith(
+        'Please send a photo or video with a caption.'
+      );
+    });
+
+    it('does not call handleTelegramMedia', async () => {
+      const { invoke } = setup();
+
+      await invoke(makeThread(), makeMessage({ text: YOUTUBE_URL }));
+
       expect(handleTelegramMedia).not.toHaveBeenCalled();
     });
   });

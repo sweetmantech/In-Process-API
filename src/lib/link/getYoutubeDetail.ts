@@ -4,7 +4,7 @@ import youtubeParser from './youtubeParser';
 const getYoutubeDetail = async (url: string): Promise<LinkPreview | null> => {
   const youtubeId = youtubeParser(url);
   if (!youtubeId) return null;
-  const reqUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${youtubeId}&key=${process.env.YOUTUBE_API_KEY || 'AIzaSyC8a_-PTMhPpI9F20HNnnzyeGIdPi4c64w'}`;
+  const reqUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${youtubeId}&key=${process.env.YOUTUBE_API_KEY}`;
   const response = await fetch(reqUrl);
   const data = await response.json();
 
@@ -14,8 +14,10 @@ const getYoutubeDetail = async (url: string): Promise<LinkPreview | null> => {
       siteName: 'youtube',
       favicons: [],
       images: [video.snippet.thumbnails.default.url],
-      title: video.snippet.title || video.snippet.channelTitle,
-      description: video.description || video.snippet.title,
+      title:
+        video.snippet.title || video.snippet.channelTitle || 'Untitled Video',
+      description:
+        video.snippet.description || video.snippet.title || 'Untitled Video',
       url,
     };
   }
