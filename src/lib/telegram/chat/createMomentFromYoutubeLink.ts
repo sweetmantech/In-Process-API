@@ -37,7 +37,7 @@ const createMomentFromYoutubeLink = async (
 
   return createMomentFromTelegramAttachment({
     uri: metadataUri,
-    name: detail.title,
+    name: detail.title || 'Untitled Video',
     artistAddress,
   });
 };

@@ -14,8 +14,10 @@ const getYoutubeDetail = async (url: string): Promise<LinkPreview | null> => {
       siteName: 'youtube',
       favicons: [],
       images: [video.snippet.thumbnails.default.url],
-      title: video.snippet.title || video.snippet.channelTitle,
-      description: video.description || video.snippet.title,
+      title:
+        video.snippet.title || video.snippet.channelTitle || 'Untitled Video',
+      description:
+        video.snippet.description || video.snippet.title || 'Untitled Video',
       url,
     };
   }

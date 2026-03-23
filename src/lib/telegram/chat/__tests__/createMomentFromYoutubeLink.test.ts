@@ -128,6 +128,16 @@ describe('createMomentFromYoutubeLink', () => {
     });
   });
 
+  it('falls back to "Untitled Video" when detail.title is empty', async () => {
+    vi.mocked(getYoutubeDetail).mockResolvedValue({ ...DETAIL, title: '' });
+
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+
+    expect(createMomentFromTelegramAttachment).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Untitled Video' })
+    );
+  });
+
   it('returns contractAddress and tokenId', async () => {
     const result = await createMomentFromYoutubeLink(
       YOUTUBE_URL,
