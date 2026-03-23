@@ -7,7 +7,7 @@ import { logMessage } from '@/lib/messages/logMessage';
 import handleTelegramMedia from '../handleTelegramMedia';
 
 export function registerOnDirectMessage(bot: TelegramChatBot) {
-  bot.onDirectMessage(async (rawThread, message) => {
+  bot.onNewMention(async (rawThread, message) => {
     const thread = rawThread as Thread<TelegramThreadState>;
     try {
       const telegramUsername = message.author.userName;
