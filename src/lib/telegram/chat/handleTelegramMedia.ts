@@ -3,9 +3,10 @@ import type { Thread, Message, Attachment } from 'chat';
 import extractTelegramFileIds from './extractTelegramFileIds';
 import processTelegramMedia from './processTelegramMedia';
 import isTooBigForTelegram, { TOO_BIG_MESSAGE } from './isTooBigForTelegram';
+import type { TelegramThreadState } from './telegramThreadState';
 
 const handleTelegramMedia = async (
-  thread: Thread,
+  thread: Thread<TelegramThreadState>,
   message: Message,
   attachment: Attachment,
   text: string,
@@ -16,12 +17,21 @@ const handleTelegramMedia = async (
     return;
   }
 
+  const { fileId, thumbFileId } = extractTelegramFileIds(message);
+
   if (!text) {
-    await thread.post('Please send a photo or video with a caption.');
+    await thread.setState({
+      pendingMedia: {
+        fileId,
+        thumbFileId,
+        attachmentType: attachment.type as 'image' | 'video',
+        attachmentSize: attachment.size,
+        artistAddress,
+      },
+    });
+    await thread.post('📝 Please send a title for your moment.');
     return;
   }
-
-  const { fileId, thumbFileId } = extractTelegramFileIds(message);
 
   await thread.post(
     '⏳ In Process will post your moment. Please wait a few seconds...'

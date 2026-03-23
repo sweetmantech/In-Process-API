@@ -1,11 +1,15 @@
 import type { Address } from 'viem';
+import type { Thread, Attachment } from 'chat';
 import type { TelegramChatBot } from '../bot';
+import type { TelegramThreadState } from '../telegramThreadState';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { logMessage } from '@/lib/messages/logMessage';
 import handleTelegramMedia from '../handleTelegramMedia';
+import processTelegramMedia from '../processTelegramMedia';
 
 export function registerOnDirectMessage(bot: TelegramChatBot) {
-  bot.onDirectMessage(async (thread, message) => {
+  bot.onDirectMessage(async (rawThread, message) => {
+    const thread = rawThread as Thread<TelegramThreadState>;
     try {
       const telegramUsername = message.author.userName;
       if (!telegramUsername) return;
@@ -47,6 +51,44 @@ export function registerOnDirectMessage(bot: TelegramChatBot) {
           'telegram'
         );
         return;
+      }
+
+      // Check for pending media waiting for a title
+      const state = await thread.state;
+      if (state?.pendingMedia) {
+        const pending = state.pendingMedia;
+        const attachment = message.attachments?.[0];
+        if (
+          attachment &&
+          (attachment.type === 'image' || attachment.type === 'video')
+        ) {
+          // New media sent instead of title — replace pending with new media
+          await thread.setState({ pendingMedia: null });
+        } else if (text) {
+          // Title received — process the pending media
+          await thread.setState({ pendingMedia: null });
+          await thread.post(
+            '⏳ In Process will post your moment. Please wait a few seconds...'
+          );
+          await processTelegramMedia(
+            thread,
+            {
+              type: pending.attachmentType,
+              size: pending.attachmentSize,
+            } as Attachment,
+            pending.fileId,
+            text,
+            pending.artistAddress,
+            pending.thumbFileId
+          );
+          return;
+        } else {
+          // No text and no new media — ask again
+          await thread.post(
+            '📝 Please send the title as text (not a photo or video).'
+          );
+          return;
+        }
       }
 
       const attachment = message.attachments?.[0];
