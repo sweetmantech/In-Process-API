@@ -1,6 +1,6 @@
 import telegramChatBot from '../bot';
-import { registerOnDirectMessage } from './onDirectMessage';
+import { registerOnNewMention } from './onNewMention';
 import { registerOnSubscribedMessage } from './onSubscribedMessage';
 
-registerOnDirectMessage(telegramChatBot);
+registerOnNewMention(telegramChatBot);
 registerOnSubscribedMessage(telegramChatBot);

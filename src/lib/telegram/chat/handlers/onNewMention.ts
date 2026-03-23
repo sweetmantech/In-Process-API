@@ -6,7 +6,7 @@ import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { logMessage } from '@/lib/messages/logMessage';
 import handleTelegramMedia from '../handleTelegramMedia';
 
-export function registerOnDirectMessage(bot: TelegramChatBot) {
+export function registerOnNewMention(bot: TelegramChatBot) {
   bot.onNewMention(async (rawThread, message) => {
     const thread = rawThread as Thread<TelegramThreadState>;
     try {

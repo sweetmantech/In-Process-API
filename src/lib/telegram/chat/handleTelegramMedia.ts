@@ -38,14 +38,20 @@ const handleTelegramMedia = async (
     '⏳ In Process will post your moment. Please wait a few seconds...'
   );
 
-  await processTelegramMedia(
-    thread,
-    attachment,
-    fileId,
-    text,
-    artistAddress,
-    thumbFileId
-  );
+  await thread.startTyping();
+  const typingInterval = setInterval(() => void thread.startTyping(), 4000);
+  try {
+    await processTelegramMedia(
+      thread,
+      attachment,
+      fileId,
+      text,
+      artistAddress,
+      thumbFileId
+    );
+  } finally {
+    clearInterval(typingInterval);
+  }
 };
 
 export default handleTelegramMedia;

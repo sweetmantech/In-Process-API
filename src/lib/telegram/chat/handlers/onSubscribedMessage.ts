@@ -44,14 +44,20 @@ export function registerOnSubscribedMessage(bot: TelegramChatBot) {
         fetchData: () =>
           fetchTelegramFile(pending.fileId).then((r) => r.buffer),
       };
-      await processTelegramMedia(
-        thread,
-        pendingAttachment,
-        pending.fileId,
-        text,
-        pending.artistAddress,
-        pending.thumbFileId
-      );
+      await thread.startTyping();
+      const typingInterval = setInterval(() => void thread.startTyping(), 4000);
+      try {
+        await processTelegramMedia(
+          thread,
+          pendingAttachment,
+          pending.fileId,
+          text,
+          pending.artistAddress,
+          pending.thumbFileId
+        );
+      } finally {
+        clearInterval(typingInterval);
+      }
     } catch (error) {
       console.error('[telegram-subscribed] onSubscribedMessage error:', error);
       const errorMessage =
