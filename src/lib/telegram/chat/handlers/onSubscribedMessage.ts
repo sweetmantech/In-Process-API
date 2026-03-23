@@ -3,6 +3,7 @@ import type { TelegramChatBot } from '../bot';
 import type { TelegramThreadState } from '../telegramThreadState';
 import processTelegramMedia from '../processTelegramMedia';
 import fetchTelegramFile from '../fetchTelegramFile';
+import handleTelegramMedia from '../handleTelegramMedia';
 
 export function registerOnSubscribedMessage(bot: TelegramChatBot) {
   bot.onSubscribedMessage(async (rawThread, message) => {
@@ -19,9 +20,16 @@ export function registerOnSubscribedMessage(bot: TelegramChatBot) {
         attachment &&
         (attachment.type === 'image' || attachment.type === 'video')
       ) {
-        // New media sent instead of title — clear pending and let onDirectMessage handle it
+        // New media sent instead of title — replace pending and process the new media
         await thread.setState({ pendingMedia: null });
         await thread.unsubscribe();
+        await handleTelegramMedia(
+          thread,
+          message,
+          attachment,
+          text,
+          pending.artistAddress
+        );
         return;
       }
 
@@ -33,8 +41,6 @@ export function registerOnSubscribedMessage(bot: TelegramChatBot) {
       }
 
       // Title received — process the pending media
-      await thread.setState({ pendingMedia: null });
-      await thread.unsubscribe();
       await thread.post(
         '⏳ In Process will post your moment. Please wait a few seconds...'
       );
@@ -58,11 +64,14 @@ export function registerOnSubscribedMessage(bot: TelegramChatBot) {
       } finally {
         clearInterval(typingInterval);
       }
+      // Only clear pending state after successful processing
+      await thread.setState({ pendingMedia: null });
+      await thread.unsubscribe();
     } catch (error) {
       console.error('[telegram-subscribed] onSubscribedMessage error:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Something went wrong.';
-      await thread.post(`❌ ${errorMessage}`);
+      await thread.post(
+        '❌ An unexpected error occurred. Please try again later.'
+      );
     }
   });
 }
