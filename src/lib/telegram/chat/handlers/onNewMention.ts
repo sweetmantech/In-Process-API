@@ -5,6 +5,12 @@ import type { TelegramThreadState } from '../telegramThreadState';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { logMessage } from '@/lib/messages/logMessage';
 import handleTelegramMedia from '../handleTelegramMedia';
+import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
+import handleMomentSuccess from '../handleMomentSuccess';
+import youtubeParser from '@/lib/link/youtubeParser';
+
+const YOUTUBE_URL_REGEX =
+  /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
 
 export function registerOnNewMention(bot: TelegramChatBot) {
   bot.onNewMention(async (rawThread, message) => {
@@ -62,6 +68,25 @@ export function registerOnNewMention(bot: TelegramChatBot) {
           message,
           attachment,
           text,
+          artistAddress
+        );
+        return;
+      }
+
+      const youtubeUrl = text.match(YOUTUBE_URL_REGEX)?.[0];
+      if (youtubeUrl && youtubeParser(youtubeUrl)) {
+        await thread.post(
+          '⏳ In Process will post your moment. Please wait a few seconds...'
+        );
+        await thread.startTyping();
+        const { contractAddress, tokenId } = await createMomentFromYoutubeLink(
+          youtubeUrl,
+          artistAddress
+        );
+        await handleMomentSuccess(
+          thread,
+          contractAddress,
+          tokenId,
           artistAddress
         );
         return;
