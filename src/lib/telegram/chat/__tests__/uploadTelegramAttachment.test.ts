@@ -1,0 +1,92 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import uploadTelegramAttachment from '../uploadTelegramAttachment';
+
+vi.mock('../uploadPhotoAttachment', () => ({ default: vi.fn() }));
+vi.mock('../uploadVideoAttachment', () => ({ default: vi.fn() }));
+
+import uploadPhotoAttachment from '../uploadPhotoAttachment';
+import uploadVideoAttachment from '../uploadVideoAttachment';
+
+const PHOTO_RESULT = {
+  uri: 'ar://photo',
+  mimeType: 'image/jpeg',
+  mediaUri: 'ar://photo',
+};
+const VIDEO_RESULT = {
+  uri: 'ar://video',
+  mimeType: 'video/mp4',
+  mediaUri: 'https://mux.com/play',
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(uploadPhotoAttachment).mockResolvedValue(PHOTO_RESULT);
+  vi.mocked(uploadVideoAttachment).mockResolvedValue(VIDEO_RESULT);
+});
+
+describe('uploadTelegramAttachment', () => {
+  it('calls uploadPhotoAttachment for image type', async () => {
+    const attachment = { type: 'image', size: 500 };
+
+    const result = await uploadTelegramAttachment(
+      attachment as never,
+      'file-id',
+      'My Photo'
+    );
+
+    expect(uploadPhotoAttachment).toHaveBeenCalledWith(
+      attachment,
+      'file-id',
+      'My Photo'
+    );
+    expect(uploadVideoAttachment).not.toHaveBeenCalled();
+    expect(result).toEqual(PHOTO_RESULT);
+  });
+
+  it('calls uploadVideoAttachment for video type', async () => {
+    const attachment = { type: 'video', size: 1000 };
+
+    const result = await uploadTelegramAttachment(
+      attachment as never,
+      'file-id',
+      'My Video',
+      'thumb-id'
+    );
+
+    expect(uploadVideoAttachment).toHaveBeenCalledWith(
+      attachment,
+      'file-id',
+      'My Video',
+      'thumb-id'
+    );
+    expect(uploadPhotoAttachment).not.toHaveBeenCalled();
+    expect(result).toEqual(VIDEO_RESULT);
+  });
+
+  it('passes thumbFileId through to uploadVideoAttachment', async () => {
+    const attachment = { type: 'video', size: 1000 };
+
+    await uploadTelegramAttachment(
+      attachment as never,
+      'file-id',
+      'My Video',
+      'thumb-123'
+    );
+
+    expect(uploadVideoAttachment).toHaveBeenCalledWith(
+      attachment,
+      'file-id',
+      'My Video',
+      'thumb-123'
+    );
+  });
+
+  it('calls uploadVideoAttachment for non-image types', async () => {
+    const attachment = { type: 'document', size: 200 };
+
+    await uploadTelegramAttachment(attachment as never, 'file-id', 'Doc');
+
+    expect(uploadVideoAttachment).toHaveBeenCalled();
+    expect(uploadPhotoAttachment).not.toHaveBeenCalled();
+  });
+});
