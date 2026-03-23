@@ -1,11 +1,14 @@
 import type { Address } from 'viem';
+import type { Thread } from 'chat';
 import type { TelegramChatBot } from '../bot';
+import type { TelegramThreadState } from '../telegramThreadState';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { logMessage } from '@/lib/messages/logMessage';
 import handleTelegramMedia from '../handleTelegramMedia';
 
-export function registerOnDirectMessage(bot: TelegramChatBot) {
-  bot.onDirectMessage(async (thread, message) => {
+export function registerOnNewMention(bot: TelegramChatBot) {
+  bot.onNewMention(async (rawThread, message) => {
+    const thread = rawThread as Thread<TelegramThreadState>;
     try {
       const telegramUsername = message.author.userName;
       if (!telegramUsername) return;
