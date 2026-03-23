@@ -19,11 +19,15 @@ const handleMomentSuccess = async (
     'telegram'
   );
 
-  if (messageId) {
-    await tasks.trigger('process-message-moment', { messageId });
-  }
-
   await thread.post(successMessage);
+
+  if (messageId) {
+    try {
+      await tasks.trigger('process-message-moment', { messageId });
+    } catch (e) {
+      console.error('handleMomentSuccess: tasks.trigger failed', e);
+    }
+  }
 };
 
 export default handleMomentSuccess;

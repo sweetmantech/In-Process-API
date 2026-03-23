@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import turboClient from './turboClient';
 import patchFetch from './patchFetch';
 
@@ -7,7 +8,7 @@ export const uploadToArweave = async (file: File): Promise<string> => {
 
   try {
     const { id } = await turboClient.uploadFile({
-      fileStreamFactory: () => Buffer.from(uint8Array),
+      fileStreamFactory: () => Readable.from(Buffer.from(uint8Array)),
       fileSizeFactory: () => file.size,
       dataItemOpts: {
         tags: [
