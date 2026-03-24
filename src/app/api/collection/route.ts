@@ -40,7 +40,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const metadata = await fetchTokenMetadata(collection.uri);
+    let metadata = null;
+    try {
+      metadata = await fetchTokenMetadata(collection.uri);
+    } catch (error) {
+      console.error(error);
+    }
 
     const admins = await selectAdmins({
       moments: [
