@@ -712,22 +712,27 @@ export type Database = {
         Args: {
           p_artist: string;
           p_chainid?: number;
+          p_channel?: string;
           p_hidden?: boolean;
           p_limit?: number;
           p_mime?: string;
           p_page?: number;
+          p_period?: string;
           p_type?: string;
         };
         Returns: Json;
       };
       get_collection_timeline: {
         Args: {
+          p_artist?: string;
           p_chainid?: number;
+          p_channel?: string;
           p_collection: string;
           p_hidden?: boolean;
           p_limit?: number;
           p_mime?: string;
           p_page?: number;
+          p_period?: string;
         };
         Returns: Json;
       };
@@ -744,11 +749,14 @@ export type Database = {
       };
       get_in_process_timeline: {
         Args: {
+          p_artist?: string;
           p_chainid?: number;
+          p_channel?: string;
           p_hidden?: boolean;
           p_limit?: number;
           p_mime?: string;
           p_page?: number;
+          p_period?: string;
         };
         Returns: Json;
       };

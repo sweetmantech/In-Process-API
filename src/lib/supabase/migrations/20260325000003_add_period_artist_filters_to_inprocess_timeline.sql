@@ -47,19 +47,19 @@ BEGIN
       )
       AND (
         p_channel IS NULL
+        OR EXISTS (
+          SELECT 1 FROM in_process_message_moment mm
+          INNER JOIN in_process_messages msg ON msg.id = mm.message
+          INNER JOIN in_process_message_metadata mmd ON mmd.id = msg.metadata
+          WHERE mm.moment = m.id AND mmd.client::text = p_channel
+        )
         OR (
-          p_channel IN ('telegram', 'sms')
-          AND EXISTS (
+          p_channel = 'web'
+          AND NOT EXISTS (
             SELECT 1 FROM in_process_message_moment mm
             INNER JOIN in_process_messages msg ON msg.id = mm.message
             INNER JOIN in_process_message_metadata mmd ON mmd.id = msg.metadata
-            WHERE mm.moment = m.id AND mmd.client::text = p_channel
-          )
-        )
-        OR (
-          p_channel IN ('web', 'api')
-          AND NOT EXISTS (
-            SELECT 1 FROM in_process_message_moment mm WHERE mm.moment = m.id
+            WHERE mm.moment = m.id
           )
         )
       )
@@ -130,19 +130,19 @@ BEGIN
       )
       AND (
         p_channel IS NULL
+        OR EXISTS (
+          SELECT 1 FROM in_process_message_moment mm
+          INNER JOIN in_process_messages msg ON msg.id = mm.message
+          INNER JOIN in_process_message_metadata mmd ON mmd.id = msg.metadata
+          WHERE mm.moment = m.id AND mmd.client::text = p_channel
+        )
         OR (
-          p_channel IN ('telegram', 'sms')
-          AND EXISTS (
+          p_channel = 'web'
+          AND NOT EXISTS (
             SELECT 1 FROM in_process_message_moment mm
             INNER JOIN in_process_messages msg ON msg.id = mm.message
             INNER JOIN in_process_message_metadata mmd ON mmd.id = msg.metadata
-            WHERE mm.moment = m.id AND mmd.client::text = p_channel
-          )
-        )
-        OR (
-          p_channel IN ('web', 'api')
-          AND NOT EXISTS (
-            SELECT 1 FROM in_process_message_moment mm WHERE mm.moment = m.id
+            WHERE mm.moment = m.id
           )
         )
       )
