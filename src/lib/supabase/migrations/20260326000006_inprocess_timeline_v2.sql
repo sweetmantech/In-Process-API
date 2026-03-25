@@ -24,7 +24,7 @@ BEGIN
   WITH
   -- Step 1: apply all filters once, get distinct matching IDs
   filtered_ids AS (
-    SELECT DISTINCT m.id, m.created_at
+    SELECT DISTINCT m.id, m.token_id, m.created_at
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
     INNER JOIN in_process_artists da ON c.creator = da.address
@@ -44,7 +44,7 @@ BEGIN
   -- Step 3: paginate by ID
   paged_ids AS (
     SELECT id FROM filtered_ids
-    ORDER BY created_at DESC
+    ORDER BY created_at DESC, token_id DESC
     LIMIT capped_limit OFFSET offset_val
   ),
   -- Step 4: fetch full row data only for the current page
@@ -78,7 +78,7 @@ BEGIN
         md.creator, md.creator_username, md.creator_hidden,
         md.collection, md.metadata, md.created_at
       )
-      ORDER BY md.created_at DESC
+      ORDER BY md.created_at DESC, md.token_id DESC
     )
   INTO v_total_count, v_moments
   FROM moment_data md;
