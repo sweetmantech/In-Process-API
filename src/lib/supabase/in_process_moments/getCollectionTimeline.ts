@@ -11,6 +11,9 @@ const getCollectionTimeline = async ({
   chainId,
   hidden = false,
   mime,
+  period,
+  channel,
+  artist,
 }: GetCollectionTimelineParams): Promise<{
   data: GetCollectionTimelineResponse | null;
   error: Error | null;
@@ -22,6 +25,9 @@ const getCollectionTimeline = async ({
     p_chainid: chainId,
     p_hidden: hidden,
     p_mime: mime,
+    p_period: period,
+    p_channel: channel,
+    p_artist: artist,
   });
 
   if (error) {
