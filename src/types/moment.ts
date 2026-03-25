@@ -73,7 +73,6 @@ export interface GetInProcessTimelineParams {
   mime?: string;
   period?: string;
   channel?: string;
-  artist?: string;
 }
 
 export interface GetInProcessTimelineResponse {

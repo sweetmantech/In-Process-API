@@ -94,7 +94,6 @@ const getTimelineHandler = async ({
     mime,
     period,
     channel,
-    artist,
   });
   if (error)
     return NextResponse.json(
