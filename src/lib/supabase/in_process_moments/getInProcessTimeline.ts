@@ -10,6 +10,9 @@ const getInProcessTimeline = async ({
   chainId,
   hidden = false,
   mime,
+  period,
+  channel,
+  artist,
 }: GetInProcessTimelineParams = {}): Promise<{
   data: GetInProcessTimelineResponse | null;
   error: Error | null;
@@ -20,6 +23,9 @@ const getInProcessTimeline = async ({
     p_chainid: chainId,
     p_hidden: hidden,
     p_mime: mime,
+    p_period: period,
+    p_channel: channel,
+    p_artist: artist,
   });
 
   if (error) {

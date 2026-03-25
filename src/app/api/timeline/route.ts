@@ -1,131 +1,18 @@
-import { NextRequest } from 'next/server';
-import { CHAIN_ID } from '@/lib/consts';
-import getInProcessTimeline from '@/lib/supabase/in_process_moments/getInProcessTimeline';
-import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
-import getCollectionTimeline from '@/lib/supabase/in_process_moments/getCollectionTimeline';
+import { NextRequest, NextResponse } from 'next/server';
+import validateTimelineQuery from '@/lib/timeline/validateTimelineQuery';
+import getTimelineHandler from '@/lib/timeline/getTimelineHandler';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const limit = Math.min(Number(searchParams.get('limit')) || 100, 100);
-  const page = Number(searchParams.get('page')) || 1;
-  const collection = searchParams.get('collection') || undefined;
-  const artist = searchParams.get('artist') || undefined;
-  const chainIdParam = searchParams.get('chain_id');
-  const chainId = chainIdParam ? Number(chainIdParam) : CHAIN_ID;
-  const hiddenParam = searchParams.get('hidden');
-  const hidden = hiddenParam === null ? false : hiddenParam === 'true';
-  const audioOnly = searchParams.get('audioOnly') === 'true';
-  const mime = audioOnly ? 'audio/%' : undefined;
-
-  // Validate type parameter with runtime validation
-  const typeParam = searchParams.get('type');
-  let type: 'mutual' | 'default' | undefined;
-
-  if (typeParam !== null && typeParam !== undefined) {
-    if (typeParam === 'mutual' || typeParam === 'default') {
-      type = typeParam;
-    } else {
-      return Response.json(
-        {
-          status: 'error',
-          message: `Invalid type parameter: "${typeParam}". Must be "mutual" or "default".`,
-        },
-        { status: 400 }
-      );
-    }
+  try {
+    const validated = validateTimelineQuery(req);
+    if (validated instanceof NextResponse) return validated;
+    return await getTimelineHandler(validated);
+  } catch (e: any) {
+    const message = e?.message ?? 'Failed to fetch timeline';
+    return Response.json({ message }, { status: 500 });
   }
-
-  // If collection is provided, handle collection timeline
-  if (collection) {
-    const { data, error } = await getCollectionTimeline({
-      collection,
-      limit,
-      page,
-      chainId,
-      hidden,
-      mime,
-    });
-
-    if (error) {
-      return Response.json(
-        { status: 'error', message: error.message },
-        { status: 500 }
-      );
-    }
-
-    if (!data) {
-      return Response.json(
-        { status: 'error', message: 'No data returned' },
-        { status: 500 }
-      );
-    }
-
-    return Response.json({
-      status: 'success',
-      moments: data.moments,
-      pagination: data.pagination,
-    });
-  }
-
-  // If artist/address is provided, handle artist timeline
-  if (artist) {
-    const { data, error } = await getArtistTimeline({
-      artist,
-      type: type || null, // Pass null when undefined to get both mutual + default
-      limit,
-      page,
-      chainId,
-      hidden,
-      mime,
-    });
-
-    if (error) {
-      return Response.json(
-        { status: 'error', message: error.message },
-        { status: 500 }
-      );
-    }
-
-    if (!data) {
-      return Response.json(
-        { status: 'error', message: 'No data returned' },
-        { status: 500 }
-      );
-    }
-
-    return Response.json({
-      status: 'success',
-      moments: data.moments,
-      pagination: data.pagination,
-    });
-  }
-
-  // In-process timeline (no artist/address or collection parameter)
-  const { data, error } = await getInProcessTimeline({
-    limit,
-    page,
-    chainId,
-    hidden,
-    mime,
-  });
-
-  if (error) {
-    return Response.json(
-      { status: 'error', message: error.message },
-      { status: 500 }
-    );
-  }
-
-  if (!data) {
-    return Response.json(
-      { status: 'error', message: 'No data returned' },
-      { status: 500 }
-    );
-  }
-
-  return Response.json({
-    status: 'success',
-    moments: data.moments,
-    pagination: data.pagination,
-  });
 }
+
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
