@@ -26,7 +26,7 @@ AS $$
     )
 $$;
 
--- Reusable period filter: 'day' | 'week' | 'month' | 'all' | NULL (no filter)
+-- accidentally filtering to only moments from "right now" (INTERVAL '0').
 CREATE OR REPLACE FUNCTION public.moment_matches_period(p_created_at timestamptz, p_period text)
 RETURNS boolean
 LANGUAGE sql
@@ -35,10 +35,19 @@ AS $$
   SELECT
     p_period IS NULL
     OR p_period = 'all'
-    OR p_created_at >= NOW() - CASE p_period
+    OR (
+      CASE p_period
+        WHEN 'day'   THEN INTERVAL '1 day'
+        WHEN 'week'  THEN INTERVAL '7 days'
+        WHEN 'month' THEN INTERVAL '30 days'
+        ELSE NULL::interval
+      END
+    ) IS NOT NULL
+    AND p_created_at >= NOW() - CASE p_period
       WHEN 'day'   THEN INTERVAL '1 day'
       WHEN 'week'  THEN INTERVAL '7 days'
       WHEN 'month' THEN INTERVAL '30 days'
-      ELSE INTERVAL '0'
+      ELSE NULL::interval
     END
 $$;
+
