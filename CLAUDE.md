@@ -75,6 +75,10 @@ Follow the Single Responsibility Principle:
 - **Thin route files** - Route handlers should only call validators and handlers
 - Separate validation and business logic into `@/lib/<domain>/` files
 
+#### KISS: Decide context values as close to the core function as possible
+
+When a wrapper function always operates in a fixed context (e.g., `createMomentFromMedia` is always SMS, `createMomentFromTelegramAttachment` is always Telegram), hardcode that context value directly at the `createMoment` call site — do **not** thread it as a parameter up the call stack. Adding a parameter only makes sense when the caller genuinely controls the value.
+
 #### Schema Organization
 
 - **All Zod schemas live in `@/lib/schema/`** — never define schemas inline in route files or handler files

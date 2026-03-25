@@ -17,12 +17,16 @@ const triggerMuxMigration = async ({
   const mimeType = await getMomentMime(uri);
   if (!mimeType || !mimeType.trim().toLowerCase().startsWith('video/')) return;
 
-  await tasks.trigger('migrate-mux-to-arweave', {
-    collectionAddress,
-    tokenId,
-    chainId: CHAIN_ID,
-    artistAddress,
-  });
+  try {
+    await tasks.trigger('migrate-mux-to-arweave', {
+      collectionAddress,
+      tokenId,
+      chainId: CHAIN_ID,
+      artistAddress,
+    });
+  } catch (e) {
+    console.error('triggerMuxMigration: tasks.trigger failed', e);
+  }
 };
 
 export default triggerMuxMigration;

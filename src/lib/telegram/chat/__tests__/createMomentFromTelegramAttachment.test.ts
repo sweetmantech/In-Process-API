@@ -88,4 +88,15 @@ describe('createMomentFromTelegramAttachment', () => {
     const call = vi.mocked(createMoment).mock.calls[0][0];
     expect(call.token.createReferral).toBe('0xReferral');
   });
+
+  it('sets channel to "telegram"', async () => {
+    await createMomentFromTelegramAttachment({
+      uri: 'ar://meta',
+      name: 'My Moment',
+      artistAddress: ARTIST_ADDRESS,
+    });
+
+    const call = vi.mocked(createMoment).mock.calls[0][0];
+    expect(call.channel).toBe('telegram');
+  });
 });

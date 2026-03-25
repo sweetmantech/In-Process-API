@@ -249,8 +249,7 @@ describe('registerOnNewMention', () => {
       expect(handleMomentSuccess).toHaveBeenCalledWith(
         thread,
         MOMENT_RESULT.contractAddress,
-        MOMENT_RESULT.tokenId,
-        ARTIST_ADDRESS
+        MOMENT_RESULT.tokenId
       );
     });
 
