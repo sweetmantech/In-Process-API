@@ -736,6 +736,14 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_creator_hidden: {
+        Args: {
+          p_artist_address: string;
+          p_collection: string;
+          p_token_id: number;
+        };
+        Returns: boolean;
+      };
       get_in_process_payments: {
         Args: {
           p_artists?: string[];
@@ -773,6 +781,22 @@ export type Database = {
           p_type?: string;
         };
         Returns: Json;
+      };
+      get_moment_admins_json: {
+        Args: { p_collection: string; p_token_id: number };
+        Returns: Json;
+      };
+      moment_is_visible: {
+        Args: { p_collection: string; p_hidden: boolean; p_token_id: number };
+        Returns: boolean;
+      };
+      moment_matches_channel: {
+        Args: { p_channel: string; p_moment_id: string };
+        Returns: boolean;
+      };
+      moment_matches_period: {
+        Args: { p_created_at: string; p_period: string };
+        Returns: boolean;
       };
     };
     Enums: {
