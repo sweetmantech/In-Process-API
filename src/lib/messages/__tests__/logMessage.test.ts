@@ -77,4 +77,50 @@ describe('logMessage', () => {
       artist_address: undefined,
     });
   });
+
+  it('passes "web" client to insertMessageMetadata', async () => {
+    vi.mocked(insertMessageMetadata).mockResolvedValue({
+      data: { id: 'metadata-123' },
+      error: null,
+    } as any);
+    vi.mocked(insertMessage).mockResolvedValue({
+      data: { id: 'message-456' },
+      error: null,
+    } as any);
+
+    await logMessage(
+      [{ type: 'text', text: 'Hello' }],
+      'assistant',
+      '0x123',
+      'web'
+    );
+
+    expect(insertMessageMetadata).toHaveBeenCalledWith({
+      client: 'web',
+      artist_address: '0x123',
+    });
+  });
+
+  it('passes "api" client to insertMessageMetadata', async () => {
+    vi.mocked(insertMessageMetadata).mockResolvedValue({
+      data: { id: 'metadata-123' },
+      error: null,
+    } as any);
+    vi.mocked(insertMessage).mockResolvedValue({
+      data: { id: 'message-456' },
+      error: null,
+    } as any);
+
+    await logMessage(
+      [{ type: 'text', text: 'Hello' }],
+      'assistant',
+      '0x123',
+      'api'
+    );
+
+    expect(insertMessageMetadata).toHaveBeenCalledWith({
+      client: 'api',
+      artist_address: '0x123',
+    });
+  });
 });

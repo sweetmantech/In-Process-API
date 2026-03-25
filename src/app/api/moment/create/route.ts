@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
 import { createMoment } from '@/lib/moment/createMoment';
 import { validate } from '@/lib/schema/validate';
+import getChannelFromReqHeader from '@/lib/moment/getChannelFromReqHeader';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,7 +12,8 @@ export async function POST(req: NextRequest) {
       return validationResult.response;
     }
     const data = validationResult.data;
-    const result = await createMoment(data);
+    const channel = data.channel ?? getChannelFromReqHeader(req);
+    const result = await createMoment({ ...data, channel });
     return Response.json(result);
   } catch (e: any) {
     console.log(e);

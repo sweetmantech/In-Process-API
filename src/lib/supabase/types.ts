@@ -769,7 +769,7 @@ export type Database = {
     };
     Enums: {
       collection_protocol: 'in_process' | 'catalog';
-      message_client: 'telegram' | 'sms';
+      message_client: 'telegram' | 'sms' | 'web' | 'api';
       message_role: 'user' | 'assistant';
     };
     CompositeTypes: {
@@ -905,7 +905,7 @@ export const Constants = {
   public: {
     Enums: {
       collection_protocol: ['in_process', 'catalog'],
-      message_client: ['telegram', 'sms'],
+      message_client: ['telegram', 'sms', 'web', 'api'],
       message_role: ['user', 'assistant'],
     },
   },

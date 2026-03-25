@@ -20,11 +20,6 @@ export const processMmsMedia = async (
     payload,
     phone.artist.address
   );
-  await processMomentMessage(
-    contractAddress,
-    tokenId,
-    phone.phone_number,
-    phone.artist.address
-  );
+  await processMomentMessage(contractAddress, tokenId, phone.phone_number);
   return { contractAddress, tokenId };
 };

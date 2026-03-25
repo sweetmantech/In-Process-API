@@ -55,6 +55,7 @@ const baseCreateMomentSchema = z.object({
   token: tokenSchema,
   account: addressSchema,
   splits: z.array(splitSchema).optional(),
+  channel: z.string().optional(),
 });
 
 // Unified schema that accepts the unified contract format

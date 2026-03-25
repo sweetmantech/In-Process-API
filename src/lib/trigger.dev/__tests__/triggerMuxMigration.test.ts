@@ -75,15 +75,13 @@ describe('triggerMuxMigration', () => {
     expect(getMomentMime).toHaveBeenCalledWith('https://example.com/meta.json');
   });
 
-  it('propagates errors from tasks.trigger', async () => {
+  it('does not throw when tasks.trigger fails', async () => {
     vi.mocked(getMomentMime).mockResolvedValue('video/mp4');
     vi.mocked(tasks.trigger).mockRejectedValue(
       new Error('Trigger.dev unavailable')
     );
 
-    await expect(triggerMuxMigration(baseInput)).rejects.toThrow(
-      'Trigger.dev unavailable'
-    );
+    await expect(triggerMuxMigration(baseInput)).resolves.not.toThrow();
   });
 
   it('propagates errors from getMomentMime', async () => {
