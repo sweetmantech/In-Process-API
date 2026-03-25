@@ -30,7 +30,7 @@ const createMomentFromMedia = async (
       payoutRecipient: artistAddress as Address,
     },
     account: artistAddress as Address,
-    channel: 'sms',
+    channel: 'sms' as const,
   };
   const { contractAddress, tokenId } = await createMoment(
     momentCreateParameters
