@@ -11,6 +11,7 @@ import parseMomentTransaction from './parseMomentTransaction';
 import resolvePayoutRecipient from './resolvePayoutRecipient';
 import triggerMuxMigration from '../trigger.dev/triggerMuxMigration';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
+import processMessageMoment from './processMessageMoment';
 
 export type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
 
@@ -79,6 +80,13 @@ export async function createMoment(
     collectionAddress: contractAddress,
     tokenId,
     artistAddress: input.account as `0x${string}`,
+  });
+
+  await processMessageMoment({
+    contractAddress,
+    tokenId,
+    artistAddress: input.account,
+    channel: input.channel,
   });
 
   return {

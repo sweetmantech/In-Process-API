@@ -108,8 +108,7 @@ describe('processTelegramMedia', () => {
     expect(handleMomentSuccess).toHaveBeenCalledWith(
       thread,
       MOMENT_RESULT.contractAddress.toString(),
-      MOMENT_RESULT.tokenId,
-      ARTIST_ADDRESS
+      MOMENT_RESULT.tokenId
     );
   });
 });

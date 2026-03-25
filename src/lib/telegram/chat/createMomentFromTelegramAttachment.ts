@@ -28,6 +28,7 @@ const createMomentFromTelegramAttachment = async ({
       payoutRecipient: artistAddress,
     },
     account: artistAddress,
+    channel: 'telegram',
   });
 
   return { contractAddress, tokenId };

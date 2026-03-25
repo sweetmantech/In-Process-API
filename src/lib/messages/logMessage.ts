@@ -12,7 +12,7 @@ export async function logMessage(
   parts: MessagePart[],
   role: 'user' | 'assistant',
   artistAddress?: string,
-  client: 'sms' | 'telegram' = 'sms'
+  client: 'sms' | 'telegram' | 'web' | 'api' = 'sms'
 ) {
   const { data: metadata } = await insertMessageMetadata({
     client,

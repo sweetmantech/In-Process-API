@@ -37,12 +37,7 @@ const processTelegramMedia = async (
       artistAddress,
     }
   );
-  await handleMomentSuccess(
-    thread,
-    contractAddress.toString(),
-    tokenId,
-    artistAddress
-  );
+  await handleMomentSuccess(thread, contractAddress.toString(), tokenId);
 };
 
 export default processTelegramMedia;

@@ -32,6 +32,10 @@ vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({
   default: vi.fn(),
 }));
 
+vi.mock('@/lib/moment/processMessageMoment', () => ({
+  default: vi.fn(),
+}));
+
 vi.mock('@/lib/protocolSdk/create/factory-addresses', () => ({
   getFactoryAddress: vi.fn(),
 }));
@@ -51,6 +55,7 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import parseMomentTransaction from '@/lib/moment/parseMomentTransaction';
 import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
+import processMessageMoment from '@/lib/moment/processMessageMoment';
 import {
   createMoment,
   type CreateMomentContractInput,
@@ -70,7 +75,7 @@ const baseInput: CreateMomentContractInput = {
     createReferral: '0x0000000000000000000000000000000000000000',
     salesConfig: {
       type: 'fixedPrice',
-      pricePerToken: '0',
+      pricePerToken: 0n,
       saleStart: 0n,
       saleEnd: 9999999999n,
     },
@@ -111,6 +116,7 @@ describe('createMoment', () => {
     } as any);
 
     vi.mocked(triggerMuxMigration).mockResolvedValue(undefined);
+    vi.mocked(processMessageMoment).mockResolvedValue(undefined);
   });
 
   it('returns contractAddress, tokenId, hash, and chainId', async () => {
@@ -163,5 +169,17 @@ describe('createMoment', () => {
     await expect(createMoment(baseInput)).rejects.toThrow(
       'Trigger.dev unavailable'
     );
+  });
+
+  it('calls processMessageMoment with contractAddress, tokenId, account, and channel', async () => {
+    const input = { ...baseInput, channel: 'web' };
+    await createMoment(input);
+
+    expect(processMessageMoment).toHaveBeenCalledWith({
+      contractAddress: RESULT_CONTRACT,
+      tokenId: '7',
+      artistAddress: ARTIST,
+      channel: 'web',
+    });
   });
 });
