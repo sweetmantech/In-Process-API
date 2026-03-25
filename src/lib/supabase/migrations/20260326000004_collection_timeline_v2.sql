@@ -1,15 +1,16 @@
--- Refactor get_in_process_timeline v2: use moment_is_visible + get_creator_hidden + get_moment_admins_json helpers
-DROP FUNCTION IF EXISTS public.get_in_process_timeline(integer, integer, numeric, boolean, text);
+-- Refactor get_collection_timeline v2: use build_moment_json + build_timeline_result helpers
+DROP FUNCTION IF EXISTS public.get_collection_timeline(text, integer, integer, numeric, boolean, text);
 
-CREATE OR REPLACE FUNCTION public.get_in_process_timeline(
-  p_limit   integer DEFAULT 100,
-  p_page    integer DEFAULT 1,
-  p_chainid numeric DEFAULT 8453,
-  p_hidden  boolean DEFAULT false,
-  p_mime    text    DEFAULT NULL,
-  p_period  text    DEFAULT NULL,
-  p_channel text    DEFAULT NULL,
-  p_artist  text    DEFAULT NULL
+CREATE OR REPLACE FUNCTION public.get_collection_timeline(
+  p_collection text,
+  p_limit      integer DEFAULT 100,
+  p_page       integer DEFAULT 1,
+  p_chainid    numeric DEFAULT 8453,
+  p_hidden     boolean DEFAULT false,
+  p_mime       text    DEFAULT NULL,
+  p_period     text    DEFAULT NULL,
+  p_channel    text    DEFAULT NULL,
+  p_artist     text    DEFAULT NULL
 )
 RETURNS json
 LANGUAGE plpgsql
@@ -20,7 +21,6 @@ DECLARE
   offset_val    int := (clamped_page - 1) * capped_limit;
   v_moments     json;
   v_total_count int;
-  v_total_pages int;
 BEGIN
   WITH
   -- Step 1: apply all filters once, get distinct matching IDs
@@ -29,11 +29,10 @@ BEGIN
     FROM in_process_moments m
     INNER JOIN in_process_collections c ON m.collection = c.id
     INNER JOIN in_process_artists da ON c.creator = da.address
-      AND da.username IS NOT NULL
-      AND da.username != ''
     LEFT JOIN in_process_metadata meta ON meta.moment = m.id
     WHERE
-      (p_chainid IS NULL OR c.chain_id = p_chainid)
+      c.address = LOWER(p_collection)
+      AND (p_chainid IS NULL OR c.chain_id = p_chainid)
       AND (p_mime IS NULL OR meta.content->>'mime' LIKE p_mime)
       AND moment_matches_period(m.created_at, p_period)
       AND moment_matches_channel(m.id, p_channel)
@@ -50,7 +49,7 @@ BEGIN
   ),
   -- Step 4: fetch full row data only for the current page
   moment_data AS (
-    SELECT DISTINCT
+    SELECT
       m.id,
       m.collection,
       m.token_id,
@@ -67,39 +66,21 @@ BEGIN
     INNER JOIN in_process_moments m ON m.id = pi.id
     INNER JOIN in_process_collections c ON m.collection = c.id
     INNER JOIN in_process_artists da ON c.creator = da.address
-      AND da.username IS NOT NULL
-      AND da.username != ''
     LEFT JOIN in_process_metadata meta ON meta.moment = m.id
   )
   SELECT
     (SELECT cnt FROM total),
     json_agg(
-      json_build_object(
-        'address',    md.address,
-        'token_id',   md.token_id::text,
-        'chain_id',   md.chain_id,
-        'protocol',   md.protocol,
-        'id',         md.id,
-        'uri',        md.uri,
-        'creator',    json_build_object('address', md.creator, 'username', md.creator_username, 'hidden', md.creator_hidden),
-        'admins',     COALESCE(get_moment_admins_json(md.collection, md.token_id), '[]'::json),
-        'created_at', md.created_at,
-        'metadata',   md.metadata
+      build_moment_json(
+        md.address, md.token_id, md.chain_id, md.protocol, md.id, md.uri,
+        md.creator, md.creator_username, md.creator_hidden,
+        md.collection, md.metadata, md.created_at
       )
       ORDER BY md.created_at DESC
     )
   INTO v_total_count, v_moments
   FROM moment_data md;
 
-  v_total_pages := CASE WHEN v_total_count > 0 THEN CEIL(v_total_count::numeric / capped_limit) ELSE 1 END;
-
-  RETURN json_build_object(
-    'moments',    COALESCE(v_moments, '[]'::json),
-    'pagination', json_build_object(
-      'page',        clamped_page,
-      'limit',       capped_limit,
-      'total_pages', v_total_pages
-    )
-  );
+  RETURN build_timeline_result(v_moments, v_total_count, capped_limit, clamped_page);
 END;
 $function$;

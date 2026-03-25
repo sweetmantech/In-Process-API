@@ -708,6 +708,32 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      build_moment_json: {
+        Args: {
+          p_address: string;
+          p_chain_id: number;
+          p_collection: string;
+          p_created_at: string;
+          p_creator: string;
+          p_creator_hidden: boolean;
+          p_creator_username: string;
+          p_id: string;
+          p_metadata: Json;
+          p_protocol: string;
+          p_token_id: number;
+          p_uri: string;
+        };
+        Returns: Json;
+      };
+      build_timeline_result: {
+        Args: {
+          p_capped_limit: number;
+          p_clamped_page: number;
+          p_moments: Json;
+          p_total_count: number;
+        };
+        Returns: Json;
+      };
       get_artist_timeline: {
         Args: {
           p_artist: string;
