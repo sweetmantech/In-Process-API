@@ -783,7 +783,6 @@ export type Database = {
       };
       get_in_process_timeline: {
         Args: {
-          p_artist?: string;
           p_chainid?: number;
           p_channel?: string;
           p_hidden?: boolean;
