@@ -4,6 +4,9 @@ import extractTelegramFileIds from './extractTelegramFileIds';
 import processTelegramMedia from './processTelegramMedia';
 import isTooBigForTelegram, { TOO_BIG_MESSAGE } from './isTooBigForTelegram';
 import type { TelegramThreadState } from './telegramThreadState';
+import prepareMediaGroupAsset from './prepareMediaGroupAsset';
+import processMediaGroup from './processMediaGroup';
+import scheduleMediaGroupProcessing from './mediaGroupDebounce';
 
 const handleTelegramMedia = async (
   thread: Thread<TelegramThreadState>,
@@ -18,50 +21,65 @@ const handleTelegramMedia = async (
   }
 
   const { fileId, thumbFileId } = extractTelegramFileIds(message);
-
   const title = text || `untitled-${Date.now()}`;
-
   const raw = message.raw as { media_group_id?: string };
   const mediaGroupId = raw.media_group_id;
 
-  console.log('[handleTelegramMedia] mediaGroupId:', mediaGroupId);
-
-  if (mediaGroupId) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const stateAdapter = (thread as any)._stateAdapter;
-    const groupKey = `media_group:${mediaGroupId}`;
-    const isFirst = await stateAdapter.setIfNotExists(groupKey, true, 60_000);
-    if (!isFirst) {
-      console.log(
-        '[handleTelegramMedia] → skipping duplicate media group, already processing'
+  if (!mediaGroupId) {
+    await thread.post(
+      '⏳ In Process will post your moment. Please wait a few seconds...'
+    );
+    await thread.startTyping();
+    const typingInterval = setInterval(() => void thread.startTyping(), 4000);
+    try {
+      await processTelegramMedia(
+        thread,
+        attachment,
+        fileId,
+        title,
+        artistAddress,
+        thumbFileId
       );
-      return;
+    } finally {
+      clearInterval(typingInterval);
     }
-    console.log('[handleTelegramMedia] → posting ⏳ message for group');
-    await thread.post(
-      '⏳ In Process will post your moment. Please wait a few seconds...'
-    );
-  } else {
-    console.log('[handleTelegramMedia] → posting ⏳ message (no mediaGroupId)');
+    return;
+  }
+
+  // Media group: send ⏳ only on the first asset (atomic check)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const stateAdapter = (thread as any)._stateAdapter;
+  const isFirst = await stateAdapter.setIfNotExists(
+    `media_group:${mediaGroupId}`,
+    true,
+    60_000
+  );
+  if (isFirst) {
     await thread.post(
       '⏳ In Process will post your moment. Please wait a few seconds...'
     );
   }
 
-  await thread.startTyping();
-  const typingInterval = setInterval(() => void thread.startTyping(), 4000);
-  try {
-    await processTelegramMedia(
-      thread,
-      attachment,
-      fileId,
-      title,
-      artistAddress,
-      thumbFileId
-    );
-  } finally {
-    clearInterval(typingInterval);
-  }
+  // Upload to Arweave and store prepared input (all assets in parallel)
+  await prepareMediaGroupAsset(
+    thread,
+    attachment,
+    fileId,
+    title,
+    artistAddress,
+    mediaGroupId,
+    thumbFileId
+  );
+
+  // Debounce: last asset to arrive triggers processing
+  scheduleMediaGroupProcessing(mediaGroupId, () => {
+    void processMediaGroup(thread, mediaGroupId, artistAddress).catch((err) => {
+      console.error('[handleTelegramMedia] processMediaGroup error:', err);
+      void thread.post(
+        `❌ ${err instanceof Error ? err.message : 'Something went wrong.'}`
+      );
+    });
+  });
 };
 
 export default handleTelegramMedia;
