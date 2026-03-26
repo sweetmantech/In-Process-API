@@ -83,7 +83,12 @@ export function registerOnNewMention(bot: TelegramChatBot) {
           youtubeUrl,
           artistAddress
         );
-        await handleMomentSuccess(thread, contractAddress, tokenId);
+        await handleMomentSuccess(
+          thread,
+          contractAddress,
+          tokenId,
+          artistAddress
+        );
         return;
       }
 
