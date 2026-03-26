@@ -10,5 +10,4 @@ export interface PendingMediaState {
 
 export interface TelegramThreadState extends Record<string, unknown> {
   pendingMedia?: PendingMediaState | null;
-  waitingMessageSentForGroupId?: string | null;
 }
