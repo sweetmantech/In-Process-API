@@ -4,7 +4,7 @@ import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeli
 import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
 import getArchivoFont from '@/lib/og/getArchivoFont';
-import getImageMetadata from '@/lib/og/getImageMetadata';
+import getCollageImageData from '@/lib/og/getCollageImageData';
 import CollageGrid from '@/components/Og/CollageGrid';
 
 export const dynamic = 'force-dynamic';
@@ -52,16 +52,14 @@ export async function GET(req: NextRequest) {
   const imageResults = await Promise.allSettled(
     imageMoments.map((m) =>
       Promise.race([
-        getImageMetadata((m.metadata as any).image),
+        getCollageImageData((m.metadata as any).image),
         timeout(IMAGE_TIMEOUT_MS),
       ])
     )
   );
 
   const imageDataUrls = imageResults
-    .map((r) =>
-      r.status === 'fulfilled' ? (r.value?.previewUrl ?? null) : null
-    )
+    .map((r) => (r.status === 'fulfilled' ? r.value : null))
     .filter((url): url is string => url !== null);
 
   const { ImageResponse } = await import('next/og');
