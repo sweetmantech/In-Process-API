@@ -8,9 +8,11 @@ import getImageMetadata from '@/lib/og/getImageMetadata';
 import CollageGrid from '@/components/Og/CollageGrid';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const COLLAGE_SIZE = 500;
 const MAX_IMAGES = 15;
+const IMAGE_TIMEOUT_MS = 5000;
 
 export async function GET(req: NextRequest) {
   const queryParams = req.nextUrl.searchParams;
@@ -44,8 +46,16 @@ export async function GET(req: NextRequest) {
     .filter((m) => (m.metadata as any)?.image)
     .slice(0, MAX_IMAGES);
 
+  const timeout = (ms: number) =>
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms));
+
   const imageResults = await Promise.allSettled(
-    imageMoments.map((m) => getImageMetadata((m.metadata as any).image))
+    imageMoments.map((m) =>
+      Promise.race([
+        getImageMetadata((m.metadata as any).image),
+        timeout(IMAGE_TIMEOUT_MS),
+      ])
+    )
   );
 
   const imageDataUrls = imageResults
