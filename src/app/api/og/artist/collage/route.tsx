@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { Address } from 'viem';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
 import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
@@ -7,6 +6,7 @@ import { SITE_ORIGINAL_URL } from '@/lib/consts';
 import getArchivoFont from '@/lib/og/getArchivoFont';
 import getCollageImageData from '@/lib/og/getCollageImageData';
 import CollageGrid from '@/components/Og/CollageGrid';
+import artistCollageQuerySchema from '@/lib/schema/artistCollageQuerySchema';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -16,19 +16,16 @@ const MAX_IMAGES = 15;
 const IMAGE_TIMEOUT_MS = 5000;
 
 export async function GET(req: NextRequest) {
-  const queryParams = req.nextUrl.searchParams;
-  const artistAddress = queryParams.get('artistAddress');
-  const chainId = queryParams.get('chainId');
-
-  if (!artistAddress) {
+  const result = artistCollageQuerySchema.safeParse(
+    Object.fromEntries(req.nextUrl.searchParams)
+  );
+  if (!result.success) {
     return Response.json(
-      { message: 'artistAddress is required' },
+      { message: 'Invalid query params', errors: result.error.issues },
       { status: 400 }
     );
   }
-
-  const chainIdNum = chainId ? parseInt(chainId, 10) : undefined;
-  const normalizedAddress = artistAddress.toLowerCase() as Address;
+  const { artistAddress: normalizedAddress, chainId: chainIdNum } = result.data;
 
   const [{ data: timelineData }, { username }] = await Promise.all([
     getArtistTimeline({
@@ -43,19 +40,17 @@ export async function GET(req: NextRequest) {
   const moments = timelineData?.moments ?? [];
 
   const imageMoments = moments
-    .filter((m) => (m.metadata as any)?.image)
+    .filter((m) => m.metadata?.mime.startsWith('image/') && m.metadata?.uri)
     .slice(0, MAX_IMAGES);
 
-  const timeout = (ms: number) =>
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms));
-
   const imageResults = await Promise.allSettled(
-    imageMoments.map((m) =>
-      Promise.race([
-        getCollageImageData((m.metadata as any).image),
-        timeout(IMAGE_TIMEOUT_MS),
-      ])
-    )
+    imageMoments.map((m) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
+      return getCollageImageData(m.metadata!.uri, controller.signal).finally(
+        () => clearTimeout(timer)
+      );
+    })
   );
 
   const imageDataUrls = imageResults
