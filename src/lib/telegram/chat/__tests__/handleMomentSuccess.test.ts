@@ -67,7 +67,7 @@ describe('handleMomentSuccess', () => {
       files: [
         {
           data: COLLAGE_BUFFER,
-          filename: 'collage.png',
+          filename: `collage you've ever posted`,
           mimeType: 'image/png',
         },
       ],
