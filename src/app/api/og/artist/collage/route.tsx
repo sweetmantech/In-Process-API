@@ -78,6 +78,7 @@ export async function GET(req: NextRequest) {
       width: COLLAGE_SIZE,
       height: COLLAGE_SIZE,
       fonts: [{ name: 'Archivo', data: archivoFontData, weight: 400 }],
+      headers: { 'Cache-Control': 'no-store' },
     }
   );
 }
