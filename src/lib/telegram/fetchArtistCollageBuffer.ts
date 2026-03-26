@@ -6,7 +6,8 @@ const fetchArtistCollageBuffer = async (
     const res = await fetch(url);
     if (!res.ok) return null;
     return Buffer.from(await res.arrayBuffer());
-  } catch {
+  } catch (e) {
+    console.error('[fetchArtistCollageBuffer] failed to fetch collage:', e);
     return null;
   }
 };
