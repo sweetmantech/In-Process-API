@@ -23,7 +23,7 @@ const handleMomentSuccess = async (
       files: [
         {
           data: collage,
-          filename: `collage you've ever posted`,
+          filename: 'collage.png',
           mimeType: 'image/png',
         },
       ],
