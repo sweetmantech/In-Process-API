@@ -21,7 +21,11 @@ const handleMomentSuccess = async (
     await thread.post({
       markdown: '',
       files: [
-        { data: collage, filename: 'collage.png', mimeType: 'image/png' },
+        {
+          data: collage,
+          filename: `collage you've ever posted`,
+          mimeType: 'image/png',
+        },
       ],
     });
   }
