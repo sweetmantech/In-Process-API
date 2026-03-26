@@ -21,9 +21,22 @@ const handleTelegramMedia = async (
 
   const title = text || `untitled-${Date.now()}`;
 
-  await thread.post(
-    '⏳ In Process will post your moment. Please wait a few seconds...'
-  );
+  const raw = message.raw as { media_group_id?: string };
+  const mediaGroupId = raw.media_group_id;
+
+  if (mediaGroupId) {
+    const state = (await thread.state) as TelegramThreadState | undefined;
+    if (state?.waitingMessageSentForGroupId !== mediaGroupId) {
+      await thread.post(
+        '⏳ In Process will post your moment. Please wait a few seconds...'
+      );
+      await thread.setState({ waitingMessageSentForGroupId: mediaGroupId });
+    }
+  } else {
+    await thread.post(
+      '⏳ In Process will post your moment. Please wait a few seconds...'
+    );
+  }
 
   await thread.startTyping();
   const typingInterval = setInterval(() => void thread.startTyping(), 4000);

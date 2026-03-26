@@ -15,12 +15,18 @@ import isTooBigForTelegram from '../isTooBigForTelegram';
 
 const ARTIST_ADDRESS = '0xabc' as Address;
 
-const makeThread = () => ({
+const makeThread = (stateOverride?: Record<string, unknown>) => ({
   post: vi.fn().mockResolvedValue(undefined),
   startTyping: vi.fn().mockResolvedValue(undefined),
+  state: Promise.resolve(stateOverride ?? {}),
+  setState: vi.fn().mockResolvedValue(undefined),
 });
 
-const makeMessage = () => ({ raw: {}, attachments: [], text: '' });
+const makeMessage = (raw: Record<string, unknown> = {}) => ({
+  raw,
+  attachments: [],
+  text: '',
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -29,6 +35,7 @@ beforeEach(() => {
     thumbFileId: 'thumb-456',
   });
   vi.mocked(isTooBigForTelegram).mockReturnValue(false);
+  vi.mocked(processTelegramMedia).mockResolvedValue(undefined);
 });
 
 describe('handleTelegramMedia', () => {
@@ -50,56 +57,36 @@ describe('handleTelegramMedia', () => {
     });
   });
 
-  describe('when text is empty (no caption)', () => {
-    it('uses an untitled fallback title and calls processTelegramMedia', async () => {
+  describe('single attachment (no media_group_id)', () => {
+    it('always posts the in-progress message', async () => {
       const thread = makeThread();
-      const attachment = { type: 'image', size: 500 };
 
       await handleTelegramMedia(
         thread as never,
         makeMessage() as never,
-        attachment as never,
+        { type: 'image', size: 500 } as never,
         '',
         ARTIST_ADDRESS
       );
 
-      expect(processTelegramMedia).toHaveBeenCalledOnce();
+      expect(thread.post).toHaveBeenCalledWith(
+        '⏳ In Process will post your moment. Please wait a few seconds...'
+      );
+    });
+
+    it('uses an untitled fallback title when text is empty', async () => {
+      const thread = makeThread();
+
+      await handleTelegramMedia(
+        thread as never,
+        makeMessage() as never,
+        { type: 'image', size: 500 } as never,
+        '',
+        ARTIST_ADDRESS
+      );
+
       const [, , , title] = vi.mocked(processTelegramMedia).mock.calls[0];
       expect(title).toMatch(/^untitled-\d+$/);
-    });
-
-    it('posts the in-progress message', async () => {
-      const thread = makeThread();
-
-      await handleTelegramMedia(
-        thread as never,
-        makeMessage() as never,
-        { type: 'image', size: 500 } as never,
-        '',
-        ARTIST_ADDRESS
-      );
-
-      expect(thread.post).toHaveBeenCalledWith(
-        '⏳ In Process will post your moment. Please wait a few seconds...'
-      );
-    });
-  });
-
-  describe('when text is provided (caption included)', () => {
-    it('posts the in-progress message', async () => {
-      const thread = makeThread();
-
-      await handleTelegramMedia(
-        thread as never,
-        makeMessage() as never,
-        { type: 'image', size: 500 } as never,
-        'My Title',
-        ARTIST_ADDRESS
-      );
-
-      expect(thread.post).toHaveBeenCalledWith(
-        '⏳ In Process will post your moment. Please wait a few seconds...'
-      );
     });
 
     it('calls processTelegramMedia with the correct arguments', async () => {
@@ -122,6 +109,74 @@ describe('handleTelegramMedia', () => {
         ARTIST_ADDRESS,
         'thumb-456'
       );
+    });
+  });
+
+  describe('media group messages (media_group_id present)', () => {
+    it('posts the in-progress message and saves group id when first in group', async () => {
+      const thread = makeThread({});
+
+      await handleTelegramMedia(
+        thread as never,
+        makeMessage({ media_group_id: 'grp-1' }) as never,
+        { type: 'image', size: 500 } as never,
+        'My Title',
+        ARTIST_ADDRESS
+      );
+
+      expect(thread.post).toHaveBeenCalledWith(
+        '⏳ In Process will post your moment. Please wait a few seconds...'
+      );
+      expect(thread.setState).toHaveBeenCalledWith({
+        waitingMessageSentForGroupId: 'grp-1',
+      });
+    });
+
+    it('skips the in-progress message when already sent for this group', async () => {
+      const thread = makeThread({ waitingMessageSentForGroupId: 'grp-1' });
+
+      await handleTelegramMedia(
+        thread as never,
+        makeMessage({ media_group_id: 'grp-1' }) as never,
+        { type: 'image', size: 500 } as never,
+        'My Title',
+        ARTIST_ADDRESS
+      );
+
+      expect(thread.post).not.toHaveBeenCalledWith(
+        expect.stringContaining('⏳')
+      );
+      expect(thread.setState).not.toHaveBeenCalled();
+    });
+
+    it('posts the in-progress message for a different group id', async () => {
+      const thread = makeThread({ waitingMessageSentForGroupId: 'grp-1' });
+
+      await handleTelegramMedia(
+        thread as never,
+        makeMessage({ media_group_id: 'grp-2' }) as never,
+        { type: 'image', size: 500 } as never,
+        'My Title',
+        ARTIST_ADDRESS
+      );
+
+      expect(thread.post).toHaveBeenCalledWith(
+        '⏳ In Process will post your moment. Please wait a few seconds...'
+      );
+    });
+
+    it('still calls processTelegramMedia even when in-progress message is skipped', async () => {
+      const thread = makeThread({ waitingMessageSentForGroupId: 'grp-1' });
+
+      await handleTelegramMedia(
+        thread as never,
+        makeMessage({ media_group_id: 'grp-1' }) as never,
+        { type: 'image', size: 500 } as never,
+        'My Title',
+        ARTIST_ADDRESS
+      );
+
+      expect(processTelegramMedia).toHaveBeenCalledOnce();
     });
   });
 });
