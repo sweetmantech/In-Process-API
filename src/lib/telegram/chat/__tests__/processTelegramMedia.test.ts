@@ -18,7 +18,10 @@ const UPLOAD_RESULT = {
   mimeType: 'image/jpeg',
   mediaUri: 'ar://image',
 };
-const MOMENT_RESULT = { contractAddress: '0xContract', tokenId: '1' };
+const MOMENT_RESULT = {
+  contractAddress: '0xContract' as Address,
+  tokenId: '1',
+};
 
 const makeThread = () => ({ post: vi.fn(), startTyping: vi.fn() });
 const makeAttachment = () => ({ type: 'image', size: 500 });
@@ -108,7 +111,8 @@ describe('processTelegramMedia', () => {
     expect(handleMomentSuccess).toHaveBeenCalledWith(
       thread,
       MOMENT_RESULT.contractAddress.toString(),
-      MOMENT_RESULT.tokenId
+      MOMENT_RESULT.tokenId,
+      ARTIST_ADDRESS
     );
   });
 });
