@@ -10,7 +10,7 @@ import CollageGrid from '@/components/Og/CollageGrid';
 export const dynamic = 'force-dynamic';
 
 const COLLAGE_SIZE = 500;
-const MAX_IMAGES = 9;
+const MAX_IMAGES = 15;
 
 export async function GET(req: NextRequest) {
   const queryParams = req.nextUrl.searchParams;
