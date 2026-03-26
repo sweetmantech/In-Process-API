@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import handleMomentSuccess from '../handleMomentSuccess';
 
 vi.mock('@/lib/consts', () => ({
@@ -6,29 +6,86 @@ vi.mock('@/lib/consts', () => ({
   SITE_ORIGINAL_URL: 'https://inprocess.world',
 }));
 
+vi.mock('@/lib/telegram/fetchArtistCollageBuffer', () => ({
+  default: vi.fn(),
+}));
+
+import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
+
+const ARTIST_ADDRESS = '0xArtist';
+const COLLAGE_BUFFER = Buffer.from('fake-image');
+
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe('handleMomentSuccess', () => {
-  it('posts the success message with the collect URL', async () => {
+  it('posts the success message immediately', async () => {
+    vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(null);
     const thread = makeThread();
 
-    await handleMomentSuccess(thread as never, '0xContract', '42');
+    const promise = handleMomentSuccess(
+      thread as never,
+      '0xContract',
+      '42',
+      ARTIST_ADDRESS
+    );
+    await vi.runAllTimersAsync();
+    await promise;
 
-    expect(thread.post).toHaveBeenCalledWith(
+    expect(thread.post).toHaveBeenNthCalledWith(
+      1,
       '✅ Moment created! https://inprocess.world/collect/base:0xContract/42'
     );
   });
 
-  it('still posts the success message even when thread.post is called once', async () => {
+  it('posts the collage as a second message after the delay when available', async () => {
+    vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(COLLAGE_BUFFER);
     const thread = makeThread();
 
-    await handleMomentSuccess(thread as never, '0xContract', '42');
+    const promise = handleMomentSuccess(
+      thread as never,
+      '0xContract',
+      '42',
+      ARTIST_ADDRESS
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(thread.post).toHaveBeenCalledTimes(2);
+    expect(thread.post).toHaveBeenNthCalledWith(2, {
+      markdown: '',
+      files: [
+        {
+          data: COLLAGE_BUFFER,
+          filename: 'collage.png',
+          mimeType: 'image/png',
+        },
+      ],
+    });
+  });
+
+  it('posts only once when collage is unavailable', async () => {
+    vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(null);
+    const thread = makeThread();
+
+    const promise = handleMomentSuccess(
+      thread as never,
+      '0xContract',
+      '42',
+      ARTIST_ADDRESS
+    );
+    await vi.runAllTimersAsync();
+    await promise;
 
     expect(thread.post).toHaveBeenCalledOnce();
   });
