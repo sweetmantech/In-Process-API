@@ -19,20 +19,7 @@ const handleTelegramMedia = async (
 
   const { fileId, thumbFileId } = extractTelegramFileIds(message);
 
-  if (!text) {
-    await thread.subscribe();
-    await thread.setState({
-      pendingMedia: {
-        fileId,
-        thumbFileId,
-        attachmentType: attachment.type as 'image' | 'video',
-        attachmentSize: attachment.size,
-        artistAddress,
-      },
-    });
-    await thread.post('📝 Please send a title for your moment:');
-    return;
-  }
+  const title = text || `untitled-${Date.now()}`;
 
   await thread.post(
     '⏳ In Process will post your moment. Please wait a few seconds...'
@@ -45,7 +32,7 @@ const handleTelegramMedia = async (
       thread,
       attachment,
       fileId,
-      text,
+      title,
       artistAddress,
       thumbFileId
     );
