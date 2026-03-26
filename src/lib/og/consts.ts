@@ -19,20 +19,21 @@ export const COLLAGE_PHOTO_H = 165;
 
 // Pre-defined scattered positions: [x, y, rotateDeg]
 // x/y = top-left corner of each photo (before rotation)
+// Ordered periphery → center: older images go to edges, newer images to center
 export const COLLAGE_PHOTO_LAYOUTS: [number, number, number][] = [
-  [168, 122, -7],
-  [18, 27, 14],
-  [313, 13, -9],
-  [-12, 202, 6],
-  [303, 178, -13],
-  [88, 298, 8],
-  [283, 303, -5],
-  [183, 253, 11],
-  [43, 153, -16],
-  [230, 55, 5],
-  [-30, 330, 10],
-  [340, 270, 17],
-  [140, 360, -11],
-  [250, 380, -3],
-  [370, 110, -18],
+  [18, 27, 14], // far top-left
+  [313, 13, -9], // far top-right
+  [-12, 202, 6], // far left
+  [-30, 330, 10], // far bottom-left
+  [370, 110, -18], // far right-top
+  [340, 270, 17], // far right
+  [140, 360, -11], // bottom
+  [250, 380, -3], // bottom-center
+  [230, 55, 5], // top-center
+  [88, 298, 8], // bottom-left
+  [283, 303, -5], // bottom-right
+  [43, 153, -16], // left-center
+  [303, 178, -13], // right-center
+  [183, 253, 11], // near-center
+  [168, 122, -7], // center (newest image lands here, on top)
 ];
