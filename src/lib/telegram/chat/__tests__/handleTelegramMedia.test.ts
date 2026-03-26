@@ -16,8 +16,6 @@ import isTooBigForTelegram from '../isTooBigForTelegram';
 const ARTIST_ADDRESS = '0xabc' as Address;
 
 const makeThread = () => ({
-  subscribe: vi.fn().mockResolvedValue(undefined),
-  setState: vi.fn().mockResolvedValue(undefined),
   post: vi.fn().mockResolvedValue(undefined),
   startTyping: vi.fn().mockResolvedValue(undefined),
 });
@@ -48,27 +46,12 @@ describe('handleTelegramMedia', () => {
       );
 
       expect(thread.post).toHaveBeenCalledWith('⚠️ Too big');
-      expect(thread.subscribe).not.toHaveBeenCalled();
       expect(processTelegramMedia).not.toHaveBeenCalled();
     });
   });
 
   describe('when text is empty (no caption)', () => {
-    it('subscribes the thread', async () => {
-      const thread = makeThread();
-
-      await handleTelegramMedia(
-        thread as never,
-        makeMessage() as never,
-        { type: 'image', size: 500 } as never,
-        '',
-        ARTIST_ADDRESS
-      );
-
-      expect(thread.subscribe).toHaveBeenCalledOnce();
-    });
-
-    it('sets pendingMedia state with extracted file ids and attachment info', async () => {
+    it('uses an untitled fallback title and calls processTelegramMedia', async () => {
       const thread = makeThread();
       const attachment = { type: 'image', size: 500 };
 
@@ -80,18 +63,12 @@ describe('handleTelegramMedia', () => {
         ARTIST_ADDRESS
       );
 
-      expect(thread.setState).toHaveBeenCalledWith({
-        pendingMedia: {
-          fileId: 'file-123',
-          thumbFileId: 'thumb-456',
-          attachmentType: 'image',
-          attachmentSize: 500,
-          artistAddress: ARTIST_ADDRESS,
-        },
-      });
+      expect(processTelegramMedia).toHaveBeenCalledOnce();
+      const [, , , title] = vi.mocked(processTelegramMedia).mock.calls[0];
+      expect(title).toMatch(/^untitled-\d+$/);
     });
 
-    it('prompts the user for a title', async () => {
+    it('posts the in-progress message', async () => {
       const thread = makeThread();
 
       await handleTelegramMedia(
@@ -103,22 +80,8 @@ describe('handleTelegramMedia', () => {
       );
 
       expect(thread.post).toHaveBeenCalledWith(
-        '📝 Please send a title for your moment:'
+        '⏳ In Process will post your moment. Please wait a few seconds...'
       );
-    });
-
-    it('does not call processTelegramMedia', async () => {
-      const thread = makeThread();
-
-      await handleTelegramMedia(
-        thread as never,
-        makeMessage() as never,
-        { type: 'image', size: 500 } as never,
-        '',
-        ARTIST_ADDRESS
-      );
-
-      expect(processTelegramMedia).not.toHaveBeenCalled();
     });
   });
 
@@ -159,21 +122,6 @@ describe('handleTelegramMedia', () => {
         ARTIST_ADDRESS,
         'thumb-456'
       );
-    });
-
-    it('does not subscribe or set pending state', async () => {
-      const thread = makeThread();
-
-      await handleTelegramMedia(
-        thread as never,
-        makeMessage() as never,
-        { type: 'video', size: 100 } as never,
-        'My Title',
-        ARTIST_ADDRESS
-      );
-
-      expect(thread.subscribe).not.toHaveBeenCalled();
-      expect(thread.setState).not.toHaveBeenCalled();
     });
   });
 });
