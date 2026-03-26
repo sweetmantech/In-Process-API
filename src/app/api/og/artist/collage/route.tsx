@@ -36,7 +36,6 @@ export async function GET(req: NextRequest) {
       limit: 100,
       page: 1,
       chainId: chainIdNum,
-      mime: 'image/%',
     }),
     getArtistProfile(normalizedAddress),
   ]);
