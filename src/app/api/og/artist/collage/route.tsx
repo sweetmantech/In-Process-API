@@ -3,6 +3,7 @@ import { Address } from 'viem';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
 import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
+import { SITE_ORIGINAL_URL } from '@/lib/consts';
 import getArchivoFont from '@/lib/og/getArchivoFont';
 import getCollageImageData from '@/lib/og/getCollageImageData';
 import CollageGrid from '@/components/Og/CollageGrid';
@@ -70,6 +71,7 @@ export async function GET(req: NextRequest) {
     <CollageGrid
       imageDataUrls={imageDataUrls}
       artistName={artistName}
+      backgroundUrl={`${SITE_ORIGINAL_URL}/bg-gray.png`}
       size={COLLAGE_SIZE}
     />,
     {

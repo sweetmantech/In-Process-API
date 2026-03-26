@@ -1,35 +1,28 @@
-const PHOTO_W = 175;
-const PHOTO_H = 165;
-
-// Pre-defined scattered positions: [x, y, rotateDeg]
-// x/y = top-left corner of each photo (before rotation)
-const PHOTO_LAYOUTS: [number, number, number][] = [
-  [168, 122, -7],
-  [18, 27, 14],
-  [313, 13, -9],
-  [-12, 202, 6],
-  [303, 178, -13],
-  [88, 298, 8],
-  [283, 303, -5],
-  [183, 253, 11],
-  [43, 153, -16],
-  [230, 55, 5],
-  [-30, 330, 10],
-  [340, 270, 17],
-  [140, 360, -11],
-  [250, 380, -3],
-  [370, 110, -18],
-];
+import {
+  COLLAGE_PHOTO_H,
+  COLLAGE_PHOTO_LAYOUTS,
+  COLLAGE_PHOTO_W,
+} from '@/lib/og/consts';
 
 const CollageGrid = ({
   imageDataUrls,
   artistName,
+  backgroundUrl,
   size = 500,
 }: {
   imageDataUrls: string[];
   artistName: string;
+  backgroundUrl?: string;
   size?: number;
 }) => {
+  const bgStyle = backgroundUrl
+    ? {
+        backgroundImage: `url('${backgroundUrl}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : { backgroundColor: '#1a1a1a' };
+
   if (imageDataUrls.length === 0) {
     return (
       <div
@@ -39,10 +32,10 @@ const CollageGrid = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#1a1a1a',
           fontFamily: 'Archivo',
           fontSize: 24,
-          color: '#888',
+          color: '#605F5C',
+          ...bgStyle,
         }}
       >
         No images
@@ -57,12 +50,13 @@ const CollageGrid = ({
         height: size,
         display: 'flex',
         position: 'relative',
-        backgroundColor: '#1a1a1a',
         overflow: 'hidden',
+        ...bgStyle,
       }}
     >
       {imageDataUrls.map((url, i) => {
-        const [x, y, rotate] = PHOTO_LAYOUTS[i % PHOTO_LAYOUTS.length];
+        const [x, y, rotate] =
+          COLLAGE_PHOTO_LAYOUTS[i % COLLAGE_PHOTO_LAYOUTS.length];
         return (
           <div
             key={i}
@@ -70,8 +64,8 @@ const CollageGrid = ({
               position: 'absolute',
               left: x,
               top: y,
-              width: PHOTO_W,
-              height: PHOTO_H,
+              width: COLLAGE_PHOTO_W,
+              height: COLLAGE_PHOTO_H,
               padding: 8,
               backgroundColor: '#ffffff',
               boxShadow: '2px 4px 12px rgba(0,0,0,0.6)',
@@ -83,8 +77,8 @@ const CollageGrid = ({
             <img
               src={url}
               style={{
-                width: PHOTO_W - 16,
-                height: PHOTO_H - 16,
+                width: COLLAGE_PHOTO_W - 16,
+                height: COLLAGE_PHOTO_H - 16,
                 objectFit: 'cover',
               }}
             />
