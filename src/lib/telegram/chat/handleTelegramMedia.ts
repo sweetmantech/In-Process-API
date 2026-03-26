@@ -24,15 +24,33 @@ const handleTelegramMedia = async (
   const raw = message.raw as { media_group_id?: string };
   const mediaGroupId = raw.media_group_id;
 
+  console.log('[handleTelegramMedia] mediaGroupId:', mediaGroupId);
+
   if (mediaGroupId) {
     const state = (await thread.state) as TelegramThreadState | undefined;
+    console.log(
+      '[handleTelegramMedia] current state:',
+      JSON.stringify(state, null, 2)
+    );
+    console.log(
+      '[handleTelegramMedia] state.waitingMessageSentForGroupId:',
+      state?.waitingMessageSentForGroupId,
+      '=== mediaGroupId?',
+      state?.waitingMessageSentForGroupId === mediaGroupId
+    );
     if (state?.waitingMessageSentForGroupId !== mediaGroupId) {
+      console.log('[handleTelegramMedia] → posting ⏳ message for group');
       await thread.post(
         '⏳ In Process will post your moment. Please wait a few seconds...'
       );
       await thread.setState({ waitingMessageSentForGroupId: mediaGroupId });
+    } else {
+      console.log(
+        '[handleTelegramMedia] → skipping ⏳ message, already sent for this group'
+      );
     }
   } else {
+    console.log('[handleTelegramMedia] → posting ⏳ message (no mediaGroupId)');
     await thread.post(
       '⏳ In Process will post your moment. Please wait a few seconds...'
     );

@@ -59,10 +59,22 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       }
 
       const attachment = message.attachments?.[0];
+      console.log(
+        '[onNewMention] message.attachments:',
+        JSON.stringify(message.attachments, null, 2)
+      );
+      console.log(
+        '[onNewMention] message.raw:',
+        JSON.stringify(message.raw, null, 2)
+      );
       if (
         attachment &&
         (attachment.type === 'image' || attachment.type === 'video')
       ) {
+        console.log(
+          '[onNewMention] → handleTelegramMedia called, attachment.type:',
+          attachment.type
+        );
         await handleTelegramMedia(
           thread,
           message,
