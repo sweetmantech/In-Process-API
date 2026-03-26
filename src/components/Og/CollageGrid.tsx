@@ -1,3 +1,20 @@
+const PHOTO_W = 175;
+const PHOTO_H = 165;
+
+// Pre-defined scattered positions: [x, y, rotateDeg]
+// x/y = top-left corner of each photo (before rotation)
+const PHOTO_LAYOUTS: [number, number, number][] = [
+  [168, 122, -7],
+  [18, 27, 14],
+  [313, 13, -9],
+  [-12, 202, 6],
+  [303, 178, -13],
+  [88, 298, 8],
+  [283, 303, -5],
+  [183, 253, 11],
+  [43, 153, -16],
+];
+
 const CollageGrid = ({
   imageDataUrls,
   artistName,
@@ -7,9 +24,7 @@ const CollageGrid = ({
   artistName: string;
   size?: number;
 }) => {
-  const count = imageDataUrls.length;
-
-  if (count === 0) {
+  if (imageDataUrls.length === 0) {
     return (
       <div
         style={{
@@ -18,10 +33,10 @@ const CollageGrid = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#E0DDD8',
+          backgroundColor: '#1a1a1a',
           fontFamily: 'Archivo',
           fontSize: 24,
-          color: '#605F5C',
+          color: '#888',
         }}
       >
         No images
@@ -29,52 +44,47 @@ const CollageGrid = ({
     );
   }
 
-  const cols = count <= 4 ? 2 : 3;
-  const cellSize = Math.floor(size / cols);
-
   return (
     <div
       style={{
         width: size,
         height: size,
         display: 'flex',
-        flexDirection: 'column',
         position: 'relative',
-        backgroundColor: '#E0DDD8',
+        backgroundColor: '#1a1a1a',
+        overflow: 'hidden',
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          width: size,
-          height: size,
-        }}
-      >
-        {imageDataUrls.map((url, i) => (
+      {imageDataUrls.map((url, i) => {
+        const [x, y, rotate] = PHOTO_LAYOUTS[i % PHOTO_LAYOUTS.length];
+        return (
           <div
             key={i}
             style={{
-              width: cellSize,
-              height: cellSize,
-              overflow: 'hidden',
+              position: 'absolute',
+              left: x,
+              top: y,
+              width: PHOTO_W,
+              height: PHOTO_H,
+              padding: 8,
+              backgroundColor: '#ffffff',
+              boxShadow: '2px 4px 12px rgba(0,0,0,0.6)',
+              transform: `rotate(${rotate}deg)`,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
             }}
           >
             {/* eslint-disable-next-line */}
             <img
               src={url}
               style={{
-                width: cellSize,
-                height: cellSize,
+                width: PHOTO_W - 16,
+                height: PHOTO_H - 16,
                 objectFit: 'cover',
               }}
             />
           </div>
-        ))}
-      </div>
+        );
+      })}
       <div
         style={{
           position: 'absolute',
@@ -82,7 +92,7 @@ const CollageGrid = ({
           left: 0,
           right: 0,
           padding: '8px 12px',
-          backgroundColor: 'rgba(0,0,0,0.45)',
+          backgroundColor: 'rgba(0,0,0,0.6)',
           display: 'flex',
           alignItems: 'center',
         }}
