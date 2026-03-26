@@ -1,3 +1,4 @@
+import { after } from 'next/server';
 import type { Address } from 'viem';
 import type { Thread, Message, Attachment } from 'chat';
 import extractTelegramFileIds from './extractTelegramFileIds';
@@ -6,7 +7,8 @@ import isTooBigForTelegram, { TOO_BIG_MESSAGE } from './isTooBigForTelegram';
 import type { TelegramThreadState } from './telegramThreadState';
 import prepareMediaGroupAsset from './prepareMediaGroupAsset';
 import processMediaGroup from './processMediaGroup';
-import scheduleMediaGroupProcessing from './mediaGroupDebounce';
+
+const DEBOUNCE_DELAY_MS = 2_000;
 
 const handleTelegramMedia = async (
   thread: Thread<TelegramThreadState>,
@@ -60,7 +62,7 @@ const handleTelegramMedia = async (
     );
   }
 
-  // Upload to Arweave and store prepared input (all assets in parallel)
+  // Upload to Arweave and store prepared input
   await prepareMediaGroupAsset(
     thread,
     attachment,
@@ -71,14 +73,27 @@ const handleTelegramMedia = async (
     thumbFileId
   );
 
-  // Debounce: last asset to arrive triggers processing
-  scheduleMediaGroupProcessing(mediaGroupId, () => {
-    void processMediaGroup(thread, mediaGroupId, artistAddress).catch((err) => {
-      console.error('[handleTelegramMedia] processMediaGroup error:', err);
-      void thread.post(
-        `❌ ${err instanceof Error ? err.message : 'Something went wrong.'}`
-      );
-    });
+  // Register with after() so the serverless function stays alive.
+  // Each webhook waits DEBOUNCE_DELAY_MS, then the first to acquire the
+  // process lock processes all collected assets.
+  after(async () => {
+    await new Promise<void>((resolve) =>
+      setTimeout(resolve, DEBOUNCE_DELAY_MS)
+    );
+    const acquired = await stateAdapter.setIfNotExists(
+      `media_group_processed:${mediaGroupId}`,
+      true,
+      60_000
+    );
+    if (!acquired) return;
+    await processMediaGroup(thread, mediaGroupId, artistAddress).catch(
+      (err) => {
+        console.error('[handleTelegramMedia] processMediaGroup error:', err);
+        void thread.post(
+          `❌ ${err instanceof Error ? err.message : 'Something went wrong.'}`
+        );
+      }
+    );
   });
 };
 
