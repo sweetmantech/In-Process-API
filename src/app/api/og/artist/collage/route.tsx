@@ -40,14 +40,14 @@ export async function GET(req: NextRequest) {
   const moments = timelineData?.moments ?? [];
 
   const imageMoments = moments
-    .filter((m) => m.metadata?.mime.startsWith('image/') && m.metadata?.uri)
+    .filter((m) => m.metadata?.image)
     .slice(0, MAX_IMAGES);
 
   const imageResults = await Promise.allSettled(
     imageMoments.map((m) => {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
-      return getCollageImageData(m.metadata!.uri, controller.signal).finally(
+      return getCollageImageData(m.metadata!.image, controller.signal).finally(
         () => clearTimeout(timer)
       );
     })
