@@ -16,6 +16,7 @@ export function createTelegramChatBot() {
     userName: process.env.TELEGRAM_CHAT_BOT_USERNAME!,
     adapters: { telegram: telegramAdapter },
     state: createMemoryState(),
+    onLockConflict: 'force',
   });
 
   return { bot, telegramAdapter };
