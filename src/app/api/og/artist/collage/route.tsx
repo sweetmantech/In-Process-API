@@ -61,7 +61,8 @@ export async function GET(req: NextRequest) {
 
   const imageDataUrls = imageResults
     .map((r) => (r.status === 'fulfilled' ? r.value : null))
-    .filter((url): url is string => url !== null);
+    .filter((url): url is string => url !== null)
+    .reverse();
 
   const { ImageResponse } = await import('next/og');
   const archivoFontData = await getArchivoFont();
