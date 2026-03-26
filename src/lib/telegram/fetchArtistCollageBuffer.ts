@@ -1,8 +1,10 @@
+import { CHAIN_ID } from '../consts';
+
 const fetchArtistCollageBuffer = async (
   artistAddress: string
 ): Promise<Buffer | null> => {
   try {
-    const url = `https://in-process-api.vercel.app/api/og/artist/collage?artistAddress=${encodeURIComponent(artistAddress)}`;
+    const url = `https://in-process-api.vercel.app/api/og/artist/collage?artistAddress=${encodeURIComponent(artistAddress)}&chainId=${CHAIN_ID}`;
     const res = await fetch(url);
     if (!res.ok) return null;
     return Buffer.from(await res.arrayBuffer());
