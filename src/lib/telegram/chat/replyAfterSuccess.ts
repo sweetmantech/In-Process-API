@@ -4,7 +4,7 @@ import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
 
 const COLLAGE_DELAY_MS = 7_000;
 
-const handleMomentSuccess = async (
+const replyAfterSuccess = async (
   thread: Thread,
   contractAddress: string,
   tokenId: string,
@@ -31,4 +31,4 @@ const handleMomentSuccess = async (
   }
 };
 
-export default handleMomentSuccess;
+export default replyAfterSuccess;

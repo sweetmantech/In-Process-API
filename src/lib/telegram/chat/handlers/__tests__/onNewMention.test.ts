@@ -6,15 +6,15 @@ vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
-vi.mock('../../handleTelegramMedia', () => ({ default: vi.fn() }));
+vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
 vi.mock('../../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
-vi.mock('../../handleMomentSuccess', () => ({ default: vi.fn() }));
+vi.mock('../../replyAfterSuccess', () => ({ default: vi.fn() }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { logMessage } from '@/lib/messages/logMessage';
-import handleTelegramMedia from '../../handleTelegramMedia';
+import processMediaThread from '../../processMediaThread';
 import createMomentFromYoutubeLink from '../../createMomentFromYoutubeLink';
-import handleMomentSuccess from '../../handleMomentSuccess';
+import replyAfterSuccess from '../../replyAfterSuccess';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
 const ARTIST = { address: ARTIST_ADDRESS, username: 'alice' };
@@ -71,7 +71,7 @@ beforeEach(() => {
   vi.mocked(createMomentFromYoutubeLink).mockResolvedValue(
     MOMENT_RESULT as never
   );
-  vi.mocked(handleMomentSuccess).mockResolvedValue(undefined);
+  vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
 });
 
 describe('registerOnNewMention', () => {
@@ -132,10 +132,10 @@ describe('registerOnNewMention', () => {
       );
     });
 
-    it('does not call handleTelegramMedia', async () => {
+    it('does not call processMediaThread', async () => {
       const { invoke } = setup();
       await invoke(makeThread(), makeMessage({ text: 'hello' }));
-      expect(handleTelegramMedia).not.toHaveBeenCalled();
+      expect(processMediaThread).not.toHaveBeenCalled();
     });
   });
 
@@ -164,17 +164,17 @@ describe('registerOnNewMention', () => {
       );
     });
 
-    it('does not call handleTelegramMedia', async () => {
+    it('does not call processMediaThread', async () => {
       const { invoke } = setup();
 
       await invoke(makeThread(), makeMessage({ text: '/start' }));
 
-      expect(handleTelegramMedia).not.toHaveBeenCalled();
+      expect(processMediaThread).not.toHaveBeenCalled();
     });
   });
 
   describe('when a linked artist sends an image', () => {
-    it('delegates to handleTelegramMedia', async () => {
+    it('delegates to processMediaThread', async () => {
       const { invoke } = setup();
       const thread = makeThread();
       const attachment = { type: 'image', size: 500 };
@@ -182,7 +182,7 @@ describe('registerOnNewMention', () => {
 
       await invoke(thread, message);
 
-      expect(handleTelegramMedia).toHaveBeenCalledWith(
+      expect(processMediaThread).toHaveBeenCalledWith(
         thread,
         message,
         attachment,
@@ -193,7 +193,7 @@ describe('registerOnNewMention', () => {
   });
 
   describe('when a linked artist sends a video', () => {
-    it('delegates to handleTelegramMedia', async () => {
+    it('delegates to processMediaThread', async () => {
       const { invoke } = setup();
       const thread = makeThread();
       const attachment = { type: 'video', size: 2000 };
@@ -201,7 +201,7 @@ describe('registerOnNewMention', () => {
 
       await invoke(thread, message);
 
-      expect(handleTelegramMedia).toHaveBeenCalledWith(
+      expect(processMediaThread).toHaveBeenCalledWith(
         thread,
         message,
         attachment,
@@ -221,7 +221,7 @@ describe('registerOnNewMention', () => {
       expect(thread.post).toHaveBeenCalledWith(
         'Please send a photo or video with a caption.'
       );
-      expect(handleTelegramMedia).not.toHaveBeenCalled();
+      expect(processMediaThread).not.toHaveBeenCalled();
     });
   });
 
@@ -240,13 +240,13 @@ describe('registerOnNewMention', () => {
       );
     });
 
-    it('calls handleMomentSuccess with the created moment details', async () => {
+    it('calls replyAfterSuccess with the created moment details', async () => {
       const { invoke } = setup();
       const thread = makeThread();
 
       await invoke(thread, makeMessage({ text: YOUTUBE_URL }));
 
-      expect(handleMomentSuccess).toHaveBeenCalledWith(
+      expect(replyAfterSuccess).toHaveBeenCalledWith(
         thread,
         MOMENT_RESULT.contractAddress,
         MOMENT_RESULT.tokenId,
@@ -265,12 +265,12 @@ describe('registerOnNewMention', () => {
       );
     });
 
-    it('does not call handleTelegramMedia', async () => {
+    it('does not call processMediaThread', async () => {
       const { invoke } = setup();
 
       await invoke(makeThread(), makeMessage({ text: YOUTUBE_URL }));
 
-      expect(handleTelegramMedia).not.toHaveBeenCalled();
+      expect(processMediaThread).not.toHaveBeenCalled();
     });
   });
 

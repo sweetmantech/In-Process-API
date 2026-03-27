@@ -22,7 +22,7 @@ export function createTelegramChatBot() {
   return { bot, telegramAdapter };
 }
 
-export type TelegramChatBot = ReturnType<typeof createTelegramChatBot>['bot'];
+export type { TelegramChatBot } from '@/types/telegram';
 
 const { bot: telegramChatBot, telegramAdapter } = createTelegramChatBot();
 

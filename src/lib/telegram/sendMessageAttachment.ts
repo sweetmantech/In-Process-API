@@ -1,15 +1,7 @@
 import { sendPhoto } from './sendPhoto';
+import type { MessageAttachment } from '@/types/telegram';
 
-export interface MessageAttachment {
-  buffer: Buffer;
-  caption: string;
-}
-
-export interface RawMediaFile {
-  arrayBuffer(): Promise<ArrayBuffer>;
-  name: string;
-  type: string;
-}
+export type { MessageAttachment, RawMediaFile } from '@/types/telegram';
 
 export const sendMessageAttachment = async (
   attachment: MessageAttachment

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handleMomentSuccess from '../handleMomentSuccess';
+import replyAfterSuccess from '../replyAfterSuccess';
 
 vi.mock('@/lib/consts', () => ({
   IS_TESTNET: false,
@@ -28,12 +28,12 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('handleMomentSuccess', () => {
+describe('replyAfterSuccess', () => {
   it('posts the success message immediately', async () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(null);
     const thread = makeThread();
 
-    const promise = handleMomentSuccess(
+    const promise = replyAfterSuccess(
       thread as never,
       '0xContract',
       '42',
@@ -52,7 +52,7 @@ describe('handleMomentSuccess', () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(COLLAGE_BUFFER);
     const thread = makeThread();
 
-    const promise = handleMomentSuccess(
+    const promise = replyAfterSuccess(
       thread as never,
       '0xContract',
       '42',
@@ -78,7 +78,7 @@ describe('handleMomentSuccess', () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(null);
     const thread = makeThread();
 
-    const promise = handleMomentSuccess(
+    const promise = replyAfterSuccess(
       thread as never,
       '0xContract',
       '42',

@@ -2,7 +2,7 @@ import type { Attachment } from 'chat';
 import uploadPhotoAttachment from './uploadPhotoAttachment';
 import uploadVideoAttachment from './uploadVideoAttachment';
 
-const uploadTelegramAttachment = async (
+const processAttachmentUpload = async (
   attachment: Attachment,
   fileId: string,
   name: string,
@@ -14,4 +14,4 @@ const uploadTelegramAttachment = async (
   return uploadVideoAttachment(attachment, fileId, name, thumbFileId);
 };
 
-export default uploadTelegramAttachment;
+export default processAttachmentUpload;

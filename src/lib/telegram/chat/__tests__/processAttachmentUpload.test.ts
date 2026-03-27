@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import uploadTelegramAttachment from '../uploadTelegramAttachment';
+import processAttachmentUpload from '../processAttachmentUpload';
 
 vi.mock('../uploadPhotoAttachment', () => ({ default: vi.fn() }));
 vi.mock('../uploadVideoAttachment', () => ({ default: vi.fn() }));
@@ -24,11 +24,11 @@ beforeEach(() => {
   vi.mocked(uploadVideoAttachment).mockResolvedValue(VIDEO_RESULT);
 });
 
-describe('uploadTelegramAttachment', () => {
+describe('processAttachmentUpload', () => {
   it('calls uploadPhotoAttachment for image type', async () => {
     const attachment = { type: 'image', size: 500 };
 
-    const result = await uploadTelegramAttachment(
+    const result = await processAttachmentUpload(
       attachment as never,
       'file-id',
       'My Photo'
@@ -46,7 +46,7 @@ describe('uploadTelegramAttachment', () => {
   it('calls uploadVideoAttachment for video type', async () => {
     const attachment = { type: 'video', size: 1000 };
 
-    const result = await uploadTelegramAttachment(
+    const result = await processAttachmentUpload(
       attachment as never,
       'file-id',
       'My Video',
@@ -66,7 +66,7 @@ describe('uploadTelegramAttachment', () => {
   it('passes thumbFileId through to uploadVideoAttachment', async () => {
     const attachment = { type: 'video', size: 1000 };
 
-    await uploadTelegramAttachment(
+    await processAttachmentUpload(
       attachment as never,
       'file-id',
       'My Video',
@@ -84,7 +84,7 @@ describe('uploadTelegramAttachment', () => {
   it('calls uploadVideoAttachment for non-image types', async () => {
     const attachment = { type: 'document', size: 200 };
 
-    await uploadTelegramAttachment(attachment as never, 'file-id', 'Doc');
+    await processAttachmentUpload(attachment as never, 'file-id', 'Doc');
 
     expect(uploadVideoAttachment).toHaveBeenCalled();
     expect(uploadPhotoAttachment).not.toHaveBeenCalled();

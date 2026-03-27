@@ -4,9 +4,9 @@ import type { TelegramChatBot } from '../bot';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { logMessage } from '@/lib/messages/logMessage';
-import handleTelegramMedia from '../handleTelegramMedia';
+import processMediaThread from '../processMediaThread';
 import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
-import handleMomentSuccess from '../handleMomentSuccess';
+import replyAfterSuccess from '../replyAfterSuccess';
 import youtubeParser from '@/lib/link/youtubeParser';
 
 const YOUTUBE_URL_REGEX =
@@ -59,23 +59,11 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       }
 
       const attachment = message.attachments?.[0];
-      console.log(
-        '[onNewMention] message.attachments:',
-        JSON.stringify(message.attachments, null, 2)
-      );
-      console.log(
-        '[onNewMention] message.raw:',
-        JSON.stringify(message.raw, null, 2)
-      );
       if (
         attachment &&
         (attachment.type === 'image' || attachment.type === 'video')
       ) {
-        console.log(
-          '[onNewMention] → handleTelegramMedia called, attachment.type:',
-          attachment.type
-        );
-        await handleTelegramMedia(
+        await processMediaThread(
           thread,
           message,
           attachment,
@@ -95,7 +83,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
           youtubeUrl,
           artistAddress
         );
-        await handleMomentSuccess(
+        await replyAfterSuccess(
           thread,
           contractAddress,
           tokenId,

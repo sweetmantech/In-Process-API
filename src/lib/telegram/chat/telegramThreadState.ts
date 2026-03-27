@@ -1,1 +1,1 @@
-export interface TelegramThreadState extends Record<string, unknown> {}
+export type { TelegramThreadState } from '@/types/telegram';
