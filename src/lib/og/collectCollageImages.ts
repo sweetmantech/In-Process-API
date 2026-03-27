@@ -19,9 +19,10 @@ const collectCollageImages = async (
   const collected: { index: number; url: string }[] = [];
   const activeControllers = new Set<AbortController>();
   let nextIndex = 0;
+  let stop = false;
 
   const worker = async () => {
-    while (collected.length < maxImages) {
+    while (!stop && collected.length < maxImages) {
       const i = nextIndex++;
       if (i >= imageUrls.length) break;
 
@@ -30,9 +31,14 @@ const collectCollageImages = async (
       const timer = setTimeout(() => controller.abort(), timeoutMs);
 
       try {
+        if (stop) break;
         const url = await getCollageImageData(imageUrls[i], controller.signal);
         if (url !== null && collected.length < maxImages) {
           collected.push({ index: i, url });
+          if (collected.length >= maxImages) {
+            stop = true;
+            activeControllers.forEach((c) => c.abort());
+          }
         }
       } catch {
         // ignore fetch errors
