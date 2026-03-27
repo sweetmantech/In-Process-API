@@ -1,18 +1,27 @@
-const COLS = 5;
-const ROWS = 6;
+const COLS = 7;
+const SPROCKET_AREA_H = 26;
+const SPROCKET_HOLE_W = 28;
+const SPROCKET_HOLE_H = 18;
+const IMAGE_BORDER = 2;
+/** neutral-800 — matches FilmPlaceholder strip colour */
+const FILM_COLOR = '#262626';
+/** neutral-600/40 — matches FilmPlaceholder sprocket hole colour */
+const HOLE_COLOR = 'rgba(82, 82, 82, 0.4)';
 
 const CollageGrid = ({
   imageDataUrls,
   artistName,
   totalMoments,
   backgroundUrl,
-  size = 500,
+  width = 700,
+  height = 350,
 }: {
   imageDataUrls: string[];
   artistName: string;
   totalMoments?: number;
   backgroundUrl?: string;
-  size?: number;
+  width?: number;
+  height?: number;
 }) => {
   const bgStyle = backgroundUrl
     ? {
@@ -20,14 +29,14 @@ const CollageGrid = ({
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }
-    : { backgroundColor: '#1a1a1a' };
+    : { backgroundColor: '#e8e8e4' };
 
   if (imageDataUrls.length === 0) {
     return (
       <div
         style={{
-          width: size,
-          height: size,
+          width,
+          height,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -42,15 +51,55 @@ const CollageGrid = ({
     );
   }
 
-  const cellW = Math.floor(size / COLS);
-  const cellH = Math.floor(size / ROWS);
+  const cellW = Math.floor(width / COLS);
+  const cellH = cellW;
+  const stripW = cellW * COLS;
+  // Image inside the bordered cell
+  const imgW = cellW - IMAGE_BORDER * 2;
+  const imgH = cellH - IMAGE_BORDER * 2;
+
+  const sprocketRow = (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        height: SPROCKET_AREA_H,
+        alignItems: 'center',
+        backgroundColor: FILM_COLOR,
+      }}
+    >
+      {Array.from({ length: COLS }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            width: cellW,
+            height: SPROCKET_AREA_H,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: SPROCKET_HOLE_W,
+              height: SPROCKET_HOLE_H,
+              backgroundColor: HOLE_COLOR,
+              borderRadius: 4,
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div
       style={{
-        width: size,
-        height: size,
+        width,
+        height,
         display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
         ...bgStyle,
@@ -59,31 +108,47 @@ const CollageGrid = ({
       <div
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
-          width: size,
-          height: size,
+          flexDirection: 'column',
+          width: stripW,
+          backgroundColor: FILM_COLOR,
         }}
       >
-        {imageDataUrls.map((url, i) => (
-          <div
-            key={i}
-            style={{
-              width: cellW,
-              height: cellH,
-              display: 'flex',
-            }}
-          >
-            {/* eslint-disable-next-line */}
-            <img
-              src={url}
+        {sprocketRow}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            backgroundColor: FILM_COLOR,
+          }}
+        >
+          {imageDataUrls.map((url, i) => (
+            <div
+              key={i}
               style={{
                 width: cellW,
                 height: cellH,
-                objectFit: 'cover',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderLeft: `${IMAGE_BORDER}px solid ${HOLE_COLOR}`,
+                borderRight: `${IMAGE_BORDER}px solid ${HOLE_COLOR}`,
+                borderTop: `${IMAGE_BORDER * 2}px solid ${HOLE_COLOR}`,
+                borderBottom: `${IMAGE_BORDER * 2}px solid ${HOLE_COLOR}`,
               }}
-            />
-          </div>
-        ))}
+            >
+              {/* eslint-disable-next-line */}
+              <img
+                src={url}
+                style={{
+                  width: imgW,
+                  height: imgH,
+                  objectFit: 'cover',
+                }}
+              />
+            </div>
+          ))}
+        </div>
+        {sprocketRow}
       </div>
       <div
         style={{
@@ -91,8 +156,8 @@ const CollageGrid = ({
           bottom: 0,
           left: 0,
           right: 0,
-          padding: '8px 12px',
-          backgroundColor: 'rgba(0,0,0,0.6)',
+          padding: '6px 12px',
+          backgroundColor: 'rgba(0,0,0,0.45)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -101,7 +166,7 @@ const CollageGrid = ({
         <span
           style={{
             fontFamily: 'Archivo',
-            fontSize: 16,
+            fontSize: 14,
             color: '#ffffff',
           }}
         >
@@ -111,7 +176,7 @@ const CollageGrid = ({
           <span
             style={{
               fontFamily: 'Archivo',
-              fontSize: 16,
+              fontSize: 14,
               color: '#ffffff',
             }}
           >
