@@ -4,7 +4,7 @@ import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
 import { SITE_ORIGINAL_URL } from '@/lib/consts';
 import getArchivoFont from '@/lib/og/getArchivoFont';
-import getCollageImageData from '@/lib/og/getCollageImageData';
+import collectCollageImages from '@/lib/og/collectCollageImages';
 import CollageGrid from '@/components/Og/CollageGrid';
 import artistCollageQuerySchema from '@/lib/schema/artistCollageQuerySchema';
 
@@ -40,47 +40,16 @@ export async function GET(req: NextRequest) {
   const moments = timelineData?.moments ?? [];
   const totalMoments = (timelineData?.pagination.total_pages ?? 1) * 100;
 
-  // moments is newest-first; filter without slicing so all candidates are tried
-  const imageMoments = moments.filter((m) => m.metadata?.image);
+  // newest-first: prioritise fetching recent images; helper returns oldest-first for display
+  const imageUrls = moments
+    .filter((m) => m.metadata?.image)
+    .map((m) => m.metadata!.image);
 
-  // Race: collect first MAX_IMAGES successful fetches, then cancel the rest.
-  // Sort by original index descending so oldest (highest index) comes first.
-  const imageDataUrls = await new Promise<string[]>((resolve) => {
-    if (imageMoments.length === 0) {
-      resolve([]);
-      return;
-    }
-
-    const collected: { index: number; url: string }[] = [];
-    let settled = 0;
-    let done = false;
-    const total = imageMoments.length;
-    const controllers = imageMoments.map(() => new AbortController());
-
-    const finish = () => {
-      if (done) return;
-      done = true;
-      controllers.forEach((c) => c.abort());
-      collected.sort((a, b) => b.index - a.index);
-      resolve(collected.slice(0, MAX_IMAGES).map((r) => r.url));
-    };
-
-    imageMoments.forEach((m, i) => {
-      const timer = setTimeout(() => controllers[i].abort(), IMAGE_TIMEOUT_MS);
-      getCollageImageData(m.metadata!.image, controllers[i].signal)
-        .then((url) => {
-          if (done || url === null) return;
-          collected.push({ index: i, url });
-          if (collected.length >= MAX_IMAGES) finish();
-        })
-        .catch(() => {})
-        .finally(() => {
-          clearTimeout(timer);
-          settled++;
-          if (settled === total) finish();
-        });
-    });
-  });
+  const imageDataUrls = await collectCollageImages(
+    imageUrls,
+    MAX_IMAGES,
+    IMAGE_TIMEOUT_MS
+  );
 
   const { ImageResponse } = await import('next/og');
   const archivoFontData = await getArchivoFont();
