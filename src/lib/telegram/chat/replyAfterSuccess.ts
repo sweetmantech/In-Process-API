@@ -2,7 +2,7 @@ import type { Thread } from 'chat';
 import { IS_TESTNET, SITE_ORIGINAL_URL } from '@/lib/consts';
 import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
 
-const COLLAGE_DELAY_MS = 7_000;
+const COLLAGE_DELAY_MS = 10_000;
 
 const replyAfterSuccess = async (
   thread: Thread,
