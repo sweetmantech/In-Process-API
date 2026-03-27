@@ -1,5 +1,4 @@
 const COLS = 7;
-const ROWS = 1;
 
 const CollageGrid = ({
   imageDataUrls,
@@ -43,7 +42,7 @@ const CollageGrid = ({
   }
 
   const cellW = Math.floor(size / COLS);
-  const cellH = Math.floor(size / ROWS);
+  const cellH = Math.round(size * 0.7);
 
   return (
     <div
@@ -51,6 +50,8 @@ const CollageGrid = ({
         width: size,
         height: size,
         display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
         ...bgStyle,
@@ -59,9 +60,7 @@ const CollageGrid = ({
       <div
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
-          width: size,
-          height: size,
+          flexDirection: 'row',
         }}
       >
         {imageDataUrls.map((url, i) => (
