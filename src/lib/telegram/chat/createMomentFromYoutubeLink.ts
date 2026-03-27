@@ -1,8 +1,10 @@
-import type { Address } from 'viem';
+import { maxUint64, parseUnits, type Address } from 'viem';
 import { uploadJson } from '@/lib/arweave/uploadJson';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import getYoutubeDetail from '@/lib/link/getYoutubeDetail';
-import createMomentFromTelegramAttachment from './createMomentFromTelegramAttachment';
+import { createMoment } from '@/lib/moment/createMoment';
+import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
+import { MomentType } from '@/types/moment';
 
 const createMomentFromYoutubeLink = async (
   url: string,
@@ -35,10 +37,23 @@ const createMomentFromYoutubeLink = async (
     },
   });
 
-  return createMomentFromTelegramAttachment({
-    uri: metadataUri,
-    name: detail.title || 'Untitled Video',
-    artistAddress,
+  return createMoment({
+    contract: { name: detail.title || 'Untitled Video', uri: metadataUri },
+    token: {
+      tokenMetadataURI: metadataUri,
+      createReferral: REFERRAL_RECIPIENT as Address,
+      salesConfig: {
+        type: MomentType.Erc20Mint,
+        pricePerToken: parseUnits('1', 6),
+        saleStart: BigInt(Math.floor(Date.now() / 1000)),
+        saleEnd: maxUint64,
+        currency: USDC_ADDRESS[CHAIN_ID],
+      },
+      mintToCreatorCount: 1,
+      payoutRecipient: artistAddress,
+    },
+    account: artistAddress,
+    channel: 'telegram',
   });
 };
 

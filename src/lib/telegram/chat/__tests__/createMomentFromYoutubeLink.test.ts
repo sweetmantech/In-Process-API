@@ -5,12 +5,18 @@ import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
 vi.mock('@/lib/link/getYoutubeDetail', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadJson', () => ({ uploadJson: vi.fn() }));
-vi.mock('../createMomentFromTelegramAttachment', () => ({ default: vi.fn() }));
+vi.mock('@/lib/moment/createMoment', () => ({ createMoment: vi.fn() }));
+vi.mock('@/lib/consts', () => ({
+  CHAIN_ID: 8453,
+  REFERRAL_RECIPIENT: '0xReferral',
+  USDC_ADDRESS: { 8453: '0xUsdc' },
+  IS_TESTNET: false,
+}));
 
 import getYoutubeDetail from '@/lib/link/getYoutubeDetail';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import { uploadJson } from '@/lib/arweave/uploadJson';
-import createMomentFromTelegramAttachment from '../createMomentFromTelegramAttachment';
+import { createMoment } from '@/lib/moment/createMoment';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
 const YOUTUBE_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
@@ -41,9 +47,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeFetchResponse()));
   vi.mocked(uploadToArweave).mockResolvedValue('ar://image-hash');
   vi.mocked(uploadJson).mockResolvedValue('ar://metadata-hash');
-  vi.mocked(createMomentFromTelegramAttachment).mockResolvedValue(
-    MOMENT_RESULT
-  );
+  vi.mocked(createMoment).mockResolvedValue(MOMENT_RESULT as never);
 });
 
 describe('createMomentFromYoutubeLink', () => {
@@ -118,14 +122,14 @@ describe('createMomentFromYoutubeLink', () => {
     });
   });
 
-  it('calls createMomentFromTelegramAttachment with metadataUri, title, and artistAddress', async () => {
+  it('calls createMoment with metadataUri, title, and artistAddress', async () => {
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
 
-    expect(createMomentFromTelegramAttachment).toHaveBeenCalledWith({
-      uri: 'ar://metadata-hash',
-      name: DETAIL.title,
-      artistAddress: ARTIST_ADDRESS,
-    });
+    const call = vi.mocked(createMoment).mock.calls[0][0];
+    expect(call.contract.uri).toBe('ar://metadata-hash');
+    expect(call.contract.name).toBe(DETAIL.title);
+    expect(call.account).toBe(ARTIST_ADDRESS);
+    expect(call.channel).toBe('telegram');
   });
 
   it('falls back to "Untitled Video" when detail.title is empty', async () => {
@@ -133,9 +137,8 @@ describe('createMomentFromYoutubeLink', () => {
 
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
 
-    expect(createMomentFromTelegramAttachment).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Untitled Video' })
-    );
+    const call = vi.mocked(createMoment).mock.calls[0][0];
+    expect(call.contract.name).toBe('Untitled Video');
   });
 
   it('returns contractAddress and tokenId', async () => {

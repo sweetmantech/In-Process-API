@@ -16,12 +16,13 @@ export function createTelegramChatBot() {
     userName: process.env.TELEGRAM_CHAT_BOT_USERNAME!,
     adapters: { telegram: telegramAdapter },
     state: createMemoryState(),
+    onLockConflict: 'force',
   });
 
   return { bot, telegramAdapter };
 }
 
-export type TelegramChatBot = ReturnType<typeof createTelegramChatBot>['bot'];
+export type { TelegramChatBot } from '@/types/telegram';
 
 const { bot: telegramChatBot, telegramAdapter } = createTelegramChatBot();
 

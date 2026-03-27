@@ -4,11 +4,12 @@ import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
 
 const COLLAGE_DELAY_MS = 7_000;
 
-const handleMomentSuccess = async (
+const replyAfterSuccess = async (
   thread: Thread,
   contractAddress: string,
   tokenId: string,
-  artistAddress: string
+  artistAddress: string,
+  collageIncluded = true
 ) => {
   const chain = IS_TESTNET ? 'bsep' : 'base';
   const successMessage = `✅ Moment created! ${SITE_ORIGINAL_URL}/collect/${chain}:${contractAddress}/${tokenId}`;
@@ -16,14 +17,16 @@ const handleMomentSuccess = async (
   await new Promise((resolve) => setTimeout(resolve, COLLAGE_DELAY_MS));
 
   await thread.post(successMessage);
-  const collage = await fetchArtistCollageBuffer(artistAddress);
+  const collage = collageIncluded
+    ? await fetchArtistCollageBuffer(artistAddress)
+    : null;
   if (collage) {
     await thread.post({
       markdown: '',
       files: [
         {
           data: collage,
-          filename: `collage you've ever posted.png`,
+          filename: `collage you have ever posted.png`,
           mimeType: 'image/png',
         },
       ],
@@ -31,4 +34,4 @@ const handleMomentSuccess = async (
   }
 };
 
-export default handleMomentSuccess;
+export default replyAfterSuccess;

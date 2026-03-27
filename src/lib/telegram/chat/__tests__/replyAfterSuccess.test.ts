@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import handleMomentSuccess from '../handleMomentSuccess';
+import replyAfterSuccess from '../replyAfterSuccess';
 
 vi.mock('@/lib/consts', () => ({
   IS_TESTNET: false,
@@ -28,12 +28,12 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('handleMomentSuccess', () => {
+describe('replyAfterSuccess', () => {
   it('posts the success message immediately', async () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(null);
     const thread = makeThread();
 
-    const promise = handleMomentSuccess(
+    const promise = replyAfterSuccess(
       thread as never,
       '0xContract',
       '42',
@@ -52,7 +52,7 @@ describe('handleMomentSuccess', () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(COLLAGE_BUFFER);
     const thread = makeThread();
 
-    const promise = handleMomentSuccess(
+    const promise = replyAfterSuccess(
       thread as never,
       '0xContract',
       '42',
@@ -67,7 +67,7 @@ describe('handleMomentSuccess', () => {
       files: [
         {
           data: COLLAGE_BUFFER,
-          filename: `collage you've ever posted.png`,
+          filename: `collage you have ever posted.png`,
           mimeType: 'image/png',
         },
       ],
@@ -78,7 +78,7 @@ describe('handleMomentSuccess', () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(null);
     const thread = makeThread();
 
-    const promise = handleMomentSuccess(
+    const promise = replyAfterSuccess(
       thread as never,
       '0xContract',
       '42',
@@ -87,6 +87,24 @@ describe('handleMomentSuccess', () => {
     await vi.runAllTimersAsync();
     await promise;
 
+    expect(thread.post).toHaveBeenCalledOnce();
+  });
+
+  it('skips collage fetch and posts only once when collageIncluded is false', async () => {
+    vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(COLLAGE_BUFFER);
+    const thread = makeThread();
+
+    const promise = replyAfterSuccess(
+      thread as never,
+      '0xContract',
+      '42',
+      ARTIST_ADDRESS,
+      false
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(fetchArtistCollageBuffer).not.toHaveBeenCalled();
     expect(thread.post).toHaveBeenCalledOnce();
   });
 });
