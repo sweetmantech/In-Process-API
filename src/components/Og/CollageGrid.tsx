@@ -1,12 +1,12 @@
 const COLS = 7;
-const SPROCKET_AREA_H = 28;
-const SPROCKET_HOLE_W = 16;
+const SPROCKET_AREA_H = 30;
+const SPROCKET_HOLE_W = 28;
 const SPROCKET_HOLE_H = 22;
-const IMAGE_GAP = 3;
-/** Dark warm brown — classic developed film base colour */
-const FILM_COLOR = '#1a1710';
-/** Amber-cream perforation colour, visible against the dark base */
-const HOLE_COLOR = '#b09050';
+const IMAGE_BORDER = 2;
+/** Warm dark brown — classic developed film base */
+const FILM_COLOR = '#252018';
+/** Near-black perforation — dark holes punched into the film base */
+const HOLE_COLOR = '#0a0908';
 
 const CollageGrid = ({
   imageDataUrls,
@@ -51,10 +51,12 @@ const CollageGrid = ({
     );
   }
 
-  // Account for gaps so the strip fits within the canvas width
-  const cellW = Math.floor((width - IMAGE_GAP * (COLS - 1)) / COLS);
+  const cellW = Math.floor(width / COLS);
   const cellH = cellW;
-  const stripW = cellW * COLS + IMAGE_GAP * (COLS - 1);
+  const stripW = cellW * COLS;
+  // Image inside the bordered cell
+  const imgW = cellW - IMAGE_BORDER * 2;
+  const imgH = cellH - IMAGE_BORDER * 2;
 
   const sprocketRow = (
     <div
@@ -64,7 +66,6 @@ const CollageGrid = ({
         height: SPROCKET_AREA_H,
         alignItems: 'center',
         backgroundColor: FILM_COLOR,
-        gap: IMAGE_GAP,
       }}
     >
       {Array.from({ length: COLS }).map((_, i) => (
@@ -76,7 +77,6 @@ const CollageGrid = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: FILM_COLOR,
           }}
         >
           <div
@@ -114,13 +114,10 @@ const CollageGrid = ({
         }}
       >
         {sprocketRow}
-        {/* 1px separator line between sprocket area and images */}
-        <div style={{ height: 1, backgroundColor: '#0d0c08' }} />
         <div
           style={{
             display: 'flex',
             flexDirection: 'row',
-            gap: IMAGE_GAP,
             backgroundColor: FILM_COLOR,
           }}
         >
@@ -131,22 +128,23 @@ const CollageGrid = ({
                 width: cellW,
                 height: cellH,
                 display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: `${IMAGE_BORDER}px solid ${FILM_COLOR}`,
               }}
             >
               {/* eslint-disable-next-line */}
               <img
                 src={url}
                 style={{
-                  width: cellW,
-                  height: cellH,
+                  width: imgW,
+                  height: imgH,
                   objectFit: 'cover',
                 }}
               />
             </div>
           ))}
         </div>
-        {/* 1px separator line between images and sprocket area */}
-        <div style={{ height: 1, backgroundColor: '#0d0c08' }} />
         {sprocketRow}
       </div>
       <div
