@@ -26,7 +26,7 @@ const replyAfterSuccess = async (
       files: [
         {
           data: collage,
-          filename: `collage you've ever posted.png`,
+          filename: `collage you have ever posted.png`,
           mimeType: 'image/png',
         },
       ],

@@ -67,7 +67,7 @@ describe('replyAfterSuccess', () => {
       files: [
         {
           data: COLLAGE_BUFFER,
-          filename: `collage you've ever posted.png`,
+          filename: `collage you have ever posted.png`,
           mimeType: 'image/png',
         },
       ],
@@ -87,6 +87,24 @@ describe('replyAfterSuccess', () => {
     await vi.runAllTimersAsync();
     await promise;
 
+    expect(thread.post).toHaveBeenCalledOnce();
+  });
+
+  it('skips collage fetch and posts only once when collageIncluded is false', async () => {
+    vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(COLLAGE_BUFFER);
+    const thread = makeThread();
+
+    const promise = replyAfterSuccess(
+      thread as never,
+      '0xContract',
+      '42',
+      ARTIST_ADDRESS,
+      false
+    );
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(fetchArtistCollageBuffer).not.toHaveBeenCalled();
     expect(thread.post).toHaveBeenCalledOnce();
   });
 });

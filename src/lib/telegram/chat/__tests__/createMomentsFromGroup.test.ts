@@ -137,13 +137,15 @@ describe('createMomentsFromGroup', () => {
       thread,
       MOMENT_1.contractAddress.toString(),
       MOMENT_1.tokenId,
-      ARTIST_ADDRESS
+      ARTIST_ADDRESS,
+      false
     );
     expect(replyAfterSuccess).toHaveBeenCalledWith(
       thread,
       MOMENT_2.contractAddress.toString(),
       MOMENT_2.tokenId,
-      ARTIST_ADDRESS
+      ARTIST_ADDRESS,
+      true
     );
   });
 });
