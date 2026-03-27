@@ -3,10 +3,10 @@ const SPROCKET_AREA_H = 30;
 const SPROCKET_HOLE_W = 28;
 const SPROCKET_HOLE_H = 22;
 const IMAGE_BORDER = 2;
-/** Warm dark brown — classic developed film base */
-const FILM_COLOR = '#252018';
-/** Near-black perforation — dark holes punched into the film base */
-const HOLE_COLOR = '#0a0908';
+/** neutral-800 — matches FilmPlaceholder strip colour */
+const FILM_COLOR = '#262626';
+/** neutral-600/40 — matches FilmPlaceholder sprocket hole colour */
+const HOLE_COLOR = 'rgba(82, 82, 82, 0.4)';
 
 const CollageGrid = ({
   imageDataUrls,
