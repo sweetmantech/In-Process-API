@@ -12,8 +12,8 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 const COLLAGE_SIZE = 500;
-const MAX_IMAGES = 15;
-const IMAGE_TIMEOUT_MS = 5000;
+const MAX_IMAGES = 30;
+const IMAGE_TIMEOUT_MS = 10000;
 
 export async function GET(req: NextRequest) {
   const result = artistCollageQuerySchema.safeParse(
@@ -38,25 +38,49 @@ export async function GET(req: NextRequest) {
   ]);
 
   const moments = timelineData?.moments ?? [];
+  const totalMoments = (timelineData?.pagination.total_pages ?? 1) * 100;
 
-  const imageMoments = moments
-    .filter((m) => m.metadata?.image)
-    .slice(0, MAX_IMAGES);
+  // moments is newest-first; filter without slicing so all candidates are tried
+  const imageMoments = moments.filter((m) => m.metadata?.image);
 
-  const imageResults = await Promise.allSettled(
-    imageMoments.map((m) => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
-      return getCollageImageData(m.metadata!.image, controller.signal).finally(
-        () => clearTimeout(timer)
-      );
-    })
-  );
+  // Race: collect first MAX_IMAGES successful fetches, then cancel the rest.
+  // Sort by original index descending so oldest (highest index) comes first.
+  const imageDataUrls = await new Promise<string[]>((resolve) => {
+    if (imageMoments.length === 0) {
+      resolve([]);
+      return;
+    }
 
-  const imageDataUrls = imageResults
-    .map((r) => (r.status === 'fulfilled' ? r.value : null))
-    .filter((url): url is string => url !== null)
-    .reverse();
+    const collected: { index: number; url: string }[] = [];
+    let settled = 0;
+    let done = false;
+    const total = imageMoments.length;
+    const controllers = imageMoments.map(() => new AbortController());
+
+    const finish = () => {
+      if (done) return;
+      done = true;
+      controllers.forEach((c) => c.abort());
+      collected.sort((a, b) => b.index - a.index);
+      resolve(collected.slice(0, MAX_IMAGES).map((r) => r.url));
+    };
+
+    imageMoments.forEach((m, i) => {
+      const timer = setTimeout(() => controllers[i].abort(), IMAGE_TIMEOUT_MS);
+      getCollageImageData(m.metadata!.image, controllers[i].signal)
+        .then((url) => {
+          if (done || url === null) return;
+          collected.push({ index: i, url });
+          if (collected.length >= MAX_IMAGES) finish();
+        })
+        .catch(() => {})
+        .finally(() => {
+          clearTimeout(timer);
+          settled++;
+          if (settled === total) finish();
+        });
+    });
+  });
 
   const { ImageResponse } = await import('next/og');
   const archivoFontData = await getArchivoFont();
@@ -66,6 +90,7 @@ export async function GET(req: NextRequest) {
     <CollageGrid
       imageDataUrls={imageDataUrls}
       artistName={artistName}
+      totalMoments={totalMoments}
       backgroundUrl={`${SITE_ORIGINAL_URL}/bg-gray.png`}
       size={COLLAGE_SIZE}
     />,
