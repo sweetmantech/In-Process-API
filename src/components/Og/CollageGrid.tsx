@@ -1,7 +1,12 @@
 const COLS = 7;
-const SPROCKET_AREA_H = 22;
-const SPROCKET_HOLE_W = 14;
-const SPROCKET_HOLE_H = 16;
+const SPROCKET_AREA_H = 28;
+const SPROCKET_HOLE_W = 16;
+const SPROCKET_HOLE_H = 22;
+const IMAGE_GAP = 3;
+/** Dark warm brown — classic developed film base colour */
+const FILM_COLOR = '#1a1710';
+/** Amber-cream perforation colour, visible against the dark base */
+const HOLE_COLOR = '#b09050';
 
 const CollageGrid = ({
   imageDataUrls,
@@ -24,7 +29,7 @@ const CollageGrid = ({
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }
-    : { backgroundColor: '#1a1a1a' };
+    : { backgroundColor: '#e8e8e4' };
 
   if (imageDataUrls.length === 0) {
     return (
@@ -46,9 +51,10 @@ const CollageGrid = ({
     );
   }
 
-  const cellW = Math.floor(width / COLS);
+  // Account for gaps so the strip fits within the canvas width
+  const cellW = Math.floor((width - IMAGE_GAP * (COLS - 1)) / COLS);
   const cellH = cellW;
-  const stripW = cellW * COLS;
+  const stripW = cellW * COLS + IMAGE_GAP * (COLS - 1);
 
   const sprocketRow = (
     <div
@@ -57,7 +63,8 @@ const CollageGrid = ({
         flexDirection: 'row',
         height: SPROCKET_AREA_H,
         alignItems: 'center',
-        backgroundColor: '#1c1c1c',
+        backgroundColor: FILM_COLOR,
+        gap: IMAGE_GAP,
       }}
     >
       {Array.from({ length: COLS }).map((_, i) => (
@@ -69,14 +76,15 @@ const CollageGrid = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            backgroundColor: FILM_COLOR,
           }}
         >
           <div
             style={{
               width: SPROCKET_HOLE_W,
               height: SPROCKET_HOLE_H,
-              backgroundColor: '#0a0a0a',
-              borderRadius: 3,
+              backgroundColor: HOLE_COLOR,
+              borderRadius: 4,
             }}
           />
         </div>
@@ -102,11 +110,20 @@ const CollageGrid = ({
           display: 'flex',
           flexDirection: 'column',
           width: stripW,
-          backgroundColor: '#1c1c1c',
+          backgroundColor: FILM_COLOR,
         }}
       >
         {sprocketRow}
-        <div style={{ display: 'flex', flexDirection: 'row' }}>
+        {/* 1px separator line between sprocket area and images */}
+        <div style={{ height: 1, backgroundColor: '#0d0c08' }} />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: IMAGE_GAP,
+            backgroundColor: FILM_COLOR,
+          }}
+        >
           {imageDataUrls.map((url, i) => (
             <div
               key={i}
@@ -128,6 +145,8 @@ const CollageGrid = ({
             </div>
           ))}
         </div>
+        {/* 1px separator line between images and sprocket area */}
+        <div style={{ height: 1, backgroundColor: '#0d0c08' }} />
         {sprocketRow}
       </div>
       <div
@@ -136,8 +155,8 @@ const CollageGrid = ({
           bottom: 0,
           left: 0,
           right: 0,
-          padding: '8px 12px',
-          backgroundColor: 'rgba(0,0,0,0.6)',
+          padding: '6px 12px',
+          backgroundColor: 'rgba(0,0,0,0.45)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -146,7 +165,7 @@ const CollageGrid = ({
         <span
           style={{
             fontFamily: 'Archivo',
-            fontSize: 16,
+            fontSize: 14,
             color: '#ffffff',
           }}
         >
@@ -156,7 +175,7 @@ const CollageGrid = ({
           <span
             style={{
               fontFamily: 'Archivo',
-              fontSize: 16,
+              fontSize: 14,
               color: '#ffffff',
             }}
           >
