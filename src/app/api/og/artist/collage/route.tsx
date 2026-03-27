@@ -4,7 +4,7 @@ import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
 import { SITE_ORIGINAL_URL } from '@/lib/consts';
 import getArchivoFont from '@/lib/og/getArchivoFont';
-import getCollageImageData from '@/lib/og/getCollageImageData';
+import collectCollageImages from '@/lib/og/collectCollageImages';
 import CollageGrid from '@/components/Og/CollageGrid';
 import artistCollageQuerySchema from '@/lib/schema/artistCollageQuerySchema';
 
@@ -12,8 +12,8 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 const COLLAGE_SIZE = 500;
-const MAX_IMAGES = 15;
-const IMAGE_TIMEOUT_MS = 5000;
+const MAX_IMAGES = 30;
+const IMAGE_TIMEOUT_MS = 10000;
 
 export async function GET(req: NextRequest) {
   const result = artistCollageQuerySchema.safeParse(
@@ -38,25 +38,18 @@ export async function GET(req: NextRequest) {
   ]);
 
   const moments = timelineData?.moments ?? [];
+  const totalMoments = (timelineData?.pagination.total_pages ?? 1) * 100;
 
-  const imageMoments = moments
+  // newest-first: prioritise fetching recent images; helper returns oldest-first for display
+  const imageUrls = moments
     .filter((m) => m.metadata?.image)
-    .slice(0, MAX_IMAGES);
+    .map((m) => m.metadata!.image);
 
-  const imageResults = await Promise.allSettled(
-    imageMoments.map((m) => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
-      return getCollageImageData(m.metadata!.image, controller.signal).finally(
-        () => clearTimeout(timer)
-      );
-    })
+  const imageDataUrls = await collectCollageImages(
+    imageUrls,
+    MAX_IMAGES,
+    IMAGE_TIMEOUT_MS
   );
-
-  const imageDataUrls = imageResults
-    .map((r) => (r.status === 'fulfilled' ? r.value : null))
-    .filter((url): url is string => url !== null)
-    .reverse();
 
   const { ImageResponse } = await import('next/og');
   const archivoFontData = await getArchivoFont();
@@ -66,6 +59,7 @@ export async function GET(req: NextRequest) {
     <CollageGrid
       imageDataUrls={imageDataUrls}
       artistName={artistName}
+      totalMoments={totalMoments}
       backgroundUrl={`${SITE_ORIGINAL_URL}/bg-gray.png`}
       size={COLLAGE_SIZE}
     />,

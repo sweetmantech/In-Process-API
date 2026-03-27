@@ -1,17 +1,16 @@
-import {
-  COLLAGE_PHOTO_H,
-  COLLAGE_PHOTO_LAYOUTS,
-  COLLAGE_PHOTO_W,
-} from '@/lib/og/consts';
+const COLS = 5;
+const ROWS = 6;
 
 const CollageGrid = ({
   imageDataUrls,
   artistName,
+  totalMoments,
   backgroundUrl,
   size = 500,
 }: {
   imageDataUrls: string[];
   artistName: string;
+  totalMoments?: number;
   backgroundUrl?: string;
   size?: number;
 }) => {
@@ -43,6 +42,9 @@ const CollageGrid = ({
     );
   }
 
+  const cellW = Math.floor(size / COLS);
+  const cellH = Math.floor(size / ROWS);
+
   return (
     <div
       style={{
@@ -54,22 +56,20 @@ const CollageGrid = ({
         ...bgStyle,
       }}
     >
-      {imageDataUrls.map((url, i) => {
-        const [x, y, rotate] =
-          COLLAGE_PHOTO_LAYOUTS[i % COLLAGE_PHOTO_LAYOUTS.length];
-        return (
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          width: size,
+          height: size,
+        }}
+      >
+        {imageDataUrls.map((url, i) => (
           <div
             key={i}
             style={{
-              position: 'absolute',
-              left: x,
-              top: y,
-              width: COLLAGE_PHOTO_W,
-              height: COLLAGE_PHOTO_H,
-              padding: 8,
-              backgroundColor: '#ffffff',
-              boxShadow: '2px 4px 12px rgba(0,0,0,0.6)',
-              transform: `rotate(${rotate}deg)`,
+              width: cellW,
+              height: cellH,
               display: 'flex',
             }}
           >
@@ -77,14 +77,14 @@ const CollageGrid = ({
             <img
               src={url}
               style={{
-                width: COLLAGE_PHOTO_W - 16,
-                height: COLLAGE_PHOTO_H - 16,
+                width: cellW,
+                height: cellH,
                 objectFit: 'cover',
               }}
             />
           </div>
-        );
-      })}
+        ))}
+      </div>
       <div
         style={{
           position: 'absolute',
@@ -95,6 +95,7 @@ const CollageGrid = ({
           backgroundColor: 'rgba(0,0,0,0.6)',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
         <span
@@ -106,6 +107,17 @@ const CollageGrid = ({
         >
           {artistName}
         </span>
+        {totalMoments !== undefined && (
+          <span
+            style={{
+              fontFamily: 'Archivo',
+              fontSize: 16,
+              color: '#ffffff',
+            }}
+          >
+            +{totalMoments.toLocaleString()} moments
+          </span>
+        )}
       </div>
     </div>
   );

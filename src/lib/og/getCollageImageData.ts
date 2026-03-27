@@ -1,7 +1,7 @@
 import sharp from 'sharp';
 import fetchUri from '../arweave/fetchUri';
 
-const MAX_SIZE = 200;
+const MAX_SIZE = 120;
 
 const getCollageImageData = async (
   imageUrl: string | undefined,
@@ -19,7 +19,7 @@ const getCollageImageData = async (
 
     const resized = await sharp(Buffer.from(data))
       .resize(MAX_SIZE, MAX_SIZE, { fit: 'cover' })
-      .jpeg({ quality: 80 })
+      .jpeg({ quality: 50 })
       .toBuffer();
 
     return `data:image/jpeg;base64,${resized.toString('base64')}`;
