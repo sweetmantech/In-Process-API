@@ -1,5 +1,5 @@
-const COLS = 5;
-const ROWS = 6;
+const COLS = 7;
+const ROWS = 1;
 
 const CollageGrid = ({
   imageDataUrls,

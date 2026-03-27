@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 const COLLAGE_SIZE = 500;
-const MAX_IMAGES = 30;
+const MAX_IMAGES = 7;
 const IMAGE_TIMEOUT_MS = 10000;
 
 export async function GET(req: NextRequest) {
