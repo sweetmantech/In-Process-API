@@ -47,12 +47,13 @@ const createMomentsFromGroup = async (
     }));
     const results = await createMoments(inputs, artistAddress, 'telegram');
     await Promise.all(
-      results.map(({ contractAddress, tokenId }) =>
+      results.map(({ contractAddress, tokenId }, i) =>
         replyAfterSuccess(
           thread,
           contractAddress.toString(),
           tokenId,
-          artistAddress
+          artistAddress,
+          i === results.length - 1
         )
       )
     );
