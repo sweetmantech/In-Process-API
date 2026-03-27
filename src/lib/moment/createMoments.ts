@@ -93,12 +93,18 @@ const createMoments = async (
   });
 
   const results = parseMomentsTransaction(transaction.logs);
+  const resultByUri = new Map(results.map((r) => [r.uri, r]));
+
+  const matched = inputs.flatMap(({ uri }) => {
+    const result = resultByUri.get(uri);
+    return result ? [result] : [];
+  });
 
   await Promise.all(
-    results.map(({ contractAddress, tokenId }, i) =>
+    matched.map(({ contractAddress, tokenId, uri }) =>
       Promise.all([
         triggerMuxMigration({
-          uri: inputs[i].uri,
+          uri,
           collectionAddress: contractAddress,
           tokenId,
           artistAddress,
@@ -113,7 +119,10 @@ const createMoments = async (
     )
   );
 
-  return results;
+  return matched.map(({ contractAddress, tokenId }) => ({
+    contractAddress,
+    tokenId,
+  }));
 };
 
 export default createMoments;

@@ -6,7 +6,7 @@ import { Address, getAddress, Log, parseEventLogs } from 'viem';
 
 const parseMomentsTransaction = (
   logs: Log[]
-): { contractAddress: Address; tokenId: string }[] => {
+): { contractAddress: Address; tokenId: string; uri: string }[] => {
   const factoryLogs = parseEventLogs({
     abi: zoraCreator1155FactoryImplABI,
     logs,
@@ -31,9 +31,11 @@ const parseMomentsTransaction = (
         `SetupNewToken not found for contract ${contractAddress}`
       );
     }
+    const args = tokenLog.args as { tokenId: bigint; newURI: string };
     return {
       contractAddress: getAddress(contractAddress),
-      tokenId: (tokenLog.args as { tokenId: bigint }).tokenId.toString(),
+      tokenId: args.tokenId.toString(),
+      uri: args.newURI,
     };
   });
 };
