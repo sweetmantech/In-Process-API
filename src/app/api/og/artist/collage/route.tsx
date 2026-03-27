@@ -11,7 +11,8 @@ import artistCollageQuerySchema from '@/lib/schema/artistCollageQuerySchema';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-const COLLAGE_SIZE = 500;
+const COLLAGE_WIDTH = 700;
+const COLLAGE_HEIGHT = 350;
 const MAX_IMAGES = 7;
 const IMAGE_TIMEOUT_MS = 10000;
 
@@ -61,11 +62,12 @@ export async function GET(req: NextRequest) {
       artistName={artistName}
       totalMoments={totalMoments}
       backgroundUrl={`${SITE_ORIGINAL_URL}/bg-gray.png`}
-      size={COLLAGE_SIZE}
+      width={COLLAGE_WIDTH}
+      height={COLLAGE_HEIGHT}
     />,
     {
-      width: COLLAGE_SIZE,
-      height: COLLAGE_SIZE,
+      width: COLLAGE_WIDTH,
+      height: COLLAGE_HEIGHT,
       fonts: [{ name: 'Archivo', data: archivoFontData, weight: 400 }],
       headers: { 'Cache-Control': 'no-store' },
     }

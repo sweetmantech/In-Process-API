@@ -1,17 +1,22 @@
 const COLS = 7;
+const SPROCKET_AREA_H = 22;
+const SPROCKET_HOLE_W = 14;
+const SPROCKET_HOLE_H = 16;
 
 const CollageGrid = ({
   imageDataUrls,
   artistName,
   totalMoments,
   backgroundUrl,
-  size = 500,
+  width = 700,
+  height = 350,
 }: {
   imageDataUrls: string[];
   artistName: string;
   totalMoments?: number;
   backgroundUrl?: string;
-  size?: number;
+  width?: number;
+  height?: number;
 }) => {
   const bgStyle = backgroundUrl
     ? {
@@ -25,8 +30,8 @@ const CollageGrid = ({
     return (
       <div
         style={{
-          width: size,
-          height: size,
+          width,
+          height,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -41,14 +46,49 @@ const CollageGrid = ({
     );
   }
 
-  const cellW = Math.floor(size / COLS);
-  const cellH = Math.round(size * 0.7);
+  const cellW = Math.floor(width / COLS);
+  const cellH = cellW;
+  const stripW = cellW * COLS;
+
+  const sprocketRow = (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        height: SPROCKET_AREA_H,
+        alignItems: 'center',
+        backgroundColor: '#1c1c1c',
+      }}
+    >
+      {Array.from({ length: COLS }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            width: cellW,
+            height: SPROCKET_AREA_H,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: SPROCKET_HOLE_W,
+              height: SPROCKET_HOLE_H,
+              backgroundColor: '#0a0a0a',
+              borderRadius: 3,
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div
       style={{
-        width: size,
-        height: size,
+        width,
+        height,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -60,29 +100,35 @@ const CollageGrid = ({
       <div
         style={{
           display: 'flex',
-          flexDirection: 'row',
+          flexDirection: 'column',
+          width: stripW,
+          backgroundColor: '#1c1c1c',
         }}
       >
-        {imageDataUrls.map((url, i) => (
-          <div
-            key={i}
-            style={{
-              width: cellW,
-              height: cellH,
-              display: 'flex',
-            }}
-          >
-            {/* eslint-disable-next-line */}
-            <img
-              src={url}
+        {sprocketRow}
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          {imageDataUrls.map((url, i) => (
+            <div
+              key={i}
               style={{
                 width: cellW,
                 height: cellH,
-                objectFit: 'cover',
+                display: 'flex',
               }}
-            />
-          </div>
-        ))}
+            >
+              {/* eslint-disable-next-line */}
+              <img
+                src={url}
+                style={{
+                  width: cellW,
+                  height: cellH,
+                  objectFit: 'cover',
+                }}
+              />
+            </div>
+          ))}
+        </div>
+        {sprocketRow}
       </div>
       <div
         style={{
