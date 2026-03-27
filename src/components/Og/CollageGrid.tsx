@@ -1,7 +1,7 @@
 const COLS = 7;
-const SPROCKET_AREA_H = 20;
+const SPROCKET_AREA_H = 26;
 const SPROCKET_HOLE_W = 28;
-const SPROCKET_HOLE_H = 14;
+const SPROCKET_HOLE_H = 18;
 const IMAGE_BORDER = 2;
 /** neutral-800 — matches FilmPlaceholder strip colour */
 const FILM_COLOR = '#262626';
@@ -130,7 +130,10 @@ const CollageGrid = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: `${IMAGE_BORDER}px solid ${HOLE_COLOR}`,
+                borderLeft: `${IMAGE_BORDER}px solid ${HOLE_COLOR}`,
+                borderRight: `${IMAGE_BORDER}px solid ${HOLE_COLOR}`,
+                borderTop: `${IMAGE_BORDER * 2}px solid ${HOLE_COLOR}`,
+                borderBottom: `${IMAGE_BORDER * 2}px solid ${HOLE_COLOR}`,
               }}
             >
               {/* eslint-disable-next-line */}
