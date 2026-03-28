@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { ImageResponse } from 'next/og';
 import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import { CHAIN_ID } from '@/lib/consts';
@@ -77,7 +78,6 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const { ImageResponse } = await import('next/og');
   const [archivoFontData, spectralFontData] = await Promise.all([
     getArchivoFont(),
     getSpectralFont(),

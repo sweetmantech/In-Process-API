@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { ImageResponse } from 'next/og';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
 import getArtistProfile from '@/lib/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
@@ -52,7 +53,6 @@ export async function GET(req: NextRequest) {
     IMAGE_TIMEOUT_MS
   );
 
-  const { ImageResponse } = await import('next/og');
   const archivoFontData = await getArchivoFont();
   const artistName = username || truncateAddress(normalizedAddress);
 
