@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { ImageResponse } from '@vercel/og';
 import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 import { Address } from 'viem';
 import getImageMetadata from '@/lib/og/getImageMetadata';
@@ -46,7 +47,6 @@ export async function GET(req: NextRequest) {
     artistAddress?.toLowerCase() as Address
   );
 
-  const { ImageResponse } = await import('@vercel/og');
   const [archivoFontData, spectralFontData] = await Promise.all([
     archivoFont,
     spectralFont,
