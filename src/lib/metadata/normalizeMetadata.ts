@@ -1,6 +1,5 @@
 import type { TokenMetadataJson } from '@/lib/protocolSdk/ipfs/types';
 
-type NormalizedArtwork = { uri: string; mimeType: string };
 type NormalizedAttribute = { trait_type: string; value: string | string[] };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,24 +7,19 @@ const normalizeMetadata = (
   raw: any
 ): Omit<TokenMetadataJson, 'attributes'> & {
   attributes?: NormalizedAttribute[];
-  artwork?: NormalizedArtwork;
 } => {
-  // Resolve content: prefer explicit content field, fall back to mimeType + animation_url (e.g. Catalog format)
+  // Resolve audio URI: prefer animation_url (if non-empty), fall back to losslessAudio
+  const audioUri: string | undefined =
+    raw.animation_url || raw.losslessAudio || undefined;
+
+  // Resolve content: prefer explicit content field, fall back to mimeType + audioUri
   let content: { mime: string; uri: string } | null = raw.content ?? null;
-  if (!content && raw.mimeType && raw.animation_url) {
-    content = { mime: raw.mimeType, uri: raw.animation_url };
+  if (!content && raw.mimeType && audioUri) {
+    content = { mime: raw.mimeType, uri: audioUri };
   }
 
   // Resolve image: prefer explicit image field, fall back to artwork.uri
   const image: string | undefined = raw.image ?? raw.artwork?.uri ?? undefined;
-
-  // Resolve artwork: prefer explicit artwork object, fall back to image uri
-  let artwork: NormalizedArtwork | undefined;
-  if (raw.artwork?.uri && raw.artwork?.mimeType) {
-    artwork = { uri: raw.artwork.uri, mimeType: raw.artwork.mimeType };
-  } else if (image) {
-    artwork = { uri: image, mimeType: 'image/jpeg' };
-  }
 
   // Resolve attributes: start from raw attributes, then inject genre as Genres
   const attributes: NormalizedAttribute[] = [...(raw.attributes ?? [])];
@@ -39,11 +33,8 @@ const normalizeMetadata = (
     ...(raw.external_url !== undefined && { external_url: raw.external_url }),
     ...(raw.description !== undefined && { description: raw.description }),
     ...(image !== undefined && { image }),
-    ...(raw.animation_url !== undefined && {
-      animation_url: raw.animation_url,
-    }),
+    ...(audioUri !== undefined && { animation_url: audioUri }),
     ...(content !== null && { content }),
-    ...(artwork !== undefined && { artwork }),
     ...(attributes.length > 0 && { attributes }),
   };
 };
