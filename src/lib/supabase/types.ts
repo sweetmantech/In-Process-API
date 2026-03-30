@@ -825,7 +825,7 @@ export type Database = {
       };
     };
     Enums: {
-      collection_protocol: 'in_process' | 'catalog';
+      collection_protocol: 'in_process' | 'catalog' | 'sound.xyz';
       message_client: 'telegram' | 'sms' | 'web' | 'api';
       message_role: 'user' | 'assistant';
     };
@@ -961,7 +961,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      collection_protocol: ['in_process', 'catalog'],
+      collection_protocol: ['in_process', 'catalog', 'sound.xyz'],
       message_client: ['telegram', 'sms', 'web', 'api'],
       message_role: ['user', 'assistant'],
     },
