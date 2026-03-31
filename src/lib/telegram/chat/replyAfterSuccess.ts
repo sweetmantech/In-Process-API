@@ -4,29 +4,6 @@ import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
 
 const COLLAGE_DELAY_MS = 10_000;
 
-const sendCollagePhoto = async (
-  chatId: string,
-  photo: Buffer
-): Promise<void> => {
-  const token = process.env.TELEGRAM_CHAT_BOT_TOKEN;
-  if (!token) throw new Error('TELEGRAM_CHAT_BOT_TOKEN is not set');
-  const formData = new FormData();
-  formData.append('chat_id', chatId);
-  formData.append(
-    'photo',
-    new Blob([photo.buffer as ArrayBuffer], { type: 'image/png' }),
-    'collage.png'
-  );
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-    method: 'POST',
-    body: formData,
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`sendPhoto failed: ${body}`);
-  }
-};
-
 const replyAfterSuccess = async (
   thread: Thread,
   contractAddress: string,
@@ -44,7 +21,15 @@ const replyAfterSuccess = async (
     ? await fetchArtistCollageBuffer(artistAddress)
     : null;
   if (collage) {
-    await sendCollagePhoto(thread.channelId, collage);
+    const formData = new FormData();
+    formData.append('chat_id', thread.channelId);
+    formData.append(
+      'photo',
+      new Blob([collage.buffer as ArrayBuffer], { type: 'image/png' }),
+      'collage.png'
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (thread.adapter as any).telegramFetch('sendPhoto', formData);
   }
 };
 

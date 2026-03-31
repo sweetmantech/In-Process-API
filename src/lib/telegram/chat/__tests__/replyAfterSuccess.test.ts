@@ -18,18 +18,16 @@ const COLLAGE_BUFFER = Buffer.from('fake-image');
 const makeThread = (channelId = '-100123456') => ({
   post: vi.fn().mockResolvedValue(undefined),
   channelId,
+  adapter: { telegramFetch: vi.fn().mockResolvedValue({}) },
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
-  vi.stubEnv('TELEGRAM_CHAT_BOT_TOKEN', 'test-token');
-  global.fetch = vi.fn().mockResolvedValue({ ok: true });
 });
 
 afterEach(() => {
   vi.useRealTimers();
-  vi.unstubAllEnvs();
 });
 
 describe('replyAfterSuccess', () => {
@@ -66,9 +64,9 @@ describe('replyAfterSuccess', () => {
     await promise;
 
     expect(thread.post).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith(
-      'https://api.telegram.org/bottest-token/sendPhoto',
-      expect.objectContaining({ method: 'POST' })
+    expect(thread.adapter.telegramFetch).toHaveBeenCalledWith(
+      'sendPhoto',
+      expect.any(FormData)
     );
   });
 
@@ -86,7 +84,7 @@ describe('replyAfterSuccess', () => {
     await promise;
 
     expect(thread.post).toHaveBeenCalledOnce();
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(thread.adapter.telegramFetch).not.toHaveBeenCalled();
   });
 
   it('skips collage fetch and posts only once when collageIncluded is false', async () => {
@@ -105,6 +103,6 @@ describe('replyAfterSuccess', () => {
 
     expect(fetchArtistCollageBuffer).not.toHaveBeenCalled();
     expect(thread.post).toHaveBeenCalledOnce();
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(thread.adapter.telegramFetch).not.toHaveBeenCalled();
   });
 });
