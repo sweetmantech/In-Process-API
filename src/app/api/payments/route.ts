@@ -1,79 +1,18 @@
-import { NextRequest } from 'next/server';
-import { selectPayments } from '@/lib/supabase/in_process_payments/selectPayments';
-import { Address } from 'viem';
-import getSmartWalletAddress from '@/lib/smartwallets/getSmartWalletAddress';
+import { NextRequest, NextResponse } from 'next/server';
+import validatePaymentsQuery from '@/lib/payments/validatePaymentsQuery';
+import getPaymentsHandler from '@/lib/payments/getPaymentsHandler';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-
-  // Parse query parameters
-  const limit = Math.min(Number(searchParams.get('limit')) || 20, 100);
-  const page = Number(searchParams.get('page')) || 1;
-  const artist = searchParams.get('artist')?.toLowerCase() || undefined;
-  const collector = searchParams.get('collector')?.toLowerCase() || undefined;
-  const chainId = searchParams.get('chainId')
-    ? Number(searchParams.get('chainId'))
-    : undefined;
-  const audioOnly = searchParams.get('audioOnly') === 'true';
-  const mime = audioOnly ? 'audio/%' : undefined;
-
   try {
-    const collectors: string[] = [];
-    if (collector) {
-      const collectorSmartWallet = await getSmartWalletAddress(
-        collector as Address
-      );
-      collectors.push(collectorSmartWallet);
-      collectors.push(collector);
-    }
-
-    const artists: string[] = [];
-    if (artist) {
-      const artistSmartWallet = await getSmartWalletAddress(artist as Address);
-      artists.push(artistSmartWallet);
-      artists.push(artist);
-    }
-
-    const { data, count, error } = await selectPayments({
-      limit,
-      page,
-      artists,
-      collectors,
-      chainId,
-      mime,
-    });
-
-    if (error) {
-      return Response.json(
-        {
-          status: 'error',
-          message: error.message,
-        },
-        { status: 500 }
-      );
-    }
-
-    const totalCount = count || 0;
-    const totalPages = Math.ceil(totalCount / limit);
-
-    return Response.json({
-      status: 'success',
-      payments: data || [],
-      pagination: {
-        total_count: totalCount,
-        page,
-        limit,
-        total_pages: totalPages,
-      },
-    });
-  } catch (error) {
-    console.error('Error selecting payments:', error);
+    const validated = validatePaymentsQuery(req);
+    if (validated instanceof NextResponse) return validated;
+    return await getPaymentsHandler(validated);
+  } catch (e: any) {
     return Response.json(
-      {
-        status: 'error',
-        message: 'Internal server error',
-      },
+      { status: 'error', message: e?.message ?? 'Failed to fetch payments' },
       { status: 500 }
     );
   }
 }
+
+export const dynamic = 'force-dynamic';
