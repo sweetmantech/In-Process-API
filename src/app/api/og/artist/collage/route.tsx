@@ -43,12 +43,12 @@ export async function GET(req: NextRequest) {
   const totalMoments = (timelineData?.pagination.total_pages ?? 1) * 100;
 
   // newest-first: prioritise fetching recent images; helper returns oldest-first for display
-  const imageUrls = moments
+  const imageInputs = moments
     .filter((m) => m.metadata?.image)
-    .map((m) => m.metadata!.image);
+    .map((m) => ({ imageUrl: m.metadata!.image, createdAt: m.created_at }));
 
-  const imageDataUrls = await collectCollageImages(
-    imageUrls,
+  const collageImages = await collectCollageImages(
+    imageInputs,
     MAX_IMAGES,
     IMAGE_TIMEOUT_MS
   );
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
 
   return new ImageResponse(
     <CollageGrid
-      imageDataUrls={imageDataUrls}
+      images={collageImages}
       artistName={artistName}
       totalMoments={totalMoments}
       backgroundUrl={`${SITE_ORIGINAL_URL}/bg-gray.png`}
