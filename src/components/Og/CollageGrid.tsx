@@ -1,22 +1,34 @@
+import type { CollageImageEntry } from '@/lib/og/collectCollageImages';
+
 const COLS = 7;
 const SPROCKET_AREA_H = 26;
 const SPROCKET_HOLE_W = 28;
 const SPROCKET_HOLE_H = 18;
 const IMAGE_BORDER = 2;
+const DATE_AREA_H = 18;
 /** neutral-800 — matches FilmPlaceholder strip colour */
 const FILM_COLOR = '#262626';
 /** neutral-600/40 — matches FilmPlaceholder sprocket hole colour */
 const HOLE_COLOR = 'rgba(82, 82, 82, 0.4)';
 
+const formatDate = (iso: string): string => {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 const CollageGrid = ({
-  imageDataUrls,
+  images,
   artistName,
   totalMoments,
   backgroundUrl,
   width = 700,
   height = 350,
 }: {
-  imageDataUrls: string[];
+  images: CollageImageEntry[];
   artistName: string;
   totalMoments?: number;
   backgroundUrl?: string;
@@ -31,7 +43,7 @@ const CollageGrid = ({
       }
     : { backgroundColor: '#e8e8e4' };
 
-  if (imageDataUrls.length === 0) {
+  if (images.length === 0) {
     return (
       <div
         style={{
@@ -56,7 +68,7 @@ const CollageGrid = ({
   const stripW = cellW * COLS;
   // Image inside the bordered cell
   const imgW = cellW - IMAGE_BORDER * 2;
-  const imgH = cellH - IMAGE_BORDER * 2;
+  const imgH = cellH - IMAGE_BORDER * 2 - DATE_AREA_H;
 
   const sprocketRow = (
     <div
@@ -121,13 +133,14 @@ const CollageGrid = ({
             backgroundColor: FILM_COLOR,
           }}
         >
-          {imageDataUrls.map((url, i) => (
+          {images.map(({ url, createdAt }, i) => (
             <div
               key={i}
               style={{
                 width: cellW,
                 height: cellH,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderLeft: `${IMAGE_BORDER}px solid ${HOLE_COLOR}`,
@@ -145,6 +158,19 @@ const CollageGrid = ({
                   objectFit: 'cover',
                 }}
               />
+              <div
+                style={{
+                  height: DATE_AREA_H,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'Archivo',
+                  fontSize: 9,
+                  color: '#a3a3a3',
+                }}
+              >
+                {formatDate(createdAt)}
+              </div>
             </div>
           ))}
         </div>
