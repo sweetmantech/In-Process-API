@@ -21,16 +21,16 @@ const replyAfterSuccess = async (
     ? await fetchArtistCollageBuffer(artistAddress)
     : null;
   if (collage) {
-    await thread.post({
-      markdown: '',
-      files: [
-        {
-          data: collage,
-          filename: `collage you have ever posted.png`,
-          mimeType: 'image/png',
-        },
-      ],
-    });
+    const formData = new FormData();
+    formData.append('chat_id', thread.channelId);
+    formData.append(
+      'photo',
+      new Blob([collage.buffer as ArrayBuffer], { type: 'image/png' }),
+      'collage.png'
+    );
+    formData.append('caption', '🎨 collage you have ever posted 🎨');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (thread.adapter as any).telegramFetch('sendPhoto', formData);
   }
 };
 
