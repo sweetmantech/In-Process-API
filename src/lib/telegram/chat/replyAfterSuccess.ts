@@ -44,8 +44,7 @@ const replyAfterSuccess = async (
     ? await fetchArtistCollageBuffer(artistAddress)
     : null;
   if (collage) {
-    const chatId = thread.channelId.split(':')[1];
-    await sendCollagePhoto(chatId, collage);
+    await sendCollagePhoto(thread.channelId, collage);
   }
 };
 

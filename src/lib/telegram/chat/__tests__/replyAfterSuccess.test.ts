@@ -15,7 +15,7 @@ import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
 const ARTIST_ADDRESS = '0xArtist';
 const COLLAGE_BUFFER = Buffer.from('fake-image');
 
-const makeThread = (channelId = 'telegram:-100123456') => ({
+const makeThread = (channelId = '-100123456') => ({
   post: vi.fn().mockResolvedValue(undefined),
   channelId,
 });
@@ -54,7 +54,7 @@ describe('replyAfterSuccess', () => {
 
   it('sends the collage as a photo via sendPhoto API when available', async () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(COLLAGE_BUFFER);
-    const thread = makeThread('telegram:-100123456');
+    const thread = makeThread('-100123456');
 
     const promise = replyAfterSuccess(
       thread as never,
