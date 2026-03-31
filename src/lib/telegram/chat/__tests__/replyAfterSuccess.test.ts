@@ -15,21 +15,25 @@ import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
 const ARTIST_ADDRESS = '0xArtist';
 const COLLAGE_BUFFER = Buffer.from('fake-image');
 
-const makeThread = () => ({
+const makeThread = (channelId = 'telegram:-100123456') => ({
   post: vi.fn().mockResolvedValue(undefined),
+  channelId,
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
+  vi.stubEnv('TELEGRAM_CHAT_BOT_TOKEN', 'test-token');
+  global.fetch = vi.fn().mockResolvedValue({ ok: true });
 });
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllEnvs();
 });
 
 describe('replyAfterSuccess', () => {
-  it('posts the success message immediately', async () => {
+  it('posts the success message after the delay', async () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(null);
     const thread = makeThread();
 
@@ -48,9 +52,9 @@ describe('replyAfterSuccess', () => {
     );
   });
 
-  it('posts the collage as a second message after the delay when available', async () => {
+  it('sends the collage as a photo via sendPhoto API when available', async () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(COLLAGE_BUFFER);
-    const thread = makeThread();
+    const thread = makeThread('telegram:-100123456');
 
     const promise = replyAfterSuccess(
       thread as never,
@@ -61,21 +65,14 @@ describe('replyAfterSuccess', () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    expect(thread.post).toHaveBeenCalledTimes(2);
-    expect(thread.post).toHaveBeenNthCalledWith(2, {
-      markdown: '🎨 Your collage',
-      attachments: [
-        {
-          data: COLLAGE_BUFFER,
-          name: `collage you have ever posted.png`,
-          mimeType: 'image/png',
-          type: 'image',
-        },
-      ],
-    });
+    expect(thread.post).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.telegram.org/bottest-token/sendPhoto',
+      expect.objectContaining({ method: 'POST' })
+    );
   });
 
-  it('posts only once when collage is unavailable', async () => {
+  it('does not call sendPhoto when collage is unavailable', async () => {
     vi.mocked(fetchArtistCollageBuffer).mockResolvedValue(null);
     const thread = makeThread();
 
@@ -89,6 +86,7 @@ describe('replyAfterSuccess', () => {
     await promise;
 
     expect(thread.post).toHaveBeenCalledOnce();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('skips collage fetch and posts only once when collageIncluded is false', async () => {
@@ -107,5 +105,6 @@ describe('replyAfterSuccess', () => {
 
     expect(fetchArtistCollageBuffer).not.toHaveBeenCalled();
     expect(thread.post).toHaveBeenCalledOnce();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });
