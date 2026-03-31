@@ -670,6 +670,7 @@ export type Database = {
           price_per_token: number;
           sale_end: number;
           sale_start: number;
+          schedule_num: number | null;
         };
         Insert: {
           created_at?: string;
@@ -681,6 +682,7 @@ export type Database = {
           price_per_token: number;
           sale_end: number;
           sale_start: number;
+          schedule_num?: number | null;
         };
         Update: {
           created_at?: string;
@@ -692,12 +694,13 @@ export type Database = {
           price_per_token?: number;
           sale_end?: number;
           sale_start?: number;
+          schedule_num?: number | null;
         };
         Relationships: [
           {
             foreignKeyName: 'in_process_sales_moment_fkey';
             columns: ['moment'];
-            isOneToOne: true;
+            isOneToOne: false;
             referencedRelation: 'in_process_moments';
             referencedColumns: ['id'];
           },
