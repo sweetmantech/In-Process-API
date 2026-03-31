@@ -23,11 +23,12 @@ const replyAfterSuccess = async (
   if (collage) {
     await thread.post({
       markdown: '',
-      files: [
+      attachments: [
         {
           data: collage,
-          filename: `collage you have ever posted.png`,
+          name: `collage you have ever posted.png`,
           mimeType: 'image/png',
+          type: 'image',
         },
       ],
     });
