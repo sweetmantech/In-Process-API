@@ -13,7 +13,11 @@ const HOLE_COLOR = 'rgba(82, 82, 82, 0.4)';
 
 const formatDate = (iso: string): string => {
   const d = new Date(iso);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 };
 
 const CollageGrid = ({
