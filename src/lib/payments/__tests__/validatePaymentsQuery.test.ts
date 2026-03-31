@@ -73,15 +73,21 @@ describe('validatePaymentsQuery', () => {
 
   describe('param parsing', () => {
     it('parses artist param', () => {
-      const result = validatePaymentsQuery(makeRequest({ artist: '0xartist' }));
-      expect((result as any).artist).toBe('0xartist');
+      const result = validatePaymentsQuery(
+        makeRequest({ artist: '0xaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaA' })
+      );
+      expect((result as any).artist).toBe(
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      );
     });
 
     it('parses collector param', () => {
       const result = validatePaymentsQuery(
-        makeRequest({ collector: '0xcollector' })
+        makeRequest({ collector: '0xbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbB' })
       );
-      expect((result as any).collector).toBe('0xcollector');
+      expect((result as any).collector).toBe(
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+      );
     });
 
     it('parses chainId as number', () => {

@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     return await getPaymentsHandler(validated);
   } catch (e: any) {
     return Response.json(
-      { message: e?.message ?? 'Failed to fetch payments' },
+      { status: 'error', message: e?.message ?? 'Failed to fetch payments' },
       { status: 500 }
     );
   }
