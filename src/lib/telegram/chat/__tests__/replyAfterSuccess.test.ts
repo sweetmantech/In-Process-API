@@ -64,11 +64,12 @@ describe('replyAfterSuccess', () => {
     expect(thread.post).toHaveBeenCalledTimes(2);
     expect(thread.post).toHaveBeenNthCalledWith(2, {
       markdown: '',
-      files: [
+      attachments: [
         {
           data: COLLAGE_BUFFER,
-          filename: `collage you have ever posted.png`,
+          name: `collage you have ever posted.png`,
           mimeType: 'image/png',
+          type: 'image',
         },
       ],
     });
