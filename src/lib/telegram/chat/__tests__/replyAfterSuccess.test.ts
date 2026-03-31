@@ -63,7 +63,7 @@ describe('replyAfterSuccess', () => {
 
     expect(thread.post).toHaveBeenCalledTimes(2);
     expect(thread.post).toHaveBeenNthCalledWith(2, {
-      markdown: '',
+      markdown: '🎨 Your collage',
       attachments: [
         {
           data: COLLAGE_BUFFER,

@@ -22,7 +22,7 @@ const replyAfterSuccess = async (
     : null;
   if (collage) {
     await thread.post({
-      markdown: '',
+      markdown: '🎨 Your collage',
       attachments: [
         {
           data: collage,
