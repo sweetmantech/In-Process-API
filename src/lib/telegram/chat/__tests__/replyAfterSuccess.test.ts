@@ -64,10 +64,13 @@ describe('replyAfterSuccess', () => {
     await promise;
 
     expect(thread.post).toHaveBeenCalledTimes(1);
-    expect(thread.adapter.telegramFetch).toHaveBeenCalledWith(
-      'sendPhoto',
-      expect.any(FormData)
-    );
+    const [method, formData] = thread.adapter.telegramFetch.mock.calls[0] as [
+      string,
+      FormData,
+    ];
+    expect(method).toBe('sendPhoto');
+    expect(formData.get('chat_id')).toBe('-100123456');
+    expect(formData.get('caption')).toBe('🎨 collage you have ever posted 🎨');
   });
 
   it('does not call sendPhoto when collage is unavailable', async () => {
