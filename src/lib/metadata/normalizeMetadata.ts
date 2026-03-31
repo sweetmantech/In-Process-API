@@ -1,25 +1,40 @@
+import fetchUri from '@/lib/arweave/fetchUri';
 import type { TokenMetadataJson } from '@/lib/protocolSdk/ipfs/types';
 
 type NormalizedAttribute = { trait_type: string; value: string | string[] };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const normalizeMetadata = (
+const normalizeMetadata = async (
   raw: any
-): Omit<TokenMetadataJson, 'attributes'> & {
-  attributes?: NormalizedAttribute[];
-} => {
-  // Resolve audio URI: prefer animation_url (if non-empty), fall back to losslessAudio
-  const audioUri: string | undefined =
-    raw.animation_url || raw.losslessAudio || undefined;
-
-  // Resolve content: prefer explicit content field, fall back to mimeType + audioUri
-  let content: { mime: string; uri: string } | null = raw.content ?? null;
-  if (!content && raw.mimeType && audioUri) {
-    content = { mime: raw.mimeType, uri: audioUri };
+): Promise<
+  Omit<TokenMetadataJson, 'attributes'> & {
+    attributes?: NormalizedAttribute[];
   }
+> => {
+  // Resolve animation URI: prefer animation_url (if non-empty), fall back to losslessAudio
+  const animationUri: string | undefined =
+    raw.animation_url || raw.losslessAudio || undefined;
 
   // Resolve image: prefer explicit image field, fall back to artwork.uri
   const image: string | undefined = raw.image ?? raw.artwork?.uri ?? undefined;
+
+  // Resolve content: prefer explicit content field, fall back to mimeType + animationUri,
+  // then fall back to fetching animationUri (or imageUri) HEAD to detect mime from content-type header
+  const contentUri = animationUri ?? image;
+  let content: { mime: string; uri: string } | null = raw.content ?? null;
+  if (!content && contentUri) {
+    if (raw.mimeType) content = { mime: raw.mimeType, uri: contentUri };
+    else
+      try {
+        const res = await fetchUri(contentUri, { method: 'HEAD' });
+        const mime = res.headers.get('content-type');
+        if (mime) {
+          content = { mime: mime.split(';')[0].trim(), uri: contentUri };
+        }
+      } catch {
+        // leave content as null if fetch fails
+      }
+  }
 
   // Resolve attributes: start from raw attributes, then inject genre as Genres
   const attributes: NormalizedAttribute[] = [...(raw.attributes ?? [])];
@@ -33,7 +48,7 @@ const normalizeMetadata = (
     ...(raw.external_url !== undefined && { external_url: raw.external_url }),
     ...(raw.description !== undefined && { description: raw.description }),
     ...(image !== undefined && { image }),
-    ...(audioUri !== undefined && { animation_url: audioUri }),
+    ...(animationUri !== undefined && { animation_url: animationUri }),
     ...(content !== null && { content }),
     ...(attributes.length > 0 && { attributes }),
   };

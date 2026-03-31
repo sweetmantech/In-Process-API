@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 
   const rawMetadata = await fetchTokenMetadata(uri, customGateway);
   if (!rawMetadata) throw Error('failed to get token metadata');
-  const metadata = normalizeMetadata(rawMetadata);
+  const metadata = await normalizeMetadata(rawMetadata);
 
   const isWriting = metadata.content?.mime === 'text/plain';
 

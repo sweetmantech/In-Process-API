@@ -21,12 +21,12 @@ export async function GET(req: NextRequest) {
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('application/json')) {
         const data = await response.json();
-        return Response.json(normalizeMetadata(data));
+        return Response.json(await normalizeMetadata(data));
       }
       const text = await response.text();
       try {
         const data = JSON.parse(text);
-        return Response.json(normalizeMetadata(data));
+        return Response.json(await normalizeMetadata(data));
       } catch {
         return Response.json(
           { message: 'URI did not return JSON' },

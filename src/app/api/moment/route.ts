@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       saleConfig,
       protocol: collection?.protocol ?? null,
       momentAdmins,
-      metadata: metadata ? normalizeMetadata(metadata) : null,
+      metadata: metadata ? await normalizeMetadata(metadata) : null,
     });
   } catch (error: any) {
     console.error('Error fetching moment info:', error);
