@@ -1,7 +1,7 @@
 alter table "public"."in_process_sales"
   add column "schedule_num" integer default null;
 
-alter table "public"."in_process_sales" drop constraint "in_process_sales_moment_unique";
+alter table "public"."in_process_sales" drop constraint if exists "in_process_sales_moment_unique";
 
 drop index if exists "public"."in_process_sales_moment_unique";
 
