@@ -5,7 +5,8 @@ const validateOAuthGet = async (
   req: NextRequest
 ): Promise<NextResponse | { artistAddress: string }> => {
   const authResult = await authMiddleware(req);
-  if (authResult instanceof NextResponse) return authResult;
+  if (authResult instanceof NextResponse)
+    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   return { artistAddress: authResult.artistAddress };
 };
 

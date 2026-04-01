@@ -23,7 +23,7 @@ describe('validateOAuthGet', () => {
     expect(result).toEqual({ artistAddress: '0xabc' });
   });
 
-  it('returns NextResponse when auth fails', async () => {
+  it('returns 403 when auth fails', async () => {
     const authError = NextResponse.json(
       { message: 'Unauthorized' },
       { status: 401 }
@@ -33,6 +33,6 @@ describe('validateOAuthGet', () => {
     const result = await validateOAuthGet(makeRequest());
 
     expect(result).toBeInstanceOf(NextResponse);
-    expect((result as NextResponse).status).toBe(401);
+    expect((result as NextResponse).status).toBe(403);
   });
 });
