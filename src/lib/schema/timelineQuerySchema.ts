@@ -21,23 +21,15 @@ const timelineQuerySchema = z
       .string()
       .optional()
       .transform((v) => v === 'true'),
-    audioOnly: z
-      .string()
-      .optional()
-      .transform((v) => v === 'true'),
     content_type: z.string().optional(),
     period: z.string().optional(),
     channel: z.string().optional(),
     type: z.enum(['mutual', 'default']).optional(),
   })
-  .transform(({ chain_id, audioOnly, content_type, ...rest }) => ({
+  .transform(({ chain_id, content_type, ...rest }) => ({
     ...rest,
     chainId: chain_id,
-    mime: audioOnly
-      ? 'audio/%'
-      : content_type
-        ? `${content_type}/%`
-        : undefined,
+    mime: content_type ? `${content_type}/%` : undefined,
   }));
 
 export default timelineQuerySchema;

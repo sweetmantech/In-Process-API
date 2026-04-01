@@ -9,15 +9,10 @@ const makeRequest = (params: Record<string, string> = {}) => {
 };
 
 describe('validateTimelineQuery', () => {
-  describe('mime (content_type / audioOnly)', () => {
-    it('returns undefined mime when neither audioOnly nor content_type provided', () => {
+  describe('mime (content_type)', () => {
+    it('returns undefined mime when content_type not provided', () => {
       const result = validateTimelineQuery(makeRequest());
       expect((result as any).mime).toBeUndefined();
-    });
-
-    it('returns "audio/%" when audioOnly=true', () => {
-      const result = validateTimelineQuery(makeRequest({ audioOnly: 'true' }));
-      expect((result as any).mime).toBe('audio/%');
     });
 
     it('returns "video/%" when content_type=video', () => {
@@ -32,18 +27,6 @@ describe('validateTimelineQuery', () => {
         makeRequest({ content_type: 'image' })
       );
       expect((result as any).mime).toBe('image/%');
-    });
-
-    it('audioOnly=true takes priority over content_type', () => {
-      const result = validateTimelineQuery(
-        makeRequest({ audioOnly: 'true', content_type: 'video' })
-      );
-      expect((result as any).mime).toBe('audio/%');
-    });
-
-    it('returns undefined mime when audioOnly=false and content_type not provided', () => {
-      const result = validateTimelineQuery(makeRequest({ audioOnly: 'false' }));
-      expect((result as any).mime).toBeUndefined();
     });
   });
 
