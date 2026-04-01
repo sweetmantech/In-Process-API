@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authMiddleware } from '@/authMiddleware';
-import getArtistProfile from '@/lib/getArtistProfile';
+import validateOAuthGet from '@/lib/oauth/validateOAuthGet';
+import oauthHandler from '@/lib/oauth/oauthHandler';
 
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
-    if (authResult instanceof NextResponse) return authResult;
-    const { artistAddress } = authResult;
-    const profile = await getArtistProfile(artistAddress.toLowerCase());
-    return NextResponse.json({ artistAddress, profile });
+    const validated = await validateOAuthGet(req);
+    if (validated instanceof NextResponse) return validated;
+    return oauthHandler(validated.artistAddress);
   } catch (e: any) {
+    console.error(e);
     return NextResponse.json(
-      { message: e?.message ?? 'Failed' },
+      { message: 'Internal server error' },
       { status: 500 }
     );
   }
