@@ -53,6 +53,13 @@ const cr1155Abi = [
     ],
     outputs: [],
   },
+  {
+    name: 'updateContractURI',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [{ name: '_uri', type: 'string' }],
+    outputs: [],
+  },
 ] as const;
 
 export default cr1155Abi;

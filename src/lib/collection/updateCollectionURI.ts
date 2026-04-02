@@ -1,5 +1,4 @@
 import { Hash } from 'viem';
-import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import {
@@ -29,9 +28,11 @@ export async function updateCollectionURI({
   );
 
   // Send the transaction and wait for receipt using the helper
+  const network = collection.chainId === 84532 ? 'base-sepolia' : 'base';
+
   const transaction = await sendUserOperation({
     smartAccount,
-    network: IS_TESTNET ? 'base-sepolia' : 'base',
+    network,
     calls: [updateCollectionURICall],
   });
 
@@ -43,6 +44,6 @@ export async function updateCollectionURI({
 
   return {
     hash: transaction.transactionHash as Hash,
-    chainId: CHAIN_ID,
+    chainId: collection.chainId,
   };
 }
