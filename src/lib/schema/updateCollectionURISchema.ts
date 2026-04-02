@@ -1,16 +1,6 @@
 import { z } from 'zod';
-import { Address, isAddress } from 'viem';
+import { updateCollectionBaseSchema } from './updateCollectionBaseSchema';
 
-export const updateCollectionURISchema = z.object({
-  collection: z.object({
-    address: z.custom<Address>(
-      (val) => typeof val === 'string' && isAddress(val),
-      {
-        message: 'Invalid Ethereum address',
-      }
-    ),
-    chainId: z.number(),
-  }),
-  newUri: z.string().min(1, 'URI is required'),
+export const updateCollectionURISchema = updateCollectionBaseSchema.extend({
   newCollectionName: z.string().min(1, 'Collection name is required'),
 });
