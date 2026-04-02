@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { updateCollectionBaseSchema } from '@/lib/schema/updateCollectionBaseSchema';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import cr1155Abi from '@/lib/abi/cr1155Abi';
 
 type UpdateCatalogCollectionMetadataInput = z.infer<
@@ -22,6 +21,8 @@ const updateCatalogCollectionMetadataHandler = async ({
     address: artistAddress as Address,
   });
 
+  const network = collection.chainId === 84532 ? 'base-sepolia' : 'base';
+
   const call = {
     to: collection.address,
     data: encodeFunctionData({
@@ -33,13 +34,13 @@ const updateCatalogCollectionMetadataHandler = async ({
 
   const transaction = await sendUserOperation({
     smartAccount,
-    network: IS_TESTNET ? 'base-sepolia' : 'base',
+    network,
     calls: [call],
   });
 
   return NextResponse.json({
     hash: transaction.transactionHash as Hash,
-    chainId: CHAIN_ID,
+    chainId: collection.chainId,
   });
 };
 

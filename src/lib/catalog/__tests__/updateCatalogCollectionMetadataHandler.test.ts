@@ -42,11 +42,26 @@ beforeEach(() => {
 });
 
 describe('updateCatalogCollectionMetadataHandler', () => {
-  it('returns hash and chainId on success', async () => {
+  it('returns hash and chainId from request on success', async () => {
     const res = await updateCatalogCollectionMetadataHandler(baseInput);
     const body = await res.json();
     expect(body.hash).toBe(TX_HASH);
-    expect(body.chainId).toBeDefined();
+    expect(body.chainId).toBe(8453);
+  });
+
+  it('uses base-sepolia network when chainId is 84532', async () => {
+    await updateCatalogCollectionMetadataHandler({
+      ...baseInput,
+      collection: { address: COLLECTION_ADDRESS, chainId: 84532 },
+    });
+    expect(vi.mocked(sendUserOperation).mock.calls[0][0].network).toBe(
+      'base-sepolia'
+    );
+  });
+
+  it('uses base network when chainId is 8453', async () => {
+    await updateCatalogCollectionMetadataHandler(baseInput);
+    expect(vi.mocked(sendUserOperation).mock.calls[0][0].network).toBe('base');
   });
 
   it('creates smart wallet for the artist', async () => {
