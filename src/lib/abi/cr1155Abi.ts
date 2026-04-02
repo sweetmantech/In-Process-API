@@ -43,6 +43,16 @@ const cr1155Abi = [
     ],
     outputs: [],
   },
+  {
+    name: 'updateTokenURI',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: '_tokenId', type: 'uint256' },
+      { name: '_uri', type: 'string' },
+    ],
+    outputs: [],
+  },
 ] as const;
 
 export default cr1155Abi;
