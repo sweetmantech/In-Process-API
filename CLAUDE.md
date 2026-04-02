@@ -197,6 +197,53 @@ const getArtistAddresses = async (socialWallets: string[]) => {
 - **Testnet:** Base Sepolia (chain ID 84532)
 - Toggle via `IS_TESTNET` env var
 
+### Catalog Protocol (CR1155)
+
+Custom ERC-1155 protocol by Catalog Records. Separate contract architecture from Zora.
+
+**Contract source:** `contracts/catalog/`
+
+**ABI:** `@/lib/abi/cr1155Abi.ts`
+
+**Key contracts:**
+
+- `CR1155Implementation` — ERC-1155 token contract (UUPS upgradeable)
+- `ICRMintController` / `USDCFixedPriceController` — minting/sale logic
+- `PermissionController` — permission management at token and contract level
+- `CRDelegator` — EIP-712 signature-based delegated transactions
+
+**Permission scopes (bit flags):**
+
+| Constant             | Value    | Description    |
+| -------------------- | -------- | -------------- |
+| `AUTH_SCOPE_OWNER`   | `1 << 0` | Contract owner |
+| `AUTH_SCOPE_ARTIST`  | `1 << 1` | Artist         |
+| `AUTH_SCOPE_MANAGER` | `1 << 2` | Manager        |
+
+Permissions are tracked at two levels: **contract-wide** (`contractPermissions[address]`) and **per-token** (`tokenPermissions[tokenId][address]`).
+
+**Key functions:**
+
+```solidity
+// Purchase a token (USDC payment)
+purchaseTokenWithValue(address _to, uint256 _tokenid, uint256 _amount, uint256 _value, address _ref0, address _ref1)
+
+// Update token metadata URI
+// Requires: token-level OWNER|ARTIST, or contract-level OWNER|ARTIST|MANAGER
+updateTokenURI(uint256 _tokenId, string calldata _uri)
+
+// Admin mint (free, artist/owner only)
+mintTokenAdmin(address _to, uint256 _tokenId, uint256 _amount, bytes calldata _data)
+```
+
+**Signature-based overloads:** Every write function has a `(bytes _data, bytes _signature, address _signer)` overload for platform-sponsored execution via `CRDelegator`.
+
+**`updateTokenURI` permission note:** The caller (smart wallet address) must hold `ARTIST` or `OWNER` scope on the token or contract. If the smart wallet was not granted permission at token creation time, the call reverts with `NonPermitted`.
+
+**Mint controller address:** `CATALOG_MINT_CONTROLLER` in `@/lib/consts.ts`
+
+**Payment currency:** USDC (`USDC_ADDRESS[CHAIN_ID]`)
+
 ## Path Aliases
 
 - `@/*` → `./src/*`
