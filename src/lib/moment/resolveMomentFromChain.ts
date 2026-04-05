@@ -1,24 +1,36 @@
 import { Moment, MomentAdvancedInfo } from '@/types/moment';
 import isCatalogContract from '@/lib/viem/isCatalogContract';
+import isSoundContract from '@/lib/viem/isSoundContract';
 import getCatalogInfo from '@/lib/viem/getCatalogInfo';
+import getSoundInfo from '@/lib/viem/getSoundInfo';
 import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
 import { convertOnChainSaleToApi } from '@/lib/sales/convertOnChainSaleToApi';
 
 const resolveMomentFromChain = async (
   moment: Moment
 ): Promise<MomentAdvancedInfo> => {
-  const isCatalog = await isCatalogContract(
-    moment.collectionAddress,
-    moment.chainId
-  );
+  const [isCatalog, isSound] = await Promise.all([
+    isCatalogContract(moment.collectionAddress, moment.chainId),
+    isSoundContract(moment.collectionAddress, moment.chainId),
+  ]);
 
   if (isCatalog) {
-    const { saleConfig, tokenUri } = await getCatalogInfo(moment);
+    const { owner, tokenUri } = await getCatalogInfo(moment);
     return {
       id: null,
       uri: tokenUri,
-      owner: moment.collectionAddress,
-      saleConfig,
+      owner,
+      saleConfig: null,
+    };
+  }
+
+  if (isSound) {
+    const { owner, tokenUri } = await getSoundInfo(moment);
+    return {
+      id: null,
+      uri: tokenUri,
+      owner,
+      saleConfig: null,
     };
   }
 
@@ -26,7 +38,7 @@ const resolveMomentFromChain = async (
   return {
     id: null,
     uri: tokenUri,
-    owner: owner as string,
+    owner,
     saleConfig: convertOnChainSaleToApi(saleConfig),
   };
 };

@@ -12,10 +12,16 @@ const resolveMomentFromDb = async (
   moment: Moment,
   dbMoment: DbMoment
 ): Promise<MomentAdvancedInfo> => {
-  const sale = await selectSale(dbMoment.id);
-  const saleConfig = sale
-    ? convertDatabaseSaleToApi(sale)
-    : await getOnChainSaleConfig(moment, dbMoment.collection.protocol);
+  const protocol = dbMoment.collection.protocol;
+  const isInProcess = protocol === 'in_process';
+
+  let saleConfig = null;
+  if (isInProcess) {
+    const sale = await selectSale(dbMoment.id);
+    saleConfig = sale
+      ? convertDatabaseSaleToApi(sale)
+      : await getOnChainSaleConfig(moment);
+  }
 
   return {
     id: dbMoment.id,

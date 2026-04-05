@@ -1,6 +1,5 @@
 import { getPublicClient } from '@/lib/viem/publicClient';
-import { MomentType, Moment, MomentSaleConfig } from '@/types/moment';
-import { Address, maxUint256 } from 'viem';
+import { Moment } from '@/types/moment';
 import cr1155Abi from '@/lib/abi/cr1155Abi';
 
 const getCatalogInfo = async (moment: Moment) => {
@@ -12,13 +11,7 @@ const getCatalogInfo = async (moment: Moment) => {
       {
         address: collectionAddress,
         abi: cr1155Abi,
-        functionName: 'tokenMintConfiguration',
-        args: [tokenId],
-      },
-      {
-        address: collectionAddress,
-        abi: cr1155Abi,
-        functionName: 'tokenPrice',
+        functionName: 'tokenInfo',
         args: [tokenId],
       },
       {
@@ -30,25 +23,17 @@ const getCatalogInfo = async (moment: Moment) => {
     ],
   });
 
-  const mintConfig = results[0]?.result as
-    | { pricePerToken: bigint; fundsRecipient: string }
+  const tokenData = results[0]?.result as
+    | {
+        artist: string;
+        contentHash: string;
+        uri: { arweave: string; regular: string };
+      }
     | undefined;
-  const tokenPrice = results[1]?.result as bigint | undefined;
-  const tokenUri = results[2]?.result as string | undefined;
-
-  const pricePerToken = tokenPrice ?? mintConfig?.pricePerToken ?? BigInt(0);
-
-  const saleConfig: MomentSaleConfig = {
-    pricePerToken: pricePerToken.toString(),
-    fundsRecipient: (mintConfig?.fundsRecipient ?? '0x0') as Address,
-    saleStart: 0,
-    saleEnd: Number(maxUint256.toString()),
-    maxTokensPerAddress: Number(maxUint256.toString()),
-    type: MomentType.Erc20Mint,
-  };
+  const tokenUri = results[1]?.result as string | undefined;
 
   return {
-    saleConfig,
+    owner: tokenData?.artist ?? null,
     tokenUri: tokenUri ?? null,
   };
 };

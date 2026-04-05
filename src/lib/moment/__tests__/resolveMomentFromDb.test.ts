@@ -21,11 +21,11 @@ const CREATOR = '0xcreator000000000000000000000000000000000' as const;
 
 const moment = { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 };
 
-const dbMoment = {
+const makeDbMoment = (protocol: string) => ({
   id: 'moment-uuid',
   uri: 'ar://metadata-hash',
-  collection: { creator: CREATOR, protocol: 'in_process' },
-} as any;
+  collection: { creator: CREATOR, protocol },
+});
 
 const mockSaleConfig = {
   pricePerToken: '1000',
@@ -41,51 +41,86 @@ describe('resolveMomentFromDb', () => {
     vi.clearAllMocks();
   });
 
-  it('uses DB sale when available', async () => {
-    const dbSale = { id: 'sale-1' };
-    vi.mocked(selectSale).mockResolvedValue(dbSale as any);
-    vi.mocked(convertDatabaseSaleToApi).mockReturnValue(mockSaleConfig as any);
+  describe('in_process protocol', () => {
+    const dbMoment = makeDbMoment('in_process');
 
-    const result = await resolveMomentFromDb(moment, dbMoment);
+    it('uses DB sale when available', async () => {
+      const dbSale = { id: 'sale-1' };
+      vi.mocked(selectSale).mockResolvedValue(dbSale as any);
+      vi.mocked(convertDatabaseSaleToApi).mockReturnValue(
+        mockSaleConfig as any
+      );
 
-    expect(selectSale).toHaveBeenCalledWith('moment-uuid');
-    expect(convertDatabaseSaleToApi).toHaveBeenCalledWith(dbSale);
-    expect(getOnChainSaleConfig).not.toHaveBeenCalled();
-    expect(result.saleConfig).toEqual(mockSaleConfig);
+      const result = await resolveMomentFromDb(moment, dbMoment);
+
+      expect(selectSale).toHaveBeenCalledWith('moment-uuid');
+      expect(convertDatabaseSaleToApi).toHaveBeenCalledWith(dbSale);
+      expect(getOnChainSaleConfig).not.toHaveBeenCalled();
+      expect(result.saleConfig).toEqual(mockSaleConfig);
+    });
+
+    it('falls back to on-chain when no DB sale', async () => {
+      vi.mocked(selectSale).mockResolvedValue(null);
+      vi.mocked(getOnChainSaleConfig).mockResolvedValue(mockSaleConfig as any);
+
+      const result = await resolveMomentFromDb(moment, dbMoment);
+
+      expect(getOnChainSaleConfig).toHaveBeenCalledWith(moment);
+      expect(convertDatabaseSaleToApi).not.toHaveBeenCalled();
+      expect(result.saleConfig).toEqual(mockSaleConfig);
+    });
+
+    it('returns id, uri, owner from dbMoment', async () => {
+      vi.mocked(selectSale).mockResolvedValue(null);
+      vi.mocked(getOnChainSaleConfig).mockResolvedValue(mockSaleConfig as any);
+
+      const result = await resolveMomentFromDb(moment, dbMoment);
+
+      expect(result.id).toBe('moment-uuid');
+      expect(result.uri).toBe('ar://metadata-hash');
+      expect(result.owner).toBe(CREATOR);
+    });
   });
 
-  it('falls back to on-chain when no DB sale', async () => {
-    vi.mocked(selectSale).mockResolvedValue(null);
-    vi.mocked(getOnChainSaleConfig).mockResolvedValue(mockSaleConfig as any);
+  describe('catalog protocol', () => {
+    const dbMoment = makeDbMoment('catalog');
 
-    const result = await resolveMomentFromDb(moment, dbMoment);
+    it('skips sale fetch entirely', async () => {
+      const result = await resolveMomentFromDb(moment, dbMoment);
 
-    expect(getOnChainSaleConfig).toHaveBeenCalledWith(moment, 'in_process');
-    expect(convertDatabaseSaleToApi).not.toHaveBeenCalled();
-    expect(result.saleConfig).toEqual(mockSaleConfig);
+      expect(selectSale).not.toHaveBeenCalled();
+      expect(getOnChainSaleConfig).not.toHaveBeenCalled();
+      expect(convertDatabaseSaleToApi).not.toHaveBeenCalled();
+      expect(result.saleConfig).toBeNull();
+    });
+
+    it('returns id, uri, owner from dbMoment', async () => {
+      const result = await resolveMomentFromDb(moment, dbMoment);
+
+      expect(result.id).toBe('moment-uuid');
+      expect(result.uri).toBe('ar://metadata-hash');
+      expect(result.owner).toBe(CREATOR);
+    });
   });
 
-  it('returns id, uri, owner from dbMoment', async () => {
-    vi.mocked(selectSale).mockResolvedValue(null);
-    vi.mocked(getOnChainSaleConfig).mockResolvedValue(mockSaleConfig as any);
+  describe('sound.xyz protocol', () => {
+    const dbMoment = makeDbMoment('sound.xyz');
 
-    const result = await resolveMomentFromDb(moment, dbMoment);
+    it('skips sale fetch entirely', async () => {
+      const result = await resolveMomentFromDb(moment, dbMoment);
 
-    expect(result.id).toBe('moment-uuid');
-    expect(result.uri).toBe('ar://metadata-hash');
-    expect(result.owner).toBe(CREATOR);
-  });
+      expect(selectSale).not.toHaveBeenCalled();
+      expect(getOnChainSaleConfig).not.toHaveBeenCalled();
+      expect(convertDatabaseSaleToApi).not.toHaveBeenCalled();
+      expect(result.saleConfig).toBeNull();
+    });
 
-  it('passes protocol to getOnChainSaleConfig', async () => {
-    const catalogDbMoment = {
-      ...dbMoment,
-      collection: { ...dbMoment.collection, protocol: 'catalog' },
-    };
-    vi.mocked(selectSale).mockResolvedValue(null);
-    vi.mocked(getOnChainSaleConfig).mockResolvedValue(mockSaleConfig as any);
+    it('returns id, uri, owner from dbMoment', async () => {
+      const result = await resolveMomentFromDb(moment, dbMoment);
 
-    await resolveMomentFromDb(moment, catalogDbMoment);
-
-    expect(getOnChainSaleConfig).toHaveBeenCalledWith(moment, 'catalog');
+      expect(result.id).toBe('moment-uuid');
+      expect(result.uri).toBe('ar://metadata-hash');
+      expect(result.owner).toBe(CREATOR);
+    });
   });
 });

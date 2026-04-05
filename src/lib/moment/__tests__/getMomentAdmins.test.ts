@@ -46,6 +46,7 @@ describe('getMomentAdmins', () => {
         collection,
         owner: OWNER,
         moment,
+        protocol: 'in_process',
       });
 
       expect(selectAdmins).toHaveBeenCalledWith({
@@ -69,6 +70,7 @@ describe('getMomentAdmins', () => {
         collection,
         owner: OWNER,
         moment,
+        protocol: 'in_process',
       });
 
       expect(result).toEqual([
@@ -84,13 +86,14 @@ describe('getMomentAdmins', () => {
         collection,
         owner: OWNER,
         moment,
+        protocol: 'in_process',
       });
 
       expect(result).toEqual([]);
     });
   });
 
-  describe('without collection (on-chain path)', () => {
+  describe('without collection, in_process protocol (on-chain path)', () => {
     beforeEach(() => {
       vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
         address: SMART_ACCOUNT,
@@ -104,6 +107,7 @@ describe('getMomentAdmins', () => {
         collection: null,
         owner: OWNER,
         moment,
+        protocol: 'in_process',
       });
 
       expect(getOrCreateSmartWallet).toHaveBeenCalledWith({ address: OWNER });
@@ -123,6 +127,7 @@ describe('getMomentAdmins', () => {
         collection: null,
         owner: OWNER,
         moment,
+        protocol: 'in_process',
       });
 
       expect(result).not.toContain(SMART_ACCOUNT.toLowerCase());
@@ -139,10 +144,61 @@ describe('getMomentAdmins', () => {
         collection: null,
         owner: OWNER,
         moment,
+        protocol: 'in_process',
       });
 
       expect(result).toHaveLength(1);
       expect(result).toContain(OWNER.toLowerCase());
+    });
+
+    it('returns empty array when owner is null', async () => {
+      const result = await getMomentAdmins({
+        collection: null,
+        owner: null,
+        moment,
+        protocol: 'in_process',
+      });
+
+      expect(getOrCreateSmartWallet).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('without collection, non-in_process protocol', () => {
+    it('returns empty array for catalog protocol', async () => {
+      const result = await getMomentAdmins({
+        collection: null,
+        owner: OWNER,
+        moment,
+        protocol: 'catalog',
+      });
+
+      expect(getOrCreateSmartWallet).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array for sound protocol', async () => {
+      const result = await getMomentAdmins({
+        collection: null,
+        owner: OWNER,
+        moment,
+        protocol: 'sound',
+      });
+
+      expect(getOrCreateSmartWallet).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when protocol is null', async () => {
+      const result = await getMomentAdmins({
+        collection: null,
+        owner: OWNER,
+        moment,
+        protocol: null,
+      });
+
+      expect(getOrCreateSmartWallet).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
     });
   });
 });
