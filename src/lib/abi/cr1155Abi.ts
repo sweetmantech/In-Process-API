@@ -23,6 +23,29 @@ const cr1155Abi = [
     ],
   },
   {
+    name: 'tokenInfo',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '_tokenId', type: 'uint256' }],
+    outputs: [
+      {
+        type: 'tuple',
+        components: [
+          { name: 'artist', type: 'address' },
+          { name: 'contentHash', type: 'bytes32' },
+          {
+            name: 'uri',
+            type: 'tuple',
+            components: [
+              { name: 'arweave', type: 'bytes32' },
+              { name: 'regular', type: 'string' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
     name: 'uri',
     type: 'function',
     stateMutability: 'view',

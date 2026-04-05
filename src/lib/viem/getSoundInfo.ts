@@ -1,8 +1,8 @@
 import { getPublicClient } from '@/lib/viem/publicClient';
 import { Moment } from '@/types/moment';
-import cr1155Abi from '@/lib/abi/cr1155Abi';
+import soundAbi from '@/lib/abi/soundAbi';
 
-const getCatalogInfo = async (moment: Moment) => {
+const getSoundInfo = async (moment: Moment) => {
   const { tokenId, chainId, collectionAddress } = moment;
   const publicClient: any = getPublicClient(chainId);
 
@@ -10,32 +10,25 @@ const getCatalogInfo = async (moment: Moment) => {
     contracts: [
       {
         address: collectionAddress,
-        abi: cr1155Abi,
-        functionName: 'tokenInfo',
-        args: [tokenId],
+        abi: soundAbi,
+        functionName: 'owner',
       },
       {
         address: collectionAddress,
-        abi: cr1155Abi,
-        functionName: 'uri',
+        abi: soundAbi,
+        functionName: 'tokenURI',
         args: [tokenId],
       },
     ],
   });
 
-  const tokenData = results[0]?.result as
-    | {
-        artist: string;
-        contentHash: string;
-        uri: { arweave: string; regular: string };
-      }
-    | undefined;
+  const owner = results[0]?.result as string | undefined;
   const tokenUri = results[1]?.result as string | undefined;
 
   return {
-    owner: (tokenData?.artist || '') as string,
+    owner: (owner ?? collectionAddress) as string,
     tokenUri: tokenUri ?? null,
   };
 };
 
-export default getCatalogInfo;
+export default getSoundInfo;
