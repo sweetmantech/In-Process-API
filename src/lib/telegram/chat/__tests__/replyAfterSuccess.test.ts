@@ -70,7 +70,7 @@ describe('replyAfterSuccess', () => {
     ];
     expect(method).toBe('sendPhoto');
     expect(formData.get('chat_id')).toBe('-100123456');
-    expect(formData.get('caption')).toBe('🎨 collage you have ever posted 🎨');
+    expect(formData.get('caption')).toBe('🎨 collage 🎨');
   });
 
   it('does not call sendPhoto when collage is unavailable', async () => {
