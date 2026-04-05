@@ -38,7 +38,7 @@ const resolveMomentFromChain = async (
   return {
     id: null,
     uri: tokenUri,
-    owner: owner as string,
+    owner,
     saleConfig: convertOnChainSaleToApi(saleConfig),
   };
 };

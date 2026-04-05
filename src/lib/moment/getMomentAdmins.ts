@@ -7,10 +7,12 @@ const getMomentAdmins = async ({
   collection,
   owner,
   moment,
+  protocol,
 }: {
   collection: { id: string } | null;
-  owner: string;
+  owner: string | null;
   moment: { collectionAddress: Address; tokenId: string; chainId: number };
+  protocol: string | null;
 }): Promise<Address[]> => {
   let adminAddresses: Address[] = [];
 
@@ -24,7 +26,7 @@ const getMomentAdmins = async ({
       ],
     });
     adminAddresses = admins.map((admin) => admin.artist_address as Address);
-  } else {
+  } else if (owner && protocol === 'in_process') {
     const smartAccount = await getOrCreateSmartWallet({
       address: owner as Address,
     });

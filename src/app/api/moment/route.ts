@@ -42,7 +42,12 @@ export async function GET(req: NextRequest) {
 
     const [metadata, momentAdmins] = await Promise.all([
       getMetadata(id, uri),
-      getMomentAdmins({ collection, owner, moment }),
+      getMomentAdmins({
+        collection,
+        owner,
+        moment,
+        protocol: collection?.protocol ?? null,
+      }),
     ]);
 
     return NextResponse.json({
