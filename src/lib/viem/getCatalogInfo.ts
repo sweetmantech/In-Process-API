@@ -33,7 +33,7 @@ const getCatalogInfo = async (moment: Moment) => {
   const tokenUri = results[1]?.result as string | undefined;
 
   return {
-    owner: (tokenData?.artist || '') as string,
+    owner: tokenData?.artist ?? null,
     tokenUri: tokenUri ?? null,
   };
 };

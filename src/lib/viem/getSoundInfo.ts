@@ -37,7 +37,7 @@ const getSoundInfo = async (moment: Moment) => {
   const tokenUri = baseUri ? `${baseUri}${tokenId}` : null;
 
   return {
-    owner: (owner ?? collectionAddress) as string,
+    owner: owner ?? null,
     tokenUri,
   };
 };
