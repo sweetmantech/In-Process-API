@@ -47,7 +47,9 @@ describe('resolveMomentFromDb', () => {
     it('uses DB sale when available', async () => {
       const dbSale = { id: 'sale-1' };
       vi.mocked(selectSale).mockResolvedValue(dbSale as any);
-      vi.mocked(convertDatabaseSaleToApi).mockReturnValue(mockSaleConfig as any);
+      vi.mocked(convertDatabaseSaleToApi).mockReturnValue(
+        mockSaleConfig as any
+      );
 
       const result = await resolveMomentFromDb(moment, dbMoment);
 

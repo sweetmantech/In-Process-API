@@ -7,10 +7,10 @@ const soundAbi = [
     outputs: [{ name: '', type: 'address' }],
   },
   {
-    name: 'tokenURI',
+    name: 'baseURI',
     type: 'function',
     stateMutability: 'view',
-    inputs: [{ name: 'tokenId', type: 'uint256' }],
+    inputs: [],
     outputs: [{ name: '', type: 'string' }],
   },
 ] as const;

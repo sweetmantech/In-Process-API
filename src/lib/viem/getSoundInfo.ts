@@ -1,6 +1,8 @@
 import { getPublicClient } from '@/lib/viem/publicClient';
 import { Moment } from '@/types/moment';
 import soundAbi from '@/lib/abi/soundAbi';
+import soundMetadataAbi from '@/lib/abi/soundMetadataAbi';
+import { SOUND_METADATA_ADDRESS } from '@/lib/consts';
 
 const getSoundInfo = async (moment: Moment) => {
   const { tokenId, chainId, collectionAddress } = moment;
@@ -14,20 +16,29 @@ const getSoundInfo = async (moment: Moment) => {
         functionName: 'owner',
       },
       {
+        address: SOUND_METADATA_ADDRESS,
+        abi: soundMetadataAbi,
+        functionName: 'baseURI',
+        args: [collectionAddress, tokenId],
+      },
+      {
         address: collectionAddress,
         abi: soundAbi,
-        functionName: 'tokenURI',
-        args: [tokenId],
+        functionName: 'baseURI',
       },
     ],
   });
 
   const owner = results[0]?.result as string | undefined;
-  const tokenUri = results[1]?.result as string | undefined;
+  const tierBaseUri = results[1]?.result as string | undefined;
+  const editionBaseUri = results[2]?.result as string | undefined;
+
+  const baseUri = tierBaseUri || editionBaseUri;
+  const tokenUri = baseUri ? `${baseUri}${tokenId}` : null;
 
   return {
     owner: (owner ?? collectionAddress) as string,
-    tokenUri: tokenUri ?? null,
+    tokenUri,
   };
 };
 
