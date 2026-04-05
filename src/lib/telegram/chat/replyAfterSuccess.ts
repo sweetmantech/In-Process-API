@@ -28,8 +28,7 @@ const replyAfterSuccess = async (
       new Blob([collage.buffer as ArrayBuffer], { type: 'image/png' }),
       'collage.png'
     );
-    formData.append('caption', '🎨 collage you have ever posted 🎨');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    formData.append('caption', '🎨 collage 🎨');
     await (thread.adapter as any).telegramFetch('sendPhoto', formData);
   }
 };
