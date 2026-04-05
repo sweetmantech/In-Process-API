@@ -1,24 +1,15 @@
 import type { CollageImageEntry } from '@/lib/og/collectCollageImages';
-
-const COLS = 7;
-const SPROCKET_AREA_H = 26;
-const SPROCKET_HOLE_W = 28;
-const SPROCKET_HOLE_H = 18;
-const IMAGE_BORDER = 2;
-const DATE_AREA_H = 18;
-/** neutral-800 — matches FilmPlaceholder strip colour */
-const FILM_COLOR = '#262626';
-/** neutral-600/40 — matches FilmPlaceholder sprocket hole colour */
-const HOLE_COLOR = 'rgba(82, 82, 82, 0.4)';
-
-const formatDate = (iso: string): string => {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
+import formatDate from '@/lib/og/formatDate';
+import {
+  COLS,
+  SPROCKET_AREA_H,
+  SPROCKET_HOLE_W,
+  SPROCKET_HOLE_H,
+  IMAGE_BORDER,
+  DATE_AREA_H,
+  FILM_COLOR,
+  HOLE_COLOR,
+} from '@/lib/og/consts';
 
 const CollageGrid = ({
   images,
