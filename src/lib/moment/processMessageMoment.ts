@@ -15,8 +15,7 @@ const processMessageMoment = async ({
   channel?: string;
 }) => {
   const chain = IS_TESTNET ? 'bsep' : 'base';
-  const path = channel === 'sms' ? 'sms' : 'collect';
-  const successMessage = `✅ Moment created! ${SITE_ORIGINAL_URL}/${path}/${chain}:${contractAddress}/${tokenId}`;
+  const successMessage = `Moment created, ready for editing at ${SITE_ORIGINAL_URL}/sms/${chain}:${contractAddress}/${tokenId}`;
 
   const messageId = await logMessage(
     [{ type: 'text', text: successMessage }],

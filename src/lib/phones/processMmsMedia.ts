@@ -21,7 +21,7 @@ export const processMmsMedia = async (
     payload,
     phone.artist.address
   );
-  const message = `Moment created! ${SITE_ORIGINAL_URL}/sms/${IS_TESTNET ? 'bsep' : 'base'}:${contractAddress}/${tokenId}`;
+  const message = `Moment created, ready for editing at ${SITE_ORIGINAL_URL}/sms/${IS_TESTNET ? 'bsep' : 'base'}:${contractAddress}/${tokenId}`;
   await sendSms(phone.phone_number, message);
   return { contractAddress, tokenId };
 };

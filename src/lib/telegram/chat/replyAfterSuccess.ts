@@ -12,7 +12,7 @@ const replyAfterSuccess = async (
   collageIncluded = true
 ) => {
   const chain = IS_TESTNET ? 'bsep' : 'base';
-  const successMessage = `✅ Moment created! ${SITE_ORIGINAL_URL}/collect/${chain}:${contractAddress}/${tokenId}`;
+  const successMessage = `Moment created, ready for editing at ${SITE_ORIGINAL_URL}/sms/${chain}:${contractAddress}/${tokenId}`;
 
   await new Promise((resolve) => setTimeout(resolve, COLLAGE_DELAY_MS));
 
@@ -28,7 +28,10 @@ const replyAfterSuccess = async (
       new Blob([collage.buffer as ArrayBuffer], { type: 'image/png' }),
       'collage.png'
     );
-    formData.append('caption', '🎨 collage 🎨');
+    formData.append(
+      'caption',
+      `See your latest moments at https://inprocess.world/${artistAddress}`
+    );
     await (thread.adapter as any).telegramFetch('sendPhoto', formData);
   }
 };
