@@ -46,7 +46,7 @@ describe('replyAfterSuccess', () => {
 
     expect(thread.post).toHaveBeenNthCalledWith(
       1,
-      '✅ Moment created! https://inprocess.world/collect/base:0xContract/42'
+      'Moment created, ready for editing at https://inprocess.world/sms/base:0xContract/42'
     );
   });
 
@@ -70,7 +70,9 @@ describe('replyAfterSuccess', () => {
     ];
     expect(method).toBe('sendPhoto');
     expect(formData.get('chat_id')).toBe('-100123456');
-    expect(formData.get('caption')).toBe('🎨 collage 🎨');
+    expect(formData.get('caption')).toBe(
+      `See your latest moments at https://inprocess.world/${ARTIST_ADDRESS}`
+    );
   });
 
   it('does not call sendPhoto when collage is unavailable', async () => {
