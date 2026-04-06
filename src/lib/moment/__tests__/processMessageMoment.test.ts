@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe('processMessageMoment', () => {
-  it('calls logMessage with the collect URL for non-sms channels', async () => {
+  it('calls logMessage with the sms editing URL', async () => {
     await processMessageMoment({
       contractAddress: CONTRACT,
       tokenId: '7',
@@ -33,7 +33,7 @@ describe('processMessageMoment', () => {
       [
         {
           type: 'text',
-          text: '✅ Moment created! https://inprocess.world/collect/base:0x1111111111111111111111111111111111111111/7',
+          text: 'Moment created, ready for editing at https://inprocess.world/sms/base:0x1111111111111111111111111111111111111111/7',
         },
       ],
       'assistant',
@@ -42,7 +42,7 @@ describe('processMessageMoment', () => {
     );
   });
 
-  it('calls logMessage with the sms URL for sms channel', async () => {
+  it('passes the channel to logMessage', async () => {
     await processMessageMoment({
       contractAddress: CONTRACT,
       tokenId: '7',
@@ -54,7 +54,7 @@ describe('processMessageMoment', () => {
       [
         {
           type: 'text',
-          text: '✅ Moment created! https://inprocess.world/sms/base:0x1111111111111111111111111111111111111111/7',
+          text: 'Moment created, ready for editing at https://inprocess.world/sms/base:0x1111111111111111111111111111111111111111/7',
         },
       ],
       'assistant',

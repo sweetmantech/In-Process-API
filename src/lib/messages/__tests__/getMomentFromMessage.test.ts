@@ -10,7 +10,7 @@ describe('getMomentFromMessage', () => {
   it('matches a /sms/ URL on base chain', () => {
     const result = getMomentFromMessage(
       makeMessage(
-        `✅ Moment created! https://inprocess.world/sms/base:${CONTRACT}/42`
+        `Moment created, ready for editing at https://inprocess.world/sms/base:${CONTRACT}/42`
       )
     );
     expect(result).toEqual({
@@ -22,7 +22,7 @@ describe('getMomentFromMessage', () => {
   it('matches a /collect/ URL on base chain', () => {
     const result = getMomentFromMessage(
       makeMessage(
-        `✅ Moment created! https://inprocess.world/collect/base:${CONTRACT}/7`
+        `Moment created, ready for editing at https://inprocess.world/collect/base:${CONTRACT}/7`
       )
     );
     expect(result).toEqual({
@@ -34,7 +34,7 @@ describe('getMomentFromMessage', () => {
   it('matches a /sms/ URL on bsep (testnet)', () => {
     const result = getMomentFromMessage(
       makeMessage(
-        `✅ Moment created! https://inprocess.world/sms/bsep:${CONTRACT}/1`
+        `Moment created, ready for editing at https://inprocess.world/sms/bsep:${CONTRACT}/1`
       )
     );
     expect(result).toEqual({
@@ -46,7 +46,7 @@ describe('getMomentFromMessage', () => {
   it('matches a /collect/ URL on bsep (testnet)', () => {
     const result = getMomentFromMessage(
       makeMessage(
-        `✅ Moment created! https://inprocess.world/collect/bsep:${CONTRACT}/3`
+        `Moment created, ready for editing at https://inprocess.world/collect/bsep:${CONTRACT}/3`
       )
     );
     expect(result).toEqual({
@@ -57,7 +57,9 @@ describe('getMomentFromMessage', () => {
 
   it('returns null for an unrecognized path', () => {
     const result = getMomentFromMessage(
-      makeMessage(`https://inprocess.world/unknown/base:${CONTRACT}/1`)
+      makeMessage(
+        `Moment created, ready for editing at https://inprocess.world/unknown/base:${CONTRACT}/1`
+      )
     );
     expect(result).toBeNull();
   });
