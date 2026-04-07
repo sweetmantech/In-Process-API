@@ -82,6 +82,7 @@ describe('getCollageImageData', () => {
 
     expect(fetchUri).toHaveBeenCalledWith('ar://abc123', {
       signal: controller.signal,
+      cache: 'no-store',
     });
   });
 });
