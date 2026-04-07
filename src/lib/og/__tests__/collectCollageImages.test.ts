@@ -20,6 +20,17 @@ describe('collectCollageImages', () => {
     expect(result).toEqual([]);
   });
 
+  it('returns empty array when maxImages is 0', async () => {
+    vi.mocked(getCollageImageData).mockResolvedValue(dataUrl(0));
+    const result = await collectCollageImages(
+      [input('ar://abc', '2024-01-01T00:00:00Z')],
+      0,
+      5000
+    );
+    expect(result).toEqual([]);
+    expect(getCollageImageData).not.toHaveBeenCalled();
+  });
+
   it('returns entries with url and createdAt', async () => {
     vi.mocked(getCollageImageData).mockResolvedValue(dataUrl(0));
 

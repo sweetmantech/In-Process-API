@@ -10,7 +10,7 @@ const getCollageImageData = async (
   try {
     if (!imageUrl) return null;
 
-    const response = await fetchUri(imageUrl, { signal });
+    const response = await fetchUri(imageUrl, { signal, cache: 'no-store' });
     if (!response.ok) return null;
 
     const data = await response.arrayBuffer();
