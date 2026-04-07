@@ -1,6 +1,6 @@
 import { tasks } from '@trigger.dev/sdk';
-import { IS_TESTNET, SITE_ORIGINAL_URL } from '@/lib/consts';
 import { logMessage } from '@/lib/messages/logMessage';
+import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 import { Address } from 'viem';
 
 const processMessageMoment = async ({
@@ -14,8 +14,7 @@ const processMessageMoment = async ({
   artistAddress: string;
   channel?: string;
 }) => {
-  const chain = IS_TESTNET ? 'bsep' : 'base';
-  const successMessage = `Moment created, ready for editing at ${SITE_ORIGINAL_URL}/sms/${chain}:${contractAddress}/${tokenId}`;
+  const successMessage = getMomentSuccessMessage(contractAddress, tokenId);
 
   const messageId = await logMessage(
     [{ type: 'text', text: successMessage }],

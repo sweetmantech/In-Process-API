@@ -1,5 +1,5 @@
 import type { Thread } from 'chat';
-import { IS_TESTNET, SITE_ORIGINAL_URL } from '@/lib/consts';
+import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
 
 const COLLAGE_DELAY_MS = 10_000;
@@ -11,8 +11,7 @@ const replyAfterSuccess = async (
   artistAddress: string,
   collageIncluded = true
 ) => {
-  const chain = IS_TESTNET ? 'bsep' : 'base';
-  const successMessage = `Moment created, ready for editing at ${SITE_ORIGINAL_URL}/sms/${chain}:${contractAddress}/${tokenId}`;
+  const successMessage = getMomentSuccessMessage(contractAddress, tokenId);
 
   await new Promise((resolve) => setTimeout(resolve, COLLAGE_DELAY_MS));
 
