@@ -59,6 +59,28 @@ describe('validateTimelineQuery', () => {
       const result = validateTimelineQuery(makeRequest());
       expect((result as any).hidden).toBe(false);
     });
+
+    it('defaults curated to false', () => {
+      const result = validateTimelineQuery(makeRequest());
+      expect((result as any).curated).toBe(false);
+    });
+  });
+
+  describe('curated param', () => {
+    it('returns true when curated=true', () => {
+      const result = validateTimelineQuery(makeRequest({ curated: 'true' }));
+      expect((result as any).curated).toBe(true);
+    });
+
+    it('returns false when curated=false', () => {
+      const result = validateTimelineQuery(makeRequest({ curated: 'false' }));
+      expect((result as any).curated).toBe(false);
+    });
+
+    it('returns false when curated is absent', () => {
+      const result = validateTimelineQuery(makeRequest());
+      expect((result as any).curated).toBe(false);
+    });
   });
 
   describe('type param', () => {
@@ -76,7 +98,7 @@ describe('validateTimelineQuery', () => {
       const { NextResponse } = await import('next/server');
       const result = validateTimelineQuery(makeRequest({ type: 'invalid' }));
       expect(result).toBeInstanceOf(NextResponse);
-      expect((result as NextResponse).status).toBe(400);
+      expect((result as typeof NextResponse.prototype).status).toBe(400);
     });
   });
 });

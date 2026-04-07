@@ -14,6 +14,7 @@ const getCollectionTimeline = async ({
   period,
   channel,
   artist,
+  curated = false,
 }: GetCollectionTimelineParams): Promise<{
   data: GetCollectionTimelineResponse | null;
   error: Error | null;
@@ -28,6 +29,7 @@ const getCollectionTimeline = async ({
     p_period: period,
     p_channel: channel,
     p_artist: artist,
+    p_curated: curated,
   });
 
   if (error) {

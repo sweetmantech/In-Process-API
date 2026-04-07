@@ -14,6 +14,7 @@ interface TimelineParams {
   period?: string;
   channel?: string;
   type?: 'mutual' | 'default';
+  curated: boolean;
 }
 
 const getTimelineHandler = async ({
@@ -27,6 +28,7 @@ const getTimelineHandler = async ({
   period,
   channel,
   type,
+  curated,
 }: TimelineParams) => {
   if (collection) {
     const { data, error } = await getCollectionTimeline({
@@ -39,6 +41,7 @@ const getTimelineHandler = async ({
       period,
       channel,
       artist,
+      curated,
     });
     if (error)
       return NextResponse.json(
@@ -68,6 +71,7 @@ const getTimelineHandler = async ({
       mime,
       period,
       channel,
+      curated,
     });
     if (error)
       return NextResponse.json(
@@ -94,6 +98,7 @@ const getTimelineHandler = async ({
     mime,
     period,
     channel,
+    curated,
   });
   if (error)
     return NextResponse.json(
