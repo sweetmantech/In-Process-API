@@ -14,7 +14,7 @@ export const maxDuration = 60;
 
 const COLLAGE_WIDTH = 700;
 const COLLAGE_HEIGHT = 350;
-const MAX_IMAGES = 7;
+const MAX_IMAGES = 5;
 const IMAGE_TIMEOUT_MS = 10000;
 
 export async function GET(req: NextRequest) {

@@ -18,12 +18,12 @@ export const COLLAGE_PHOTO_W = 175;
 export const COLLAGE_PHOTO_H = 165;
 
 // Collage
-export const COLS = 7;
+export const COLS = 5;
 export const SPROCKET_AREA_H = 26;
 export const SPROCKET_HOLE_W = 28;
 export const SPROCKET_HOLE_H = 18;
 export const IMAGE_BORDER = 2;
-export const DATE_AREA_H = 18;
+export const DATE_AREA_H = 24;
 /** neutral-800 — matches FilmPlaceholder strip colour */
 export const FILM_COLOR = '#262626';
 /** neutral-600/40 — matches FilmPlaceholder sprocket hole colour */
