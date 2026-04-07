@@ -739,6 +739,7 @@ export type Database = {
           p_artist: string;
           p_chainid?: number;
           p_channel?: string;
+          p_curated?: boolean;
           p_hidden?: boolean;
           p_limit?: number;
           p_mime?: string;
@@ -754,6 +755,7 @@ export type Database = {
           p_chainid?: number;
           p_channel?: string;
           p_collection: string;
+          p_curated?: boolean;
           p_hidden?: boolean;
           p_limit?: number;
           p_mime?: string;
@@ -785,6 +787,7 @@ export type Database = {
         Args: {
           p_chainid?: number;
           p_channel?: string;
+          p_curated?: boolean;
           p_hidden?: boolean;
           p_limit?: number;
           p_mime?: string;
