@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/consts', () => ({
-  IS_TESTNET: false,
-  SITE_ORIGINAL_URL: 'https://inprocess.world',
+vi.mock('@/lib/moment/getMomentSuccessMessage', () => ({
+  default: vi.fn(
+    (contractAddress: string, tokenId: string) =>
+      `Moment created, ready for editing at https://inprocess.world/sms/base:${contractAddress}/${tokenId}`
+  ),
 }));
 
 vi.mock('@/lib/phones/createMomentFromMedia', () => ({

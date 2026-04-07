@@ -2,9 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
 vi.mock('@trigger.dev/sdk', () => ({ tasks: { trigger: vi.fn() } }));
-vi.mock('@/lib/consts', () => ({
-  IS_TESTNET: false,
-  SITE_ORIGINAL_URL: 'https://inprocess.world',
+vi.mock('@/lib/moment/getMomentSuccessMessage', () => ({
+  default: vi
+    .fn()
+    .mockReturnValue(
+      'Moment created, ready for editing at https://inprocess.world/sms/base:0x1111111111111111111111111111111111111111/7'
+    ),
 }));
 
 import { logMessage } from '@/lib/messages/logMessage';
