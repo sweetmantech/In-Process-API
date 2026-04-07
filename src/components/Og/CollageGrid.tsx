@@ -156,7 +156,7 @@ const CollageGrid = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontFamily: 'Archivo',
-                  fontSize: 9,
+                  fontSize: 13,
                   color: '#a3a3a3',
                 }}
               >
