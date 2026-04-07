@@ -22,24 +22,8 @@ const collectCollageImages = async (
   if (inputs.length === 0 || maxImages === 0) return [];
 
   const collected: { index: number; url: string; createdAt: string }[] = [];
-
-  // Always attempt index 0 first — no timeout, no abort
-  try {
-    const url = await getCollageImageData(inputs[0].imageUrl);
-    if (url !== null) {
-      collected.push({ index: 0, url, createdAt: inputs[0].createdAt });
-    }
-  } catch (e) {
-    console.error(
-      '[collectCollageImages] index 0 fetch failed:',
-      inputs[0].imageUrl,
-      e
-    );
-  }
-
-  // Fill remaining slots from index 1 onwards
   const activeControllers = new Set<AbortController>();
-  let nextIndex = 1;
+  let nextIndex = 0;
   let stop = false;
 
   const worker = async () => {
@@ -53,10 +37,7 @@ const collectCollageImages = async (
 
       try {
         if (stop) break;
-        const url = await getCollageImageData(
-          inputs[i].imageUrl,
-          controller.signal
-        );
+        const url = await getCollageImageData(inputs[i].imageUrl, controller.signal);
         if (url !== null && collected.length < maxImages) {
           collected.push({ index: i, url, createdAt: inputs[i].createdAt });
           if (collected.length >= maxImages) {
@@ -73,11 +54,9 @@ const collectCollageImages = async (
     }
   };
 
-  if (inputs.length > 1 && collected.length < maxImages) {
-    await Promise.all(
-      Array.from({ length: Math.min(concurrency, inputs.length - 1) }, worker)
-    );
-  }
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, inputs.length) }, worker)
+  );
 
   activeControllers.forEach((c) => c.abort());
 
