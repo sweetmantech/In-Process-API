@@ -16,29 +16,16 @@ beforeEach(() => {
 
 describe('collectCollageImages', () => {
   it('returns empty array when inputs is empty', async () => {
-    const result = await collectCollageImages([], 7, 5000);
+    const result = await collectCollageImages([]);
     expect(result).toEqual([]);
-  });
-
-  it('returns empty array when maxImages is 0', async () => {
-    vi.mocked(getCollageImageData).mockResolvedValue(dataUrl(0));
-    const result = await collectCollageImages(
-      [input('ar://abc', '2024-01-01T00:00:00Z')],
-      0,
-      5000
-    );
-    expect(result).toEqual([]);
-    expect(getCollageImageData).not.toHaveBeenCalled();
   });
 
   it('returns entries with url and createdAt', async () => {
     vi.mocked(getCollageImageData).mockResolvedValue(dataUrl(0));
 
-    const result = await collectCollageImages(
-      [input('ar://abc', '2024-01-15T00:00:00Z')],
-      7,
-      5000
-    );
+    const result = await collectCollageImages([
+      input('ar://abc', '2024-01-15T00:00:00Z'),
+    ]);
 
     expect(result).toEqual([
       { url: dataUrl(0), createdAt: '2024-01-15T00:00:00Z' },
@@ -50,34 +37,14 @@ describe('collectCollageImages', () => {
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(dataUrl(1));
 
-    const result = await collectCollageImages(
-      [
-        input('ar://fail', '2024-01-01T00:00:00Z'),
-        input('ar://ok', '2024-01-02T00:00:00Z'),
-      ],
-      7,
-      5000
-    );
+    const result = await collectCollageImages([
+      input('ar://fail', '2024-01-01T00:00:00Z'),
+      input('ar://ok', '2024-01-02T00:00:00Z'),
+    ]);
 
     expect(result).toHaveLength(1);
     expect(result[0].url).toBe(dataUrl(1));
     expect(result[0].createdAt).toBe('2024-01-02T00:00:00Z');
-  });
-
-  it('respects maxImages limit', async () => {
-    vi.mocked(getCollageImageData).mockImplementation(async (url) =>
-      dataUrl(Number((url as string).slice(-1)))
-    );
-
-    const inputs = Array.from({ length: 10 }, (_, i) =>
-      input(
-        `ar://img${i}`,
-        `2024-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`
-      )
-    );
-
-    const result = await collectCollageImages(inputs, 3, 5000);
-    expect(result).toHaveLength(3);
   });
 
   it('sorts results oldest-first (highest index = oldest in newest-first input)', async () => {
@@ -92,9 +59,8 @@ describe('collectCollageImages', () => {
       input('oldest', '2024-01-01T00:00:00Z'),
     ];
 
-    const result = await collectCollageImages(inputs, 7, 5000);
+    const result = await collectCollageImages(inputs);
 
-    // highest index (2 = oldest) sorts first
     expect(result[0].createdAt).toBe('2024-01-01T00:00:00Z');
     expect(result[1].createdAt).toBe('2024-02-01T00:00:00Z');
     expect(result[2].createdAt).toBe('2024-03-01T00:00:00Z');

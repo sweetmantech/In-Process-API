@@ -4,18 +4,15 @@ import fetchUri from '../arweave/fetchUri';
 const MAX_SIZE = 200;
 
 const getCollageImageData = async (
-  imageUrl: string | undefined,
-  signal?: AbortSignal
+  imageUrl: string | undefined
 ): Promise<string | null> => {
   try {
     if (!imageUrl) return null;
 
-    const response = await fetchUri(imageUrl, { signal, cache: 'no-store' });
+    const response = await fetchUri(imageUrl, { cache: 'no-store' });
     if (!response.ok) return null;
 
     const data = await response.arrayBuffer();
-
-    if (signal?.aborted) return null;
 
     const resized = await sharp(Buffer.from(data))
       .resize(MAX_SIZE, MAX_SIZE, { fit: 'cover' })
@@ -23,8 +20,7 @@ const getCollageImageData = async (
       .toBuffer();
 
     return `data:image/jpeg;base64,${resized.toString('base64')}`;
-  } catch (e) {
-    if (e instanceof Error && e.name === 'AbortError') return null;
+  } catch {
     return null;
   }
 };
