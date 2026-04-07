@@ -23,17 +23,17 @@ const normalizeMetadata = async (
   const contentUri = animationUri ?? image;
   let content: { mime: string; uri: string } | null = raw.content ?? null;
   if (!content && contentUri) {
-    if (raw.mimeType) content = { mime: raw.mimeType, uri: contentUri };
-    else
-      try {
-        const res = await fetchUri(contentUri, { method: 'HEAD' });
+    try {
+      const res = await fetchUri(contentUri, { method: 'HEAD' });
+      if (res.ok) {
         const mime = res.headers.get('content-type');
         if (mime) {
           content = { mime: mime.split(';')[0].trim(), uri: contentUri };
         }
-      } catch {
-        // leave content as null if fetch fails
       }
+    } catch {
+      // leave content as null if fetch fails
+    }
   }
 
   // Resolve attributes: start from raw attributes, then inject genre as Genres
