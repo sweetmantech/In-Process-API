@@ -19,7 +19,7 @@ const collectCollageImages = async (
   timeoutMs: number,
   concurrency = CONCURRENCY
 ): Promise<CollageImageEntry[]> => {
-  if (inputs.length === 0) return [];
+  if (inputs.length === 0 || maxImages === 0) return [];
 
   const collected: { index: number; url: string; createdAt: string }[] = [];
 
