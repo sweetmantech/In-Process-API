@@ -25,9 +25,11 @@ const normalizeMetadata = async (
   if (!content && contentUri) {
     try {
       const res = await fetchUri(contentUri, { method: 'HEAD' });
-      const mime = res.headers.get('content-type');
-      if (mime) {
-        content = { mime: mime.split(';')[0].trim(), uri: contentUri };
+      if (res.ok) {
+        const mime = res.headers.get('content-type');
+        if (mime) {
+          content = { mime: mime.split(';')[0].trim(), uri: contentUri };
+        }
       }
     } catch {
       // leave content as null if fetch fails

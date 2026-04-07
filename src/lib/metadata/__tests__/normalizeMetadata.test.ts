@@ -97,6 +97,7 @@ describe('normalizeMetadata', () => {
 
     it('sets content by fetching HEAD of animation_url (catalog)', async () => {
       vi.mocked(fetchUri).mockResolvedValueOnce({
+        ok: true,
         headers: { get: vi.fn().mockReturnValue('audio/wav') },
       } as unknown as Response);
 
@@ -109,6 +110,7 @@ describe('normalizeMetadata', () => {
 
     it('falls back to losslessAudio when animation_url is empty string', async () => {
       vi.mocked(fetchUri).mockResolvedValueOnce({
+        ok: true,
         headers: { get: vi.fn().mockReturnValue('audio/wave') },
       } as unknown as Response);
 
@@ -142,6 +144,7 @@ describe('normalizeMetadata', () => {
 
     it('fetches animation_url HEAD to detect mime when no mimeType and no explicit content', async () => {
       vi.mocked(fetchUri).mockResolvedValueOnce({
+        ok: true,
         headers: { get: vi.fn().mockReturnValue('video/mp4; codecs=avc1') },
       } as unknown as Response);
 
@@ -170,6 +173,7 @@ describe('normalizeMetadata', () => {
 
     it('falls back to imageUri when animationUri is absent', async () => {
       vi.mocked(fetchUri).mockResolvedValueOnce({
+        ok: true,
         headers: { get: vi.fn().mockReturnValue('image/png') },
       } as unknown as Response);
 
@@ -188,7 +192,21 @@ describe('normalizeMetadata', () => {
 
     it('omits content when animation_url HEAD returns no content-type', async () => {
       vi.mocked(fetchUri).mockResolvedValueOnce({
+        ok: true,
         headers: { get: vi.fn().mockReturnValue(null) },
+      } as unknown as Response);
+
+      const result = await normalizeMetadata({
+        name: 'Test',
+        animation_url: 'ar://some-hash',
+      });
+      expect(result.content).toBeUndefined();
+    });
+
+    it('omits content when animation_url HEAD returns a non-2xx response', async () => {
+      vi.mocked(fetchUri).mockResolvedValueOnce({
+        ok: false,
+        headers: { get: vi.fn().mockReturnValue('text/html') },
       } as unknown as Response);
 
       const result = await normalizeMetadata({
