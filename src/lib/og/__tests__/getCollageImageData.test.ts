@@ -45,28 +45,6 @@ describe('getCollageImageData', () => {
     expect(result).toMatch(/^data:image\/jpeg;base64,/);
   });
 
-  it('returns null when signal is already aborted', async () => {
-    const controller = new AbortController();
-    controller.abort();
-
-    vi.mocked(fetchUri).mockResolvedValue({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-    } as unknown as Response);
-
-    const result = await getCollageImageData('ar://abc123', controller.signal);
-    expect(result).toBeNull();
-  });
-
-  it('returns null when fetch throws AbortError', async () => {
-    const abortError = new Error('aborted');
-    abortError.name = 'AbortError';
-    vi.mocked(fetchUri).mockRejectedValue(abortError);
-
-    const result = await getCollageImageData('ar://abc123');
-    expect(result).toBeNull();
-  });
-
   it('returns null when an unexpected error is thrown', async () => {
     vi.mocked(fetchUri).mockRejectedValue(new Error('network error'));
 
@@ -74,15 +52,11 @@ describe('getCollageImageData', () => {
     expect(result).toBeNull();
   });
 
-  it('passes the signal to fetchUri', async () => {
+  it('passes the url to fetchUri with cache no-store', async () => {
     mockFetchOk();
-    const controller = new AbortController();
 
-    await getCollageImageData('ar://abc123', controller.signal);
+    await getCollageImageData('ar://abc123');
 
-    expect(fetchUri).toHaveBeenCalledWith('ar://abc123', {
-      signal: controller.signal,
-      cache: 'no-store',
-    });
+    expect(fetchUri).toHaveBeenCalledWith('ar://abc123', { cache: 'no-store' });
   });
 });

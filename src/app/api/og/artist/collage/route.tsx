@@ -14,8 +14,7 @@ export const maxDuration = 60;
 
 const COLLAGE_WIDTH = 700;
 const COLLAGE_HEIGHT = 350;
-const MAX_IMAGES = 5;
-const IMAGE_TIMEOUT_MS = 10000;
+const MAX_COLLAGE_IMAGES = 5;
 
 export async function GET(req: NextRequest) {
   const result = artistCollageQuerySchema.safeParse(
@@ -48,9 +47,7 @@ export async function GET(req: NextRequest) {
     .map((m) => ({ imageUrl: m.metadata!.image, createdAt: m.created_at }));
 
   const collageImages = await collectCollageImages(
-    imageInputs,
-    MAX_IMAGES,
-    IMAGE_TIMEOUT_MS
+    imageInputs.slice(0, MAX_COLLAGE_IMAGES)
   );
 
   const archivoFontData = await getArchivoFont();
