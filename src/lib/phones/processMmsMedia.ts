@@ -2,7 +2,7 @@ import type { InboundMessagePayload } from 'telnyx/resources/shared';
 import createMomentFromMedia from '@/lib/phones/createMomentFromMedia';
 import { processVideoMessage } from '@/lib/messages/processVideoMessage';
 import { sendSms } from '@/lib/phones/sendSms';
-import { IS_TESTNET, SITE_ORIGINAL_URL } from '@/lib/consts';
+import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 
 export const processMmsMedia = async (
   phone: {
@@ -21,7 +21,7 @@ export const processMmsMedia = async (
     payload,
     phone.artist.address
   );
-  const message = `Moment created, ready for editing at ${SITE_ORIGINAL_URL}/sms/${IS_TESTNET ? 'bsep' : 'base'}:${contractAddress}/${tokenId}`;
+  const message = getMomentSuccessMessage(contractAddress, tokenId);
   await sendSms(phone.phone_number, message);
   return { contractAddress, tokenId };
 };
