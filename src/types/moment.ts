@@ -70,6 +70,7 @@ export interface GetInProcessTimelineParams {
   mime?: string;
   period?: string;
   channel?: string;
+  curated?: boolean;
 }
 
 export interface GetInProcessTimelineResponse {
@@ -87,6 +88,7 @@ export interface GetArtistTimelineParams {
   mime?: string;
   period?: string;
   channel?: string;
+  curated?: boolean;
 }
 
 export interface GetArtistTimelineResponse {
@@ -104,6 +106,7 @@ export interface GetCollectionTimelineParams {
   period?: string;
   channel?: string;
   artist?: string;
+  curated?: boolean;
 }
 
 export interface GetCollectionTimelineResponse {

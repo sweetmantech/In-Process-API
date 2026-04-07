@@ -25,6 +25,10 @@ const timelineQuerySchema = z
     period: z.string().optional(),
     channel: z.string().optional(),
     type: z.enum(['mutual', 'default']).optional(),
+    curated: z
+      .string()
+      .optional()
+      .transform((v) => v === 'true'),
   })
   .transform(({ chain_id, content_type, ...rest }) => ({
     ...rest,

@@ -27,6 +27,7 @@ const BASE_PARAMS = {
   collection: undefined as string | undefined,
   artist: undefined as string | undefined,
   type: undefined as 'mutual' | 'default' | undefined,
+  curated: false,
 };
 
 const MOCK_DATA = {
@@ -74,6 +75,23 @@ describe('getTimelineHandler', () => {
 
       expect(getCollectionTimeline).toHaveBeenCalledWith(
         expect.objectContaining({ mime: 'audio/%' })
+      );
+    });
+
+    it('passes curated to getCollectionTimeline', async () => {
+      vi.mocked(getCollectionTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      await getTimelineHandler({
+        ...BASE_PARAMS,
+        collection: '0xcollection',
+        curated: true,
+      });
+
+      expect(getCollectionTimeline).toHaveBeenCalledWith(
+        expect.objectContaining({ curated: true })
       );
     });
 
@@ -162,6 +180,23 @@ describe('getTimelineHandler', () => {
       );
     });
 
+    it('passes curated to getArtistTimeline', async () => {
+      vi.mocked(getArtistTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      await getTimelineHandler({
+        ...BASE_PARAMS,
+        artist: '0xartist',
+        curated: true,
+      });
+
+      expect(getArtistTimeline).toHaveBeenCalledWith(
+        expect.objectContaining({ curated: true })
+      );
+    });
+
     it('returns 500 on DB error', async () => {
       vi.mocked(getArtistTimeline).mockResolvedValue({
         data: null,
@@ -217,6 +252,32 @@ describe('getTimelineHandler', () => {
 
       expect(getInProcessTimeline).toHaveBeenCalledWith(
         expect.objectContaining({ mime: 'image/%' })
+      );
+    });
+
+    it('passes curated=false by default', async () => {
+      vi.mocked(getInProcessTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      await getTimelineHandler(BASE_PARAMS);
+
+      expect(getInProcessTimeline).toHaveBeenCalledWith(
+        expect.objectContaining({ curated: false })
+      );
+    });
+
+    it('passes curated=true when specified', async () => {
+      vi.mocked(getInProcessTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      await getTimelineHandler({ ...BASE_PARAMS, curated: true });
+
+      expect(getInProcessTimeline).toHaveBeenCalledWith(
+        expect.objectContaining({ curated: true })
       );
     });
 

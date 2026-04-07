@@ -12,6 +12,7 @@ const getInProcessTimeline = async ({
   mime,
   period,
   channel,
+  curated = false,
 }: GetInProcessTimelineParams = {}): Promise<{
   data: GetInProcessTimelineResponse | null;
   error: Error | null;
@@ -24,6 +25,7 @@ const getInProcessTimeline = async ({
     p_mime: mime,
     p_period: period,
     p_channel: channel,
+    p_curated: curated,
   });
 
   if (error) {
