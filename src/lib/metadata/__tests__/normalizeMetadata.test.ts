@@ -95,7 +95,11 @@ describe('normalizeMetadata', () => {
       );
     });
 
-    it('sets content from mimeType + animation_url (catalog)', async () => {
+    it('sets content by fetching HEAD of animation_url (catalog)', async () => {
+      vi.mocked(fetchUri).mockResolvedValueOnce({
+        headers: { get: vi.fn().mockReturnValue('audio/wav') },
+      } as unknown as Response);
+
       const result = await normalizeMetadata(CATALOG_RAW);
       expect(result.content).toEqual({
         mime: 'audio/wav',
@@ -104,6 +108,10 @@ describe('normalizeMetadata', () => {
     });
 
     it('falls back to losslessAudio when animation_url is empty string', async () => {
+      vi.mocked(fetchUri).mockResolvedValueOnce({
+        headers: { get: vi.fn().mockReturnValue('audio/wave') },
+      } as unknown as Response);
+
       const result = await normalizeMetadata({
         ...SOUND_RAW,
         animation_url: '',
