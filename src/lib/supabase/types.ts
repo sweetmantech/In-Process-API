@@ -826,6 +826,7 @@ export type Database = {
         Args: { p_created_at: string; p_period: string };
         Returns: boolean;
       };
+      upsert_artist_names: { Args: { artists: Json }; Returns: undefined };
     };
     Enums: {
       collection_protocol: 'in_process' | 'catalog' | 'sound.xyz';
