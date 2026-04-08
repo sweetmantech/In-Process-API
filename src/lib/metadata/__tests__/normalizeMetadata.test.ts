@@ -279,6 +279,16 @@ describe('normalizeMetadata', () => {
       const result = await normalizeMetadata({ name: 'Test' });
       expect(result.external_url).toBeUndefined();
     });
+
+    it('includes artist when present', async () => {
+      const result = await normalizeMetadata(CATALOG_RAW);
+      expect(result.artist).toBe('Dutchyyy');
+    });
+
+    it('omits artist when absent', async () => {
+      const result = await normalizeMetadata({ name: 'Test' });
+      expect(result.artist).toBeUndefined();
+    });
   });
 
   describe('no artwork key in output', () => {

@@ -45,6 +45,7 @@ const normalizeMetadata = async (
 
   return {
     name: raw.title ?? raw.name,
+    ...(raw.artist !== undefined && { artist: raw.artist }),
     ...(raw.external_url !== undefined && { external_url: raw.external_url }),
     ...(raw.description !== undefined && { description: raw.description }),
     ...(image !== undefined && { image }),

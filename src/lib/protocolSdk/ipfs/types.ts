@@ -12,6 +12,7 @@ export type ContractMetadataJson = {
 export type TokenMetadataJson = {
   external_url?: string;
   name: string;
+  artist?: string;
   description?: string;
   /** Primary image file */
   image?: string;
