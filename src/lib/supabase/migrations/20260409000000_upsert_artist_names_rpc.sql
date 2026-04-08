@@ -9,14 +9,16 @@ DECLARE
 BEGIN
   FOR artist IN SELECT * FROM jsonb_array_elements(artists)
   LOOP
-    INSERT INTO in_process_artists (address, username)
-    VALUES (
-      artist->>'address',
-      artist->>'username'
-    )
-    ON CONFLICT (address) DO UPDATE
-      SET username = EXCLUDED.username
-      WHERE in_process_artists.username IS NULL;
+    IF artist->>'address' IS NOT NULL THEN
+      INSERT INTO in_process_artists (address, username)
+      VALUES (
+        artist->>'address',
+        artist->>'username'
+      )
+      ON CONFLICT (address) DO UPDATE
+        SET username = EXCLUDED.username
+        WHERE in_process_artists.username IS NULL;
+    END IF;
   END LOOP;
 END;
 $$;
