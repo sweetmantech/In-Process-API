@@ -55,4 +55,5 @@ export const CATALOG_MINT_CONTROLLER: Address =
 export const SOUND_METADATA_ADDRESS: Address =
   '0x0000000000f5A96Dc85959cAeb0Cfe680f108FB5';
 
-export const FARCASTER_HUB_API = 'https://hub.farcaster.xyz/v1';
+export const FARCASTER_HUB_API =
+  process.env.FARCASTER_HUB_API ?? 'https://nemes.farcaster.xyz:2281/v1';
