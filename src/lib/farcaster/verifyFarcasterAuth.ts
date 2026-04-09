@@ -1,6 +1,5 @@
 import { parseSiweMessage } from 'viem/siwe';
 import { recoverMessageAddress } from 'viem';
-import { getValidNonces } from '@/lib/farcaster/getValidNonces';
 import { CHAIN_ID } from '@/lib/consts';
 
 export async function verifyFarcasterAuth(
@@ -11,10 +10,6 @@ export async function verifyFarcasterAuth(
 
   if (parsed.chainId !== CHAIN_ID) {
     throw new Error('Invalid chainId');
-  }
-
-  if (!parsed.nonce || !getValidNonces().includes(parsed.nonce)) {
-    throw new Error('Expired nonce');
   }
 
   const recovered = await recoverMessageAddress({
