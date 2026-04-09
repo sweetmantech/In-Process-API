@@ -2,7 +2,6 @@ import { parseSiweMessage } from 'viem/siwe';
 import { recoverMessageAddress } from 'viem';
 import { optimism } from 'viem/chains';
 import parseFidFromResources from '@/lib/farcaster/parseFidFromResources';
-import getCustodyAddress from '@/lib/farcaster/getCustodyAddress';
 import isAuthorizedSigner from '@/lib/farcaster/isAuthorizedSigner';
 
 const verifyFarcasterAuth = async (
@@ -27,10 +26,13 @@ const verifyFarcasterAuth = async (
   const fid = parseFidFromResources(parsed.resources);
   if (fid === null) throw new Error('No FID found in SIWE message');
 
-  const authorized = await isAuthorizedSigner(fid, recovered);
+  const { authorized, custodyAddress } = await isAuthorizedSigner(
+    fid,
+    recovered
+  );
   if (!authorized) throw new Error('Signer not authorized for FID');
 
-  return await getCustodyAddress(fid);
+  return custodyAddress;
 };
 
 export default verifyFarcasterAuth;
