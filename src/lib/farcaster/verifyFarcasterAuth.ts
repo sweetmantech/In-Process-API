@@ -17,7 +17,6 @@ export async function verifyFarcasterAuth(
     signature: signature as `0x${string}`,
   });
 
-  console.log('ziad here', parsed.address)
   if (recovered.toLowerCase() !== parsed.address?.toLowerCase()) {
     throw new Error('Invalid signature');
   }
