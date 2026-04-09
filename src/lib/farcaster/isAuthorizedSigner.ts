@@ -1,6 +1,5 @@
-import { bytesToHex } from 'viem';
 import getCustodyAddress from '@/lib/farcaster/getCustodyAddress';
-import hubClient from '@/lib/farcaster/hubClient';
+import neynarFetch from '@/lib/farcaster/neynarFetch';
 
 const isAuthorizedSigner = async (
   fid: bigint,
@@ -10,18 +9,18 @@ const isAuthorizedSigner = async (
   if (signer.toLowerCase() === custodyAddress)
     return { authorized: true, custodyAddress };
 
-  const result = await hubClient.getAllVerificationMessagesByFid({
-    fid: Number(fid),
-  });
-  if (result.isErr()) return { authorized: false, custodyAddress };
-
-  const authorized = result.value.messages.some((msg) => {
-    const addr = msg.data?.verificationAddAddressBody?.address;
-    if (!addr?.length) return false;
-    return bytesToHex(addr).toLowerCase() === signer.toLowerCase();
-  });
-
-  return { authorized, custodyAddress };
+  try {
+    const data = (await neynarFetch(
+      `/v2/farcaster/user/verifications?fid=${fid}`
+    )) as any;
+    const verifications: { address: string }[] = data?.verifications ?? [];
+    const authorized = verifications.some(
+      (v) => v.address?.toLowerCase() === signer.toLowerCase()
+    );
+    return { authorized, custodyAddress };
+  } catch {
+    return { authorized: false, custodyAddress };
+  }
 };
 
 export default isAuthorizedSigner;

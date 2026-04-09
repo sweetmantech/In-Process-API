@@ -1,23 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { hexToBytes } from 'viem';
 
-vi.mock('@/lib/farcaster/hubClient', () => ({
-  default: { getIdRegistryOnChainEvent: vi.fn() },
+vi.mock('@/lib/farcaster/neynarFetch', () => ({
+  default: vi.fn(),
 }));
 
-import hubClient from '@/lib/farcaster/hubClient';
+import neynarFetch from '@/lib/farcaster/neynarFetch';
 import getCustodyAddress from '@/lib/farcaster/getCustodyAddress';
 
 const FID = 12345n;
 const custodyAddress = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
-const custodyAddressBytes = hexToBytes(custodyAddress as `0x${string}`);
-
-function mockHubOk(to: Uint8Array) {
-  vi.mocked(hubClient.getIdRegistryOnChainEvent).mockResolvedValue({
-    isErr: () => false,
-    value: { idRegisterEventBody: { to } },
-  } as any);
-}
 
 describe('getCustodyAddress', () => {
   beforeEach(() => {
@@ -25,32 +16,32 @@ describe('getCustodyAddress', () => {
   });
 
   it('returns lowercased custody address', async () => {
-    mockHubOk(custodyAddressBytes);
+    vi.mocked(neynarFetch).mockResolvedValue({
+      users: [{ custody_address: custodyAddress.toUpperCase() }],
+    });
     const result = await getCustodyAddress(FID);
     expect(result).toBe(custodyAddress.toLowerCase());
   });
 
-  it('calls the Hub with the correct FID', async () => {
-    mockHubOk(custodyAddressBytes);
-    await getCustodyAddress(FID);
-    expect(hubClient.getIdRegistryOnChainEvent).toHaveBeenCalledWith({
-      fid: Number(FID),
+  it('calls Neynar with the correct FID', async () => {
+    vi.mocked(neynarFetch).mockResolvedValue({
+      users: [{ custody_address: custodyAddress }],
     });
-  });
-
-  it('throws when the Hub call fails', async () => {
-    vi.mocked(hubClient.getIdRegistryOnChainEvent).mockResolvedValue({
-      isErr: () => true,
-      error: { message: 'hub error' },
-    } as any);
-
-    await expect(getCustodyAddress(FID)).rejects.toThrow(
-      'Failed to fetch custody address from Hub'
+    await getCustodyAddress(FID);
+    expect(neynarFetch).toHaveBeenCalledWith(
+      `/v2/farcaster/user/bulk?fids=${FID}`
     );
   });
 
+  it('throws when Neynar call fails', async () => {
+    vi.mocked(neynarFetch).mockRejectedValue(
+      new Error('Neynar API error: 500')
+    );
+    await expect(getCustodyAddress(FID)).rejects.toThrow('Neynar API error');
+  });
+
   it('throws when the response contains no custody address', async () => {
-    mockHubOk(new Uint8Array(0));
+    vi.mocked(neynarFetch).mockResolvedValue({ users: [] });
     await expect(getCustodyAddress(FID)).rejects.toThrow(
       'No custody address found for FID'
     );

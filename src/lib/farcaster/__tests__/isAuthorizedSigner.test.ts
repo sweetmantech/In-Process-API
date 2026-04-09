@@ -1,16 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { hexToBytes } from 'viem';
 
 vi.mock('@/lib/farcaster/getCustodyAddress', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/farcaster/hubClient', () => ({
-  default: { getAllVerificationMessagesByFid: vi.fn() },
+vi.mock('@/lib/farcaster/neynarFetch', () => ({
+  default: vi.fn(),
 }));
 
 import getCustodyAddress from '@/lib/farcaster/getCustodyAddress';
-import hubClient from '@/lib/farcaster/hubClient';
+import neynarFetch from '@/lib/farcaster/neynarFetch';
 import isAuthorizedSigner from '@/lib/farcaster/isAuthorizedSigner';
 
 const FID = 12345n;
@@ -19,18 +18,9 @@ const verifiedAddress = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8';
 const unknownAddress = '0x1234567890123456789012345678901234567890';
 
 function mockVerificationsFetch(addresses: string[]): void {
-  vi.mocked(hubClient.getAllVerificationMessagesByFid).mockResolvedValue({
-    isErr: () => false,
-    value: {
-      messages: addresses.map((address) => ({
-        data: {
-          verificationAddAddressBody: {
-            address: hexToBytes(address as `0x${string}`),
-          },
-        },
-      })),
-    },
-  } as any);
+  vi.mocked(neynarFetch).mockResolvedValue({
+    verifications: addresses.map((address) => ({ address, protocol: 'evm' })),
+  });
 }
 
 describe('isAuthorizedSigner', () => {
@@ -68,15 +58,12 @@ describe('isAuthorizedSigner', () => {
   });
 
   it('returns authorized false and custodyAddress when verifications fetch fails', async () => {
-    vi.mocked(hubClient.getAllVerificationMessagesByFid).mockResolvedValue({
-      isErr: () => true,
-      error: { message: 'hub error' },
-    } as any);
+    vi.mocked(neynarFetch).mockRejectedValue(new Error('Neynar error'));
     const result = await isAuthorizedSigner(FID, unknownAddress);
     expect(result).toEqual({ authorized: false, custodyAddress });
   });
 
-  it('returns authorized false and custodyAddress when verifications messages list is empty', async () => {
+  it('returns authorized false and custodyAddress when verifications list is empty', async () => {
     mockVerificationsFetch([]);
     const result = await isAuthorizedSigner(FID, unknownAddress);
     expect(result).toEqual({ authorized: false, custodyAddress });
@@ -84,6 +71,6 @@ describe('isAuthorizedSigner', () => {
 
   it('does not call verifications when signer is the custody address', async () => {
     await isAuthorizedSigner(FID, custodyAddress);
-    expect(hubClient.getAllVerificationMessagesByFid).not.toHaveBeenCalled();
+    expect(neynarFetch).not.toHaveBeenCalled();
   });
 });

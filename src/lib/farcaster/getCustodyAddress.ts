@@ -1,18 +1,12 @@
-import { bytesToHex } from 'viem';
-import hubClient from '@/lib/farcaster/hubClient';
+import neynarFetch from '@/lib/farcaster/neynarFetch';
 
 const getCustodyAddress = async (fid: bigint): Promise<string> => {
-  const result = await hubClient.getIdRegistryOnChainEvent({
-    fid: Number(fid),
-  });
-  if (result.isErr())
-    throw new Error(
-      `Failed to fetch custody address from Hub: ${result.error.message}`
-    );
-  const { idRegisterEventBody } = result.value;
-  if (!idRegisterEventBody?.to?.length)
-    throw new Error('No custody address found for FID');
-  return bytesToHex(idRegisterEventBody.to).toLowerCase();
+  const data = (await neynarFetch(
+    `/v2/farcaster/user/bulk?fids=${fid}`
+  )) as any;
+  const custodyAddress = data?.users?.[0]?.custody_address;
+  if (!custodyAddress) throw new Error('No custody address found for FID');
+  return custodyAddress.toLowerCase();
 };
 
 export default getCustodyAddress;
