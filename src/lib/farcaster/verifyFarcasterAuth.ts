@@ -1,6 +1,6 @@
 import { parseSiweMessage } from 'viem/siwe';
 import { recoverMessageAddress } from 'viem';
-import { CHAIN_ID } from '@/lib/consts';
+import { optimism } from 'viem/chains';
 
 export async function verifyFarcasterAuth(
   message: string,
@@ -8,8 +8,7 @@ export async function verifyFarcasterAuth(
 ): Promise<string> {
   const parsed = parseSiweMessage(message);
 
-  if (parsed.chainId !== CHAIN_ID) {
-    console.log('ziad here', parsed.chainId)
+  if (parsed.chainId !== optimism.id) {
     throw new Error('Invalid chainId');
   }
 
