@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeIndexerCycle } from '@/lib/indexer/executeIndexerCycle';
+import { indexers } from '@/lib/indexer/indexers/indexers';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -10,15 +11,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const deadline = Date.now() + 58_000;
-
-  while (Date.now() < deadline) {
-    try {
-      await executeIndexerCycle();
-    } catch (error) {
-      console.error('❌ Error in indexer cycle:', error);
-    }
+  // Initialize cached timestamps from Supabase once on startup
+  const cachedTimestamps: Record<string, number | null> = {};
+  const initialTimestamps = await Promise.all(
+    indexers.map((i) => i.selectMaxTimestampFn())
+  );
+  for (let i = 0; i < indexers.length; i++) {
+    cachedTimestamps[indexers[i].indexName] = initialTimestamps[i];
   }
+
+  await executeIndexerCycle(cachedTimestamps);
 
   return NextResponse.json({ ok: true });
 }

@@ -60,3 +60,6 @@ export const GRPC_ENDPOINT = `https://indexer.hyperindex.xyz/${INDEXER_ID}/v1/gr
 
 export const BATCH_SIZE = 100;
 export const PAGE_LIMIT = 1000;
+
+export const INDEX_INTERVAL_MS = 1000;
+export const INDEX_INTERVAL_EMPTY_MS = 1500;

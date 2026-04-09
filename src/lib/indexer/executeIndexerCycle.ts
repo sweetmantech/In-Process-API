@@ -7,24 +7,23 @@ import type { IndexConfig } from '@/types/indexerFactory';
 
 /**
  * Executes a single indexing cycle across all entities.
- * Reads latest timestamps from Supabase, queries the gRPC endpoint,
- * and processes all new data. No while loop — called repeatedly by cron.
+ * Uses cached timestamps (mutated in place) and only refreshes timestamps
+ * for indexers that received new data. No while loop — called repeatedly by cron.
  *
  * @returns true if any data was processed, false if everything was up-to-date
  */
-export async function executeIndexerCycle(): Promise<boolean> {
+export async function executeIndexerCycle(
+  cachedTimestamps: Record<string, number | null>
+): Promise<boolean> {
   const startTime = Date.now();
   console.log('🔍 Indexing all entities (combined query)');
 
-  // 1. Fetch latest timestamps from Supabase
-  const initialTimestamps = await Promise.all(
-    indexers.map((i) => i.selectMaxTimestampFn())
-  );
+  // 1. Build per-entity state from cached timestamps
   const timestamps: Record<string, number> = {};
   const offsets: Record<string, number> = {};
-  for (let i = 0; i < indexers.length; i++) {
-    const name = indexers[i].indexName;
-    timestamps[name] = toEnvioTimestamp(initialTimestamps[i]);
+  for (const indexer of indexers) {
+    const name = indexer.indexName;
+    timestamps[name] = toEnvioTimestamp(cachedTimestamps[name]);
     offsets[name] = 0;
   }
 
@@ -32,6 +31,8 @@ export async function executeIndexerCycle(): Promise<boolean> {
   let hasData = false;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let activeIndexers: IndexConfig<any>[] = [...indexers];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const indexersWithData = new Set<IndexConfig<any>>();
 
   while (activeIndexers.length > 0) {
     const query = buildQuery(activeIndexers);
@@ -52,6 +53,7 @@ export async function executeIndexerCycle(): Promise<boolean> {
         if (entities.length === 0) return;
 
         hasData = true;
+        indexersWithData.add(indexer);
         console.log(
           `💻 ${indexer.indexName}: Processing ${offsets[indexer.indexName]} ~ ${offsets[indexer.indexName] + entities.length}`
         );
@@ -65,6 +67,19 @@ export async function executeIndexerCycle(): Promise<boolean> {
     );
 
     activeIndexers = nextActive;
+  }
+
+  // 3. Refresh cached timestamps only for indexers that received new data
+  if (indexersWithData.size > 0) {
+    const refreshed = await Promise.all(
+      [...indexersWithData].map(async (indexer) => ({
+        name: indexer.indexName,
+        timestamp: await indexer.selectMaxTimestampFn(),
+      }))
+    );
+    for (const { name, timestamp } of refreshed) {
+      cachedTimestamps[name] = timestamp;
+    }
   }
 
   const duration = Date.now() - startTime;
