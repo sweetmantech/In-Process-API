@@ -12,17 +12,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const deadline = Date.now() + 58_000;
 
-  try {
-    while (Date.now() < deadline) {
+  while (Date.now() < deadline) {
+    try {
       await executeIndexerCycle();
+    } catch (error) {
+      console.error('❌ Error in indexer cycle:', error);
     }
-
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    console.error('❌ Fatal error in indexer cron:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
   }
+
+  return NextResponse.json({ ok: true });
 }
