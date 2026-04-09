@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { executeIndexerCycle } from '@/lib/indexer/executeIndexerCycle';
 import { indexers } from '@/lib/indexer/indexers/indexers';
+import loadCachedTimestamps from '@/lib/indexer/kv/loadCachedTimestamps';
+import saveCachedTimestamps from '@/lib/indexer/kv/saveCachedTimestamps';
 import sleep from '@/lib/sleep';
 import { INDEX_INTERVAL_MS, INDEX_INTERVAL_EMPTY_MS } from '@/lib/consts';
 
@@ -13,13 +15,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Initialize cached timestamps from Supabase once on startup
-  const cachedTimestamps: Record<string, number | null> = {};
-  const initialTimestamps = await Promise.all(
-    indexers.map((i) => i.selectMaxTimestampFn())
-  );
-  for (let i = 0; i < indexers.length; i++) {
-    cachedTimestamps[indexers[i].indexName] = initialTimestamps[i];
+  // Load cached timestamps from KV — fall back to Supabase only on first run ever
+  let cachedTimestamps = await loadCachedTimestamps();
+  if (!cachedTimestamps) {
+    console.log('⚡ No KV cache found — fetching timestamps from Supabase');
+    cachedTimestamps = {};
+    const initialTimestamps = await Promise.all(
+      indexers.map((i) => i.selectMaxTimestampFn())
+    );
+    for (let i = 0; i < indexers.length; i++) {
+      cachedTimestamps[indexers[i].indexName] = initialTimestamps[i];
+    }
+    await saveCachedTimestamps(cachedTimestamps);
   }
 
   const deadline = Date.now() + 58_000;
@@ -27,6 +34,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   while (Date.now() < deadline) {
     try {
       const hasData = await executeIndexerCycle(cachedTimestamps);
+      if (hasData) await saveCachedTimestamps(cachedTimestamps);
       await sleep(hasData ? INDEX_INTERVAL_MS : INDEX_INTERVAL_EMPTY_MS);
     } catch (error) {
       console.error('❌ Error in indexer cycle:', error);
