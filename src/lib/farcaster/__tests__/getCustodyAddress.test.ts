@@ -15,17 +15,37 @@ describe('getCustodyAddress', () => {
     vi.clearAllMocks();
   });
 
-  it('returns lowercased custody address', async () => {
+  it('returns lowercased custodyAddress and verifiedAddress from verifications', async () => {
+    const verifiedAddr = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8';
     vi.mocked(neynarFetch).mockResolvedValue({
-      users: [{ custody_address: custodyAddress.toUpperCase() }],
+      users: [
+        {
+          custody_address: custodyAddress.toUpperCase(),
+          verifications: [verifiedAddr.toUpperCase()],
+        },
+      ],
     });
     const result = await getCustodyAddress(FID);
-    expect(result).toBe(custodyAddress.toLowerCase());
+    expect(result).toEqual({
+      custodyAddress: custodyAddress.toLowerCase(),
+      verifiedAddress: verifiedAddr.toLowerCase(),
+    });
+  });
+
+  it('falls back to custodyAddress as verifiedAddress when verifications is empty', async () => {
+    vi.mocked(neynarFetch).mockResolvedValue({
+      users: [{ custody_address: custodyAddress, verifications: [] }],
+    });
+    const result = await getCustodyAddress(FID);
+    expect(result).toEqual({
+      custodyAddress: custodyAddress.toLowerCase(),
+      verifiedAddress: custodyAddress.toLowerCase(),
+    });
   });
 
   it('calls Neynar with the correct FID', async () => {
     vi.mocked(neynarFetch).mockResolvedValue({
-      users: [{ custody_address: custodyAddress }],
+      users: [{ custody_address: custodyAddress, verifications: [] }],
     });
     await getCustodyAddress(FID);
     expect(neynarFetch).toHaveBeenCalledWith(

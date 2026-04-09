@@ -29,7 +29,7 @@ describe('verifyFarcasterAuth', () => {
     vi.clearAllMocks();
   });
 
-  it('returns custody address when signer is the custody address', async () => {
+  it('returns verified address when signer is the custody address', async () => {
     vi.mocked(parseSiweMessage).mockReturnValue({
       chainId: CHAIN_ID,
       address: custodyAddress,
@@ -38,14 +38,14 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(recoverMessageAddress).mockResolvedValue(custodyAddress as any);
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: true,
-      custodyAddress,
+      verifiedAddress: signerAddress,
     });
 
     const result = await verifyFarcasterAuth(message, signature);
-    expect(result).toBe(custodyAddress.toLowerCase());
+    expect(result).toBe(signerAddress);
   });
 
-  it('returns custody address when signer is a verified address', async () => {
+  it('returns verified address when signer is a verified address', async () => {
     vi.mocked(parseSiweMessage).mockReturnValue({
       chainId: CHAIN_ID,
       address: signerAddress,
@@ -54,11 +54,11 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(recoverMessageAddress).mockResolvedValue(signerAddress as any);
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: true,
-      custodyAddress,
+      verifiedAddress: signerAddress,
     });
 
     const result = await verifyFarcasterAuth(message, signature);
-    expect(result).toBe(custodyAddress.toLowerCase());
+    expect(result).toBe(signerAddress);
   });
 
   it('throws when chainId does not match expected chain', async () => {
@@ -121,7 +121,7 @@ describe('verifyFarcasterAuth', () => {
     );
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: false,
-      custodyAddress,
+      verifiedAddress: signerAddress,
     });
 
     await expect(verifyFarcasterAuth(message, signature)).rejects.toThrow(

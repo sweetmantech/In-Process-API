@@ -4,10 +4,10 @@ import neynarFetch from '@/lib/farcaster/neynarFetch';
 const isAuthorizedSigner = async (
   fid: bigint,
   signer: string
-): Promise<{ authorized: boolean; custodyAddress: string }> => {
-  const custodyAddress = await getCustodyAddress(fid);
+): Promise<{ authorized: boolean; verifiedAddress: string }> => {
+  const { custodyAddress, verifiedAddress } = await getCustodyAddress(fid);
   if (signer.toLowerCase() === custodyAddress)
-    return { authorized: true, custodyAddress };
+    return { authorized: true, verifiedAddress };
 
   try {
     const data = (await neynarFetch(
@@ -17,9 +17,9 @@ const isAuthorizedSigner = async (
     const authorized = verifications.some(
       (v) => v.address?.toLowerCase() === signer.toLowerCase()
     );
-    return { authorized, custodyAddress };
+    return { authorized, verifiedAddress };
   } catch {
-    return { authorized: false, custodyAddress };
+    return { authorized: false, verifiedAddress };
   }
 };
 

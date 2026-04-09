@@ -26,47 +26,50 @@ function mockVerificationsFetch(addresses: string[]): void {
 describe('isAuthorizedSigner', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getCustodyAddress).mockResolvedValue(custodyAddress);
+    vi.mocked(getCustodyAddress).mockResolvedValue({
+      custodyAddress,
+      verifiedAddress,
+    });
   });
 
-  it('returns authorized true and custodyAddress when signer is the custody address', async () => {
+  it('returns authorized true and verifiedAddress when signer is the custody address', async () => {
     const result = await isAuthorizedSigner(FID, custodyAddress);
-    expect(result).toEqual({ authorized: true, custodyAddress });
+    expect(result).toEqual({ authorized: true, verifiedAddress });
   });
 
   it('returns authorized true when signer is the custody address (case-insensitive)', async () => {
     const result = await isAuthorizedSigner(FID, custodyAddress.toUpperCase());
-    expect(result).toEqual({ authorized: true, custodyAddress });
+    expect(result).toEqual({ authorized: true, verifiedAddress });
   });
 
-  it('returns authorized true and custodyAddress when signer is a verified address', async () => {
+  it('returns authorized true and verifiedAddress when signer is a verified address', async () => {
     mockVerificationsFetch([verifiedAddress]);
     const result = await isAuthorizedSigner(FID, verifiedAddress);
-    expect(result).toEqual({ authorized: true, custodyAddress });
+    expect(result).toEqual({ authorized: true, verifiedAddress });
   });
 
   it('returns authorized true when signer matches a verified address case-insensitively', async () => {
     mockVerificationsFetch([verifiedAddress]);
     const result = await isAuthorizedSigner(FID, verifiedAddress.toUpperCase());
-    expect(result).toEqual({ authorized: true, custodyAddress });
+    expect(result).toEqual({ authorized: true, verifiedAddress });
   });
 
-  it('returns authorized false and custodyAddress when signer is not authorized', async () => {
+  it('returns authorized false and verifiedAddress when signer is not authorized', async () => {
     mockVerificationsFetch([verifiedAddress]);
     const result = await isAuthorizedSigner(FID, unknownAddress);
-    expect(result).toEqual({ authorized: false, custodyAddress });
+    expect(result).toEqual({ authorized: false, verifiedAddress });
   });
 
-  it('returns authorized false and custodyAddress when verifications fetch fails', async () => {
+  it('returns authorized false and verifiedAddress when verifications fetch fails', async () => {
     vi.mocked(neynarFetch).mockRejectedValue(new Error('Neynar error'));
     const result = await isAuthorizedSigner(FID, unknownAddress);
-    expect(result).toEqual({ authorized: false, custodyAddress });
+    expect(result).toEqual({ authorized: false, verifiedAddress });
   });
 
-  it('returns authorized false and custodyAddress when verifications list is empty', async () => {
+  it('returns authorized false and verifiedAddress when verifications list is empty', async () => {
     mockVerificationsFetch([]);
     const result = await isAuthorizedSigner(FID, unknownAddress);
-    expect(result).toEqual({ authorized: false, custodyAddress });
+    expect(result).toEqual({ authorized: false, verifiedAddress });
   });
 
   it('does not call verifications when signer is the custody address', async () => {

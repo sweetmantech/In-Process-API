@@ -26,13 +26,13 @@ const verifyFarcasterAuth = async (
   const fid = parseFidFromResources(parsed.resources);
   if (fid === null) throw new Error('No FID found in SIWE message');
 
-  const { authorized, custodyAddress } = await isAuthorizedSigner(
+  const { authorized, verifiedAddress } = await isAuthorizedSigner(
     fid,
     recovered
   );
   if (!authorized) throw new Error('Signer not authorized for FID');
 
-  return custodyAddress;
+  return verifiedAddress;
 };
 
 export default verifyFarcasterAuth;
