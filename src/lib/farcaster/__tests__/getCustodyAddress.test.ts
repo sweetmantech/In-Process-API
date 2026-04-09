@@ -1,56 +1,48 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { hexToBytes } from 'viem';
+
+vi.mock('@/lib/farcaster/hubClient', () => ({
+  default: { getIdRegistryOnChainEvent: vi.fn() },
+}));
+
+import hubClient from '@/lib/farcaster/hubClient';
 import getCustodyAddress from '@/lib/farcaster/getCustodyAddress';
 
 const FID = 12345n;
 const custodyAddress = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
+const custodyAddressBytes = hexToBytes(custodyAddress as `0x${string}`);
+
+function mockHubOk(to: Uint8Array) {
+  vi.mocked(hubClient.getIdRegistryOnChainEvent).mockResolvedValue({
+    isErr: () => false,
+    value: { idRegisterEventBody: { to } },
+  } as any);
+}
 
 describe('getCustodyAddress', () => {
   beforeEach(() => {
-    vi.unstubAllGlobals();
+    vi.clearAllMocks();
   });
 
-  it('returns lowercased custody address from top-level field', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({ custodyAddress: custodyAddress.toUpperCase() }),
-      })
-    );
-
+  it('returns lowercased custody address', async () => {
+    mockHubOk(custodyAddressBytes);
     const result = await getCustodyAddress(FID);
     expect(result).toBe(custodyAddress.toLowerCase());
   });
 
-  it('returns custody address from nested result field', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ result: { custodyAddress } }),
-      })
-    );
-
-    const result = await getCustodyAddress(FID);
-    expect(result).toBe(custodyAddress.toLowerCase());
-  });
-
-  it('calls the Hub API with the correct FID', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ custodyAddress }),
-    });
-    vi.stubGlobal('fetch', fetchMock);
-
+  it('calls the Hub with the correct FID', async () => {
+    mockHubOk(custodyAddressBytes);
     await getCustodyAddress(FID);
-    expect(fetchMock).toHaveBeenCalledWith(
-      `https://hub.farcaster.xyz/v1/custodyAddressByFid?fid=${FID}`
-    );
+    expect(hubClient.getIdRegistryOnChainEvent).toHaveBeenCalledWith({
+      fid: Number(FID),
+    });
   });
 
-  it('throws when the Hub API responds with a non-ok status', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
+  it('throws when the Hub call fails', async () => {
+    vi.mocked(hubClient.getIdRegistryOnChainEvent).mockResolvedValue({
+      isErr: () => true,
+      error: { message: 'hub error' },
+    } as any);
 
     await expect(getCustodyAddress(FID)).rejects.toThrow(
       'Failed to fetch custody address from Hub'
@@ -58,14 +50,7 @@ describe('getCustodyAddress', () => {
   });
 
   it('throws when the response contains no custody address', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({}),
-      })
-    );
-
+    mockHubOk(new Uint8Array(0));
     await expect(getCustodyAddress(FID)).rejects.toThrow(
       'No custody address found for FID'
     );

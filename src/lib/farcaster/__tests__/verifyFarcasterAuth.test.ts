@@ -8,8 +8,13 @@ vi.mock('viem', () => ({
   recoverMessageAddress: vi.fn(),
 }));
 
+vi.mock('@/lib/farcaster/isAuthorizedSigner', () => ({
+  default: vi.fn(),
+}));
+
 import { parseSiweMessage } from 'viem/siwe';
 import { recoverMessageAddress } from 'viem';
+import isAuthorizedSigner from '@/lib/farcaster/isAuthorizedSigner';
 import verifyFarcasterAuth from '@/lib/farcaster/verifyFarcasterAuth';
 
 const custodyAddress = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
@@ -19,38 +24,9 @@ const signature = '0xsig';
 const CHAIN_ID = 10; // Optimism (Farcaster SIWE chain)
 const FID = '12345';
 
-function mockHubFetch(custody: string, verifiedAddresses: string[] = []): void {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn((url: string) => {
-      if (url.includes('custodyAddressByFid')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ custodyAddress: custody }),
-        });
-      }
-      if (url.includes('verificationsByFid')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              messages: verifiedAddresses.map((address) => ({
-                data: {
-                  verificationAddEthOrSolAddressBody: { address },
-                },
-              })),
-            }),
-        });
-      }
-      return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
-    })
-  );
-}
-
 describe('verifyFarcasterAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.unstubAllGlobals();
   });
 
   it('returns custody address when signer is the custody address', async () => {
@@ -60,7 +36,10 @@ describe('verifyFarcasterAuth', () => {
       resources: [`farcaster://fid/${FID}`],
     } as any);
     vi.mocked(recoverMessageAddress).mockResolvedValue(custodyAddress as any);
-    mockHubFetch(custodyAddress);
+    vi.mocked(isAuthorizedSigner).mockResolvedValue({
+      authorized: true,
+      custodyAddress,
+    });
 
     const result = await verifyFarcasterAuth(message, signature);
     expect(result).toBe(custodyAddress.toLowerCase());
@@ -73,7 +52,10 @@ describe('verifyFarcasterAuth', () => {
       resources: [`farcaster://fid/${FID}`],
     } as any);
     vi.mocked(recoverMessageAddress).mockResolvedValue(signerAddress as any);
-    mockHubFetch(custodyAddress, [signerAddress]);
+    vi.mocked(isAuthorizedSigner).mockResolvedValue({
+      authorized: true,
+      custodyAddress,
+    });
 
     const result = await verifyFarcasterAuth(message, signature);
     expect(result).toBe(custodyAddress.toLowerCase());
@@ -137,7 +119,10 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(recoverMessageAddress).mockResolvedValue(
       unauthorizedSigner as any
     );
-    mockHubFetch(custodyAddress, []);
+    vi.mocked(isAuthorizedSigner).mockResolvedValue({
+      authorized: false,
+      custodyAddress,
+    });
 
     await expect(verifyFarcasterAuth(message, signature)).rejects.toThrow(
       'Signer not authorized for FID'

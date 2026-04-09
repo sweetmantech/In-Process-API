@@ -56,4 +56,4 @@ export const SOUND_METADATA_ADDRESS: Address =
   '0x0000000000f5A96Dc85959cAeb0Cfe680f108FB5';
 
 export const FARCASTER_HUB_GRPC =
-  process.env.FARCASTER_HUB_GRPC ?? 'nemes.farcaster.xyz:2283';
+  process.env.FARCASTER_HUB_GRPC ?? 'snap.farcaster.xyz:3381';
