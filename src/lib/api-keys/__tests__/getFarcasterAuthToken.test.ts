@@ -31,6 +31,15 @@ describe('getFarcasterAuthToken', () => {
     );
   });
 
+  it('returns null when header is "Farcaster " with only whitespace after prefix', () => {
+    expect(getFarcasterAuthToken('Farcaster ')).toBeNull();
+    expect(getFarcasterAuthToken('Farcaster   ')).toBeNull();
+  });
+
+  it('trims whitespace from extracted token', () => {
+    expect(getFarcasterAuthToken('Farcaster  mytoken123  ')).toBe('mytoken123');
+  });
+
   it('returns null for Bearer prefix', () => {
     expect(getFarcasterAuthToken('Bearer sometoken')).toBeNull();
   });

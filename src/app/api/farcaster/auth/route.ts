@@ -1,29 +1,23 @@
-import { NextRequest } from 'next/server';
-import { verifyFarcasterAuth } from '@/lib/farcaster/verifyFarcasterAuth';
-import { signJwt } from '@/lib/jwt/signJwt';
+import { NextRequest, NextResponse } from 'next/server';
+import validateFarcasterAuthBody from '@/lib/farcaster/validateFarcasterAuthBody';
+import farcasterAuthHandler from '@/lib/farcaster/farcasterAuthHandler';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, signature } = await req.json();
-    if (!message || !signature) {
-      return Response.json(
-        { message: 'message and signature are required' },
-        { status: 400 }
-      );
-    }
-
-    await verifyFarcasterAuth(message, signature);
-
-    const token = signJwt(
-      { message, signature },
-      process.env.FARCASTER_JWT_SECRET!
-    );
-
-    return Response.json({ token });
+    const validated = await validateFarcasterAuthBody(req);
+    if (validated instanceof NextResponse) return validated;
+    const { message, signature } = validated;
+    const result = await farcasterAuthHandler(message, signature);
+    return Response.json(result);
   } catch (e: any) {
-    return Response.json(
-      { message: e?.message ?? 'Authentication failed' },
-      { status: 401 }
-    );
+    const isAuthError =
+      e?.message === 'Expired nonce' || e?.message === 'Invalid signature';
+    if (isAuthError) {
+      return Response.json({ message: e.message }, { status: 401 });
+    }
+    console.error('[POST /api/farcaster/auth]', e);
+    return Response.json({ message: 'Authentication failed' }, { status: 500 });
   }
 }

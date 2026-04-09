@@ -18,6 +18,15 @@ describe('getBearerToken', () => {
     expect(getBearerToken('Bearer')).toBeNull();
   });
 
+  it('returns null when header is "Bearer " with only whitespace after prefix', () => {
+    expect(getBearerToken('Bearer ')).toBeNull();
+    expect(getBearerToken('Bearer   ')).toBeNull();
+  });
+
+  it('trims whitespace from extracted token', () => {
+    expect(getBearerToken('Bearer  mytoken123  ')).toBe('mytoken123');
+  });
+
   it('extracts token from valid Bearer header', () => {
     expect(getBearerToken('Bearer mytoken123')).toBe('mytoken123');
   });

@@ -31,6 +31,10 @@ describe('verifyJwt', () => {
     expect(() => verifyJwt('only.two', secret)).toThrow('Invalid JWT format');
   });
 
+  it('throws on token with more than three segments', () => {
+    expect(() => verifyJwt('a.b.c.d', secret)).toThrow('Invalid JWT format');
+  });
+
   it('throws on empty string', () => {
     expect(() => verifyJwt('', secret)).toThrow('Invalid JWT format');
   });

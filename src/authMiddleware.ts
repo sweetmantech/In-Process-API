@@ -5,6 +5,7 @@ import { getAddressesByAuthToken } from '@/lib/privy/getAddressesByAuthToken';
 import { getArtistAddressByApiKey } from '@/lib/api-keys/getArtistAddressByApiKey';
 import { verifyJwt } from '@/lib/jwt/verifyJwt';
 import { verifyFarcasterAuth } from '@/lib/farcaster/verifyFarcasterAuth';
+import { farcasterAuthSchema } from '@/lib/schema/farcasterAuthSchema';
 import { AuthErrorMessages, AuthErrorTypes } from './errors';
 
 export interface AuthResult {
@@ -32,13 +33,15 @@ export async function authMiddleware(
 
   try {
     if (farcasterToken) {
-      const payload = verifyJwt<{ message: string; signature: string }>(
-        farcasterToken,
-        process.env.FARCASTER_JWT_SECRET!
-      );
+      const secret = process.env.FARCASTER_JWT_SECRET;
+      if (!secret) throw new Error('FARCASTER_JWT_SECRET is not configured');
+      const raw = verifyJwt(farcasterToken, secret);
+      const parsed = farcasterAuthSchema.safeParse(raw);
+      if (!parsed.success)
+        throw new Error(AuthErrorMessages.INVALID_AUTH_TOKEN);
       artistAddress = await verifyFarcasterAuth(
-        payload.message,
-        payload.signature
+        parsed.data.message,
+        parsed.data.signature
       );
       authMethod = 'token';
     } else if (bearerToken) {

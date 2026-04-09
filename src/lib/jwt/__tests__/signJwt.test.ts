@@ -33,6 +33,10 @@ describe('signJwt', () => {
     expect(verifyJwt(token, secret)).toMatchObject(payload);
   });
 
+  it('throws when secret is empty', () => {
+    expect(() => signJwt({ a: 1 }, '')).toThrow('JWT secret is not configured');
+  });
+
   it('produces different signatures for different secrets', () => {
     const t1 = signJwt({ a: 1 }, 'secret-a');
     const t2 = signJwt({ a: 1 }, 'secret-b');

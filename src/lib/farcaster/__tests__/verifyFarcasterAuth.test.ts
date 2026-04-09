@@ -12,6 +12,10 @@ vi.mock('@/lib/farcaster/getValidNonces', () => ({
   getValidNonces: vi.fn(),
 }));
 
+vi.mock('@/lib/consts', () => ({
+  CHAIN_ID: 8453,
+}));
+
 import { parseSiweMessage } from 'viem/siwe';
 import { recoverMessageAddress } from 'viem';
 import { getValidNonces } from '@/lib/farcaster/getValidNonces';
@@ -21,6 +25,7 @@ const address = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
 const message = 'test message';
 const signature = '0xsig';
 const validNonce = '12345';
+const CHAIN_ID = 8453;
 
 describe('verifyFarcasterAuth', () => {
   beforeEach(() => {
@@ -30,6 +35,7 @@ describe('verifyFarcasterAuth', () => {
 
   it('returns lowercase address on valid message and signature', async () => {
     vi.mocked(parseSiweMessage).mockReturnValue({
+      chainId: CHAIN_ID,
       nonce: validNonce,
       address,
     } as any);
@@ -39,8 +45,33 @@ describe('verifyFarcasterAuth', () => {
     expect(result).toBe(address.toLowerCase());
   });
 
+  it('throws when chainId does not match expected chain', async () => {
+    vi.mocked(parseSiweMessage).mockReturnValue({
+      chainId: 1,
+      nonce: validNonce,
+      address,
+    } as any);
+
+    await expect(verifyFarcasterAuth(message, signature)).rejects.toThrow(
+      'Invalid chainId'
+    );
+  });
+
+  it('throws when chainId is missing', async () => {
+    vi.mocked(parseSiweMessage).mockReturnValue({
+      chainId: undefined,
+      nonce: validNonce,
+      address,
+    } as any);
+
+    await expect(verifyFarcasterAuth(message, signature)).rejects.toThrow(
+      'Invalid chainId'
+    );
+  });
+
   it('throws when nonce is missing', async () => {
     vi.mocked(parseSiweMessage).mockReturnValue({
+      chainId: CHAIN_ID,
       nonce: undefined,
       address,
     } as any);
@@ -52,6 +83,7 @@ describe('verifyFarcasterAuth', () => {
 
   it('throws when nonce is not in the valid window', async () => {
     vi.mocked(parseSiweMessage).mockReturnValue({
+      chainId: CHAIN_ID,
       nonce: '99999',
       address,
     } as any);
@@ -63,6 +95,7 @@ describe('verifyFarcasterAuth', () => {
 
   it('accepts nonce from the previous window', async () => {
     vi.mocked(parseSiweMessage).mockReturnValue({
+      chainId: CHAIN_ID,
       nonce: '12344',
       address,
     } as any);
@@ -75,6 +108,7 @@ describe('verifyFarcasterAuth', () => {
   it('throws when recovered address does not match parsed address', async () => {
     const different = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8';
     vi.mocked(parseSiweMessage).mockReturnValue({
+      chainId: CHAIN_ID,
       nonce: validNonce,
       address,
     } as any);
@@ -88,6 +122,7 @@ describe('verifyFarcasterAuth', () => {
   it('normalizes address comparison to lowercase', async () => {
     const upperAddress = address.toUpperCase() as `0x${string}`;
     vi.mocked(parseSiweMessage).mockReturnValue({
+      chainId: CHAIN_ID,
       nonce: validNonce,
       address: upperAddress,
     } as any);

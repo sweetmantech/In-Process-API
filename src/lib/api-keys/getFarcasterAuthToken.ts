@@ -4,5 +4,6 @@ export function getFarcasterAuthToken(
   if (!authHeader) return null;
   const lower = authHeader.toLowerCase();
   if (!lower.startsWith('farcaster ')) return null;
-  return authHeader.substring(10);
+  const token = authHeader.substring(10).trim();
+  return token || null;
 }
