@@ -1,11 +1,14 @@
 import { parseSiweMessage } from 'viem/siwe';
 import { recoverMessageAddress } from 'viem';
 import { optimism } from 'viem/chains';
+import parseFidFromResources from '@/lib/farcaster/parseFidFromResources';
+import getCustodyAddress from '@/lib/farcaster/getCustodyAddress';
+import isAuthorizedSigner from '@/lib/farcaster/isAuthorizedSigner';
 
-export async function verifyFarcasterAuth(
+const verifyFarcasterAuth = async (
   message: string,
   signature: string
-): Promise<string> {
+): Promise<string> => {
   const parsed = parseSiweMessage(message);
 
   if (parsed.chainId !== optimism.id) {
@@ -21,5 +24,13 @@ export async function verifyFarcasterAuth(
     throw new Error('Invalid signature');
   }
 
-  return recovered.toLowerCase();
-}
+  const fid = parseFidFromResources(parsed.resources);
+  if (fid === null) throw new Error('No FID found in SIWE message');
+
+  const authorized = await isAuthorizedSigner(fid, recovered);
+  if (!authorized) throw new Error('Signer not authorized for FID');
+
+  return await getCustodyAddress(fid);
+};
+
+export default verifyFarcasterAuth;

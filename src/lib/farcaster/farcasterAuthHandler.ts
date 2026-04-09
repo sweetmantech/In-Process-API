@@ -1,4 +1,4 @@
-import { verifyFarcasterAuth } from '@/lib/farcaster/verifyFarcasterAuth';
+import verifyFarcasterAuth from '@/lib/farcaster/verifyFarcasterAuth';
 import { signJwt } from '@/lib/jwt/signJwt';
 
 const farcasterAuthHandler = async (

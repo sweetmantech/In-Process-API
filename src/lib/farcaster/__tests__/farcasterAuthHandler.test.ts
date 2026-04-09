@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/farcaster/verifyFarcasterAuth', () => ({
-  verifyFarcasterAuth: vi.fn(),
+  default: vi.fn(),
 }));
 
 vi.mock('@/lib/jwt/signJwt', () => ({
   signJwt: vi.fn(),
 }));
 
-import { verifyFarcasterAuth } from '@/lib/farcaster/verifyFarcasterAuth';
+import verifyFarcasterAuth from '@/lib/farcaster/verifyFarcasterAuth';
 import { signJwt } from '@/lib/jwt/signJwt';
 import farcasterAuthHandler from '@/lib/farcaster/farcasterAuthHandler';
 
