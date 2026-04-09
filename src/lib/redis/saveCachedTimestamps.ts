@@ -1,11 +1,10 @@
 import redisClient from './redisClient';
-
-const KV_KEY = 'indexer:cached_timestamps';
+import { REDIS_TIMESTAMP_KEY } from '@/lib/consts';
 
 const saveCachedTimestamps = async (
   timestamps: Record<string, number | null>
 ): Promise<void> => {
-  await redisClient.set(KV_KEY, timestamps);
+  await redisClient.set(REDIS_TIMESTAMP_KEY, JSON.stringify(timestamps));
 };
 
 export default saveCachedTimestamps;
