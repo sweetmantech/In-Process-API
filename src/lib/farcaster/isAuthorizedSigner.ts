@@ -1,5 +1,6 @@
+import { bytesToHex } from 'viem';
 import getCustodyAddress from '@/lib/farcaster/getCustodyAddress';
-import { FARCASTER_HUB_API } from '@/lib/consts';
+import hubClient from '@/lib/farcaster/hubClient';
 
 const isAuthorizedSigner = async (
   fid: bigint,
@@ -9,15 +10,17 @@ const isAuthorizedSigner = async (
   if (signer.toLowerCase() === custodyAddress)
     return { authorized: true, custodyAddress };
 
-  const res = await fetch(`${FARCASTER_HUB_API}/verificationsByFid?fid=${fid}`);
-  if (!res.ok) return { authorized: false, custodyAddress };
-  const data = await res.json();
-  const messages: any[] = data.messages ?? [];
-  const authorized = messages.some(
-    (msg) =>
-      msg?.data?.verificationAddEthOrSolAddressBody?.address?.toLowerCase() ===
-      signer.toLowerCase()
-  );
+  const result = await hubClient.getAllVerificationMessagesByFid({
+    fid: Number(fid),
+  });
+  if (result.isErr()) return { authorized: false, custodyAddress };
+
+  const authorized = result.value.messages.some((msg) => {
+    const addr = msg.data?.verificationAddAddressBody?.address;
+    if (!addr?.length) return false;
+    return bytesToHex(addr).toLowerCase() === signer.toLowerCase();
+  });
+
   return { authorized, custodyAddress };
 };
 

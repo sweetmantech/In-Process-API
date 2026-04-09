@@ -25,6 +25,7 @@
     "@chat-adapter/telegram": "^4.20.2",
     "@coinbase/cdp-sdk": "^1.43.1",
     "@coinbase/coinbase-sdk": "^0.25.0",
+    "@farcaster/hub-nodejs": "^0.15.10",
     "@mux/mux-node": "^12.8.1",
     "@mux/upchunk": "^3.5.0",
     "@privy-io/node": "^0.8.0",
