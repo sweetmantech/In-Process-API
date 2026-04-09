@@ -4,7 +4,7 @@ import { getFarcasterAuthToken } from '@/lib/api-keys/getFarcasterAuthToken';
 import { getAddressesByAuthToken } from '@/lib/privy/getAddressesByAuthToken';
 import { getArtistAddressByApiKey } from '@/lib/api-keys/getArtistAddressByApiKey';
 import { verifyJwt } from '@/lib/jwt/verifyJwt';
-import { verifyFarcasterAuth } from '@/lib/farcaster/verifyFarcasterAuth';
+import verifyFarcasterAuth from '@/lib/farcaster/verifyFarcasterAuth';
 import { farcasterAuthSchema } from '@/lib/schema/farcasterAuthSchema';
 import { AuthErrorMessages, AuthErrorTypes } from './errors';
 
