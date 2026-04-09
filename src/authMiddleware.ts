@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBearerToken } from '@/lib/api-keys/getBearerToken';
-import { getFarcasterAuthToken } from '@/lib/api-keys/getFarcasterAuthToken';
 import { getAddressesByAuthToken } from '@/lib/privy/getAddressesByAuthToken';
 import { getArtistAddressByApiKey } from '@/lib/api-keys/getArtistAddressByApiKey';
-import { verifyJwt } from '@/lib/jwt/verifyJwt';
-import verifyFarcasterAuth from '@/lib/farcaster/verifyFarcasterAuth';
-import { farcasterAuthSchema } from '@/lib/schema/farcasterAuthSchema';
 import { AuthErrorMessages, AuthErrorTypes } from './errors';
 
 export interface AuthResult {
@@ -13,42 +9,38 @@ export interface AuthResult {
   authMethod: 'token' | 'apiKey';
 }
 
+/**
+ * Authentication middleware that validates either:
+ * 1. Auth token, OR
+ * 2. API key
+ *
+ * Returns the artist address and authentication method used.
+ */
 export async function authMiddleware(
   req: NextRequest
 ): Promise<NextResponse | AuthResult> {
   const authHeader = req.headers.get('authorization');
-  const bearerToken = getBearerToken(authHeader);
-  const farcasterToken = getFarcasterAuthToken(authHeader);
+  const authToken = getBearerToken(authHeader);
   const apiKey = req.headers.get('x-api-key');
 
-  if (!bearerToken && !farcasterToken && !apiKey) {
+  // Require either auth token or API key
+  if (!authToken && !apiKey) {
     return NextResponse.json(
       { message: AuthErrorTypes.UNAUTHORIZED },
       { status: 401 }
     );
   }
 
+  // Get artist address from either auth token or API key
   let artistAddress: string;
   let authMethod: 'token' | 'apiKey';
 
   try {
-    if (farcasterToken) {
-      const secret = process.env.FARCASTER_JWT_SECRET;
-      if (!secret) throw new Error('FARCASTER_JWT_SECRET is not configured');
-      const raw = verifyJwt(farcasterToken, secret);
-      const parsed = farcasterAuthSchema.safeParse(raw);
-      if (!parsed.success)
-        throw new Error(AuthErrorMessages.INVALID_AUTH_TOKEN);
-      artistAddress = await verifyFarcasterAuth(
-        parsed.data.message,
-        parsed.data.signature
-      );
-      authMethod = 'token';
-    } else if (bearerToken) {
+    if (authToken) {
       const {
         artistAddress: artistAddressFromToken,
         socialWallet: socialWalletFromToken,
-      } = await getAddressesByAuthToken(bearerToken);
+      } = await getAddressesByAuthToken(authToken);
       artistAddress = artistAddressFromToken || socialWalletFromToken || '';
       authMethod = 'token';
     } else if (apiKey) {
@@ -58,6 +50,7 @@ export async function authMiddleware(
       throw new Error(AuthErrorMessages.NO_VALID_AUTH_METHOD);
     }
   } catch (error: any) {
+    // Handle authentication errors specifically
     if (
       error?.message?.includes(AuthErrorMessages.INVALID_AUTH_TOKEN) ||
       error?.message?.includes(AuthErrorMessages.NO_SOCIAL_OR_ARTIST_WALLET) ||
@@ -72,8 +65,12 @@ export async function authMiddleware(
         { status: 401 }
       );
     }
+
     throw error;
   }
 
-  return { artistAddress, authMethod };
+  return {
+    artistAddress,
+    authMethod,
+  };
 }
