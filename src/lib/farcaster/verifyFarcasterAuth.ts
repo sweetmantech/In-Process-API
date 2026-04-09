@@ -9,6 +9,7 @@ export async function verifyFarcasterAuth(
   const parsed = parseSiweMessage(message);
 
   if (parsed.chainId !== CHAIN_ID) {
+    console.log('ziad here', parsed.chainId)
     throw new Error('Invalid chainId');
   }
 
