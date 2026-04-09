@@ -8,10 +8,6 @@ vi.mock('viem', () => ({
   recoverMessageAddress: vi.fn(),
 }));
 
-vi.mock('@/lib/consts', () => ({
-  CHAIN_ID: 8453,
-}));
-
 import { parseSiweMessage } from 'viem/siwe';
 import { recoverMessageAddress } from 'viem';
 import { verifyFarcasterAuth } from '@/lib/farcaster/verifyFarcasterAuth';
@@ -19,7 +15,7 @@ import { verifyFarcasterAuth } from '@/lib/farcaster/verifyFarcasterAuth';
 const address = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
 const message = 'test message';
 const signature = '0xsig';
-const CHAIN_ID = 8453;
+const CHAIN_ID = 10; // Optimism (Farcaster SIWE chain)
 
 describe('verifyFarcasterAuth', () => {
   beforeEach(() => {
