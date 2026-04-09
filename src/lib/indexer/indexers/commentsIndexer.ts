@@ -1,0 +1,14 @@
+import { processCommentsInBatches } from '@/lib/indexer/comments/processCommentsInBatches';
+import { selectMaxCommentedAt } from '@/lib/indexer/comments/selectMaxCommentedAt';
+import type { InProcess_Moment_Comments_t } from '@/types/envio';
+import type { IndexConfig } from '@/types/indexerFactory';
+
+export const commentsIndexer: IndexConfig<InProcess_Moment_Comments_t> = {
+  processBatchFn: processCommentsInBatches,
+  selectMaxTimestampFn: selectMaxCommentedAt,
+  indexName: 'comments',
+  dataPath: 'InProcess_Moment_Comments',
+  queryFragment: `InProcess_Moment_Comments(limit: $limit, offset: $offset_comments, order_by: {commented_at: asc}, where: {commented_at: {_gt: $minTimestamp_comments}}) {
+    id collection sender token_id comment chain_id commented_at transaction_hash
+  }`,
+};
