@@ -9,8 +9,6 @@ import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
 import { mapMetadataToSupabase } from './mapMetadataToSupabase';
 import { upsertMetadata } from '@/lib/supabase/in_process_metadata/upsertMetadata';
 import { upsertArtistNames } from '@/lib/supabase/in_process_artists/upsertArtistNames';
-import { broadcastMomentUpdated } from '@/lib/supabase/broadcast/broadcastMomentUpdated';
-import { broadcastMomentsCountUpdated } from '@/lib/supabase/broadcast/broadcastMomentsCountUpdated';
 
 export async function processMomentsInBatches(
   moments: InProcess_Moments_t[] | Catalog_Moments_t[] | Sound_Moments_t[]
@@ -28,9 +26,6 @@ export async function processMomentsInBatches(
       await upsertMetadata(metadataRecords);
       await upsertArtistNames(artistNamesByAddresses);
 
-      if (mappedMoments.length > 0 || upsertedMoments.length > 0)
-        broadcastMomentUpdated(batch);
-
       totalProcessed += mappedMoments.length;
       console.log(
         `📚 Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing ${upsertedMoments.length} moments, ${metadataRecords.length} metadata`
@@ -43,8 +38,7 @@ export async function processMomentsInBatches(
     }
   }
 
-  if (totalProcessed > 0) {
+  if (totalProcessed > 0)
     console.log(`✅  Completed processing: ${totalProcessed} moments`);
-    broadcastMomentsCountUpdated();
-  } else console.log(`ℹ️  No moments to process`);
+  else console.log(`ℹ️  No moments to process`);
 }

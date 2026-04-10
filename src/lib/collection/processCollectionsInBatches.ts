@@ -7,7 +7,6 @@ import { BATCH_SIZE } from '@/lib/consts';
 import { mapCollectionsToSupabase } from './mapCollectionsToSupabase';
 import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
-import { broadcastCollectionUpdated } from '@/lib/supabase/broadcast/broadcastCollectionUpdated';
 
 export async function processCollectionsInBatches(
   collections:
@@ -22,9 +21,6 @@ export async function processCollectionsInBatches(
       const mappedCollections = mapCollectionsToSupabase(batch);
       await ensureArtists(mappedCollections.map((c) => c.creator));
       await upsertCollections(mappedCollections);
-
-      broadcastCollectionUpdated(batch);
-
       totalProcessed += mappedCollections.length;
       console.log(
         `📚 Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing ${batch.length} collections`
