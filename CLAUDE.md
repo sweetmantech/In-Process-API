@@ -323,24 +323,41 @@ The previous standalone indexer (`in-process-token-indexer`) used **Socket.IO** 
 
 **Why Socket.IO doesn't work here:** Vercel Functions are stateless and ephemeral — a persistent `Server` instance cannot be shared across invocations.
 
-**How to add real-time notifications in this project:**
+**How real-time notifications are implemented (Supabase Realtime Broadcast):**
 
-Option 1 — **Pusher / Ably (recommended):** Call their HTTP API from within `processBatchFn` after each successful upsert. No persistent connection needed. Drop-in replacement — same event names and payloads as above.
+Since this project already uses Supabase, real-time notifications are implemented via **Supabase Realtime Broadcast** — no additional service or account required.
+
+**Architecture:**
+
+- `supabase.channel('indexer')` is created once in `@/lib/supabase/client.ts` and exported as `indexerChannel`
+- `channel.send()` uses an HTTP fallback internally when no WebSocket is active — fully compatible with Vercel's stateless functions
+- Each `process*InBatches` function calls the corresponding broadcast helper after a successful upsert (fire-and-forget via `.catch(console.error)`)
+
+**Broadcast helpers** (`@/lib/supabase/broadcast/`):
+
+| File                              | Event emitted                                                              |
+| --------------------------------- | -------------------------------------------------------------------------- |
+| `broadcastMomentUpdated.ts`       | `moment:updated`                                                           |
+| `broadcastCollectionUpdated.ts`   | `collection:updated`                                                       |
+| `broadcastAdminUpdated.ts`        | `moment:admin:updated` or `collection:admin:updated` (based on `token_id`) |
+| `broadcastMomentsCountUpdated.ts` | `moments:count-updated`                                                    |
+
+**Client subscription example:**
 
 ```typescript
-// Example after upsertMoments():
-await pusher.trigger('indexer', 'moment:updated', {
-  collectionAddress: moment.collection,
-  tokenId: Number(moment.token_id),
-  chainId: moment.chain_id,
-});
+supabase
+  .channel('indexer')
+  .on('broadcast', { event: 'moment:updated' }, ({ payload }) => {
+    // payload: { collectionAddress, tokenId, chainId }
+  })
+  .subscribe();
 ```
 
-Option 2 — **Server-Sent Events (SSE):** Add a `GET /api/events` route that streams `text/event-stream`. Clients subscribe and receive pushes. Works on Vercel with Edge Runtime; limited to one-way server→client flow (suitable for our use case).
+**Key decisions:**
 
-Option 3 — **Polling:** Clients poll `GET /api/moment` or similar endpoints. Simplest approach; no infra change required. Acceptable when sub-second latency is not needed.
-
-The indexer already calls `processBatchFn` for every entity batch — the right place to add any notification side-effect is immediately after the Supabase upsert inside each `process*InBatches` function.
+- `indexerChannel` lives in `client.ts` alongside `supabase` — no extra init file needed
+- Broadcast is fire-and-forget; a failed broadcast never blocks or throws in the indexer
+- `broadcastAdminUpdated` deduplicates events with a `seen` Set (same logic as the old Socket.IO `emitAdminUpdated`)
 
 ## Path Aliases
 
