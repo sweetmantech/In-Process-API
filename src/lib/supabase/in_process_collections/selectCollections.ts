@@ -38,6 +38,8 @@ const selectCollections = async ({
   if (page !== undefined) {
     query = query.in('admins.token_id', [0]);
     query = query.range((page - 1) * cappedLimit, page * cappedLimit - 1);
+  } else {
+    query = query.limit(cappedLimit);
   }
   query = query.order('created_at', { ascending: false });
 
