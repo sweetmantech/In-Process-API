@@ -18,7 +18,7 @@ const selectAdmins = async ({
     const orConditions = moments
       .map(
         (moment) =>
-          `and(collection::uuid.eq.${moment.collectionId},token_id.eq.${Number(moment.token_id)}),and(collection::uuid.eq.${moment.collectionId},token_id.eq.${0})`
+          `and(collection.eq.${moment.collectionId},token_id.eq.${Number(moment.token_id)}),and(collection.eq.${moment.collectionId},token_id.eq.${0})`
       )
       .join(',');
     query = query.or(orConditions);
