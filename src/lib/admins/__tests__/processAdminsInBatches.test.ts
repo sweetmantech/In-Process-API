@@ -12,6 +12,9 @@ vi.mock('@/lib/supabase/in_process_artists/ensureArtists', () => ({
   ensureArtists: vi.fn(),
 }));
 vi.mock('../getScope', () => ({ getScope: vi.fn() }));
+vi.mock('@/lib/supabase/broadcast/broadcastAdminUpdated', () => ({
+  broadcastAdminUpdated: vi.fn(),
+}));
 
 import { processAdminsInBatches } from '../processAdminsInBatches';
 import { mapAdminsToSupabase } from '../mapAdminsToSupabase';
@@ -20,6 +23,7 @@ import upsertAdmins from '@/lib/supabase/in_process_admins/upsertAdmins';
 import { deleteAdmins } from '@/lib/supabase/in_process_admins/deleteAdmins';
 import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
 import { getScope } from '../getScope';
+import { broadcastAdminUpdated } from '@/lib/supabase/broadcast/broadcastAdminUpdated';
 
 const mockMapAdminsToSupabase = vi.mocked(mapAdminsToSupabase);
 const mockMapAdminsForDeletion = vi.mocked(mapAdminsForDeletion);
@@ -27,6 +31,7 @@ const mockUpsertAdmins = vi.mocked(upsertAdmins);
 const mockDeleteAdmins = vi.mocked(deleteAdmins);
 const mockEnsureArtists = vi.mocked(ensureArtists);
 const mockGetScope = vi.mocked(getScope);
+const mockBroadcastAdminUpdated = vi.mocked(broadcastAdminUpdated);
 
 const makeAdmin = (permission: number) => ({
   id: '1',
@@ -69,6 +74,7 @@ describe('processAdminsInBatches', () => {
     expect(mockMapAdminsToSupabase).toHaveBeenCalledWith([admin]);
     expect(mockEnsureArtists).toHaveBeenCalledWith(['0xabc']);
     expect(mockUpsertAdmins).toHaveBeenCalled();
+    expect(mockBroadcastAdminUpdated).toHaveBeenCalledWith([admin]);
   });
 
   it('deletes admins with scope === 0', async () => {
@@ -83,6 +89,7 @@ describe('processAdminsInBatches', () => {
 
     expect(mockMapAdminsForDeletion).toHaveBeenCalledWith([admin]);
     expect(mockDeleteAdmins).toHaveBeenCalled();
+    expect(mockBroadcastAdminUpdated).not.toHaveBeenCalled();
   });
 
   it('continues processing other batches when one fails', async () => {

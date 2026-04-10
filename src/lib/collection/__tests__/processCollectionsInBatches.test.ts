@@ -9,15 +9,20 @@ vi.mock('@/lib/supabase/in_process_artists/ensureArtists', () => ({
 vi.mock('@/lib/supabase/in_process_collections/upsertCollections', () => ({
   upsertCollections: vi.fn(),
 }));
+vi.mock('@/lib/supabase/broadcast/broadcastCollectionUpdated', () => ({
+  broadcastCollectionUpdated: vi.fn(),
+}));
 
 import { processCollectionsInBatches } from '../processCollectionsInBatches';
 import { mapCollectionsToSupabase } from '../mapCollectionsToSupabase';
 import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
+import { broadcastCollectionUpdated } from '@/lib/supabase/broadcast/broadcastCollectionUpdated';
 
 const mockMap = vi.mocked(mapCollectionsToSupabase);
 const mockEnsureArtists = vi.mocked(ensureArtists);
 const mockUpsertCollections = vi.mocked(upsertCollections);
+const mockBroadcastCollectionUpdated = vi.mocked(broadcastCollectionUpdated);
 
 const collection = {
   id: '1',
@@ -62,6 +67,7 @@ describe('processCollectionsInBatches', () => {
 
     expect(mockEnsureArtists).toHaveBeenCalledWith(['0xcreator']);
     expect(mockUpsertCollections).toHaveBeenCalledWith(mapped);
+    expect(mockBroadcastCollectionUpdated).toHaveBeenCalledWith([collection]);
   });
 
   it('continues when a batch throws', async () => {
