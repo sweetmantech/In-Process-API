@@ -244,6 +244,104 @@ mintTokenAdmin(address _to, uint256 _tokenId, uint256 _amount, bytes calldata _d
 
 **Payment currency:** USDC (`USDC_ADDRESS[CHAIN_ID]`)
 
+## Indexer / Envio Integration
+
+### Envio GraphQL Entity Names
+
+Use exact snake_case entity names when writing `queryFragment` strings:
+
+| Entity                | GraphQL name                |
+| --------------------- | --------------------------- |
+| InProcess collections | `InProcess_Collections`     |
+| InProcess moments     | `InProcess_Moments`         |
+| InProcess admins      | `InProcess_Admins`          |
+| InProcess comments    | `InProcess_Moment_Comments` |
+| InProcess airdrops    | `InProcess_Airdrops`        |
+| Payments              | `Payments`                  |
+| Primary sales         | `Primary_Sales`             |
+| Collectors            | `Collectors`                |
+| Catalog collections   | `Catalog_Collections`       |
+| Catalog moments       | `Catalog_Moments`           |
+| Catalog admins        | `Catalog_Admins`            |
+| Sound editions        | `Sound_Editions`            |
+| Sound moments         | `Sound_Moments`             |
+| Sound admins          | `Sound_Admins`              |
+
+**Note:** BigInt fields (`max_supply`, `token_id`, `sale_start`, `sale_end`, `price_per_token`, `amount`) are returned as **strings** from GraphQL — always convert with `Number()` or `parseInt()` before storing.
+
+### Timestamp Field Mapping (Envio → Supabase)
+
+Envio and Supabase use different column names for some timestamp values. This is intentional.
+
+| Entity         | Envio field      | Supabase field   | Note                           |
+| -------------- | ---------------- | ---------------- | ------------------------------ |
+| Admins         | `updated_at`     | `granted_at`     | Only entity where names differ |
+| Airdrops       | `updated_at`     | `updated_at`     | direct                         |
+| Collections    | `updated_at`     | `updated_at`     | direct                         |
+| Collectors     | `collected_at`   | `collected_at`   | direct                         |
+| Comments       | `commented_at`   | `commented_at`   | direct                         |
+| Moments        | `updated_at`     | `updated_at`     | direct                         |
+| Payments       | `transferred_at` | `transferred_at` | direct                         |
+| Primary Sales  | `created_at`     | `created_at`     | direct                         |
+| Sound Editions | `updated_at`     | `updated_at`     | direct                         |
+| Sound Moments  | `updated_at`     | `updated_at`     | direct                         |
+| Sound Admins   | `updated_at`     | `updated_at`     | direct                         |
+
+Incremental indexing flow per entity:
+
+1. `selectMaxTimestampFn()` reads max timestamp from **Supabase** (e.g., `granted_at` for admins)
+2. `msToBlockTs()` converts it back to chain timestamp (seconds)
+3. `queryFragment` filters **Envio** using the corresponding field (e.g., `updated_at` for admins)
+
+### Sound_Moments → token_id Mapping
+
+`Sound_Moments.tier` maps to `in_process_moments.token_id` as **`tier + 1`**.
+
+`token_id = 0` is reserved for the edition level, so tiers are 1-indexed in Supabase:
+
+| Envio `tier` | Supabase `token_id` |
+| ------------ | ------------------- |
+| 0            | 1                   |
+| 1            | 2                   |
+| N            | N + 1               |
+
+This applies in both `mapMomentsToSupabase` and any real-time emit that fires after indexing.
+
+### Real-time Event Notifications
+
+The previous standalone indexer (`in-process-token-indexer`) used **Socket.IO** to broadcast events to connected clients whenever data was indexed. It ran as a persistent Node.js process, so a shared `Server` instance could be kept in memory.
+
+**Events emitted (reference):**
+
+| Event                      | Payload                                   | Trigger                             |
+| -------------------------- | ----------------------------------------- | ----------------------------------- |
+| `moment:updated`           | `{ collectionAddress, tokenId, chainId }` | After each moment is indexed        |
+| `collection:updated`       | `{ collectionAddress, chainId }`          | After each collection is indexed    |
+| `moment:admin:updated`     | `{ collectionAddress, tokenId, chainId }` | After token-level admin change      |
+| `collection:admin:updated` | `{ collectionAddress, chainId }`          | After collection-level admin change |
+| `moments:count-updated`    | _(no payload)_                            | After any moment batch is indexed   |
+
+**Why Socket.IO doesn't work here:** Vercel Functions are stateless and ephemeral — a persistent `Server` instance cannot be shared across invocations.
+
+**How to add real-time notifications in this project:**
+
+Option 1 — **Pusher / Ably (recommended):** Call their HTTP API from within `processBatchFn` after each successful upsert. No persistent connection needed. Drop-in replacement — same event names and payloads as above.
+
+```typescript
+// Example after upsertMoments():
+await pusher.trigger('indexer', 'moment:updated', {
+  collectionAddress: moment.collection,
+  tokenId: Number(moment.token_id),
+  chainId: moment.chain_id,
+});
+```
+
+Option 2 — **Server-Sent Events (SSE):** Add a `GET /api/events` route that streams `text/event-stream`. Clients subscribe and receive pushes. Works on Vercel with Edge Runtime; limited to one-way server→client flow (suitable for our use case).
+
+Option 3 — **Polling:** Clients poll `GET /api/moment` or similar endpoints. Simplest approach; no infra change required. Acceptable when sub-second latency is not needed.
+
+The indexer already calls `processBatchFn` for every entity batch — the right place to add any notification side-effect is immediately after the Supabase upsert inside each `process*InBatches` function.
+
 ## Path Aliases
 
 - `@/*` → `./src/*`
