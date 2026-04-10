@@ -1,6 +1,6 @@
 import neynarFetch from '@/lib/farcaster/neynarFetch';
 
-const getCustodyAddress = async (
+const getFarcasterAddresses = async (
   fid: bigint
 ): Promise<{ custodyAddress: string; verifiedAddress: string }> => {
   const data = (await neynarFetch(
@@ -9,9 +9,10 @@ const getCustodyAddress = async (
   const user = data?.users?.[0];
   const custodyAddress = user?.custody_address;
   if (!custodyAddress) throw new Error('No custody address found for FID');
-  const verifications: string[] = user?.verifications ?? [];
-  const verifiedAddress = (verifications[0] ?? custodyAddress).toLowerCase();
+  const primaryEthAddress: string | undefined =
+    user?.verified_addresses?.primary?.eth_address;
+  const verifiedAddress = (primaryEthAddress ?? custodyAddress).toLowerCase();
   return { custodyAddress: custodyAddress.toLowerCase(), verifiedAddress };
 };
 
-export default getCustodyAddress;
+export default getFarcasterAddresses;
