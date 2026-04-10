@@ -24,9 +24,7 @@ export async function POST(req: NextRequest) {
 
     const { data: collections, error: collectionsError } =
       await selectCollections({
-        collections: [
-          { address: moment.collectionAddress, chainId: moment.chainId },
-        ],
+        moments: [moment],
       });
 
     if (collectionsError) {

@@ -6,7 +6,7 @@ import resolveMomentFromChain from '@/lib/moment/resolveMomentFromChain';
 export const resolveMomentInfo = async (
   moment: Moment
 ): Promise<MomentAdvancedInfo> => {
-  const { data: moments } = await selectMoments({ moments: [moment] });
+  const { data: moments } = await selectMoments({ moment });
   const dbMoment = moments?.[0] ?? null;
 
   if (dbMoment) return resolveMomentFromDb(moment, dbMoment);

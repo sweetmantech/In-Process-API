@@ -36,9 +36,8 @@ export async function GET(req: NextRequest) {
   let customGateway: string | undefined;
 
   const { data: collections } = await selectCollections({
-    collections: [
-      { address: moment.collectionAddress, chainId: moment.chainId },
-    ],
+    collectionAddress: moment.collectionAddress,
+    chainId: moment.chainId,
   });
   const collection = collections?.[0];
   const isCatalog = collection && collection.protocol === 'catalog';

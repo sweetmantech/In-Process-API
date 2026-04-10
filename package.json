@@ -40,7 +40,6 @@
     "multiformats": "^13.4.2",
     "next": "^16.1.5",
     "node-telegram-bot-api": "^0.67.0",
-    "redis": "^5.11.0",
     "semver": "^7.7.3",
     "sharp": "^0.34.5",
     "telnyx": "^5.11.0",

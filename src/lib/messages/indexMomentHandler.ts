@@ -28,7 +28,11 @@ const indexMomentHandler = async (messageId: string) => {
   const { collectionAddress, tokenId } = momentInfo;
 
   const { data: moment } = await selectMoments({
-    moments: [{ collectionAddress, tokenId, chainId: CHAIN_ID }],
+    moment: {
+      collectionAddress,
+      tokenId,
+      chainId: CHAIN_ID,
+    },
   });
 
   const momentData = moment?.[0];

@@ -24,9 +24,7 @@ export async function GET(req: NextRequest) {
     const moment = validationResult.data;
 
     const { data: collections } = await selectCollections({
-      collections: [
-        { address: moment.collectionAddress, chainId: moment.chainId },
-      ],
+      moments: [moment],
     });
 
     const collection = collections?.[0] ?? null;

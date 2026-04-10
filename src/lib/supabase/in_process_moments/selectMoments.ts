@@ -2,42 +2,47 @@ import { supabase } from '../client';
 import { Moment } from '@/types/moment';
 
 const selectMoments = async ({
-  moments,
+  moment,
   artists,
   chainId,
-  limit,
 }: {
-  moments?: Moment[];
+  moment?: Moment;
   artists?: string[];
   chainId?: number;
-  limit?: number;
-} = {}) => {
+}) => {
   let query = supabase
     .from('in_process_moments')
     .select(
       '*, collection:in_process_collections!inner(id, address, chain_id, creator, protocol)'
     );
 
-  if (moments?.length) {
-    query = query
-      .in(
-        'collection.address',
-        moments.map((m) => m.collectionAddress.toLowerCase())
-      )
-      .in(
-        'token_id',
-        moments.map((m) => Number(m.tokenId))
-      );
+  if (moment) {
+    const { collectionAddress, chainId, tokenId } = moment;
+    if (chainId) {
+      query = query.eq('collection.chain_id', chainId);
+    }
+    if (collectionAddress) {
+      query = query.eq('collection.address', collectionAddress.toLowerCase());
+    }
+    if (tokenId) {
+      query = query.eq('token_id', Number(tokenId));
+    }
   }
 
-  if (artists) query = query.in('collection.creator', artists);
-  if (chainId) query = query.eq('collection.chain_id', chainId);
-  if (limit) query = query.limit(limit);
-  else query = query.order('created_at', { ascending: false });
+  if (artists) {
+    query = query.in('collection.creator', artists);
+  }
 
+  if (chainId) {
+    query = query.eq('collection.chain_id', chainId);
+  }
+
+  query = query.order('created_at', { ascending: false });
   const { data, error } = await query;
-  if (error) return { data: null, error };
-  return { data: data ?? [], error: null };
+  if (error) {
+    return { data: null, error };
+  }
+  return { data: data || [], error: null };
 };
 
 export default selectMoments;
