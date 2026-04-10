@@ -1,5 +1,5 @@
-import { processAdminsInBatches } from '@/lib/indexer/admins/processAdminsInBatches';
-import { selectMaxGrantedAt } from '@/lib/indexer/admins/selectMaxGrantedAt';
+import { processAdminsInBatches } from '@/lib/admins/processAdminsInBatches';
+import { selectMaxGrantedAt } from '@/lib/admins/selectMaxGrantedAt';
 import type { Catalog_Admins_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 

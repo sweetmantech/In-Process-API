@@ -1,7 +1,7 @@
 import blockTsToISOString from '@/lib/blockTsToISOString';
 import type { InProcess_Airdrops_t } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
-import { getMomentIdMap } from '@/lib/indexer/moments/getMomentIdMap';
+import { getMomentIdMap } from '@/lib/moment/getMomentIdMap';
 
 export async function mapAirdropsToSupabase(
   airdrops: InProcess_Airdrops_t[]

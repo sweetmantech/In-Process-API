@@ -1,5 +1,5 @@
-import { processAirdropsInBatches } from '@/lib/indexer/airdrops/processAirdropsInBatches';
-import { selectMaxUpdatedAt } from '@/lib/indexer/airdrops/selectMaxUpdatedAt';
+import { processAirdropsInBatches } from '@/lib/airdrop/processAirdropsInBatches';
+import { selectMaxUpdatedAt } from '@/lib/airdrop/selectMaxUpdatedAt';
 import type { InProcess_Airdrops_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 

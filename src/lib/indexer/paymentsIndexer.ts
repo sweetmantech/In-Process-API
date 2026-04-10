@@ -1,5 +1,5 @@
-import { processPaymentsInBatches } from '@/lib/indexer/payments/processPaymentsInBatches';
-import { selectMaxTransferredAt } from '@/lib/indexer/payments/selectMaxTransferredAt';
+import { processPaymentsInBatches } from '@/lib/payments/processPaymentsInBatches';
+import { selectMaxTransferredAt } from '@/lib/payments/selectMaxTransferredAt';
 import type { Payments_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 

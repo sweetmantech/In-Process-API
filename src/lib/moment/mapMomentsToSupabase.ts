@@ -5,7 +5,7 @@ import type {
   Sound_Moments_t,
 } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
-import { getCollectionIdMap } from '@/lib/indexer/collections/getCollectionIdMap';
+import { getCollectionIdMap } from '@/lib/collection/getCollectionIdMap';
 
 export async function mapMomentsToSupabase(
   moments: InProcess_Moments_t[] | Catalog_Moments_t[] | Sound_Moments_t[]

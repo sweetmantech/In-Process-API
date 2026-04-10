@@ -1,5 +1,5 @@
-import { processCollectorsInBatches } from '@/lib/indexer/collectors/processCollectorsInBatches';
-import { selectMaxCollectedAt } from '@/lib/indexer/collectors/selectMaxCollectedAt';
+import { processCollectorsInBatches } from '@/lib/collectors/processCollectorsInBatches';
+import { selectMaxCollectedAt } from '@/lib/collectors/selectMaxCollectedAt';
 import type { Collectors_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 

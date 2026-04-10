@@ -1,15 +1,14 @@
-import blockTsToISOString from '@/lib/blockTsToISOString';
 import type {
   Catalog_Admins_t,
   InProcess_Admins_t,
   Sound_Admins_t,
 } from '@/types/envio';
-import type { Database } from '@/lib/supabase/types';
-import { getCollectionIdMap } from '@/lib/indexer/collections/getCollectionIdMap';
+import { getCollectionIdMap } from '@/lib/collection/getCollectionIdMap';
+import type { DeleteAdminCriteria } from '@/types/indexerSupabase';
 
-export async function mapAdminsToSupabase(
+export async function mapAdminsForDeletion(
   admins: (InProcess_Admins_t | Catalog_Admins_t | Sound_Admins_t)[]
-): Promise<Database['public']['Tables']['in_process_admins']['Insert'][]> {
+): Promise<DeleteAdminCriteria[]> {
   const collectionPairs: Array<[string, number]> = admins.map(
     (a) => [a.collection, a.chain_id] as [string, number]
   );
@@ -25,8 +24,7 @@ export async function mapAdminsToSupabase(
         collection: collectionId,
         token_id: Number(admin.token_id),
         artist_address: admin.admin.toLowerCase(),
-        granted_at: blockTsToISOString(admin.updated_at),
       };
     })
-    .filter((a): a is NonNullable<typeof a> => a !== undefined);
+    .filter((a): a is DeleteAdminCriteria => a !== undefined);
 }

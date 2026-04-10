@@ -1,5 +1,5 @@
-import { processSalesInBatches } from '@/lib/indexer/sales/processSalesInBatches';
-import { selectMaxCreatedAt } from '@/lib/indexer/sales/selectMaxCreatedAt';
+import { processSalesInBatches } from '@/lib/sales/processSalesInBatches';
+import { selectMaxCreatedAt } from '@/lib/sales/selectMaxCreatedAt';
 import type { Primary_Sales_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 

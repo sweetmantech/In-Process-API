@@ -1,5 +1,5 @@
-import { processMomentsInBatches } from '@/lib/indexer/moments/processMomentsInBatches';
-import { selectMaxUpdatedAt } from '@/lib/indexer/moments/selectMaxUpdatedAt';
+import { processMomentsInBatches } from '@/lib/moment/processMomentsInBatches';
+import { selectMaxUpdatedAt } from '@/lib/moment/selectMaxUpdatedAt';
 import type { InProcess_Moments_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 

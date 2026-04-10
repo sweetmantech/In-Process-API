@@ -1,7 +1,7 @@
 import blockTsToISOString from '@/lib/blockTsToISOString';
 import type { Primary_Sales_t } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
-import { getMomentIdMap } from '@/lib/indexer/moments/getMomentIdMap';
+import { getMomentIdMap } from '@/lib/moment/getMomentIdMap';
 import { getFeeRecipientsForSale } from './getFeeRecipientsForSale';
 
 export async function mapSalesToSupabase(sales: Primary_Sales_t[]): Promise<{

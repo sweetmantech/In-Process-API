@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { executeIndexerCycle } from '@/lib/indexer/executeIndexerCycle';
-import { indexers } from '@/lib/indexer/indexers/indexers';
+import { runIndexer } from '@/lib/indexer/runIndexer';
+import { indexers } from '@/lib/indexer/indexers';
 import loadCachedTimestamps from '@/lib/redis/loadCachedTimestamps';
 import saveCachedTimestamps from '@/lib/redis/saveCachedTimestamps';
 import sleep from '@/lib/sleep';
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   while (Date.now() < deadline) {
     try {
-      const hasData = await executeIndexerCycle(cachedTimestamps);
+      const hasData = await runIndexer(cachedTimestamps);
       if (hasData) await saveCachedTimestamps(cachedTimestamps);
       await sleep(hasData ? INDEX_INTERVAL_MS : INDEX_INTERVAL_EMPTY_MS);
     } catch (error) {

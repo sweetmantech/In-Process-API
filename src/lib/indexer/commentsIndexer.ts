@@ -1,5 +1,5 @@
-import { processCommentsInBatches } from '@/lib/indexer/comments/processCommentsInBatches';
-import { selectMaxCommentedAt } from '@/lib/indexer/comments/selectMaxCommentedAt';
+import { processCommentsInBatches } from '@/lib/comments/processCommentsInBatches';
+import { selectMaxCommentedAt } from '@/lib/comments/selectMaxCommentedAt';
 import type { InProcess_Moment_Comments_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 

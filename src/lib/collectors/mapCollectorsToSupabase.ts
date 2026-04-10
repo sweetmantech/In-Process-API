@@ -1,7 +1,7 @@
 import blockTsToISOString from '@/lib/blockTsToISOString';
 import type { Collectors_t } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
-import { getMomentIdMap } from '@/lib/indexer/moments/getMomentIdMap';
+import { getMomentIdMap } from '@/lib/moment/getMomentIdMap';
 
 export async function mapCollectorsToSupabase(
   collectors: Collectors_t[]

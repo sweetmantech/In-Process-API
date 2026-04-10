@@ -1,5 +1,5 @@
 import redisClient from './redisClient';
-import { indexers } from '@/lib/indexer/indexers/indexers';
+import { indexers } from '@/lib/indexer/indexers';
 import { REDIS_TIMESTAMP_KEY } from '@/lib/consts';
 
 const loadCachedTimestamps = async (): Promise<Record<

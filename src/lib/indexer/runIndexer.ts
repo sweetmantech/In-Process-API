@@ -1,8 +1,8 @@
 import { PAGE_LIMIT } from '@/lib/consts';
 import msToBlockTs from '@/lib/msToBlockTs';
-import { buildQuery } from '@/lib/indexer/grpc/buildQuery';
-import { queryGrpc } from '@/lib/indexer/grpc/queryGrpc';
-import { indexers } from '@/lib/indexer/indexers/indexers';
+import { buildQuery } from '@/lib/grpc/buildQuery';
+import { queryGrpc } from '@/lib/grpc/queryGrpc';
+import { indexers } from '@/lib/indexer/indexers';
 import type { IndexConfig } from '@/types/indexerFactory';
 
 /**
@@ -12,7 +12,7 @@ import type { IndexConfig } from '@/types/indexerFactory';
  *
  * @returns true if any data was processed, false if everything was up-to-date
  */
-export async function executeIndexerCycle(
+export async function runIndexer(
   cachedTimestamps: Record<string, number | null>
 ): Promise<boolean> {
   const startTime = Date.now();
