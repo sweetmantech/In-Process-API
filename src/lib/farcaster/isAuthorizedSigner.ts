@@ -9,7 +9,9 @@ const isAuthorizedSigner = async (
     await getFarcasterAddresses(fid);
   const authorized = signer.toLowerCase() === custodyAddress;
   if (authorized && artistName) {
-    await upsertArtistNames(new Map([[verifiedAddress, artistName]]));
+    upsertArtistNames(new Map([[verifiedAddress, artistName]])).catch((e) =>
+      console.error('upsertArtistNames failed in isAuthorizedSigner:', e)
+    );
   }
   return { authorized, verifiedAddress };
 };
