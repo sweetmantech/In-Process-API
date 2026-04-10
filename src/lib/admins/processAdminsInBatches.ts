@@ -10,7 +10,6 @@ import upsertAdmins from '@/lib/supabase/in_process_admins/upsertAdmins';
 import { deleteAdmins } from '@/lib/supabase/in_process_admins/deleteAdmins';
 import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
 import { getScope } from './getScope';
-import { broadcastAdminUpdated } from '@/lib/supabase/broadcast/broadcastAdminUpdated';
 
 export async function processAdminsInBatches(
   admins: (InProcess_Admins_t | Catalog_Admins_t | Sound_Admins_t)[]
@@ -33,9 +32,6 @@ export async function processAdminsInBatches(
         const mappedAdmins = await mapAdminsToSupabase(batchToUpsert);
         await ensureArtists(mappedAdmins.map((a) => a.artist_address));
         await upsertAdmins({ admins: mappedAdmins });
-
-        broadcastAdminUpdated(batchToUpsert);
-
         totalUpserted += mappedAdmins.length;
       }
 
