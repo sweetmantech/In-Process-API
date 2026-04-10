@@ -28,7 +28,8 @@ export async function processMomentsInBatches(
       await upsertMetadata(metadataRecords);
       await upsertArtistNames(artistNamesByAddresses);
 
-      broadcastMomentUpdated(batch);
+      if (mappedMoments.length > 0 || upsertedMoments.length > 0)
+        broadcastMomentUpdated(batch);
 
       totalProcessed += mappedMoments.length;
       console.log(
