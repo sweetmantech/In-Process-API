@@ -8,7 +8,7 @@ export async function deleteAdmins(
   const orConditions = admins
     .map(
       (a) =>
-        `and(collection.eq.${a.collection},artist_address.eq.${a.artist_address},token_id.eq.${a.token_id})`
+        `and(collection::uuid.eq.${a.collection},artist_address.eq.${a.artist_address},token_id.eq.${a.token_id})`
     )
     .join(',');
   const { data, error } = await supabase

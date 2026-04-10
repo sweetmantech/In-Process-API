@@ -34,10 +34,10 @@ export async function processAdminsInBatches(
         await ensureArtists(mappedAdmins.map((a) => a.artist_address));
         await upsertAdmins({ admins: mappedAdmins });
 
-        broadcastAdminUpdated(batchToUpsert);
-
         totalUpserted += mappedAdmins.length;
       }
+
+      broadcastAdminUpdated(batchToUpsert);
 
       console.log(
         `👥 Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${totalDeleted} deleted, ${totalUpserted} upserted`
