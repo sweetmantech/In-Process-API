@@ -33,16 +33,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     JSON.stringify(cachedTimestamps, null, 2)
   );
 
-  const deadline = Date.now() + 58_000;
+  const deadline = Date.now() + maxDuration * 1000 - 2_000;
 
   while (Date.now() < deadline) {
     try {
       const hasData = await runIndexer(cachedTimestamps);
       if (hasData) await saveCachedTimestamps(cachedTimestamps);
-      await sleep(hasData ? INDEX_INTERVAL_MS : INDEX_INTERVAL_EMPTY_MS);
+      const sleepMs = hasData ? INDEX_INTERVAL_MS : INDEX_INTERVAL_EMPTY_MS;
+      await sleep(Math.min(sleepMs, deadline - Date.now()));
     } catch (error) {
-      console.error('❌ Error in indexer cycle:', error);
-      await sleep(INDEX_INTERVAL_MS);
+      console.warn('⚠️ Warn in indexer cycle:', error);
+      await sleep(Math.min(INDEX_INTERVAL_MS, deadline - Date.now()));
     }
   }
 
