@@ -19,7 +19,7 @@ const selectCollections = async ({
   let query = supabase
     .from('in_process_collections')
     .select(
-      `*, creator:in_process_artists!inner(username, address), admins:in_process_admins!inner(artist_address, token_id)`,
+      `*, creator:in_process_artists!inner(username, address), admins:in_process_admins(artist_address, token_id)`,
       { count: 'exact' }
     );
 

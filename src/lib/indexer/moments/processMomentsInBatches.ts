@@ -28,7 +28,7 @@ export async function processMomentsInBatches(
 
       totalProcessed += mappedMoments.length;
       console.log(
-        `📚 Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing ${batch.length} moments, ${metadataRecords.length} metadata`
+        `📚 Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing ${upsertedMoments.length} moments, ${metadataRecords.length} metadata`
       );
     } catch (error) {
       console.error(
