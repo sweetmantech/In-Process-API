@@ -1,0 +1,30 @@
+import type {
+  Catalog_Admins_t,
+  InProcess_Admins_t,
+  Sound_Admins_t,
+} from '@/types/envio';
+import { getCollectionIdMap } from '@/lib/indexer/collections/getCollectionIdMap';
+import type { DeleteAdminCriteria } from '@/types/indexerSupabase';
+
+export async function mapAdminsForDeletion(
+  admins: (InProcess_Admins_t | Catalog_Admins_t | Sound_Admins_t)[]
+): Promise<DeleteAdminCriteria[]> {
+  const collectionPairs: Array<[string, number]> = admins.map(
+    (a) => [a.collection, a.chain_id] as [string, number]
+  );
+  const collectionIdMap = await getCollectionIdMap(collectionPairs);
+
+  return admins
+    .map((admin) => {
+      const collectionId = collectionIdMap.get(
+        `${admin.collection.toLowerCase()}:${admin.chain_id}`
+      );
+      if (!collectionId) return undefined;
+      return {
+        collection: collectionId,
+        token_id: Number(admin.token_id),
+        artist_address: admin.admin.toLowerCase(),
+      };
+    })
+    .filter((a): a is DeleteAdminCriteria => a !== undefined);
+}

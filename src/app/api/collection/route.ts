@@ -21,8 +21,7 @@ export async function GET(req: NextRequest) {
   try {
     const { data: collections, error: collectionError } =
       await selectCollections({
-        collectionAddress,
-        chainId,
+        collections: [{ address: collectionAddress, chainId }],
       });
 
     if (collectionError) {

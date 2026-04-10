@@ -19,7 +19,9 @@ const validateUpdateSaleBody = async (req: NextRequest) => {
   const result = validate(updateSaleSchema, body);
   if (!result.success) return result.response;
 
-  const { data, error } = await selectMoments({ moment: result.data.moment });
+  const { data, error } = await selectMoments({
+    moments: [result.data.moment],
+  });
 
   if (error)
     return NextResponse.json({ message: error.message }, { status: 500 });
