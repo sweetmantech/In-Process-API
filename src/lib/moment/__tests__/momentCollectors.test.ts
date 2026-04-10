@@ -63,7 +63,7 @@ describe('momentCollectors', () => {
     });
 
     expect(mockSelectMoments).toHaveBeenCalledWith({
-      moment: validInput.moment,
+      moments: [validInput.moment],
     });
     expect(mockSelectCollectors).toHaveBeenCalledWith({
       momentId: 'moment-1',

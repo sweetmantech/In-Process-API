@@ -11,7 +11,7 @@ export async function momentComments({
   offset,
 }: GetCommentsInput): Promise<MomentCommentsResult> {
   const { data: moments, error: momentsError } = await selectMoments({
-    moment,
+    moments: [moment],
   });
 
   if (momentsError) {

@@ -7,7 +7,7 @@ export type GetCollectorsInput = z.infer<typeof commentsSchema>;
 
 export async function momentCollectors({ moment, offset }: GetCollectorsInput) {
   const { data: moments, error: momentsError } = await selectMoments({
-    moment,
+    moments: [moment],
   });
 
   if (momentsError) {
