@@ -2,7 +2,11 @@ import neynarFetch from '@/lib/farcaster/neynarFetch';
 
 const getFarcasterAddresses = async (
   fid: bigint
-): Promise<{ custodyAddress: string; verifiedAddress: string }> => {
+): Promise<{
+  custodyAddress: string;
+  verifiedAddress: string;
+  artistName: string | undefined;
+}> => {
   const data = (await neynarFetch(
     `/v2/farcaster/user/bulk?fids=${fid}`
   )) as any;
@@ -12,7 +16,12 @@ const getFarcasterAddresses = async (
   const primaryEthAddress: string | undefined =
     user?.verified_addresses?.primary?.eth_address;
   const verifiedAddress = (primaryEthAddress ?? custodyAddress).toLowerCase();
-  return { custodyAddress: custodyAddress.toLowerCase(), verifiedAddress };
+  const artistName: string | undefined = user?.display_name;
+  return {
+    custodyAddress: custodyAddress.toLowerCase(),
+    verifiedAddress,
+    artistName,
+  };
 };
 
 export default getFarcasterAddresses;

@@ -21,6 +21,7 @@ describe('getFarcasterAddresses', () => {
       users: [
         {
           custody_address: custodyAddress.toUpperCase(),
+          display_name: 'ziad',
           verified_addresses: {
             primary: { eth_address: primaryEthAddress.toUpperCase() },
           },
@@ -31,6 +32,7 @@ describe('getFarcasterAddresses', () => {
     expect(result).toEqual({
       custodyAddress: custodyAddress.toLowerCase(),
       verifiedAddress: primaryEthAddress.toLowerCase(),
+      artistName: 'ziad',
     });
   });
 
@@ -42,12 +44,27 @@ describe('getFarcasterAddresses', () => {
     expect(result).toEqual({
       custodyAddress: custodyAddress.toLowerCase(),
       verifiedAddress: custodyAddress.toLowerCase(),
+      artistName: undefined,
     });
+  });
+
+  it('returns artistName as undefined when display_name is absent', async () => {
+    vi.mocked(neynarFetch).mockResolvedValue({
+      users: [{ custody_address: custodyAddress, verified_addresses: {} }],
+    });
+    const { artistName } = await getFarcasterAddresses(FID);
+    expect(artistName).toBeUndefined();
   });
 
   it('calls Neynar with the correct FID', async () => {
     vi.mocked(neynarFetch).mockResolvedValue({
-      users: [{ custody_address: custodyAddress, verified_addresses: {} }],
+      users: [
+        {
+          custody_address: custodyAddress,
+          display_name: 'ziad',
+          verified_addresses: {},
+        },
+      ],
     });
     await getFarcasterAddresses(FID);
     expect(neynarFetch).toHaveBeenCalledWith(
