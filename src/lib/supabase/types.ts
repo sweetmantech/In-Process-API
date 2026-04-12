@@ -742,6 +742,13 @@ export type Database = {
             referencedRelation: 'in_process_moments';
             referencedColumns: ['id'];
           },
+          {
+            foreignKeyName: 'in_process_transfers_recipient_fkey';
+            columns: ['recipient'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['address'];
+          },
         ];
       };
     };
