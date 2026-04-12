@@ -707,7 +707,7 @@ export type Database = {
         Row: {
           currency: string | null;
           id: string;
-          moment: string | null;
+          moment: string;
           quantity: string;
           recipient: string;
           transaction_hash: string;
@@ -717,7 +717,7 @@ export type Database = {
         Insert: {
           currency?: string | null;
           id: string;
-          moment?: string | null;
+          moment: string;
           quantity: string;
           recipient: string;
           transaction_hash: string;
@@ -727,7 +727,7 @@ export type Database = {
         Update: {
           currency?: string | null;
           id?: string;
-          moment?: string | null;
+          moment?: string;
           quantity?: string;
           recipient?: string;
           transaction_hash?: string;
