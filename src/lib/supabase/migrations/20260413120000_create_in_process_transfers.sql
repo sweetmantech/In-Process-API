@@ -1,6 +1,3 @@
--- Envio unified `Transfers` mirror (InProcess, Catalog, Sound).
--- `id` matches Envio entity id (stable across InProcess two-step assembly).
--- collection/token_id/chain_id are omitted — resolvable via the `moment` FK.
 CREATE TABLE public.in_process_transfers (
   id text NOT NULL PRIMARY KEY,
   recipient text NOT NULL,
