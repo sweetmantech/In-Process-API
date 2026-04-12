@@ -5,10 +5,8 @@ CREATE TABLE public.in_process_transfers (
   id text NOT NULL PRIMARY KEY,
   recipient text NOT NULL,
   quantity text NOT NULL,
-  payer text,
   value text,
   currency text,
-  funds_recipient text,
   transaction_hash text NOT NULL,
   transferred_at timestamp with time zone NOT NULL,
   moment uuid REFERENCES public.in_process_moments (id) ON UPDATE CASCADE ON DELETE SET NULL
@@ -20,6 +18,7 @@ CREATE INDEX idx_in_process_transfers_transferred_at_desc
 CREATE INDEX idx_in_process_transfers_moment
   ON public.in_process_transfers USING btree (moment);
 
-ALTER TABLE public.in_process_transfers ENABLE ROW LEVEL SECURITY;
+CREATE UNIQUE INDEX in_process_transfers_recipient_transaction_moment_idx
+  ON public.in_process_transfers USING btree (recipient, transaction_hash, moment);
 
-COMMENT ON TABLE public.in_process_transfers IS 'Mint/transfer rows synced from Envio Transfers; moment FK links to in_process_moments.';
+ALTER TABLE public.in_process_transfers ENABLE ROW LEVEL SECURITY;

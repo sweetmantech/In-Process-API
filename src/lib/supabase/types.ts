@@ -706,10 +706,8 @@ export type Database = {
       in_process_transfers: {
         Row: {
           currency: string | null;
-          funds_recipient: string | null;
           id: string;
           moment: string | null;
-          payer: string | null;
           quantity: string;
           recipient: string;
           transaction_hash: string;
@@ -718,10 +716,8 @@ export type Database = {
         };
         Insert: {
           currency?: string | null;
-          funds_recipient?: string | null;
           id: string;
           moment?: string | null;
-          payer?: string | null;
           quantity: string;
           recipient: string;
           transaction_hash: string;
@@ -730,10 +726,8 @@ export type Database = {
         };
         Update: {
           currency?: string | null;
-          funds_recipient?: string | null;
           id?: string;
           moment?: string | null;
-          payer?: string | null;
           quantity?: string;
           recipient?: string;
           transaction_hash?: string;
