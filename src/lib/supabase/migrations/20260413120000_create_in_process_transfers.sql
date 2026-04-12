@@ -6,7 +6,7 @@ CREATE TABLE public.in_process_transfers (
   currency text,
   transaction_hash text NOT NULL,
   transferred_at timestamp with time zone NOT NULL,
-  moment uuid REFERENCES public.in_process_moments (id) ON UPDATE CASCADE ON DELETE SET NULL
+  moment uuid NOT NULL REFERENCES public.in_process_moments (id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE INDEX idx_in_process_transfers_transferred_at_desc
