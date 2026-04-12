@@ -708,31 +708,31 @@ export type Database = {
           currency: string | null;
           id: string;
           moment: string;
-          quantity: string;
+          quantity: number;
           recipient: string;
           transaction_hash: string;
           transferred_at: string;
-          value: string | null;
+          value: number | null;
         };
         Insert: {
           currency?: string | null;
           id: string;
           moment: string;
-          quantity: string;
+          quantity: number;
           recipient: string;
           transaction_hash: string;
           transferred_at: string;
-          value?: string | null;
+          value?: number | null;
         };
         Update: {
           currency?: string | null;
           id?: string;
           moment?: string;
-          quantity?: string;
+          quantity?: number;
           recipient?: string;
           transaction_hash?: string;
           transferred_at?: string;
-          value?: string | null;
+          value?: number | null;
         };
         Relationships: [
           {
