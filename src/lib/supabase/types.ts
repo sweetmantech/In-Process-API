@@ -703,6 +703,47 @@ export type Database = {
           },
         ];
       };
+      in_process_transfers: {
+        Row: {
+          currency: string | null;
+          id: string;
+          moment: string;
+          quantity: string;
+          recipient: string;
+          transaction_hash: string;
+          transferred_at: string;
+          value: string | null;
+        };
+        Insert: {
+          currency?: string | null;
+          id: string;
+          moment: string;
+          quantity: string;
+          recipient: string;
+          transaction_hash: string;
+          transferred_at: string;
+          value?: string | null;
+        };
+        Update: {
+          currency?: string | null;
+          id?: string;
+          moment?: string;
+          quantity?: string;
+          recipient?: string;
+          transaction_hash?: string;
+          transferred_at?: string;
+          value?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_transfers_moment_fkey';
+            columns: ['moment'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_moments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
