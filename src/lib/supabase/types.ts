@@ -76,45 +76,6 @@ export type Database = {
           },
         ];
       };
-      in_process_airdrops: {
-        Row: {
-          amount: number;
-          id: string;
-          moment: string;
-          recipient: string;
-          updated_at: string;
-        };
-        Insert: {
-          amount: number;
-          id?: string;
-          moment: string;
-          recipient: string;
-          updated_at: string;
-        };
-        Update: {
-          amount?: number;
-          id?: string;
-          moment?: string;
-          recipient?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'in_process_airdrops_moment_fkey';
-            columns: ['moment'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_moments';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'in_process_airdrops_recipient_fkey';
-            columns: ['recipient'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_artists';
-            referencedColumns: ['address'];
-          },
-        ];
-      };
       in_process_api_keys: {
         Row: {
           artist_address: string | null;

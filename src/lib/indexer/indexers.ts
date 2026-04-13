@@ -7,7 +7,6 @@ import { adminsIndexer } from './adminsIndexer';
 import { commentsIndexer } from './commentsIndexer';
 import { salesIndexer } from './salesIndexer';
 import { paymentsIndexer } from './paymentsIndexer';
-import { airdropsIndexer } from './airdropsIndexer';
 import { collectorsIndexer } from './collectorsIndexer';
 import { soundEditionsIndexer } from './soundEditionsIndexer';
 import { soundMomentsIndexer } from './soundMomentsIndexer';
@@ -32,6 +31,5 @@ export const indexers: IndexConfig<any>[] = [
   commentsIndexer,
   salesIndexer,
   paymentsIndexer,
-  airdropsIndexer,
   collectorsIndexer,
 ];
