@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import transfersQuerySchema from '@/lib/schema/transfersQuerySchema';
-import selectTransfers from '@/lib/supabase/in_process_transfers/selectTransfers';
+import selectTransfers from '@/lib/transfers/selectTransfers';
 
 type TransfersParams = z.infer<typeof transfersQuerySchema>;
 
