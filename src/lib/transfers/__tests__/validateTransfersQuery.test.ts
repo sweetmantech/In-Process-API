@@ -30,14 +30,14 @@ describe('validateTransfersQuery', () => {
       expect((result as any).type).toBeUndefined();
     });
 
-    it('returns undefined for optional spender when not provided', () => {
+    it('returns undefined for optional artist when not provided', () => {
       const result = validateTransfersQuery(makeRequest());
-      expect((result as any).spender).toBeUndefined();
+      expect((result as any).artist).toBeUndefined();
     });
 
-    it('returns undefined for optional recipient when not provided', () => {
+    it('returns undefined for optional collector when not provided', () => {
       const result = validateTransfersQuery(makeRequest());
-      expect((result as any).recipient).toBeUndefined();
+      expect((result as any).collector).toBeUndefined();
     });
   });
 
@@ -47,6 +47,74 @@ describe('validateTransfersQuery', () => {
       expect((result as any).type).toBe('airdrop');
     });
 
+    it('accepts "payment"', () => {
+      const result = validateTransfersQuery(makeRequest({ type: 'payment' }));
+      expect((result as any).type).toBe('payment');
+    });
+
+    it('returns 400 when both artist and collector are set (payment)', () => {
+      const result = validateTransfersQuery(
+        makeRequest({
+          type: 'payment',
+          artist: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+          collector: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+        })
+      );
+      expect(result).toBeInstanceOf(NextResponse);
+      expect((result as NextResponse).status).toBe(400);
+    });
+
+    it('returns 400 when both artist and collector are set (airdrop)', () => {
+      const result = validateTransfersQuery(
+        makeRequest({
+          type: 'airdrop',
+          artist: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+          collector: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+        })
+      );
+      expect(result).toBeInstanceOf(NextResponse);
+      expect((result as NextResponse).status).toBe(400);
+    });
+
+    it('returns 400 when both artist and collector are set without type', () => {
+      const result = validateTransfersQuery(
+        makeRequest({
+          artist: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+          collector: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+        })
+      );
+      expect(result).toBeInstanceOf(NextResponse);
+      expect((result as NextResponse).status).toBe(400);
+    });
+
+    it('accepts payment with artist only', () => {
+      const result = validateTransfersQuery(
+        makeRequest({
+          type: 'payment',
+          artist: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+        })
+      );
+      expect((result as any).type).toBe('payment');
+      expect((result as any).artist).toBe(
+        '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+      );
+      expect((result as any).collector).toBeUndefined();
+    });
+
+    it('accepts payment with collector only', () => {
+      const result = validateTransfersQuery(
+        makeRequest({
+          type: 'payment',
+          collector: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+        })
+      );
+      expect((result as any).type).toBe('payment');
+      expect((result as any).collector).toBe(
+        '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
+      );
+      expect((result as any).artist).toBeUndefined();
+    });
+
     it('returns 400 for invalid type', () => {
       const result = validateTransfersQuery(makeRequest({ type: 'invalid' }));
       expect(result).toBeInstanceOf(NextResponse);
@@ -54,37 +122,37 @@ describe('validateTransfersQuery', () => {
     });
   });
 
-  describe('spender param', () => {
+  describe('artist param', () => {
     it('accepts a valid address and normalizes to lowercase', () => {
       const result = validateTransfersQuery(
-        makeRequest({ spender: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' })
+        makeRequest({ artist: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' })
       );
-      expect((result as any).spender).toBe(
+      expect((result as any).artist).toBe(
         '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
       );
     });
 
     it('returns 400 for invalid address', () => {
       const result = validateTransfersQuery(
-        makeRequest({ spender: 'not-an-address' })
+        makeRequest({ artist: 'not-an-address' })
       );
       expect(result).toBeInstanceOf(NextResponse);
       expect((result as NextResponse).status).toBe(400);
     });
   });
 
-  describe('recipient param', () => {
+  describe('collector param', () => {
     it('accepts a valid address and normalizes to lowercase', () => {
       const result = validateTransfersQuery(
-        makeRequest({ recipient: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' })
+        makeRequest({ collector: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' })
       );
-      expect((result as any).recipient).toBe(
+      expect((result as any).collector).toBe(
         '0xd8da6bf26964af9d7eed9e03e53415d37aa96045'
       );
     });
 
     it('returns 400 for invalid address', () => {
-      const result = validateTransfersQuery(makeRequest({ recipient: 'bad' }));
+      const result = validateTransfersQuery(makeRequest({ collector: 'bad' }));
       expect(result).toBeInstanceOf(NextResponse);
       expect((result as NextResponse).status).toBe(400);
     });

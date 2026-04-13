@@ -1,19 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Transfer_Type } from '@/types/transfer';
 
-vi.mock('@/lib/supabase/in_process_transfers/selectTransfers', () => ({
+vi.mock('@/lib/transfers/selectTransfers', () => ({
   default: vi.fn(),
 }));
 
-import selectTransfers from '@/lib/supabase/in_process_transfers/selectTransfers';
+import selectTransfers from '@/lib/transfers/selectTransfers';
 import getTransfersHandler from '@/lib/transfers/getTransfersHandler';
 
 const BASE_PARAMS = {
   chainId: 8453,
   limit: 20,
   page: 1,
-  type: undefined as 'airdrop' | undefined,
-  spender: undefined as string | undefined,
-  recipient: undefined as string | undefined,
+  type: undefined as Transfer_Type | undefined,
+  artist: undefined as string | undefined,
+  collector: undefined as string | undefined,
 };
 
 const MOCK_TRANSFERS = [
@@ -90,6 +91,37 @@ describe('getTransfersHandler', () => {
 
       expect(json.pagination.total_pages).toBe(0);
     });
+
+    it('keeps fee_recipients inside moment payload', async () => {
+      vi.mocked(selectTransfers).mockResolvedValue({
+        data: [
+          {
+            id: '1',
+            moment: {
+              token_id: 1,
+              fee_recipients: [
+                {
+                  artist_address: '0x71ea0189673968499be6386f8febf37a7d3dacdc',
+                  percent_allocation: 100,
+                },
+              ],
+            },
+          },
+        ] as any,
+        count: 1,
+      });
+
+      const res = await getTransfersHandler(BASE_PARAMS);
+      const json = await res.json();
+
+      expect(json.transfers[0].moment.fee_recipients).toEqual([
+        {
+          artist_address: '0x71ea0189673968499be6386f8febf37a7d3dacdc',
+          percent_allocation: 100,
+        },
+      ]);
+      expect(json.transfers[0].moment.token_id).toBe(1);
+    });
   });
 
   describe('passes params to selectTransfers', () => {
@@ -107,32 +139,32 @@ describe('getTransfersHandler', () => {
       );
     });
 
-    it('passes spender filter', async () => {
+    it('passes artist filter', async () => {
       vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler({
         ...BASE_PARAMS,
-        spender: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+        artist: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
       });
 
       expect(selectTransfers).toHaveBeenCalledWith(
         expect.objectContaining({
-          spender: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+          artist: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
         })
       );
     });
 
-    it('passes recipient filter', async () => {
+    it('passes collector filter', async () => {
       vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler({
         ...BASE_PARAMS,
-        recipient: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+        collector: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
       });
 
       expect(selectTransfers).toHaveBeenCalledWith(
         expect.objectContaining({
-          recipient: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+          collector: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
         })
       );
     });
@@ -140,10 +172,26 @@ describe('getTransfersHandler', () => {
     it('passes type=airdrop filter', async () => {
       vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
 
-      await getTransfersHandler({ ...BASE_PARAMS, type: 'airdrop' });
+      await getTransfersHandler({
+        ...BASE_PARAMS,
+        type: Transfer_Type.airdrop,
+      });
 
       expect(selectTransfers).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'airdrop' })
+        expect.objectContaining({ type: Transfer_Type.airdrop })
+      );
+    });
+
+    it('passes type=payment filter', async () => {
+      vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
+
+      await getTransfersHandler({
+        ...BASE_PARAMS,
+        type: Transfer_Type.payment,
+      });
+
+      expect(selectTransfers).toHaveBeenCalledWith(
+        expect.objectContaining({ type: Transfer_Type.payment })
       );
     });
   });
