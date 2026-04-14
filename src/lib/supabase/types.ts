@@ -246,48 +246,6 @@ export type Database = {
           },
         ];
       };
-      in_process_collectors: {
-        Row: {
-          amount: number;
-          collected_at: string;
-          collector: string;
-          id: string;
-          moment: string;
-          transaction_hash: string;
-        };
-        Insert: {
-          amount: number;
-          collected_at?: string;
-          collector: string;
-          id?: string;
-          moment: string;
-          transaction_hash: string;
-        };
-        Update: {
-          amount?: number;
-          collected_at?: string;
-          collector?: string;
-          id?: string;
-          moment?: string;
-          transaction_hash?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'in_process_collectors_collector_fkey';
-            columns: ['collector'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_artists';
-            referencedColumns: ['address'];
-          },
-          {
-            foreignKeyName: 'in_process_collectors_moment_fkey';
-            columns: ['moment'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_moments';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       in_process_message_metadata: {
         Row: {
           artist_address: string | null;
