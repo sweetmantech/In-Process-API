@@ -6,6 +6,7 @@ import { Transfer_Type } from '@/types/transfer';
 const transfersQuerySchema = z
   .object({
     type: z.enum(Transfer_Type).optional(),
+    content_type: z.string().optional(),
     artist: addressSchema.optional(),
     collector: addressSchema.optional(),
     chainId: chainIdSchema,
