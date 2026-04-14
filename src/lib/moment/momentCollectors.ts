@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { commentsSchema } from '../schema/commentsSchema';
 import selectMoments from '../supabase/in_process_moments/selectMoments';
-import selectCollectors from '../supabase/in_process_collectors/selectCollectors';
+import selectCollectors from '../supabase/in_process_transfers/selectCollectors';
 
 export type GetCollectorsInput = z.infer<typeof commentsSchema>;
 

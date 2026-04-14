@@ -6,12 +6,12 @@ vi.mock('../../supabase/in_process_moments/selectMoments', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('../../supabase/in_process_collectors/selectCollectors', () => ({
+vi.mock('../../supabase/in_process_transfers/selectCollectors', () => ({
   default: vi.fn(),
 }));
 
 import selectMoments from '../../supabase/in_process_moments/selectMoments';
-import selectCollectors from '../../supabase/in_process_collectors/selectCollectors';
+import selectCollectors from '../../supabase/in_process_transfers/selectCollectors';
 
 const mockSelectMoments = vi.mocked(selectMoments);
 const mockSelectCollectors = vi.mocked(selectCollectors);
