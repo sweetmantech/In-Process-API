@@ -16,7 +16,7 @@ const selectTransfers = async (params: TransfersQueryParams) => {
   }
 
   if (collector) {
-    query = query.eq('collector.address', collector);
+    query = query.eq('recipient', collector);
   }
 
   if (chainId) {
