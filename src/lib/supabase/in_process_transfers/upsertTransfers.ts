@@ -4,10 +4,7 @@ import type { Database } from '@/lib/supabase/types';
 export async function upsertTransfers(
   rows: Array<Database['public']['Tables']['in_process_transfers']['Insert']>
 ): Promise<void> {
-  if (rows.length === 0) {
-    console.log('ℹ️  No transfers to upsert');
-    return;
-  }
+  if (rows.length === 0) return;
 
   const { error } = await supabase
     .from('in_process_transfers')
@@ -17,6 +14,4 @@ export async function upsertTransfers(
     console.error('❌ Failed to upsert transfers:', error);
     throw error;
   }
-
-  console.log(`✅ Successfully upserted ${rows.length} transfer(s)`);
 }

@@ -8,7 +8,7 @@ vi.mock('@/lib/supabase/in_process_admins/upsertAdmins', () => ({
 vi.mock('@/lib/supabase/in_process_admins/deleteAdmins', () => ({
   deleteAdmins: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_artists/ensureArtists', () => ({
+vi.mock('@/lib/artists/ensureArtists', () => ({
   ensureArtists: vi.fn(),
 }));
 vi.mock('../getScope', () => ({ getScope: vi.fn() }));
@@ -18,7 +18,7 @@ import { mapAdminsToSupabase } from '../mapAdminsToSupabase';
 import { mapAdminsForDeletion } from '../mapAdminsForDeletion';
 import upsertAdmins from '@/lib/supabase/in_process_admins/upsertAdmins';
 import { deleteAdmins } from '@/lib/supabase/in_process_admins/deleteAdmins';
-import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 import { getScope } from '../getScope';
 
 const mockMapAdminsToSupabase = vi.mocked(mapAdminsToSupabase);

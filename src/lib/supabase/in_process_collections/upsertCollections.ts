@@ -11,7 +11,4 @@ export async function upsertCollections(
     .from('in_process_collections')
     .upsert(collections, { onConflict: 'address, chain_id' });
   if (error) throw error;
-  console.log(
-    `✅ upsertCollections: Upserted ${collections.length} collections`
-  );
 }

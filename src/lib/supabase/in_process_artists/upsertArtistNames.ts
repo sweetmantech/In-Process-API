@@ -9,5 +9,4 @@ export async function upsertArtistNames(
   );
   const { error } = await supabase.rpc('upsert_artist_names', { artists });
   if (error) throw error;
-  console.log(`💾 upsertArtistNames: Upserted ${artists.length} artist names`);
 }

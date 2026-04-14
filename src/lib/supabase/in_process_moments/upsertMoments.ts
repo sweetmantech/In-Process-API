@@ -12,6 +12,5 @@ export async function upsertMoments(
     .upsert(moments, { onConflict: 'collection, token_id' })
     .select('id, uri, collection:in_process_collections(creator)');
   if (error) throw error;
-  console.log(`✅ upsertMoments: Upserted ${moments.length} moments`);
   return data ?? [];
 }

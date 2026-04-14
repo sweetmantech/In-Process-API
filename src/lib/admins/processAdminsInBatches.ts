@@ -8,7 +8,7 @@ import { mapAdminsToSupabase } from './mapAdminsToSupabase';
 import { mapAdminsForDeletion } from './mapAdminsForDeletion';
 import upsertAdmins from '@/lib/supabase/in_process_admins/upsertAdmins';
 import { deleteAdmins } from '@/lib/supabase/in_process_admins/deleteAdmins';
-import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 import { getScope } from './getScope';
 
 export async function processAdminsInBatches(

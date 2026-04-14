@@ -9,5 +9,4 @@ export async function upsertArtists(
     .from('in_process_artists')
     .upsert(artists, { onConflict: 'address' });
   if (error) throw error;
-  console.log(`💾 upsertArtists: Upserted ${artists.length} artists`);
 }

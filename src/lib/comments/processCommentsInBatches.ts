@@ -2,7 +2,7 @@ import type { InProcess_Comments_t } from '@/types/envio';
 import { BATCH_SIZE } from '@/lib/consts';
 import { mapCommentsToSupabase } from './mapCommentsToSupabase';
 import { upsertComments } from '@/lib/supabase/in_process_moment_comments/upsertComments';
-import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 
 export async function processCommentsInBatches(
   comments: InProcess_Comments_t[]

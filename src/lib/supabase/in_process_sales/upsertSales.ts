@@ -9,5 +9,4 @@ export async function upsertSales(
     .from('in_process_sales')
     .upsert(sales, { onConflict: 'moment' });
   if (error) throw error;
-  console.log(`✅ Upserted ${sales.length} sale(s)`);
 }

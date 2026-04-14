@@ -9,7 +9,4 @@ export async function upsertMetadata(
     .from('in_process_metadata')
     .upsert(metadata, { onConflict: 'moment' });
   if (error) throw error;
-  console.log(
-    `✅ upsertMetadata: Upserted ${metadata.length} metadata records`
-  );
 }
