@@ -677,7 +677,7 @@ export type Database = {
         };
         Insert: {
           currency?: string | null;
-          id: string;
+          id?: string;
           moment: string;
           quantity: number;
           recipient: string;
