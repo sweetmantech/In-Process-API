@@ -5,7 +5,7 @@ import type {
 } from '@/types/envio';
 import { BATCH_SIZE } from '@/lib/consts';
 import { mapCollectionsToSupabase } from './mapCollectionsToSupabase';
-import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 
 export async function processCollectionsInBatches(

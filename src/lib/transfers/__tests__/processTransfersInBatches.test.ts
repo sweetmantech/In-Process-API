@@ -5,7 +5,7 @@ vi.mock('../distribute', () => ({ distribute: vi.fn() }));
 vi.mock('../mapTransfersToSupabase', () => ({
   mapTransfersToSupabase: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_artists/ensureArtists', () => ({
+vi.mock('@/lib/artists/ensureArtists', () => ({
   ensureArtists: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_transfers/upsertTransfers', () => ({
@@ -15,7 +15,7 @@ vi.mock('@/lib/supabase/in_process_transfers/upsertTransfers', () => ({
 import { processTransfersInBatches } from '../processTransfersInBatches';
 import { distribute } from '../distribute';
 import { mapTransfersToSupabase } from '../mapTransfersToSupabase';
-import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
 import type { Transfers_t } from '@/types/envio';
 

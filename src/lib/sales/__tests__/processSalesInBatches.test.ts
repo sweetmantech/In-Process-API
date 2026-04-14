@@ -8,7 +8,7 @@ vi.mock(
   '@/lib/supabase/in_process_moment_fee_recipients/upsertFeeRecipients',
   () => ({ upsertFeeRecipients: vi.fn() })
 );
-vi.mock('@/lib/supabase/in_process_artists/ensureArtists', () => ({
+vi.mock('@/lib/artists/ensureArtists', () => ({
   ensureArtists: vi.fn(),
 }));
 
@@ -16,7 +16,7 @@ import { processSalesInBatches } from '../processSalesInBatches';
 import { mapSalesToSupabase } from '../mapSalesToSupabase';
 import { upsertSales } from '@/lib/supabase/in_process_sales/upsertSales';
 import { upsertFeeRecipients } from '@/lib/supabase/in_process_moment_fee_recipients/upsertFeeRecipients';
-import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 
 const mockMapSales = vi.mocked(mapSalesToSupabase);
 const mockUpsertSales = vi.mocked(upsertSales);

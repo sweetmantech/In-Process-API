@@ -4,14 +4,14 @@ vi.mock('../mapCommentsToSupabase', () => ({ mapCommentsToSupabase: vi.fn() }));
 vi.mock('@/lib/supabase/in_process_moment_comments/upsertComments', () => ({
   upsertComments: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_artists/ensureArtists', () => ({
+vi.mock('@/lib/artists/ensureArtists', () => ({
   ensureArtists: vi.fn(),
 }));
 
 import { processCommentsInBatches } from '../processCommentsInBatches';
 import { mapCommentsToSupabase } from '../mapCommentsToSupabase';
 import { upsertComments } from '@/lib/supabase/in_process_moment_comments/upsertComments';
-import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 
 const mockMap = vi.mocked(mapCommentsToSupabase);
 const mockUpsert = vi.mocked(upsertComments);

@@ -11,5 +11,4 @@ export async function upsertComments(
     .from('in_process_moment_comments')
     .upsert(comments, { onConflict: 'id' });
   if (error) throw error;
-  console.log(`✅ Upserted ${comments.length} comment(s)`);
 }

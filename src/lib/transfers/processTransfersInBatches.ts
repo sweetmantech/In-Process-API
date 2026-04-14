@@ -1,5 +1,5 @@
 import { BATCH_SIZE } from '@/lib/consts';
-import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
 import type { Transfers_t } from '@/types/envio';
 import { distribute } from './distribute';
