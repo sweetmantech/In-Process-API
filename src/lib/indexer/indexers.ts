@@ -6,8 +6,7 @@ import { momentsIndexer } from './momentsIndexer';
 import { adminsIndexer } from './adminsIndexer';
 import { commentsIndexer } from './commentsIndexer';
 import { salesIndexer } from './salesIndexer';
-import { paymentsIndexer } from './paymentsIndexer';
-import { collectorsIndexer } from './collectorsIndexer';
+import { transfersIndexer } from './transfersIndexer';
 import { soundEditionsIndexer } from './soundEditionsIndexer';
 import { soundMomentsIndexer } from './soundMomentsIndexer';
 import { soundAdminsIndexer } from './soundAdminsIndexer';
@@ -30,6 +29,5 @@ export const indexers: IndexConfig<any>[] = [
 
   commentsIndexer,
   salesIndexer,
-  paymentsIndexer,
-  collectorsIndexer,
+  transfersIndexer,
 ];
