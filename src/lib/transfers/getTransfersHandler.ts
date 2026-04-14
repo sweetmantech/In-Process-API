@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import transfersQuerySchema from '@/lib/schema/transfersQuerySchema';
-import selectTransfers from '@/lib/transfers/selectTransfers';
+import getTransfers from '@/lib/transfers/getTransfers';
 
 type TransfersParams = z.infer<typeof transfersQuerySchema>;
 
 const getTransfersHandler = async (params: TransfersParams) => {
-  const { data, count } = await selectTransfers(params);
+  const { data, count } = await getTransfers(params);
   const totalCount = count ?? 0;
   return NextResponse.json({
     transfers: data ?? [],

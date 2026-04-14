@@ -191,6 +191,25 @@ const getArtistAddresses = async (socialWallets: string[]) => {
 - **Minimal returns on mutations** - For `.insert()` and `.update()`, omit `.select()` if the returned row data is not needed
 - **Exclude unneeded tables from backups** - When running manual backups through Supavisor, remove unneeded tables and reduce backup frequency
 
+#### Transfers Query Performance (Large Tables)
+
+When `in_process_transfers` reaches high row counts (e.g., 1M+), follow this order:
+
+1. Run `EXPLAIN (ANALYZE, BUFFERS)` on the exact SQL shape used by the endpoint.
+2. Add indexes for join/filter/sort paths first (including trigram for `%...%` MIME search).
+3. Prefer cursor pagination (`transferred_at + id`) over offset pagination.
+4. Avoid expensive exact counts on hot paths:
+   - Use `count: 'planned'` / `count: 'estimated'`, or
+   - Split exact count into a separate endpoint.
+5. Consider denormalized/materialized read models for heavy multi-join listing routes.
+6. Treat statement timeout increases as a last resort only.
+
+Current transfer-specific guidance:
+
+- `content_type` filter targets MIME (`metadata.content->>'mime'`), not `type`.
+- For case-insensitive substring search, use `lower(... ) LIKE '%audio%'` and align index expression accordingly.
+- `CREATE INDEX CONCURRENTLY` must be executed one statement at a time (not inside a transaction block).
+
 ### Blockchain
 
 - **Mainnet:** Base (chain ID 8453)

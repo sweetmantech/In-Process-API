@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Transfer_Type } from '@/types/transfer';
 
-vi.mock('@/lib/transfers/selectTransfers', () => ({
+vi.mock('@/lib/transfers/getTransfers', () => ({
   default: vi.fn(),
 }));
 
-import selectTransfers from '@/lib/transfers/selectTransfers';
+import getTransfers from '@/lib/transfers/getTransfers';
 import getTransfersHandler from '@/lib/transfers/getTransfersHandler';
 
 const BASE_PARAMS = {
@@ -13,6 +13,7 @@ const BASE_PARAMS = {
   limit: 20,
   page: 1,
   type: undefined as Transfer_Type | undefined,
+  content_type: undefined as string | undefined,
   artist: undefined as string | undefined,
   collector: undefined as string | undefined,
 };
@@ -29,7 +30,7 @@ describe('getTransfersHandler', () => {
 
   describe('successful responses', () => {
     it('returns transfers and pagination', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({
+      vi.mocked(getTransfers).mockResolvedValue({
         data: MOCK_TRANSFERS as any,
         count: 2,
       });
@@ -45,7 +46,7 @@ describe('getTransfersHandler', () => {
     });
 
     it('returns empty transfers array when data is null', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({
+      vi.mocked(getTransfers).mockResolvedValue({
         data: null,
         count: 0,
       });
@@ -57,7 +58,7 @@ describe('getTransfersHandler', () => {
     });
 
     it('uses 0 for total_count when count is null', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({
+      vi.mocked(getTransfers).mockResolvedValue({
         data: [],
         count: null,
       });
@@ -69,7 +70,7 @@ describe('getTransfersHandler', () => {
     });
 
     it('calculates total_pages correctly', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({
+      vi.mocked(getTransfers).mockResolvedValue({
         data: MOCK_TRANSFERS as any,
         count: 45,
       });
@@ -81,7 +82,7 @@ describe('getTransfersHandler', () => {
     });
 
     it('returns total_pages of 0 when total_count is 0', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({
+      vi.mocked(getTransfers).mockResolvedValue({
         data: [],
         count: 0,
       });
@@ -93,7 +94,7 @@ describe('getTransfersHandler', () => {
     });
 
     it('keeps fee_recipients inside moment payload', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({
+      vi.mocked(getTransfers).mockResolvedValue({
         data: [
           {
             id: '1',
@@ -126,11 +127,11 @@ describe('getTransfersHandler', () => {
 
   describe('passes params to selectTransfers', () => {
     it('passes all base params', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
+      vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler(BASE_PARAMS);
 
-      expect(selectTransfers).toHaveBeenCalledWith(
+      expect(getTransfers).toHaveBeenCalledWith(
         expect.objectContaining({
           chainId: 8453,
           limit: 20,
@@ -140,14 +141,14 @@ describe('getTransfersHandler', () => {
     });
 
     it('passes artist filter', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
+      vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler({
         ...BASE_PARAMS,
         artist: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
       });
 
-      expect(selectTransfers).toHaveBeenCalledWith(
+      expect(getTransfers).toHaveBeenCalledWith(
         expect.objectContaining({
           artist: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
         })
@@ -155,14 +156,14 @@ describe('getTransfersHandler', () => {
     });
 
     it('passes collector filter', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
+      vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler({
         ...BASE_PARAMS,
         collector: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
       });
 
-      expect(selectTransfers).toHaveBeenCalledWith(
+      expect(getTransfers).toHaveBeenCalledWith(
         expect.objectContaining({
           collector: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
         })
@@ -170,27 +171,27 @@ describe('getTransfersHandler', () => {
     });
 
     it('passes type=airdrop filter', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
+      vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler({
         ...BASE_PARAMS,
         type: Transfer_Type.airdrop,
       });
 
-      expect(selectTransfers).toHaveBeenCalledWith(
+      expect(getTransfers).toHaveBeenCalledWith(
         expect.objectContaining({ type: Transfer_Type.airdrop })
       );
     });
 
     it('passes type=payment filter', async () => {
-      vi.mocked(selectTransfers).mockResolvedValue({ data: [], count: 0 });
+      vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
 
       await getTransfersHandler({
         ...BASE_PARAMS,
         type: Transfer_Type.payment,
       });
 
-      expect(selectTransfers).toHaveBeenCalledWith(
+      expect(getTransfers).toHaveBeenCalledWith(
         expect.objectContaining({ type: Transfer_Type.payment })
       );
     });
@@ -198,7 +199,7 @@ describe('getTransfersHandler', () => {
 
   describe('error handling', () => {
     it('throws when selectTransfers throws', async () => {
-      vi.mocked(selectTransfers).mockRejectedValue(new Error('DB failure'));
+      vi.mocked(getTransfers).mockRejectedValue(new Error('DB failure'));
 
       await expect(getTransfersHandler(BASE_PARAMS)).rejects.toThrow(
         'DB failure'

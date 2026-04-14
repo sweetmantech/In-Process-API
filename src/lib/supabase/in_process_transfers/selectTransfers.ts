@@ -1,20 +1,18 @@
 import type { TransfersQueryParams } from '@/lib/schema/transfersQuerySchema';
 import { supabase } from '../client';
-import { paymentTransfersQuery } from './queries';
+import { transfersQuery } from './queries';
 
-const selectPayments = async (params: TransfersQueryParams) => {
+const selectTransfers = async (params: TransfersQueryParams) => {
   const { artist, collector, chainId, content_type, limit, page } = params;
 
   let query = supabase
     .from('in_process_transfers')
-    .select(paymentTransfersQuery, { count: 'planned' });
+    .select(transfersQuery, { count: 'planned' });
 
-  query = query.eq('moment.collection.protocol', 'in_process');
-  query = query.gte('value', 0);
   query = query.order('transferred_at', { ascending: false });
 
   if (artist) {
-    query = query.eq('moment.fee_recipients.artist_address', artist);
+    query = query.eq('moment.collection.creator', artist);
   }
 
   if (collector) {
@@ -37,4 +35,4 @@ const selectPayments = async (params: TransfersQueryParams) => {
   return { data, count };
 };
 
-export default selectPayments;
+export default selectTransfers;

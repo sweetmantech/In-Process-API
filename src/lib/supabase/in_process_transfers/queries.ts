@@ -23,7 +23,7 @@ export const paymentTransfersQuery = `
         protocol,
         artist:in_process_artists!creator(address, username)
       ),
-      metadata:in_process_metadata(
+      metadata:in_process_metadata!inner(
         name,
         description,
         external_url,
@@ -36,7 +36,7 @@ export const paymentTransfersQuery = `
   .replace(/\s+/g, ' ')
   .trim();
 
-export const airdropTransfersQuery = `
+export const transfersQuery = `
     ${transferRowFields},
     collector:in_process_artists!inner(address, username),
     moment:in_process_moments!inner(
@@ -47,7 +47,7 @@ export const airdropTransfersQuery = `
         protocol,
         artist:in_process_artists!creator(address, username)
       ),
-      metadata:in_process_metadata(
+      metadata:in_process_metadata!inner(
         name,
         description,
         external_url,

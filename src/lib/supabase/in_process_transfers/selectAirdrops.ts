@@ -1,13 +1,13 @@
 import type { TransfersQueryParams } from '@/lib/schema/transfersQuerySchema';
 import { supabase } from '../client';
-import { airdropTransfersQuery } from './queries';
+import { transfersQuery } from './queries';
 
 const selectAirdrops = async (params: TransfersQueryParams) => {
-  const { artist, collector, chainId, limit, page } = params;
+  const { artist, collector, chainId, content_type, limit, page } = params;
 
   let query = supabase
     .from('in_process_transfers')
-    .select(airdropTransfersQuery, { count: 'exact' });
+    .select(transfersQuery, { count: 'planned' });
 
   query = query.is('value', null);
   query = query.eq('moment.collection.protocol', 'in_process');
@@ -25,6 +25,10 @@ const selectAirdrops = async (params: TransfersQueryParams) => {
 
   if (chainId) {
     query = query.eq('moment.collection.chain_id', chainId);
+  }
+
+  if (content_type) {
+    query = query.ilike('moment.metadata.content->>mime', `%${content_type}%`);
   }
 
   const from = (page - 1) * limit;

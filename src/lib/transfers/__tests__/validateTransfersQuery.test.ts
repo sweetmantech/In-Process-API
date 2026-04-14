@@ -116,9 +116,16 @@ describe('validateTransfersQuery', () => {
     });
 
     it('returns 400 for invalid type', () => {
-      const result = validateTransfersQuery(makeRequest({ type: 'invalid' }));
+      const result = validateTransfersQuery(makeRequest({ type: 'video' }));
       expect(result).toBeInstanceOf(NextResponse);
       expect((result as NextResponse).status).toBe(400);
+    });
+
+    it('accepts content_type values', () => {
+      const result = validateTransfersQuery(
+        makeRequest({ content_type: 'audio' })
+      );
+      expect((result as any).content_type).toBe('audio');
     });
   });
 
