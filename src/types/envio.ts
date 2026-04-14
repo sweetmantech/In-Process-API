@@ -37,7 +37,7 @@ export type InProcess_Admins_t = {
   readonly updated_at: number;
 };
 
-export type InProcess_Moment_Comments_t = {
+export type InProcess_Comments_t = {
   readonly id: string;
   readonly collection: string;
   readonly sender: string;

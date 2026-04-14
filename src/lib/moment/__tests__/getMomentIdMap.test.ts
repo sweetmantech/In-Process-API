@@ -9,7 +9,7 @@ import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import type {
   InProcess_Admins_t,
   InProcess_Airdrops_t,
-  InProcess_Moment_Comments_t,
+  InProcess_Comments_t,
   Primary_Sales_t,
   Transfers_t,
 } from '@/types/envio';
@@ -49,7 +49,7 @@ const airdropEntity = (): InProcess_Airdrops_t => ({
   updated_at: 1700000000,
 });
 
-const commentEntity = (): InProcess_Moment_Comments_t => ({
+const commentEntity = (): InProcess_Comments_t => ({
   id: 'c1',
   collection: '0xCOL',
   sender: '0xs',
@@ -163,7 +163,7 @@ describe('getMomentIdMap', () => {
     expect(result.get('0xcol:8453:3')).toBe('air-m');
   });
 
-  it('works for InProcess_Moment_Comments_t', async () => {
+  it('works for InProcess_Comments_t', async () => {
     mockSelectMoments.mockResolvedValue({
       data: [momentRow('com-m', '0xCOL', 8453, '3')],
       error: null,

@@ -1,10 +1,10 @@
 import blockTsToISOString from '@/lib/blockTsToISOString';
-import type { InProcess_Moment_Comments_t } from '@/types/envio';
+import type { InProcess_Comments_t } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
 import { getMomentIdMap } from '@/lib/moment/getMomentIdMap';
 
 export async function mapCommentsToSupabase(
-  momentComments: InProcess_Moment_Comments_t[]
+  momentComments: InProcess_Comments_t[]
 ): Promise<
   Database['public']['Tables']['in_process_moment_comments']['Insert'][]
 > {

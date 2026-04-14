@@ -1,11 +1,11 @@
-import type { InProcess_Moment_Comments_t } from '@/types/envio';
+import type { InProcess_Comments_t } from '@/types/envio';
 import { BATCH_SIZE } from '@/lib/consts';
 import { mapCommentsToSupabase } from './mapCommentsToSupabase';
 import { upsertComments } from '@/lib/supabase/in_process_moment_comments/upsertComments';
 import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
 
 export async function processCommentsInBatches(
-  comments: InProcess_Moment_Comments_t[]
+  comments: InProcess_Comments_t[]
 ): Promise<void> {
   let totalProcessed = 0;
 

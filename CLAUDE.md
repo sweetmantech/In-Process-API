@@ -255,7 +255,7 @@ Use exact snake_case entity names when writing `queryFragment` strings:
 | InProcess collections | `InProcess_Collections`     |
 | InProcess moments     | `InProcess_Moments`         |
 | InProcess admins      | `InProcess_Admins`          |
-| InProcess comments    | `InProcess_Moment_Comments` |
+| InProcess comments    | `InProcess_Comments` |
 | InProcess airdrops    | `InProcess_Airdrops`        |
 | Payments              | `Payments`                  |
 | Primary sales         | `Primary_Sales`             |

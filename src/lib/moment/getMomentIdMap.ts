@@ -1,6 +1,6 @@
 import type {
   InProcess_Admins_t,
-  InProcess_Moment_Comments_t,
+  InProcess_Comments_t,
   Primary_Sales_t,
   Transfers_t,
   InProcess_Airdrops_t,
@@ -10,7 +10,7 @@ import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 export async function getMomentIdMap(
   entities:
     | InProcess_Admins_t[]
-    | InProcess_Moment_Comments_t[]
+    | InProcess_Comments_t[]
     | Primary_Sales_t[]
     | Transfers_t[]
     | InProcess_Airdrops_t[]
