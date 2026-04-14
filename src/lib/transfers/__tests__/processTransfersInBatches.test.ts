@@ -1,0 +1,149 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@/lib/consts', () => ({ BATCH_SIZE: 2 }));
+vi.mock('../distribute', () => ({ distribute: vi.fn() }));
+vi.mock('../mapTransfersToSupabase', () => ({
+  mapTransfersToSupabase: vi.fn(),
+}));
+vi.mock('@/lib/supabase/in_process_artists/ensureArtists', () => ({
+  ensureArtists: vi.fn(),
+}));
+vi.mock('@/lib/supabase/in_process_transfers/upsertTransfers', () => ({
+  upsertTransfers: vi.fn(),
+}));
+
+import { processTransfersInBatches } from '../processTransfersInBatches';
+import { distribute } from '../distribute';
+import { mapTransfersToSupabase } from '../mapTransfersToSupabase';
+import { ensureArtists } from '@/lib/supabase/in_process_artists/ensureArtists';
+import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
+import type { Transfers_t } from '@/types/envio';
+
+const mockDistribute = vi.mocked(distribute);
+const mockMap = vi.mocked(mapTransfersToSupabase);
+const mockEnsureArtists = vi.mocked(ensureArtists);
+const mockUpsert = vi.mocked(upsertTransfers);
+
+const transfer = (id: string): Transfers_t => ({
+  id,
+  collection: '0xcol',
+  token_id: '1',
+  chain_id: 8453,
+  recipient: '0xrecipient00000000000000000000000000000001',
+  quantity: '1',
+  value: '1',
+  currency: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+  transaction_hash: `0xtx${id}`,
+  transferred_at: 1700000000,
+});
+
+describe('processTransfersInBatches', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockDistribute.mockResolvedValue(undefined);
+    mockEnsureArtists.mockResolvedValue(undefined as never);
+    mockUpsert.mockResolvedValue(undefined);
+  });
+
+  it('does nothing for empty array', async () => {
+    await processTransfersInBatches([]);
+    expect(mockDistribute).not.toHaveBeenCalled();
+    expect(mockMap).not.toHaveBeenCalled();
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('runs distribute before map, then ensureArtists and upsert', async () => {
+    const rows = [
+      {
+        recipient: '0xab',
+        quantity: 1,
+        value: 1,
+        currency: '0xusdc',
+        transaction_hash: '0xt',
+        transferred_at: new Date().toISOString(),
+        moment: 'm1',
+      },
+    ];
+    mockMap.mockResolvedValue(rows as never);
+
+    const batch = [transfer('1')];
+    await processTransfersInBatches(batch);
+
+    expect(mockDistribute).toHaveBeenCalledTimes(1);
+    expect(mockDistribute).toHaveBeenCalledWith(batch);
+    expect(mockMap).toHaveBeenCalledWith(batch);
+    expect(mockDistribute.mock.invocationCallOrder[0]).toBeLessThan(
+      mockMap.mock.invocationCallOrder[0]
+    );
+    expect(mockEnsureArtists).toHaveBeenCalledWith(['0xab']);
+    expect(mockUpsert).toHaveBeenCalledWith(rows);
+  });
+
+  it('does not call ensureArtists when map returns no rows', async () => {
+    mockMap.mockResolvedValue([]);
+
+    await processTransfersInBatches([transfer('1')]);
+
+    expect(mockDistribute).toHaveBeenCalled();
+    expect(mockEnsureArtists).not.toHaveBeenCalled();
+    expect(mockUpsert).toHaveBeenCalledWith([]);
+  });
+
+  it('throws when upsert rejects', async () => {
+    mockMap.mockResolvedValue([
+      {
+        recipient: '0xab',
+        quantity: 1,
+        moment: 'm1',
+        transaction_hash: '0xt',
+        transferred_at: new Date().toISOString(),
+      },
+    ] as never);
+    mockUpsert.mockRejectedValue(new Error('db fail'));
+
+    await expect(processTransfersInBatches([transfer('1')])).rejects.toThrow(
+      'db fail'
+    );
+  });
+
+  it('throws when distribute rejects', async () => {
+    mockDistribute.mockRejectedValue(new Error('split fail'));
+
+    await expect(processTransfersInBatches([transfer('1')])).rejects.toThrow(
+      'split fail'
+    );
+    expect(mockMap).not.toHaveBeenCalled();
+  });
+
+  it('throws when mapTransfersToSupabase rejects', async () => {
+    mockMap.mockRejectedValue(new Error('map fail'));
+
+    await expect(processTransfersInBatches([transfer('1')])).rejects.toThrow(
+      'map fail'
+    );
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('processes multiple batches when length exceeds BATCH_SIZE', async () => {
+    mockMap.mockImplementation(
+      async (batch: Transfers_t[]) =>
+        batch.map((t) => ({
+          recipient: t.recipient,
+          quantity: 1,
+          moment: t.id,
+          transaction_hash: t.transaction_hash,
+          transferred_at: new Date().toISOString(),
+        })) as never
+    );
+
+    await processTransfersInBatches([
+      transfer('1'),
+      transfer('2'),
+      transfer('3'),
+    ]);
+
+    expect(mockDistribute).toHaveBeenCalledTimes(2);
+    expect(mockMap).toHaveBeenCalledTimes(2);
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+  });
+});

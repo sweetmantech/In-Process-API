@@ -2,9 +2,8 @@ import type {
   InProcess_Admins_t,
   InProcess_Moment_Comments_t,
   Primary_Sales_t,
-  Payments_t,
+  Transfers_t,
   InProcess_Airdrops_t,
-  Collectors_t,
 } from '@/types/envio';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 
@@ -13,9 +12,8 @@ export async function getMomentIdMap(
     | InProcess_Admins_t[]
     | InProcess_Moment_Comments_t[]
     | Primary_Sales_t[]
-    | Payments_t[]
+    | Transfers_t[]
     | InProcess_Airdrops_t[]
-    | Collectors_t[]
 ): Promise<Map<string, string>> {
   if (!entities.length) return new Map();
 

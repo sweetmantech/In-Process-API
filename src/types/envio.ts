@@ -63,15 +63,16 @@ export type Primary_Sales_t = {
   readonly created_at: number;
 };
 
-export type Payments_t = {
+/** Unified Envio `Transfers` entity (InProcess, Catalog, Sound). */
+export type Transfers_t = {
   readonly id: string;
   readonly collection: string;
-  readonly currency: string;
-  readonly token_id: string; // BigInt from GraphQL comes as string
-  readonly recipient: string;
-  readonly spender: string;
-  readonly amount: string;
+  readonly token_id: string;
   readonly chain_id: number;
+  readonly recipient: string;
+  readonly quantity: string;
+  readonly value: string | undefined;
+  readonly currency: string | undefined;
   readonly transaction_hash: string;
   readonly transferred_at: number;
 };
@@ -84,17 +85,6 @@ export type InProcess_Airdrops_t = {
   readonly amount: string;
   readonly chain_id: number;
   readonly updated_at: number;
-};
-
-export type Collectors_t = {
-  readonly id: string;
-  readonly collection: string;
-  readonly token_id: string; // BigInt from GraphQL comes as string
-  readonly amount: string;
-  readonly chain_id: number;
-  readonly collector: string;
-  readonly transaction_hash: string;
-  readonly collected_at: number;
 };
 
 export type Catalog_Collections_t = {

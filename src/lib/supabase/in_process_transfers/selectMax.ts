@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase/client';
 
 export async function selectMax(fieldName: string): Promise<string | null> {
   const { data, error } = await supabase
-    .from('in_process_collectors')
+    .from('in_process_transfers')
     .select(`${fieldName}.max()`)
     .single<{ max: string }>();
   if (error) throw error;
