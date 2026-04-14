@@ -15,11 +15,11 @@ const selectAirdrops = async (params: TransfersQueryParams) => {
 
   if (artist) {
     query = query.eq('moment.collection.creator', artist);
-    query = query.neq('recipient.address', artist);
+    query = query.neq('collector.address', artist);
   }
 
   if (collector) {
-    query = query.eq('recipient.address', collector);
+    query = query.eq('collector.address', collector);
     query = query.neq('moment.collection.creator', collector);
   }
 
