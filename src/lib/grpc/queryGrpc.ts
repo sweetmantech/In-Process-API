@@ -1,9 +1,29 @@
 import { GRPC_ENDPOINT } from '@/lib/consts';
 
-export async function queryGrpc(
+const LEGACY_COMMENTS_FIELD = 'InProcess_Moment_Comments';
+const CURRENT_COMMENTS_FIELD = 'InProcess_Comments';
+
+const hasMissingFieldError = (errors: unknown[], fieldName: string): boolean =>
+  errors.some((error) => {
+    if (!error || typeof error !== 'object') return false;
+    const message = (error as { message?: unknown }).message;
+    return typeof message === 'string' && message.includes(`'${fieldName}'`);
+  });
+
+const swapCommentsFieldInQuery = (query: string): string | null => {
+  if (query.includes(LEGACY_COMMENTS_FIELD)) {
+    return query.replaceAll(LEGACY_COMMENTS_FIELD, CURRENT_COMMENTS_FIELD);
+  }
+  if (query.includes(CURRENT_COMMENTS_FIELD)) {
+    return query.replaceAll(CURRENT_COMMENTS_FIELD, LEGACY_COMMENTS_FIELD);
+  }
+  return null;
+};
+
+const fetchGraphql = async (
   query: string,
   variables: Record<string, number>
-): Promise<Record<string, unknown[]>> {
+) => {
   const response = await fetch(GRPC_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -14,14 +34,33 @@ export async function queryGrpc(
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  const data = (await response.json()) as {
+  return (await response.json()) as {
     errors?: unknown[];
     data?: Record<string, unknown[]>;
   };
+};
 
-  if (data.errors) {
-    throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
+export async function queryGrpc(
+  query: string,
+  variables: Record<string, number>
+): Promise<Record<string, unknown[]>> {
+  const firstAttempt = await fetchGraphql(query, variables);
+  if (!firstAttempt.errors) {
+    return firstAttempt.data || {};
   }
 
-  return data.data || {};
+  const fallbackQuery = swapCommentsFieldInQuery(query);
+  if (
+    fallbackQuery &&
+    (hasMissingFieldError(firstAttempt.errors, LEGACY_COMMENTS_FIELD) ||
+      hasMissingFieldError(firstAttempt.errors, CURRENT_COMMENTS_FIELD))
+  ) {
+    const secondAttempt = await fetchGraphql(fallbackQuery, variables);
+    if (!secondAttempt.errors) {
+      return secondAttempt.data || {};
+    }
+    throw new Error(`GraphQL errors: ${JSON.stringify(secondAttempt.errors)}`);
+  }
+
+  throw new Error(`GraphQL errors: ${JSON.stringify(firstAttempt.errors)}`);
 }

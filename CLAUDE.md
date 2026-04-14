@@ -250,22 +250,22 @@ mintTokenAdmin(address _to, uint256 _tokenId, uint256 _amount, bytes calldata _d
 
 Use exact snake_case entity names when writing `queryFragment` strings:
 
-| Entity                | GraphQL name                |
-| --------------------- | --------------------------- |
-| InProcess collections | `InProcess_Collections`     |
-| InProcess moments     | `InProcess_Moments`         |
-| InProcess admins      | `InProcess_Admins`          |
-| InProcess comments    | `InProcess_Comments` |
-| InProcess airdrops    | `InProcess_Airdrops`        |
-| Payments              | `Payments`                  |
-| Primary sales         | `Primary_Sales`             |
-| Collectors            | `Collectors`                |
-| Catalog collections   | `Catalog_Collections`       |
-| Catalog moments       | `Catalog_Moments`           |
-| Catalog admins        | `Catalog_Admins`            |
-| Sound editions        | `Sound_Editions`            |
-| Sound moments         | `Sound_Moments`             |
-| Sound admins          | `Sound_Admins`              |
+| Entity                | GraphQL name            |
+| --------------------- | ----------------------- |
+| InProcess collections | `InProcess_Collections` |
+| InProcess moments     | `InProcess_Moments`     |
+| InProcess admins      | `InProcess_Admins`      |
+| InProcess comments    | `InProcess_Comments`    |
+| InProcess airdrops    | `InProcess_Airdrops`    |
+| Payments              | `Payments`              |
+| Primary sales         | `Primary_Sales`         |
+| Collectors            | `Collectors`            |
+| Catalog collections   | `Catalog_Collections`   |
+| Catalog moments       | `Catalog_Moments`       |
+| Catalog admins        | `Catalog_Admins`        |
+| Sound editions        | `Sound_Editions`        |
+| Sound moments         | `Sound_Moments`         |
+| Sound admins          | `Sound_Admins`          |
 
 **Note:** BigInt fields (`max_supply`, `token_id`, `sale_start`, `sale_end`, `price_per_token`, `amount`) are returned as **strings** from GraphQL — always convert with `Number()` or `parseInt()` before storing.
 
