@@ -28,10 +28,10 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER transfer_notification_trigger
   AFTER INSERT ON in_process_transfers
   FOR EACH ROW
-  WHEN (NEW.value > 0)
+  WHEN (NEW.value >= 0)
   EXECUTE FUNCTION create_transfer_notification();
 
 COMMENT ON FUNCTION create_transfer_notification()
-  IS 'Creates a notification for the moment creator when a paid transfer (value > 0) is inserted';
+  IS 'Creates a notification for the moment creator when a transfer with value >= 0 is inserted';
 COMMENT ON TRIGGER transfer_notification_trigger ON in_process_transfers
   IS 'Fires after INSERT on in_process_transfers when value > 0';
