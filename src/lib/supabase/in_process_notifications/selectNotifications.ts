@@ -1,14 +1,8 @@
 import { supabase } from '@/lib/supabase/client';
-import type { Database } from '@/lib/supabase/types';
-import { InProcessPayment } from '@/lib/supabase/in_process_payments/selectPayments';
-
-export type InProcessNotification = {
-  id: string;
-  payment: InProcessPayment;
-  artist: Database['public']['Tables']['in_process_artists']['Row'];
-  viewed: boolean;
-  created_at: string | null;
-};
+export type {
+  InProcessNotification,
+  InProcessNotificationTransfer,
+} from '@/types/notification';
 
 export interface InProcessNotificationsQuery {
   limit?: number;
@@ -28,21 +22,17 @@ export async function selectNotifications({
   let query = supabase
     .from('in_process_notifications')
     .select(
-      `id, viewed, created_at,
-       payment:in_process_payments!inner(
-         id, amount, transaction_hash, transferred_at,
+      `id, viewed,
+       transfer:in_process_transfers!inner(
+         value, currency, transaction_hash, transferred_at,
          moment:in_process_moments!inner(
-           id, token_id, uri, collection:in_process_collections!inner(
-             id, address, chain_id, creator
-           )
+           token_id,
+           collection:in_process_collections!inner(address),
+           metadata:in_process_metadata(image, name)
          ),
-         buyer:in_process_artists!inner(
-           address, username, bio, instagram_username, twitter_username, telegram_username
-         )
+         collector:in_process_artists!inner(username)
        ),
-       artist:in_process_artists!inner(
-         address, username, bio, instagram_username, twitter_username, telegram_username
-       )`,
+       artist:in_process_artists!inner(username)`,
       { count: 'exact' }
     )
     .order('created_at', { ascending: false })

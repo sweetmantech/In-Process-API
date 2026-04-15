@@ -502,21 +502,21 @@ export type Database = {
           artist: string;
           created_at: string | null;
           id: string;
-          payment: string;
+          transfer: string;
           viewed: boolean;
         };
         Insert: {
           artist: string;
           created_at?: string | null;
           id?: string;
-          payment: string;
+          transfer: string;
           viewed?: boolean;
         };
         Update: {
           artist?: string;
           created_at?: string | null;
           id?: string;
-          payment?: string;
+          transfer?: string;
           viewed?: boolean;
         };
         Relationships: [
@@ -528,52 +528,10 @@ export type Database = {
             referencedColumns: ['address'];
           },
           {
-            foreignKeyName: 'in_process_notifications_payment_fkey';
-            columns: ['payment'];
+            foreignKeyName: 'in_process_notifications_transfer_fkey';
+            columns: ['transfer'];
             isOneToOne: false;
-            referencedRelation: 'in_process_payments';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      in_process_payments: {
-        Row: {
-          amount: number;
-          buyer: string;
-          id: string;
-          moment: string;
-          transaction_hash: string;
-          transferred_at: string;
-        };
-        Insert: {
-          amount: number;
-          buyer: string;
-          id?: string;
-          moment: string;
-          transaction_hash: string;
-          transferred_at: string;
-        };
-        Update: {
-          amount?: number;
-          buyer?: string;
-          id?: string;
-          moment?: string;
-          transaction_hash?: string;
-          transferred_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'in_process_payments_buyer_fkey';
-            columns: ['buyer'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_artists';
-            referencedColumns: ['address'];
-          },
-          {
-            foreignKeyName: 'in_process_payments_moment_fkey';
-            columns: ['moment'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_moments';
+            referencedRelation: 'in_process_transfers';
             referencedColumns: ['id'];
           },
         ];
@@ -752,17 +710,6 @@ export type Database = {
           p_token_id: number;
         };
         Returns: boolean;
-      };
-      get_in_process_payments: {
-        Args: {
-          p_artists?: string[];
-          p_chainid?: number;
-          p_collectors?: string[];
-          p_limit?: number;
-          p_mime?: string;
-          p_page?: number;
-        };
-        Returns: Json;
       };
       get_in_process_timeline: {
         Args: {
