@@ -2,7 +2,7 @@ import type { TransfersQueryParams } from '@/lib/schema/transfersQuerySchema';
 import { supabase } from '../client';
 
 type AirdropTransferResult = {
-  transfers: Record<string, unknown>[];
+  transfers: (Record<string, unknown> | null)[];
   total_count: number;
 };
 
@@ -22,8 +22,12 @@ const selectAirdrops = async (params: TransfersQueryParams) => {
   if (error) throw error;
 
   const result = ((data ?? [])[0] ?? null) as AirdropTransferResult | null;
+  const transfers = (result?.transfers ?? []).filter(
+    (transfer): transfer is Record<string, unknown> => transfer !== null
+  );
+
   return {
-    data: result?.transfers ?? [],
+    data: transfers,
     count: result?.total_count ?? 0,
   };
 };
