@@ -701,6 +701,20 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_airdrop_transfers: {
+        Args: {
+          p_artist?: string;
+          p_chain_id?: number;
+          p_collector?: string;
+          p_content_type?: string;
+          p_limit?: number;
+          p_offset?: number;
+        };
+        Returns: {
+          total_count: number;
+          transfers: Json;
+        }[];
+      };
       get_artist_timeline: {
         Args: {
           p_artist: string;
@@ -793,6 +807,8 @@ export type Database = {
         Args: { p_created_at: string; p_period: string };
         Returns: boolean;
       };
+      show_limit: { Args: never; Returns: number };
+      show_trgm: { Args: { '': string }; Returns: string[] };
       upsert_artist_names: { Args: { artists: Json }; Returns: undefined };
     };
     Enums: {

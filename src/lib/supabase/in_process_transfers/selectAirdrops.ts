@@ -1,42 +1,31 @@
 import type { TransfersQueryParams } from '@/lib/schema/transfersQuerySchema';
 import { supabase } from '../client';
-import { transfersQuery } from './queries';
+
+type AirdropTransferResult = {
+  transfers: Record<string, unknown>[];
+  total_count: number;
+};
 
 const selectAirdrops = async (params: TransfersQueryParams) => {
   const { artist, collector, chainId, content_type, limit, page } = params;
-
-  let query = supabase
-    .from('in_process_transfers')
-    .select(transfersQuery, { count: 'estimated' });
-
-  query = query.eq('moment.collection.protocol', 'in_process');
-  query = query.is('value', null);
-  query = query.order('transferred_at', { ascending: false });
-
-  if (artist) {
-    query = query.eq('moment.collection.creator', artist);
-    query = query.neq('recipient', artist);
-  }
-
-  if (collector) {
-    query = query.eq('recipient', collector);
-    query = query.neq('moment.collection.creator', collector);
-  }
-
-  if (chainId) {
-    query = query.eq('moment.collection.chain_id', chainId);
-  }
-
-  if (content_type) {
-    query = query.ilike('moment.metadata.content->>mime', `%${content_type}%`);
-  }
-
   const from = (page - 1) * limit;
-  query = query.range(from, from + limit - 1);
 
-  const { data, count, error } = await query;
+  const { data, error } = await (supabase as any).rpc('get_airdrop_transfers', {
+    p_artist: artist ?? null,
+    p_collector: collector ?? null,
+    p_chain_id: chainId ?? null,
+    p_content_type: content_type ?? null,
+    p_limit: limit,
+    p_offset: from,
+  });
+
   if (error) throw error;
-  return { data, count };
+
+  const result = ((data ?? [])[0] ?? null) as AirdropTransferResult | null;
+  return {
+    data: result?.transfers ?? [],
+    count: result?.total_count ?? 0,
+  };
 };
 
 export default selectAirdrops;
