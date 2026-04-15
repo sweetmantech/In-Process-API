@@ -7,10 +7,10 @@ const selectAirdrops = async (params: TransfersQueryParams) => {
 
   let query = supabase
     .from('in_process_transfers')
-    .select(transfersQuery, { count: 'planned' });
+    .select(transfersQuery, { count: 'estimated' });
 
-  query = query.is('value', null);
   query = query.eq('moment.collection.protocol', 'in_process');
+  query = query.is('value', null);
   query = query.order('transferred_at', { ascending: false });
 
   if (artist) {

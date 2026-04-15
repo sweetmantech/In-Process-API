@@ -7,7 +7,7 @@ const selectTransfers = async (params: TransfersQueryParams) => {
 
   let query = supabase
     .from('in_process_transfers')
-    .select(transfersQuery, { count: 'planned' });
+    .select(transfersQuery, { count: 'estimated' });
 
   query = query.order('transferred_at', { ascending: false });
 

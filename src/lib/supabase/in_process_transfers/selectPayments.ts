@@ -7,7 +7,7 @@ const selectPayments = async (params: TransfersQueryParams) => {
 
   let query = supabase
     .from('in_process_transfers')
-    .select(paymentTransfersQuery, { count: 'planned' });
+    .select(paymentTransfersQuery, { count: 'estimated' });
 
   query = query.eq('moment.collection.protocol', 'in_process');
   query = query.gte('value', 0);
