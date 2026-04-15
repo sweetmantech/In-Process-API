@@ -7,10 +7,20 @@ const getNotificationsHandler = async (params: {
   artist?: string;
   viewed?: boolean;
 }) => {
-  const { data, error } = await selectNotifications(params);
+  const { data, count, error } = await selectNotifications(params);
   if (error)
     return NextResponse.json({ message: error.message }, { status: 500 });
-  return NextResponse.json({ status: 'success', notifications: data ?? [] });
+  const total = count ?? 0;
+  return NextResponse.json({
+    status: 'success',
+    notifications: data ?? [],
+    pagination: {
+      page: params.page,
+      limit: params.limit,
+      total_count: total,
+      total_pages: Math.ceil(total / params.limit),
+    },
+  });
 };
 
 export default getNotificationsHandler;

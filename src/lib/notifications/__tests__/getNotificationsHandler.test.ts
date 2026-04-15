@@ -24,7 +24,7 @@ describe('getNotificationsHandler', () => {
     vi.clearAllMocks();
   });
 
-  it('returns notifications on success', async () => {
+  it('returns notifications and pagination on success', async () => {
     vi.mocked(selectNotifications).mockResolvedValue({
       data: MOCK_NOTIFICATIONS as any,
       count: 2,
@@ -37,9 +37,15 @@ describe('getNotificationsHandler', () => {
     expect(res.status).toBe(200);
     expect(json.status).toBe('success');
     expect(json.notifications).toEqual(MOCK_NOTIFICATIONS);
+    expect(json.pagination).toEqual({
+      page: 1,
+      limit: 20,
+      total_count: 2,
+      total_pages: 1,
+    });
   });
 
-  it('returns empty array when there are no results', async () => {
+  it('returns empty array and zero pagination when there are no results', async () => {
     vi.mocked(selectNotifications).mockResolvedValue({
       data: [] as any,
       count: 0,
@@ -51,6 +57,45 @@ describe('getNotificationsHandler', () => {
 
     expect(res.status).toBe(200);
     expect(json.notifications).toEqual([]);
+    expect(json.pagination).toEqual({
+      page: 1,
+      limit: 20,
+      total_count: 0,
+      total_pages: 0,
+    });
+  });
+
+  it('computes total_pages correctly', async () => {
+    vi.mocked(selectNotifications).mockResolvedValue({
+      data: MOCK_NOTIFICATIONS as any,
+      count: 100,
+      error: null,
+    });
+
+    const res = await getNotificationsHandler({ limit: 10, page: 3 });
+    const json = await res.json();
+
+    expect(json.pagination).toEqual({
+      page: 3,
+      limit: 10,
+      total_count: 100,
+      total_pages: 10,
+    });
+  });
+
+  it('returns zero counts when count is null', async () => {
+    vi.mocked(selectNotifications).mockResolvedValue({
+      data: [] as any,
+      count: null,
+      error: null,
+    });
+
+    const res = await getNotificationsHandler(BASE_PARAMS);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.pagination.total_count).toBe(0);
+    expect(json.pagination.total_pages).toBe(0);
   });
 
   it('calls selectNotifications with all provided params', async () => {
