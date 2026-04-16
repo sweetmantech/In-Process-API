@@ -65,7 +65,7 @@ export interface TimelinePagination {
 export interface GetInProcessTimelineParams {
   limit?: number;
   page?: number;
-  chainId?: number;
+  chainId?: number | null;
   hidden?: boolean;
   mime?: string;
   period?: string;
@@ -83,7 +83,7 @@ export interface GetArtistTimelineParams {
   type?: 'mutual' | 'default' | null;
   limit?: number;
   page?: number;
-  chainId?: number;
+  chainId?: number | null;
   hidden?: boolean;
   mime?: string;
   period?: string;
@@ -100,7 +100,7 @@ export interface GetCollectionTimelineParams {
   collection: string;
   limit?: number;
   page?: number;
-  chainId?: number;
+  chainId?: number | null;
   hidden?: boolean;
   mime?: string;
   period?: string;

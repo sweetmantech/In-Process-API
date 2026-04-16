@@ -83,6 +83,24 @@ describe('validateTimelineQuery', () => {
     });
   });
 
+  describe('chain_id param', () => {
+    it('returns null when chain_id not provided (prod default — all prod chains)', () => {
+      const result = validateTimelineQuery(makeRequest());
+      // IS_TESTNET=false in test env → null signals "all prod chains" to the RPC
+      expect((result as any).chainId).toBeNull();
+    });
+
+    it('returns the provided chain_id when explicitly set to Base', () => {
+      const result = validateTimelineQuery(makeRequest({ chain_id: '8453' }));
+      expect((result as any).chainId).toBe(8453);
+    });
+
+    it('returns chain_id=1 when explicitly set to Ethereum mainnet', () => {
+      const result = validateTimelineQuery(makeRequest({ chain_id: '1' }));
+      expect((result as any).chainId).toBe(1);
+    });
+  });
+
   describe('type param', () => {
     it('accepts "mutual"', () => {
       const result = validateTimelineQuery(makeRequest({ type: 'mutual' }));

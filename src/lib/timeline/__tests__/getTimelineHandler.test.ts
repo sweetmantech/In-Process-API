@@ -19,7 +19,7 @@ import getTimelineHandler from '@/lib/timeline/getTimelineHandler';
 const BASE_PARAMS = {
   limit: 10,
   page: 1,
-  chainId: 8453,
+  chainId: null as number | null,
   hidden: false,
   mime: undefined as string | undefined,
   period: undefined as string | undefined,
