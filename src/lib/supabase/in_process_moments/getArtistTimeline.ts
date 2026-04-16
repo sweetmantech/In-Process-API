@@ -24,7 +24,7 @@ const getArtistTimeline = async ({
     p_type: type ?? undefined,
     p_limit: limit,
     p_page: page,
-    p_chainid: chainId,
+    p_chainid: chainId as number | undefined,
     p_hidden: hidden,
     p_mime: mime,
     p_period: period,

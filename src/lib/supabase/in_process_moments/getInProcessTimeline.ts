@@ -20,7 +20,7 @@ const getInProcessTimeline = async ({
   const { data, error } = await supabase.rpc('get_in_process_timeline', {
     p_limit: limit,
     p_page: page,
-    p_chainid: chainId,
+    p_chainid: chainId as number | undefined,
     p_hidden: hidden,
     p_mime: mime,
     p_period: period,

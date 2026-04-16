@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CHAIN_ID } from '@/lib/consts';
+import { IS_TESTNET } from '@/lib/consts';
 
 const timelineQuerySchema = z
   .object({
@@ -16,7 +16,10 @@ const timelineQuerySchema = z
     chain_id: z
       .string()
       .optional()
-      .transform((v) => (v ? Number(v) : CHAIN_ID)),
+      .transform((v) => {
+        if (v) return Number(v);
+        return IS_TESTNET ? 84532 : null;
+      }),
     hidden: z
       .string()
       .optional()

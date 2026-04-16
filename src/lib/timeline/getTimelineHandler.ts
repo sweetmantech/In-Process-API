@@ -8,7 +8,7 @@ interface TimelineParams {
   page: number;
   collection?: string;
   artist?: string;
-  chainId: number;
+  chainId: number | null;
   hidden: boolean;
   mime?: string;
   period?: string;
