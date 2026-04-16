@@ -4,6 +4,7 @@ import type {
   InProcess_Admins_t,
   Catalog_Admins_t,
   Sound_Admins_t,
+  ZoraMedia_Admins_t,
 } from '@/types/envio';
 
 describe('getScope', () => {
@@ -44,6 +45,18 @@ describe('getScope', () => {
       updated_at: 1000,
     } satisfies Sound_Admins_t;
     expect(getScope(admin)).toBe(5);
+  });
+
+  it('returns 1 for ZoraMedia_Admins_t (presence means active)', () => {
+    const admin = {
+      id: '5',
+      admin: '0xabc',
+      collection: '0xcol',
+      token_id: '1',
+      chain_id: 8453,
+      updated_at: 1000,
+    } satisfies ZoraMedia_Admins_t;
+    expect(getScope(admin)).toBe(1);
   });
 
   it('returns 0 scope for revoked InProcess admin', () => {

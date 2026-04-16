@@ -83,6 +83,42 @@ describe('mapMetadataToSupabase', () => {
     expect(result.artistNamesByAddresses.size).toBe(0);
   });
 
+  it('passes contentUri to getMetadataHandler', async () => {
+    mockGetMetadata.mockResolvedValue({ name: 'T', artist: 'Alice' } as any);
+
+    const moments = [
+      {
+        id: 'mid',
+        uri: 'ipfs://metadata',
+        contentUri: 'ipfs://content',
+        collection: { creator: '0xABC' },
+      },
+    ];
+    await mapMetadataToSupabase(moments);
+
+    expect(mockGetMetadata).toHaveBeenCalledWith({
+      uri: 'ipfs://metadata',
+      contentUri: 'ipfs://content',
+    });
+  });
+
+  it('uses owner address over collection.creator for artist name mapping', async () => {
+    mockGetMetadata.mockResolvedValue({ name: 'T', artist: 'Alice' } as any);
+
+    const moments = [
+      {
+        id: 'mid',
+        uri: 'ipfs://meta',
+        owner: '0xOWNER',
+        collection: { creator: '0xCREATOR' },
+      },
+    ];
+    const result = await mapMetadataToSupabase(moments);
+
+    expect(result.artistNamesByAddresses.get('0xOWNER')).toBe('Alice');
+    expect(result.artistNamesByAddresses.has('0xCREATOR')).toBe(false);
+  });
+
   it('retries up to 3 times on failure, then logs and continues', async () => {
     mockGetMetadata.mockRejectedValue(new Error('fetch failed'));
 
