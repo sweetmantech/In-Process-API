@@ -185,5 +185,6 @@ export type ZoraMedia_Admins_t = {
   readonly collection: string;
   readonly token_id: string; // BigInt from GraphQL comes as string
   readonly chain_id: number;
+  readonly permission: number;
   readonly updated_at: number;
 };

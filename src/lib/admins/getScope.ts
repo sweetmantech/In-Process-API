@@ -15,5 +15,5 @@ export function getScope(
   if ('permission' in admin) return admin.permission;
   if ('auth_scope' in admin) return admin.auth_scope;
   if ('roles' in admin) return admin.roles;
-  return 1; // ZoraMedia_Admins has no scope field — presence means active
+  return 1;
 }

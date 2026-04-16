@@ -9,6 +9,6 @@ export const zoraAdminsIndexer: IndexConfig<ZoraMedia_Admins_t> = {
   indexName: 'zoraAdmins',
   dataPath: 'ZoraMedia_Admins',
   queryFragment: `ZoraMedia_Admins(limit: $limit, offset: $offset_zoraAdmins, order_by: {updated_at: asc}, where: {updated_at: {_gt: $minTimestamp_zoraAdmins}}) {
-    id admin collection token_id chain_id updated_at
+    id admin collection token_id chain_id permission updated_at
   }`,
 };

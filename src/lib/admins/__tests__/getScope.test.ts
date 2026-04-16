@@ -47,16 +47,17 @@ describe('getScope', () => {
     expect(getScope(admin)).toBe(5);
   });
 
-  it('returns 1 for ZoraMedia_Admins_t (presence means active)', () => {
+  it('returns permission for ZoraMedia_Admins_t', () => {
     const admin = {
       id: '5',
       admin: '0xabc',
       collection: '0xcol',
       token_id: '1',
       chain_id: 8453,
+      permission: 3,
       updated_at: 1000,
     } satisfies ZoraMedia_Admins_t;
-    expect(getScope(admin)).toBe(1);
+    expect(getScope(admin)).toBe(3);
   });
 
   it('returns 0 scope for revoked InProcess admin', () => {
