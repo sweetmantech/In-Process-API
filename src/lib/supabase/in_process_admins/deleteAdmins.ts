@@ -25,10 +25,7 @@ export async function deleteAdmins(
         .eq('artist_address', admin.artist_address)
         .eq('token_id', admin.token_id);
 
-      if (error) {
-        console.log('ziad here', admin);
-        throw error;
-      }
+      if (error) throw error;
       deletedCount++;
     }
 
