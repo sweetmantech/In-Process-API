@@ -8,7 +8,7 @@ export const zoraAdminsIndexer: IndexConfig<ZoraMedia_Admins_t> = {
   selectMaxTimestampFn: selectMaxGrantedAt,
   indexName: 'zora_admins',
   dataPath: 'ZoraMedia_Admins',
-  queryFragment: `ZoraMedia_Admins(limit: $limit, offset: $offset_zoraAdmins, order_by: {updated_at: asc}, where: {updated_at: {_gt: $minTimestamp_zoraAdmins}}) {
+  queryFragment: `ZoraMedia_Admins(limit: $limit, offset: $offset_zora_admins, order_by: {updated_at: asc}, where: {updated_at: {_gt: $minTimestamp_zora_admins}}) {
     id admin collection token_id chain_id permission updated_at
   }`,
 };
