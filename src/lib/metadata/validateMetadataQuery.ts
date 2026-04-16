@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { metadataBodySchema } from '@/lib/schema/metadataBodySchema';
+import { validate } from '@/lib/schema/validate';
 
-const validateMetadataQuery = (
-  req: NextRequest
-): { uri: string } | NextResponse => {
-  const uri = req.nextUrl.searchParams.get('uri');
-  if (!uri) {
-    return NextResponse.json({ message: 'No URI provided' }, { status: 400 });
+const validateMetadataQuery = async (req: NextRequest) => {
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      {
+        message: 'Invalid input',
+        errors: [{ field: '', message: 'Malformed JSON body' }],
+      },
+      { status: 400 }
+    );
   }
-  return { uri };
+
+  const result = validate(metadataBodySchema, body);
+  if (!result.success) return result.response as NextResponse;
+
+  const { uri, content_uri } = result.data;
+  return { uri, contentUri: content_uri };
 };
 
 export default validateMetadataQuery;

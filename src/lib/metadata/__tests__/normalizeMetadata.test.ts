@@ -46,6 +46,27 @@ const SOUND_RAW = {
   version: 'sound-edition-20220930',
 };
 
+const CATALOG_SIGNED_RAW = {
+  body: {
+    notes: 'This is my genesis music NFT!',
+    title: 'Prophecy of the Morning Dew',
+    artist: 'Clear Mortifee',
+    artwork: {
+      nft: null,
+      info: {
+        uri: 'ar://6MJKRnetE8EBpTYpMn5QguZREHnG4K7H_LDlQjbtg5U',
+        mimeType: 'image/jpeg',
+      },
+      isNft: false,
+    },
+    mimeType: 'audio/wav',
+  },
+  origin: {
+    encoding: 'rlp',
+    algorithm: 'secp256k1',
+  },
+};
+
 beforeEach(() => {
   vi.mocked(fetchUri).mockResolvedValue({
     headers: { get: vi.fn().mockReturnValue(null) },
@@ -81,6 +102,13 @@ describe('normalizeMetadata', () => {
       expect(result.image).toBe('ar://artwork-uri');
     });
 
+    it('falls back to body.artwork.info.uri for signed catalog metadata', async () => {
+      const result = await normalizeMetadata(CATALOG_SIGNED_RAW);
+      expect(result.image).toBe(
+        'ar://6MJKRnetE8EBpTYpMn5QguZREHnG4K7H_LDlQjbtg5U'
+      );
+    });
+
     it('omits image when neither image nor artwork.uri is present', async () => {
       const result = await normalizeMetadata({ name: 'Test' });
       expect(result.image).toBeUndefined();
@@ -88,6 +116,30 @@ describe('normalizeMetadata', () => {
   });
 
   describe('animation_url / content', () => {
+    it('prioritizes contentUri override over animation_url and image', async () => {
+      vi.mocked(fetchUri).mockResolvedValueOnce({
+        ok: true,
+        headers: { get: vi.fn().mockReturnValue('audio/mpeg') },
+      } as unknown as Response);
+
+      const result = await normalizeMetadata(
+        {
+          ...CATALOG_RAW,
+          animation_url: 'ar://animation-hash',
+          image: 'ar://image-hash',
+        },
+        'ar://forced-content-hash'
+      );
+
+      expect(fetchUri).toHaveBeenCalledWith('ar://forced-content-hash', {
+        method: 'HEAD',
+      });
+      expect(result.content).toEqual({
+        mime: 'audio/mpeg',
+        uri: 'ar://forced-content-hash',
+      });
+    });
+
     it('uses animation_url when non-empty (catalog)', async () => {
       const result = await normalizeMetadata(CATALOG_RAW);
       expect(result.animation_url).toBe(
@@ -275,6 +327,11 @@ describe('normalizeMetadata', () => {
       expect(result.description).toBe('Thank You Catalog Works');
     });
 
+    it('falls back to body.notes as description for signed catalog metadata', async () => {
+      const result = await normalizeMetadata(CATALOG_SIGNED_RAW);
+      expect(result.description).toBe('This is my genesis music NFT!');
+    });
+
     it('omits external_url when absent', async () => {
       const result = await normalizeMetadata({ name: 'Test' });
       expect(result.external_url).toBeUndefined();
@@ -283,6 +340,12 @@ describe('normalizeMetadata', () => {
     it('includes artist when present', async () => {
       const result = await normalizeMetadata(CATALOG_RAW);
       expect(result.artist).toBe('Dutchyyy');
+    });
+
+    it('reads title and artist from body for signed catalog metadata', async () => {
+      const result = await normalizeMetadata(CATALOG_SIGNED_RAW);
+      expect(result.name).toBe('Prophecy of the Morning Dew');
+      expect(result.artist).toBe('Clear Mortifee');
     });
 
     it('omits artist when absent', async () => {

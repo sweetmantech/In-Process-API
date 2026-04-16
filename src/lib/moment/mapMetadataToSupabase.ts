@@ -23,7 +23,7 @@ export async function mapMetadataToSupabase(
       let lastErr: unknown;
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          const data = await getMetadataHandler(uri);
+          const data = await getMetadataHandler({ uri });
           if (data?.artist)
             artistNamesByAddresses.set(collection.creator, data.artist);
           records.push({

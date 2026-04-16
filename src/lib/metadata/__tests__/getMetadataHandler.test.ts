@@ -30,13 +30,30 @@ describe('getMetadataHandler', () => {
       external_url: '',
     } as any);
 
-    const result = await getMetadataHandler('ipfs://meta');
+    const result = await getMetadataHandler({ uri: 'ipfs://meta' });
 
     expect(mockFetchUri).toHaveBeenCalledWith('ipfs://meta', {
       cache: 'no-store',
     });
-    expect(mockNormalize).toHaveBeenCalledWith(raw);
+    expect(mockNormalize).toHaveBeenCalledWith(raw, undefined);
     expect(result).toMatchObject({ name: 'Track' });
+  });
+
+  it('passes content_uri override to normalizeMetadata', async () => {
+    const raw = { name: 'Track', image: 'ipfs://img' };
+    mockFetchUri.mockResolvedValue(makeResponse(raw) as any);
+    mockNormalize.mockReturnValue({
+      name: 'Track',
+      image: 'ipfs://img',
+      description: '',
+      external_url: '',
+    } as any);
+
+    await getMetadataHandler({
+      uri: 'ipfs://meta',
+      contentUri: 'ar://forced-content',
+    });
+    expect(mockNormalize).toHaveBeenCalledWith(raw, 'ar://forced-content');
   });
 
   it('parses text response when content-type is not json', async () => {
@@ -49,8 +66,8 @@ describe('getMetadataHandler', () => {
       external_url: '',
     } as any);
 
-    await getMetadataHandler('ar://hash');
-    expect(mockNormalize).toHaveBeenCalledWith(raw);
+    await getMetadataHandler({ uri: 'ar://hash' });
+    expect(mockNormalize).toHaveBeenCalledWith(raw, undefined);
   });
 
   it('returns empty metadata on AbortError during fetch', async () => {
@@ -58,7 +75,7 @@ describe('getMetadataHandler', () => {
     err.name = 'AbortError';
     mockFetchUri.mockRejectedValue(err);
 
-    const result = await getMetadataHandler('ipfs://x');
+    const result = await getMetadataHandler({ uri: 'ipfs://x' });
     expect(result).toEqual({
       image: '',
       name: '',
@@ -69,7 +86,7 @@ describe('getMetadataHandler', () => {
 
   it('rethrows non-abort fetch errors', async () => {
     mockFetchUri.mockRejectedValue(new Error('network error'));
-    await expect(getMetadataHandler('ipfs://x')).rejects.toThrow(
+    await expect(getMetadataHandler({ uri: 'ipfs://x' })).rejects.toThrow(
       'network error'
     );
   });
@@ -81,7 +98,7 @@ describe('getMetadataHandler', () => {
       text: async () => 'not json at all',
     } as any);
 
-    await expect(getMetadataHandler('ipfs://x')).rejects.toThrow(
+    await expect(getMetadataHandler({ uri: 'ipfs://x' })).rejects.toThrow(
       'URI did not return JSON'
     );
   });
@@ -97,7 +114,7 @@ describe('getMetadataHandler', () => {
       },
     } as any);
 
-    const result = await getMetadataHandler('ipfs://x');
+    const result = await getMetadataHandler({ uri: 'ipfs://x' });
     expect(result).toEqual({
       image: '',
       name: '',
