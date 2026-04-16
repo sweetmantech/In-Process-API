@@ -1,3 +1,14 @@
+CREATE OR REPLACE FUNCTION public.in_process_collections_lowercase()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+  new.address := lower(new.address);
+  new.creator := lower(new.creator);
+  return new;
+end;
+$function$
+;
 -- Ensure creator artist record exists (satisfies FK constraint)
 insert into in_process_artists (address)
 values ('0x7a6f726121030cadf9923333d5b6f29277024027')
