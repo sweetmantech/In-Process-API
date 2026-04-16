@@ -5,23 +5,31 @@ type NormalizedAttribute = { trait_type: string; value: string | string[] };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const normalizeMetadata = async (
-  raw: any
+  raw: any,
+  contentUriOverride?: string
 ): Promise<
   Omit<TokenMetadataJson, 'attributes'> & {
     attributes?: NormalizedAttribute[];
   }
 > => {
+  const body = raw?.body ?? raw;
+  const hasWrappedBody = raw?.body !== undefined;
+
   // Resolve animation URI: prefer animation_url (if non-empty), fall back to losslessAudio
   const animationUri: string | undefined =
-    raw.animation_url || raw.losslessAudio || undefined;
+    body.animation_url || body.losslessAudio || undefined;
 
-  // Resolve image: prefer explicit image field, fall back to artwork.uri
-  const image: string | undefined = raw.image ?? raw.artwork?.uri ?? undefined;
+  // Resolve image from common metadata shapes, including Catalog's body.artwork.info.uri
+  const image: string | undefined =
+    body.image ?? body.artwork?.uri ?? body.artwork?.info?.uri ?? undefined;
 
   // Resolve content: prefer explicit content field, fall back to mimeType + animationUri,
   // then fall back to fetching animationUri (or imageUri) HEAD to detect mime from content-type header
-  const contentUri = animationUri ?? image;
-  let content: { mime: string; uri: string } | null = raw.content ?? null;
+  const contentUri = contentUriOverride ?? animationUri ?? image;
+  let content: { mime: string; uri: string } | null = body.content ?? null;
+  if (!content && contentUri && hasWrappedBody && body.mimeType) {
+    content = { mime: body.mimeType, uri: contentUri };
+  }
   if (!content && contentUri) {
     try {
       const res = await fetchUri(contentUri, { method: 'HEAD' });
@@ -37,17 +45,19 @@ const normalizeMetadata = async (
   }
 
   // Resolve attributes: start from raw attributes, then inject genre as Genres
-  const attributes: NormalizedAttribute[] = [...(raw.attributes ?? [])];
-  if (raw.genre) {
-    const genres = Array.isArray(raw.genre) ? raw.genre : [raw.genre];
+  const attributes: NormalizedAttribute[] = [...(body.attributes ?? [])];
+  if (body.genre) {
+    const genres = Array.isArray(body.genre) ? body.genre : [body.genre];
     attributes.push({ trait_type: 'Genres', value: genres });
   }
 
   return {
-    name: raw.title ?? raw.name,
-    ...(raw.artist !== undefined && { artist: raw.artist }),
-    ...(raw.external_url !== undefined && { external_url: raw.external_url }),
-    ...(raw.description !== undefined && { description: raw.description }),
+    name: body.title ?? body.name,
+    ...(body.artist !== undefined && { artist: body.artist }),
+    ...(body.external_url !== undefined && { external_url: body.external_url }),
+    ...((body.description ?? body.notes) !== undefined && {
+      description: body.description ?? body.notes,
+    }),
     ...(image !== undefined && { image }),
     ...(animationUri !== undefined && { animation_url: animationUri }),
     ...(content !== null && { content }),

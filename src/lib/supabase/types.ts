@@ -759,7 +759,11 @@ export type Database = {
       upsert_artist_names: { Args: { artists: Json }; Returns: undefined };
     };
     Enums: {
-      collection_protocol: 'in_process' | 'catalog' | 'sound.xyz';
+      collection_protocol:
+        | 'in_process'
+        | 'catalog'
+        | 'sound.xyz'
+        | 'zora_media';
       message_client: 'telegram' | 'sms' | 'web' | 'api';
       message_role: 'user' | 'assistant';
     };
@@ -895,7 +899,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      collection_protocol: ['in_process', 'catalog', 'sound.xyz'],
+      collection_protocol: ['in_process', 'catalog', 'sound.xyz', 'zora_media'],
       message_client: ['telegram', 'sms', 'web', 'api'],
       message_role: ['user', 'assistant'],
     },
