@@ -2,6 +2,7 @@ import type {
   Catalog_Admins_t,
   InProcess_Admins_t,
   Sound_Admins_t,
+  ZoraMedia_Admins_t,
 } from '@/types/envio';
 import { BATCH_SIZE } from '@/lib/consts';
 import { mapAdminsToSupabase } from './mapAdminsToSupabase';
@@ -12,7 +13,12 @@ import { ensureArtists } from '@/lib/artists/ensureArtists';
 import { getScope } from './getScope';
 
 export async function processAdminsInBatches(
-  admins: (InProcess_Admins_t | Catalog_Admins_t | Sound_Admins_t)[]
+  admins: (
+    | InProcess_Admins_t
+    | Catalog_Admins_t
+    | Sound_Admins_t
+    | ZoraMedia_Admins_t
+  )[]
 ): Promise<void> {
   let totalDeleted = 0;
   let totalUpserted = 0;

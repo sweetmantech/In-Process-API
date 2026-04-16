@@ -8,7 +8,13 @@ export type MapMetadataResult = {
 };
 
 export async function mapMetadataToSupabase(
-  moments: Array<{ id: string; uri: string; collection: { creator: string } }>
+  moments: Array<{
+    id: string;
+    uri: string;
+    contentUri?: string;
+    owner?: string;
+    collection: { creator: string };
+  }>
 ): Promise<MapMetadataResult> {
   if (!moments.length)
     return { records: [], artistNamesByAddresses: new Map() };
@@ -19,13 +25,14 @@ export async function mapMetadataToSupabase(
   const artistNamesByAddresses = new Map<string, string>();
 
   await Promise.all(
-    moments.map(async ({ id, uri, collection }) => {
+    moments.map(async ({ id, uri, contentUri, owner, collection }) => {
       let lastErr: unknown;
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          const data = await getMetadataHandler({ uri });
+          const data = await getMetadataHandler({ uri, contentUri });
+          const creatorAddress = owner ?? collection.creator;
           if (data?.artist)
-            artistNamesByAddresses.set(collection.creator, data.artist);
+            artistNamesByAddresses.set(creatorAddress, data.artist);
           records.push({
             moment: id,
             name: data.name ?? null,
@@ -39,7 +46,7 @@ export async function mapMetadataToSupabase(
           break;
         } catch (err) {
           lastErr = err;
-          if (attempt < 3) await sleep(500 * attempt);
+          if (attempt < 3) await sleep(1000 * attempt);
         }
       }
       if (lastErr)
