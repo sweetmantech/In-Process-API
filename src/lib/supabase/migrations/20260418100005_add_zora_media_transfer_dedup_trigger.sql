@@ -16,9 +16,23 @@ BEGIN
     RETURN NEW;
   END IF;
 
+  IF EXISTS (
+    SELECT 1
+    FROM public.in_process_transfers t
+    WHERE t.moment = NEW.moment
+      AND t.id <> NEW.id
+      AND (
+        t.transferred_at > NEW.transferred_at
+        OR (t.transferred_at = NEW.transferred_at AND t.id > NEW.id)
+      )
+  ) THEN
+    RETURN NEW;
+  END IF;
+
   DELETE FROM public.in_process_transfers t
   WHERE t.id <> NEW.id
-    AND t.moment = NEW.moment;
+    AND t.moment = NEW.moment
+    AND t.transferred_at <= NEW.transferred_at;
 
   RETURN NEW;
 END;
