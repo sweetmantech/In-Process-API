@@ -26,6 +26,7 @@ const resolveMomentFromDb = async (
   return {
     id: dbMoment.id,
     uri: dbMoment.uri,
+    contentUri: null,
     owner: dbMoment.collection.creator,
     saleConfig,
   };

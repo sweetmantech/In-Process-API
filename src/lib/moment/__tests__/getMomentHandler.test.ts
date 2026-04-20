@@ -1,0 +1,198 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@/lib/consts', () => ({
+  CHAIN_ID: 8453,
+  IS_TESTNET: false,
+}));
+
+vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+  default: vi.fn(),
+}));
+
+vi.mock('@/lib/moment/resolveMomentInfo', () => ({
+  resolveMomentInfo: vi.fn(),
+}));
+
+vi.mock('@/lib/moment/getMetadata', () => ({
+  default: vi.fn(),
+}));
+
+vi.mock('@/lib/moment/getMomentAdmins', () => ({
+  default: vi.fn(),
+}));
+
+vi.mock('@/lib/metadata/normalizeMetadata', () => ({
+  default: vi.fn(),
+}));
+
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
+import getMetadata from '@/lib/moment/getMetadata';
+import getMomentAdmins from '@/lib/moment/getMomentAdmins';
+import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
+import getMomentHandler from '@/lib/moment/getMomentHandler';
+import { MomentType } from '@/types/moment';
+
+const COLLECTION = '0x0000000000000000000000000000000000000001' as const;
+const OWNER = '0x000000000000000000000000000000000000beef';
+const ADMIN = '0x000000000000000000000000000000000000cafe';
+
+const moment = { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 };
+
+const mockCollection = {
+  id: 'collection-uuid',
+  address: COLLECTION,
+  chain_id: 8453,
+  protocol: 'in_process',
+};
+
+const mockSaleConfig = {
+  pricePerToken: '1000',
+  saleStart: 0,
+  saleEnd: 0,
+  maxTokensPerAddress: 0,
+  fundsRecipient: COLLECTION,
+  type: MomentType.FixedPriceMint,
+};
+
+const mockResolved = {
+  id: 'moment-id',
+  uri: 'ar://meta-hash',
+  contentUri: 'ar://content-hash',
+  owner: OWNER,
+  saleConfig: mockSaleConfig,
+};
+
+const rawMetadata = {
+  name: 'Track',
+  image: 'ipfs://img',
+  description: 'a song',
+  content: { mime: 'audio/mpeg', uri: 'ar://content-hash' },
+};
+
+const normalizedMetadata = {
+  name: 'Track',
+  image: 'https://cdn.example/img',
+  description: 'a song',
+  external_url: '',
+  content: { mime: 'audio/mpeg', uri: 'ar://content-hash' },
+};
+
+describe('getMomentHandler', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [mockCollection],
+      error: null,
+    } as any);
+    vi.mocked(resolveMomentInfo).mockResolvedValue(mockResolved as any);
+    vi.mocked(getMetadata).mockResolvedValue(rawMetadata as any);
+    vi.mocked(getMomentAdmins).mockResolvedValue([ADMIN] as any);
+    vi.mocked(normalizeMetadata).mockResolvedValue(normalizedMetadata as any);
+  });
+
+  it('returns moment info with metadata on success', async () => {
+    const res = await getMomentHandler(moment);
+    expect(res.status).toBe(200);
+
+    const json = await res.json();
+    expect(json).toMatchObject({
+      id: 'moment-id',
+      uri: 'ar://meta-hash',
+      contentUri: 'ar://content-hash',
+      owner: OWNER,
+      saleConfig: mockSaleConfig,
+      protocol: 'in_process',
+      momentAdmins: [ADMIN],
+      metadata: normalizedMetadata,
+    });
+  });
+
+  it('queries selectCollections with the moment address and chainId', async () => {
+    await getMomentHandler(moment);
+    expect(selectCollections).toHaveBeenCalledWith({
+      collections: [{ address: COLLECTION, chainId: 8453 }],
+    });
+  });
+
+  it('returns 404 when uri cannot be resolved', async () => {
+    vi.mocked(resolveMomentInfo).mockResolvedValue({
+      id: null,
+      uri: null,
+      contentUri: null,
+      owner: null,
+      saleConfig: null,
+    } as any);
+
+    const res = await getMomentHandler(moment);
+    expect(res.status).toBe(404);
+    const json = await res.json();
+    expect(json.error).toBe('Invalid moment URI provided');
+    expect(getMetadata).not.toHaveBeenCalled();
+    expect(getMomentAdmins).not.toHaveBeenCalled();
+  });
+
+  it('passes the resolved id and uri to getMetadata', async () => {
+    await getMomentHandler(moment);
+    expect(getMetadata).toHaveBeenCalledWith('moment-id', 'ar://meta-hash');
+  });
+
+  it('passes collection, owner, moment, and protocol to getMomentAdmins', async () => {
+    await getMomentHandler(moment);
+    expect(getMomentAdmins).toHaveBeenCalledWith({
+      collection: mockCollection,
+      owner: OWNER,
+      moment,
+      protocol: 'in_process',
+    });
+  });
+
+  it('falls back to null collection when selectCollections returns empty', async () => {
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [],
+      error: null,
+    } as any);
+
+    const res = await getMomentHandler(moment);
+    const json = await res.json();
+    expect(json.protocol).toBeNull();
+    expect(getMomentAdmins).toHaveBeenCalledWith({
+      collection: null,
+      owner: OWNER,
+      moment,
+      protocol: null,
+    });
+  });
+
+  it('normalizes metadata with contentUri override', async () => {
+    await getMomentHandler(moment);
+    expect(normalizeMetadata).toHaveBeenCalledWith(
+      rawMetadata,
+      'ar://content-hash'
+    );
+  });
+
+  it('normalizes metadata with undefined contentUri when not present', async () => {
+    vi.mocked(resolveMomentInfo).mockResolvedValue({
+      ...mockResolved,
+      contentUri: null,
+    } as any);
+
+    await getMomentHandler(moment);
+    expect(normalizeMetadata).toHaveBeenCalledWith(rawMetadata, undefined);
+  });
+
+  it('returns null metadata when getMetadata resolves null', async () => {
+    vi.mocked(getMetadata).mockResolvedValue(null as any);
+
+    const res = await getMomentHandler(moment);
+    const json = await res.json();
+    expect(json.metadata).toBeNull();
+    expect(normalizeMetadata).not.toHaveBeenCalled();
+  });
+
+  it('propagates errors from resolveMomentInfo', async () => {
+    vi.mocked(resolveMomentInfo).mockRejectedValue(new Error('resolve failed'));
+    await expect(getMomentHandler(moment)).rejects.toThrow('resolve failed');
+  });
+});

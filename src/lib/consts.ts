@@ -55,6 +55,9 @@ export const CATALOG_MINT_CONTROLLER: Address =
 export const SOUND_METADATA_ADDRESS: Address =
   '0x0000000000f5A96Dc85959cAeb0Cfe680f108FB5';
 
+export const ZORA_MEDIA_ADDRESS: Address =
+  '0xabEFBc9fD2F806065b4f3C237d4b59D9A97Bcac7';
+
 const INDEXER_ID = '87ca119';
 export const GRPC_ENDPOINT = `https://indexer.hyperindex.xyz/${INDEXER_ID}/v1/graphql`;
 

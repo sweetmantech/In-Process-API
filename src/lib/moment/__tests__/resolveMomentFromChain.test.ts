@@ -7,10 +7,16 @@ vi.mock('@/lib/viem/isCatalogContract', () => ({
 vi.mock('@/lib/viem/isSoundContract', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/viem/isZoraMediaContract', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/viem/getCatalogInfo', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/viem/getSoundInfo', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/viem/getZoraMediaInfo', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/viem/getInProcessMomentInfo', () => ({
@@ -22,8 +28,10 @@ vi.mock('@/lib/sales/convertOnChainSaleToApi', () => ({
 
 import isCatalogContract from '@/lib/viem/isCatalogContract';
 import isSoundContract from '@/lib/viem/isSoundContract';
+import isZoraMediaContract from '@/lib/viem/isZoraMediaContract';
 import getCatalogInfo from '@/lib/viem/getCatalogInfo';
 import getSoundInfo from '@/lib/viem/getSoundInfo';
+import getZoraMediaInfo from '@/lib/viem/getZoraMediaInfo';
 import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
 import { convertOnChainSaleToApi } from '@/lib/sales/convertOnChainSaleToApi';
 import resolveMomentFromChain from '@/lib/moment/resolveMomentFromChain';
@@ -45,6 +53,45 @@ const mockSaleConfig = {
 describe('resolveMomentFromChain', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(isZoraMediaContract).mockReturnValue(false);
+  });
+
+  describe('zora media contract', () => {
+    beforeEach(() => {
+      vi.mocked(isZoraMediaContract).mockReturnValue(true);
+      vi.mocked(getZoraMediaInfo).mockResolvedValue({
+        owner: OWNER,
+        tokenUri: 'https://zora-media-uri',
+      } as any);
+    });
+
+    it('calls getZoraMediaInfo and skips other info lookups', async () => {
+      await resolveMomentFromChain(moment);
+      expect(getZoraMediaInfo).toHaveBeenCalledWith(moment);
+      expect(getCatalogInfo).not.toHaveBeenCalled();
+      expect(getSoundInfo).not.toHaveBeenCalled();
+      expect(getInProcessMomentInfo).not.toHaveBeenCalled();
+    });
+
+    it('returns owner from getZoraMediaInfo', async () => {
+      const result = await resolveMomentFromChain(moment);
+      expect(result.owner).toBe(OWNER);
+    });
+
+    it('returns tokenUri from getZoraMediaInfo', async () => {
+      const result = await resolveMomentFromChain(moment);
+      expect(result.uri).toBe('https://zora-media-uri');
+    });
+
+    it('returns saleConfig as null', async () => {
+      const result = await resolveMomentFromChain(moment);
+      expect(result.saleConfig).toBeNull();
+    });
+
+    it('returns id as null', async () => {
+      const result = await resolveMomentFromChain(moment);
+      expect(result.id).toBeNull();
+    });
   });
 
   describe('catalog contract', () => {
@@ -168,7 +215,7 @@ describe('resolveMomentFromChain', () => {
     });
   });
 
-  it('runs isCatalogContract and isSoundContract in parallel', async () => {
+  it('runs isCatalogContract, isSoundContract and isZoraMediaContract in parallel', async () => {
     const order: string[] = [];
     vi.mocked(isCatalogContract).mockImplementation(async () => {
       order.push('catalog');
@@ -176,6 +223,10 @@ describe('resolveMomentFromChain', () => {
     });
     vi.mocked(isSoundContract).mockImplementation(async () => {
       order.push('sound');
+      return false;
+    });
+    vi.mocked(isZoraMediaContract).mockImplementation(() => {
+      order.push('zora_media');
       return false;
     });
     vi.mocked(getInProcessMomentInfo).mockResolvedValue({
@@ -189,5 +240,6 @@ describe('resolveMomentFromChain', () => {
 
     expect(order).toContain('catalog');
     expect(order).toContain('sound');
+    expect(order).toContain('zora_media');
   });
 });
