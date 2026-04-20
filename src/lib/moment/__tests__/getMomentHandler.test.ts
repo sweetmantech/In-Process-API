@@ -25,11 +25,16 @@ vi.mock('@/lib/metadata/normalizeMetadata', () => ({
   default: vi.fn(),
 }));
 
+vi.mock('@/lib/viem/getZoraMediaInfo', () => ({
+  default: vi.fn(),
+}));
+
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import getMetadata from '@/lib/moment/getMetadata';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
+import getZoraMediaInfo from '@/lib/viem/getZoraMediaInfo';
 import getMomentHandler from '@/lib/moment/getMomentHandler';
 import { MomentType } from '@/types/moment';
 
@@ -194,5 +199,70 @@ describe('getMomentHandler', () => {
   it('propagates errors from resolveMomentInfo', async () => {
     vi.mocked(resolveMomentInfo).mockRejectedValue(new Error('resolve failed'));
     await expect(getMomentHandler(moment)).rejects.toThrow('resolve failed');
+  });
+
+  describe('zora_media protocol', () => {
+    const CREATOR = '0x7a6f726121030cadf9923333d5b6f29277024027';
+    const ADMIN_A = '0x000000000000000000000000000000000000aaaa';
+    const ON_CHAIN_OWNER = '0x000000000000000000000000000000000000bbbb';
+
+    beforeEach(() => {
+      vi.mocked(selectCollections).mockResolvedValue({
+        data: [{ ...mockCollection, protocol: 'zora_media' }],
+        error: null,
+      } as any);
+      vi.mocked(resolveMomentInfo).mockResolvedValue({
+        ...mockResolved,
+        owner: CREATOR,
+      } as any);
+    });
+
+    it('uses momentAdmins[0] as owner when admins are present', async () => {
+      vi.mocked(getMomentAdmins).mockResolvedValue([ADMIN_A] as any);
+
+      const res = await getMomentHandler(moment);
+      const json = await res.json();
+
+      expect(json.owner).toBe(ADMIN_A);
+      expect(json.protocol).toBe('zora_media');
+      expect(getZoraMediaInfo).not.toHaveBeenCalled();
+    });
+
+    it('falls back to on-chain owner when admins list is empty', async () => {
+      vi.mocked(getMomentAdmins).mockResolvedValue([] as any);
+      vi.mocked(getZoraMediaInfo).mockResolvedValue({
+        owner: ON_CHAIN_OWNER,
+        tokenUri: 'https://zora-media-uri',
+        contentUri: null,
+      } as any);
+
+      const res = await getMomentHandler(moment);
+      const json = await res.json();
+
+      expect(json.owner).toBe(ON_CHAIN_OWNER);
+      expect(getZoraMediaInfo).toHaveBeenCalledWith(moment);
+    });
+
+    it('falls back to resolved owner when admins are empty and on-chain owner is null', async () => {
+      vi.mocked(getMomentAdmins).mockResolvedValue([] as any);
+      vi.mocked(getZoraMediaInfo).mockResolvedValue({
+        owner: null,
+        tokenUri: 'https://zora-media-uri',
+        contentUri: null,
+      } as any);
+
+      const res = await getMomentHandler(moment);
+      const json = await res.json();
+
+      expect(json.owner).toBe(CREATOR);
+    });
+  });
+
+  it('does not call getZoraMediaInfo for non-zora_media protocols', async () => {
+    vi.mocked(getMomentAdmins).mockResolvedValue([] as any);
+
+    await getMomentHandler(moment);
+
+    expect(getZoraMediaInfo).not.toHaveBeenCalled();
   });
 });
