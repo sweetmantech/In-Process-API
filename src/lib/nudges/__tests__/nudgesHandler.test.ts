@@ -24,7 +24,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('dailyNotificationsHandler', () => {
+describe('nudgesHandler', () => {
   it('returns 500 when the RPC returns an error', async () => {
     vi.mocked(supabase.rpc).mockResolvedValue({
       data: null,
