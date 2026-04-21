@@ -25,27 +25,31 @@ const processSingleMedia = async (
       fileId,
       name,
       artistAddress,
+      thread.channelId,
       thumbFileId
     );
 
-    const { contractAddress, tokenId } = await createMoment({
-      contract: { name, uri: uploaded.uri },
-      token: {
-        tokenMetadataURI: uploaded.uri,
-        createReferral: REFERRAL_RECIPIENT as Address,
-        salesConfig: {
-          type: MomentType.Erc20Mint,
-          pricePerToken: parseUnits('1', 6),
-          saleStart: BigInt(Math.floor(Date.now() / 1000)),
-          saleEnd: maxUint64,
-          currency: USDC_ADDRESS[CHAIN_ID],
+    const { contractAddress, tokenId } = await createMoment(
+      {
+        contract: { name, uri: uploaded.uri },
+        token: {
+          tokenMetadataURI: uploaded.uri,
+          createReferral: REFERRAL_RECIPIENT as Address,
+          salesConfig: {
+            type: MomentType.Erc20Mint,
+            pricePerToken: parseUnits('1', 6),
+            saleStart: BigInt(Math.floor(Date.now() / 1000)),
+            saleEnd: maxUint64,
+            currency: USDC_ADDRESS[CHAIN_ID],
+          },
+          mintToCreatorCount: 1,
+          payoutRecipient: artistAddress,
         },
-        mintToCreatorCount: 1,
-        payoutRecipient: artistAddress,
+        account: artistAddress,
+        channel: 'telegram',
       },
-      account: artistAddress,
-      channel: 'telegram',
-    });
+      { roomId: thread.channelId }
+    );
 
     await replyAfterSuccess(
       thread,

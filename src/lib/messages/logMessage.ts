@@ -11,6 +11,7 @@ type MessagePart = {
 export async function logMessage(
   parts: MessagePart[],
   role: 'user' | 'assistant',
+  roomId?: string,
   artistAddress?: string,
   client: 'sms' | 'telegram' | 'web' | 'api' = 'sms'
 ) {
@@ -23,6 +24,7 @@ export async function logMessage(
       metadata: metadata.id,
       parts,
       role,
+      ...(roomId ? { room: roomId } : {}),
     });
 
     return message?.id;

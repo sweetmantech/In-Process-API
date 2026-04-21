@@ -8,7 +8,8 @@ import { MomentType } from '@/types/moment';
 
 const createMomentFromYoutubeLink = async (
   url: string,
-  artistAddress: Address
+  artistAddress: Address,
+  roomId?: string
 ) => {
   const detail = await getYoutubeDetail(url);
   if (!detail) throw new Error('Failed to fetch YouTube details');
@@ -37,24 +38,27 @@ const createMomentFromYoutubeLink = async (
     },
   });
 
-  return createMoment({
-    contract: { name: detail.title || 'Untitled Video', uri: metadataUri },
-    token: {
-      tokenMetadataURI: metadataUri,
-      createReferral: REFERRAL_RECIPIENT as Address,
-      salesConfig: {
-        type: MomentType.Erc20Mint,
-        pricePerToken: parseUnits('1', 6),
-        saleStart: BigInt(Math.floor(Date.now() / 1000)),
-        saleEnd: maxUint64,
-        currency: USDC_ADDRESS[CHAIN_ID],
+  return createMoment(
+    {
+      contract: { name: detail.title || 'Untitled Video', uri: metadataUri },
+      token: {
+        tokenMetadataURI: metadataUri,
+        createReferral: REFERRAL_RECIPIENT as Address,
+        salesConfig: {
+          type: MomentType.Erc20Mint,
+          pricePerToken: parseUnits('1', 6),
+          saleStart: BigInt(Math.floor(Date.now() / 1000)),
+          saleEnd: maxUint64,
+          currency: USDC_ADDRESS[CHAIN_ID],
+        },
+        mintToCreatorCount: 1,
+        payoutRecipient: artistAddress,
       },
-      mintToCreatorCount: 1,
-      payoutRecipient: artistAddress,
+      account: artistAddress,
+      channel: 'telegram',
     },
-    account: artistAddress,
-    channel: 'telegram',
-  });
+    { roomId }
+  );
 };
 
 export default createMomentFromYoutubeLink;

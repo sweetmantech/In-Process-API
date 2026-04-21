@@ -8,6 +8,7 @@ const uploadAndLogAttachment = async (
   fileId: string,
   name: string,
   artistAddress: Address,
+  roomId: string,
   thumbFileId?: string
 ) => {
   const uploaded = await processAttachmentUpload(
@@ -23,6 +24,7 @@ const uploadAndLogAttachment = async (
       { type: 'file', url: uploaded.mediaUri, mediaType: uploaded.mimeType },
     ],
     'user',
+    roomId,
     artistAddress,
     'telegram'
   );

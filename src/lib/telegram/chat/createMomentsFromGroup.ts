@@ -36,6 +36,7 @@ const createMomentsFromGroup = async (
           asset.fileId,
           asset.name,
           artistAddress,
+          thread.channelId,
           asset.thumbFileId
         );
       })
@@ -45,7 +46,9 @@ const createMomentsFromGroup = async (
       uri: u.uri,
       name: pending[i].name,
     }));
-    const results = await createMoments(inputs, artistAddress, 'telegram');
+    const results = await createMoments(inputs, artistAddress, 'telegram', {
+      roomId: thread.channelId,
+    });
     await Promise.all(
       results.map(({ contractAddress, tokenId }, i) =>
         replyAfterSuccess(

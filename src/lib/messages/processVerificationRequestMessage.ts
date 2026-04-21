@@ -15,6 +15,7 @@ export async function processVerificationRequestMessage(
       },
     ],
     'assistant',
+    undefined,
     artistAddress
   );
   await sendSms(fromPhoneNumber, message);

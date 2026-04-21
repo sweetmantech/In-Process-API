@@ -22,6 +22,7 @@ const processVerificationMessage = async (
       },
     ],
     'assistant',
+    undefined,
     data.artist_address
   );
   await sendSms(phoneNumber, verificationMessage);

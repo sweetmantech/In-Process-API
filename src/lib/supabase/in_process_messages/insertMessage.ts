@@ -5,6 +5,7 @@ const insertMessage = async ({
   metadata,
   parts,
   role,
+  room,
 }: TablesInsert<'in_process_messages'>) => {
   const { data, error } = await supabase
     .from('in_process_messages')
@@ -12,6 +13,7 @@ const insertMessage = async ({
       metadata,
       parts,
       role,
+      room,
     })
     .select('id')
     .single();

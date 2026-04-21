@@ -3,6 +3,7 @@ import type { Thread } from 'chat';
 import type { TelegramChatBot } from '../bot';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import upsertRoom from '@/lib/supabase/in_process_rooms/upsertRoom';
 import { logMessage } from '@/lib/messages/logMessage';
 import processMediaThread from '../processMediaThread';
 import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
@@ -16,6 +17,9 @@ export function registerOnNewMention(bot: TelegramChatBot) {
   bot.onNewMention(async (rawThread, message) => {
     const thread = rawThread as Thread<TelegramThreadState>;
     try {
+      const roomId = thread.channelId;
+      await upsertRoom(roomId);
+
       const telegramUsername = message.author.userName;
       if (!telegramUsername) return;
 
@@ -30,6 +34,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         await logMessage(
           [{ type: 'text', text: message.text ?? '' }],
           'user',
+          roomId,
           undefined,
           'telegram'
         );
@@ -37,6 +42,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         await logMessage(
           [{ type: 'text', text: welcomeMessage }],
           'assistant',
+          roomId,
           undefined,
           'telegram'
         );
@@ -52,6 +58,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         await logMessage(
           [{ type: 'text', text: startMessage }],
           'assistant',
+          roomId,
           artistAddress,
           'telegram'
         );
@@ -81,7 +88,8 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         await thread.startTyping();
         const { contractAddress, tokenId } = await createMomentFromYoutubeLink(
           youtubeUrl,
-          artistAddress
+          artistAddress,
+          roomId
         );
         await replyAfterSuccess(
           thread,

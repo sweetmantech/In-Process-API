@@ -27,9 +27,11 @@ const MOMENT_RESULT = {
   tokenId: '1',
 };
 
+const CHANNEL_ID = 'chat-abc';
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
   startTyping: vi.fn().mockResolvedValue(undefined),
+  channelId: CHANNEL_ID,
 });
 const makeAttachment = () => ({ type: 'image', size: 500 });
 
@@ -74,6 +76,7 @@ describe('processSingleMedia', () => {
       'file-id',
       'My Title',
       ARTIST_ADDRESS,
+      CHANNEL_ID,
       'thumb-id'
     );
   });

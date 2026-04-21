@@ -28,7 +28,8 @@ export interface CreateContractResult {
  * Handles splits configuration by creating split contract if needed.
  */
 export async function createMoment(
-  input: CreateMomentContractInput
+  input: CreateMomentContractInput,
+  ctx?: { roomId?: string }
 ): Promise<CreateContractResult> {
   const smartAccount = await getOrCreateSmartWallet({
     address: input.account as Address,
@@ -87,6 +88,7 @@ export async function createMoment(
     tokenId,
     artistAddress: input.account,
     channel: input.channel,
+    roomId: ctx?.roomId,
   });
 
   return {
