@@ -3,6 +3,10 @@
     {
       "path": "/api/indexer/run",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/nudges",
+      "schedule": "0 0 * * *"
     }
   ]
 }

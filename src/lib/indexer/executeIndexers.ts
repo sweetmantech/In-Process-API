@@ -12,7 +12,7 @@ import type { IndexConfig } from '@/types/indexerFactory';
  *
  * @returns true if any data was processed, false if everything was up-to-date
  */
-export async function runIndexer(
+export async function executeIndexers(
   cachedTimestamps: Record<string, number | null>
 ): Promise<boolean> {
   const startTime = Date.now();
