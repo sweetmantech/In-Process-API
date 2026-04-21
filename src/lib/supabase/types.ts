@@ -739,6 +739,14 @@ export type Database = {
         };
         Returns: boolean;
       };
+      get_daily_nudges: {
+        Args: { p_inactivity_days?: number; p_recent_assistant_days?: number };
+        Returns: {
+          artist_address: string;
+          days_since_last_moment: number;
+          room_id: string;
+        }[];
+      };
       get_in_process_timeline: {
         Args: {
           p_chainid?: number;
