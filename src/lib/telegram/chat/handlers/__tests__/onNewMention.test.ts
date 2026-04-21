@@ -8,6 +8,9 @@ vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
 vi.mock('@/lib/supabase/in_process_rooms/upsertRoom', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_artists/upsertProfile', () => ({
+  upsertProfile: vi.fn(),
+}));
 vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
 vi.mock('../../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
@@ -15,13 +18,18 @@ vi.mock('../../replyAfterSuccess', () => ({ default: vi.fn() }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertRoom from '@/lib/supabase/in_process_rooms/upsertRoom';
+import { upsertProfile } from '@/lib/supabase/in_process_artists/upsertProfile';
 import { logMessage } from '@/lib/messages/logMessage';
 import processMediaThread from '../../processMediaThread';
 import createMomentFromYoutubeLink from '../../createMomentFromYoutubeLink';
 import replyAfterSuccess from '../../replyAfterSuccess';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
-const ARTIST = { address: ARTIST_ADDRESS, username: 'alice' };
+const ARTIST = {
+  address: ARTIST_ADDRESS,
+  username: 'alice',
+  nudge_enabled: true,
+};
 const CHANNEL_ID = 'chat-telegram';
 
 const makeThread = () => ({
@@ -75,6 +83,7 @@ beforeEach(() => {
   } as never);
   vi.mocked(logMessage).mockResolvedValue('msg-id' as never);
   vi.mocked(upsertRoom).mockResolvedValue(undefined as never);
+  vi.mocked(upsertProfile).mockResolvedValue({ error: null } as never);
   vi.mocked(createMomentFromYoutubeLink).mockResolvedValue(
     MOMENT_RESULT as never
   );
@@ -178,6 +187,64 @@ describe('registerOnNewMention', () => {
       const { invoke } = setup();
 
       await invoke(makeThread(), makeMessage({ text: '/start' }));
+
+      expect(processMediaThread).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('when a linked artist sends /remind', () => {
+    it('toggles nudge_enabled off and posts confirmation', async () => {
+      const { invoke } = setup();
+      const thread = makeThread();
+
+      await invoke(thread, makeMessage({ text: '/remind' }));
+
+      expect(upsertProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: ARTIST_ADDRESS,
+          nudge_enabled: false,
+        })
+      );
+      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('🔕'));
+    });
+
+    it('toggles nudge_enabled on when currently false', async () => {
+      vi.mocked(selectArtists).mockResolvedValue({
+        data: [{ ...ARTIST, nudge_enabled: false }],
+        error: null,
+      } as never);
+      const { invoke } = setup();
+      const thread = makeThread();
+
+      await invoke(thread, makeMessage({ text: '/remind' }));
+
+      expect(upsertProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: ARTIST_ADDRESS,
+          nudge_enabled: true,
+        })
+      );
+      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('🔔'));
+    });
+
+    it('logs the remind response as assistant', async () => {
+      const { invoke } = setup();
+
+      await invoke(makeThread(), makeMessage({ text: '/remind' }));
+
+      expect(logMessage).toHaveBeenCalledWith(
+        expect.any(Array),
+        'assistant',
+        CHANNEL_ID,
+        ARTIST_ADDRESS,
+        'telegram'
+      );
+    });
+
+    it('does not call processMediaThread', async () => {
+      const { invoke } = setup();
+
+      await invoke(makeThread(), makeMessage({ text: '/remind' }));
 
       expect(processMediaThread).not.toHaveBeenCalled();
     });

@@ -4,7 +4,7 @@ import type { TelegramChatBot } from '../bot';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertRoom from '@/lib/supabase/in_process_rooms/upsertRoom';
-import { logMessage } from '@/lib/messages/logMessage';
+import commandsHandler from '../commands/commandsHandler';
 import processMediaThread from '../processMediaThread';
 import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
 import replyAfterSuccess from '../replyAfterSuccess';
@@ -27,43 +27,18 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         telegram_username: telegramUsername,
       });
       const artist = data?.[0] ?? null;
-
-      if (!artist) {
-        const welcomeMessage =
-          'Welcome to In Process! To get started please visit https://inprocess.world/manage and link your telegram account.';
-        await logMessage(
-          [{ type: 'text', text: message.text ?? '' }],
-          'user',
-          roomId,
-          undefined,
-          'telegram'
-        );
-        await thread.post(welcomeMessage);
-        await logMessage(
-          [{ type: 'text', text: welcomeMessage }],
-          'assistant',
-          roomId,
-          undefined,
-          'telegram'
-        );
-        return;
-      }
-
-      const artistAddress = artist.address as Address;
       const text = message.text?.trim() ?? '';
 
-      if (text === '/start') {
-        const startMessage = `Hello ${artist.username || telegramUsername}, welcome to In Process! Your telegram has been verified! You can now send photos and captions to post them on In Process.`;
-        await thread.post(startMessage);
-        await logMessage(
-          [{ type: 'text', text: startMessage }],
-          'assistant',
-          roomId,
-          artistAddress,
-          'telegram'
-        );
-        return;
-      }
+      const handled = await commandsHandler(
+        text,
+        thread,
+        roomId,
+        telegramUsername,
+        artist
+      );
+      if (handled) return;
+
+      const artistAddress = artist!.address as Address;
 
       const attachment = message.attachments?.[0];
       if (
