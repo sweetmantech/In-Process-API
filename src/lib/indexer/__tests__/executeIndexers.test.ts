@@ -8,7 +8,7 @@ vi.mock('@/lib/msToBlockTs', () => ({
   default: vi.fn((ms) => Math.floor((ms ?? 0) / 1000)),
 }));
 
-import { runIndexer } from '../runIndexer';
+import { executeIndexers } from '../executeIndexers';
 import { buildQuery } from '@/lib/grpc/buildQuery';
 import { queryGrpc } from '@/lib/grpc/queryGrpc';
 import { indexers } from '@/lib/indexer/indexers';
@@ -25,7 +25,7 @@ const makeIndexer = (name: string, dataPath: string, items: unknown[]) => ({
   queryFragment: `${dataPath}(limit: $limit) { id }`,
 });
 
-describe('runIndexer', () => {
+describe('executeIndexers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockBuildQuery.mockReturnValue('query GetAll { }');
@@ -38,7 +38,7 @@ describe('runIndexer', () => {
     mockIndexers.push(indexer);
     mockQueryGrpc.mockResolvedValue({ InProcess_Moments: [] });
 
-    const result = await runIndexer({ moments: null });
+    const result = await executeIndexers({ moments: null });
     expect(result).toBe(false);
     expect(indexer.processBatchFn).not.toHaveBeenCalled();
   });
@@ -48,7 +48,7 @@ describe('runIndexer', () => {
     mockIndexers.push(indexer);
     mockQueryGrpc.mockResolvedValue({ InProcess_Moments: [{ id: '1' }] });
 
-    const result = await runIndexer({ moments: null });
+    const result = await executeIndexers({ moments: null });
     expect(result).toBe(true);
     expect(indexer.processBatchFn).toHaveBeenCalledWith([{ id: '1' }]);
   });
@@ -60,7 +60,7 @@ describe('runIndexer', () => {
     indexer.selectMaxTimestampFn.mockResolvedValue(9999);
 
     const cached: Record<string, number | null> = { moments: null };
-    await runIndexer(cached);
+    await executeIndexers(cached);
 
     expect(cached.moments).toBe(9999);
   });
@@ -71,7 +71,7 @@ describe('runIndexer', () => {
     mockQueryGrpc.mockResolvedValue({ InProcess_Moments: [] });
 
     const cached: Record<string, number | null> = { moments: 5000 };
-    await runIndexer(cached);
+    await executeIndexers(cached);
 
     expect(cached.moments).toBe(5000); // unchanged
     expect(indexer.selectMaxTimestampFn).not.toHaveBeenCalled();
@@ -86,7 +86,7 @@ describe('runIndexer', () => {
       .mockResolvedValueOnce({ InProcess_Moments: [{ id: '1' }, { id: '2' }] })
       .mockResolvedValueOnce({ InProcess_Moments: [{ id: '3' }] });
 
-    await runIndexer({ moments: null });
+    await executeIndexers({ moments: null });
 
     expect(indexer.processBatchFn).toHaveBeenCalledTimes(2);
     expect(mockQueryGrpc).toHaveBeenCalledTimes(2);
@@ -99,7 +99,7 @@ describe('runIndexer', () => {
     // Returns 1 item (less than PAGE_LIMIT=2) — no second page
     mockQueryGrpc.mockResolvedValueOnce({ InProcess_Moments: [{ id: '1' }] });
 
-    await runIndexer({ moments: null });
+    await executeIndexers({ moments: null });
 
     expect(mockQueryGrpc).toHaveBeenCalledTimes(1);
   });
@@ -114,7 +114,7 @@ describe('runIndexer', () => {
       Primary_Sales: [{ id: 's1' }],
     });
 
-    await runIndexer({ moments: null, sales: null });
+    await executeIndexers({ moments: null, sales: null });
 
     expect(momentsIndexer.processBatchFn).toHaveBeenCalledWith([{ id: 'm1' }]);
     expect(salesIndexer.processBatchFn).toHaveBeenCalledWith([{ id: 's1' }]);

@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import nudgesHandler from '@/lib/nudges/nudgesHandler';
 import validateCronHandler from '@/lib/cron/validateCronHandler';
-import runIndexerHandler from '@/lib/indexer/runIndexerHandler';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest) {
   const unauthorized = validateCronHandler(req);
   if (unauthorized) return unauthorized;
 
-  return runIndexerHandler(maxDuration);
+  try {
+    return await nudgesHandler();
+  } catch (e: any) {
+    return NextResponse.json(
+      { message: e?.message ?? 'Failed' },
+      { status: 500 }
+    );
+  }
 }
