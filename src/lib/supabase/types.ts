@@ -548,12 +548,15 @@ export type Database = {
       };
       in_process_rooms: {
         Row: {
+          created_at: string;
           id: string;
         };
         Insert: {
+          created_at?: string;
           id: string;
         };
         Update: {
+          created_at?: string;
           id?: string;
         };
         Relationships: [];
