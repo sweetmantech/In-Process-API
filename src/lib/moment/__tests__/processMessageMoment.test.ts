@@ -40,6 +40,7 @@ describe('processMessageMoment', () => {
         },
       ],
       'assistant',
+      undefined,
       ARTIST,
       'web'
     );
@@ -61,8 +62,27 @@ describe('processMessageMoment', () => {
         },
       ],
       'assistant',
+      undefined,
       ARTIST,
       'sms'
+    );
+  });
+
+  it('passes roomId to logMessage when provided', async () => {
+    await processMessageMoment({
+      contractAddress: CONTRACT,
+      tokenId: '7',
+      artistAddress: ARTIST,
+      channel: 'telegram',
+      roomId: 'chat-42',
+    });
+
+    expect(logMessage).toHaveBeenCalledWith(
+      expect.any(Array),
+      'assistant',
+      'chat-42',
+      ARTIST,
+      'telegram'
     );
   });
 

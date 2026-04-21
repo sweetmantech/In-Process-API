@@ -5,12 +5,16 @@ import { registerOnNewMention } from '../onNewMention';
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_rooms/upsertRoom', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
 vi.mock('../../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('../../replyAfterSuccess', () => ({ default: vi.fn() }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import upsertRoom from '@/lib/supabase/in_process_rooms/upsertRoom';
 import { logMessage } from '@/lib/messages/logMessage';
 import processMediaThread from '../../processMediaThread';
 import createMomentFromYoutubeLink from '../../createMomentFromYoutubeLink';
@@ -18,10 +22,12 @@ import replyAfterSuccess from '../../replyAfterSuccess';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
 const ARTIST = { address: ARTIST_ADDRESS, username: 'alice' };
+const CHANNEL_ID = 'chat-telegram';
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
   startTyping: vi.fn().mockResolvedValue(undefined),
+  channelId: CHANNEL_ID,
 });
 
 const makeMessage = (
@@ -68,6 +74,7 @@ beforeEach(() => {
     error: null,
   } as never);
   vi.mocked(logMessage).mockResolvedValue('msg-id' as never);
+  vi.mocked(upsertRoom).mockResolvedValue(undefined as never);
   vi.mocked(createMomentFromYoutubeLink).mockResolvedValue(
     MOMENT_RESULT as never
   );
@@ -121,12 +128,14 @@ describe('registerOnNewMention', () => {
       expect(logMessage).toHaveBeenCalledWith(
         expect.any(Array),
         'user',
+        CHANNEL_ID,
         undefined,
         'telegram'
       );
       expect(logMessage).toHaveBeenCalledWith(
         expect.any(Array),
         'assistant',
+        CHANNEL_ID,
         undefined,
         'telegram'
       );
@@ -159,6 +168,7 @@ describe('registerOnNewMention', () => {
       expect(logMessage).toHaveBeenCalledWith(
         expect.any(Array),
         'assistant',
+        CHANNEL_ID,
         ARTIST_ADDRESS,
         'telegram'
       );
@@ -236,7 +246,8 @@ describe('registerOnNewMention', () => {
 
       expect(createMomentFromYoutubeLink).toHaveBeenCalledWith(
         YOUTUBE_URL,
-        ARTIST_ADDRESS
+        ARTIST_ADDRESS,
+        CHANNEL_ID
       );
     });
 

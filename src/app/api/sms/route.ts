@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
               },
             ],
             'user',
+            undefined,
             phone.artist_address
           );
           if (phone.verified) {

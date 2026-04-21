@@ -46,9 +46,11 @@ const makeStateAdapter = (assets: unknown[] = []) => ({
   getList: vi.fn().mockResolvedValue(assets),
 });
 
+const CHANNEL_ID = 'chat-xyz';
 const makeThread = (stateAdapter = makeStateAdapter()) => ({
   startTyping: vi.fn().mockResolvedValue(undefined),
   _stateAdapter: stateAdapter,
+  channelId: CHANNEL_ID,
 });
 
 beforeEach(() => {
@@ -106,6 +108,7 @@ describe('createMomentsFromGroup', () => {
       PENDING_VIDEO.fileId,
       PENDING_VIDEO.name,
       ARTIST_ADDRESS,
+      CHANNEL_ID,
       PENDING_VIDEO.thumbFileId
     );
   });
@@ -118,7 +121,8 @@ describe('createMomentsFromGroup', () => {
     expect(createMoments).toHaveBeenCalledWith(
       [{ uri: UPLOAD_RESULT_1.uri, name: PENDING_IMAGE.name }],
       ARTIST_ADDRESS,
-      'telegram'
+      'telegram',
+      { roomId: CHANNEL_ID }
     );
   });
 

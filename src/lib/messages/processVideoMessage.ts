@@ -15,6 +15,7 @@ export async function processVideoMessage(
       },
     ],
     'assistant',
+    undefined,
     artistAddress
   );
   await sendSms(phoneNumber, message);

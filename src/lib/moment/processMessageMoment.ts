@@ -8,17 +8,20 @@ const processMessageMoment = async ({
   tokenId,
   artistAddress,
   channel,
+  roomId,
 }: {
   contractAddress: Address;
   tokenId: string;
   artistAddress: string;
   channel?: string;
+  roomId?: string;
 }) => {
   const successMessage = getMomentSuccessMessage(contractAddress, tokenId);
 
   const messageId = await logMessage(
     [{ type: 'text', text: successMessage }],
     'assistant',
+    roomId,
     artistAddress,
     channel as 'sms' | 'telegram' | 'web' | 'api'
   );

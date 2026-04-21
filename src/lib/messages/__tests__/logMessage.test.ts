@@ -33,6 +33,7 @@ describe('logMessage', () => {
     const result = await logMessage(
       [{ type: 'text', text: 'Hello' }],
       'user',
+      undefined,
       '0x123'
     );
 
@@ -91,6 +92,7 @@ describe('logMessage', () => {
     await logMessage(
       [{ type: 'text', text: 'Hello' }],
       'assistant',
+      undefined,
       '0x123',
       'web'
     );
@@ -98,6 +100,32 @@ describe('logMessage', () => {
     expect(insertMessageMetadata).toHaveBeenCalledWith({
       client: 'web',
       artist_address: '0x123',
+    });
+  });
+
+  it('passes roomId to insertMessage as room', async () => {
+    vi.mocked(insertMessageMetadata).mockResolvedValue({
+      data: { id: 'metadata-123' },
+      error: null,
+    } as any);
+    vi.mocked(insertMessage).mockResolvedValue({
+      data: { id: 'message-456' },
+      error: null,
+    } as any);
+
+    await logMessage(
+      [{ type: 'text', text: 'Hello' }],
+      'user',
+      'chat-999',
+      '0x123',
+      'telegram'
+    );
+
+    expect(insertMessage).toHaveBeenCalledWith({
+      metadata: 'metadata-123',
+      parts: [{ type: 'text', text: 'Hello' }],
+      role: 'user',
+      room: 'chat-999',
     });
   });
 
@@ -114,6 +142,7 @@ describe('logMessage', () => {
     await logMessage(
       [{ type: 'text', text: 'Hello' }],
       'assistant',
+      undefined,
       '0x123',
       'api'
     );

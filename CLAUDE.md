@@ -79,6 +79,30 @@ Follow the Single Responsibility Principle:
 
 When a wrapper function always operates in a fixed context (e.g., `createMomentFromMedia` is always SMS, `createMomentFromTelegramAttachment` is always Telegram), hardcode that context value directly at the `createMoment` call site — do **not** thread it as a parameter up the call stack. Adding a parameter only makes sense when the caller genuinely controls the value.
 
+#### Server-internal context via a separate `ctx` parameter
+
+When a value **is** caller-varying per request but is **not** something a public API client would ever send (e.g., the Telegram `chat_id` / `roomId` derived inside a webhook), do not add it to the public Zod schema. Instead, pass it through a dedicated optional `ctx` object alongside the validated input:
+
+```typescript
+// Public input stays clean — zod schema is unchanged
+export async function createMoment(
+  input: CreateMomentContractInput,
+  ctx?: { roomId?: string }
+): Promise<CreateContractResult> { ... }
+
+// Telegram webhook path populates ctx
+await createMoment(input, { roomId: thread.channelId });
+
+// Web / API / SMS paths simply omit ctx → roomId is undefined
+await createMoment(input);
+```
+
+Rationale:
+
+- The public `createMomentSchema` must not imply that clients can target arbitrary rooms.
+- `ctx` is a single extension point for future server-internal metadata (trace IDs, admin overrides, etc.).
+- Callers that don't need it are unchanged — no `undefined` scatter in call sites.
+
 #### Schema Organization
 
 - **All Zod schemas live in `@/lib/schema/`** — never define schemas inline in route files or handler files
@@ -146,6 +170,56 @@ Use `InboundMessagePayload` from `telnyx/resources/shared`:
 import type { InboundMessagePayload } from 'telnyx/resources/shared';
 type Media = NonNullable<InboundMessagePayload['media']>[number];
 ```
+
+### Message Logging & Room Registry
+
+All inbound/outbound conversational messages (SMS, Telegram, web chat, API) are persisted to `in_process_messages` via the single entry point `@/lib/messages/logMessage`. Its signature intentionally puts the room identifier right after `role` because it is the primary routing field alongside it:
+
+```typescript
+logMessage(
+  parts: MessagePart[],
+  role: 'user' | 'assistant',
+  roomId?: string,                                          // external chat/channel ID
+  artistAddress?: string,
+  client: 'sms' | 'telegram' | 'web' | 'api' = 'sms'
+)
+```
+
+Internally `logMessage` only forwards the `room` column to `insertMessage` when `roomId` is truthy (spread-if), so existing callers and test expectations that ignore the field keep their original insert shape.
+
+#### `in_process_rooms` — the external chat registry
+
+`in_process_rooms(id text PRIMARY KEY)` stores one row per external chat/channel the bot is part of. `in_process_messages.room` is a nullable FK to it (`ON UPDATE CASCADE ON DELETE SET NULL`). Keeping this table minimal lets us:
+
+- Store non-numeric IDs (future platforms beyond Telegram).
+- Attach per-room state later without schema churn elsewhere.
+- Avoid caring about user/artist linkage at the room level — that still lives on `in_process_messages` / `in_process_message_metadata`.
+
+#### Order of operations: `upsertRoom` before `logMessage`
+
+Because `room` is a real FK, the room row must exist before the first message referencing it is inserted. In the Telegram webhook path we register the room at the **earliest point** that has `thread.channelId` — currently `registerOnNewMention`:
+
+```typescript
+const roomId = thread.channelId;
+await upsertRoom(roomId);              // idempotent: ON CONFLICT DO NOTHING
+// … subsequent logMessage calls pass roomId
+```
+
+`upsertRoom` (`@/lib/supabase/in_process_rooms/upsertRoom.ts`) uses `{ onConflict: 'id', ignoreDuplicates: true }`, so repeated inbound messages from the same chat are cheap no-ops.
+
+**Why `thread.channelId` is the right source:** it is the chat-adapter's representation of Telegram's `chat_id`, stable for the lifetime of the chat (even across "Delete chat" on the client side) — deletion only clears user-visible history, not the chat id. If the user blocks the bot, sends return 403; that is a send-time concern handled elsewhere, not a reason to regenerate the room.
+
+#### Success-message funnel: `processMessageMoment`
+
+Every "Moment created, ready for editing at …" message — regardless of channel — is logged by exactly one function:
+
+```
+createMoment  (single)  ──┐
+                          ├──→ processMessageMoment ──→ logMessage
+createMoments (group)   ──┘
+```
+
+Therefore `processMessageMoment` is the single correct place to plumb a `roomId` down to the message row. Both `createMoment` and `createMoments` accept an optional `ctx?: { roomId?: string }` (see "Server-internal context via a separate `ctx` parameter") and simply forward `ctx?.roomId` into `processMessageMoment`. Telegram wrappers (`processSingleMedia`, `createMomentsFromGroup`, `createMomentFromYoutubeLink`) populate it from `thread.channelId`; web/api/sms callers omit it.
 
 ### Database
 

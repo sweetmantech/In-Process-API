@@ -31,7 +31,8 @@ export interface MomentInput {
 const createMoments = async (
   inputs: MomentInput[],
   artistAddress: Address,
-  channel?: 'sms' | 'telegram' | 'web' | 'api'
+  channel?: 'sms' | 'telegram' | 'web' | 'api',
+  ctx?: { roomId?: string }
 ): Promise<{ contractAddress: Address; tokenId: string }[]> => {
   if (inputs.length === 0) return [];
 
@@ -114,6 +115,7 @@ const createMoments = async (
           tokenId,
           artistAddress,
           channel,
+          roomId: ctx?.roomId,
         }),
       ])
     )
