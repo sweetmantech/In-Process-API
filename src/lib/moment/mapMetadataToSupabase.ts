@@ -38,6 +38,7 @@ export async function mapMetadataToSupabase(
           if (contentUri) {
             const mime = await getMimeType(contentUri);
             if (mime) data.content = { mime, uri: contentUri };
+            data.animation_url = contentUri;
           }
           const creatorAddress = owner ?? collection.creator;
           if (data?.artist)

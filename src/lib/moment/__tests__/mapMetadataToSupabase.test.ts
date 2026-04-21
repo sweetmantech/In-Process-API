@@ -86,7 +86,7 @@ describe('mapMetadataToSupabase', () => {
     expect(result.artistNamesByAddresses.size).toBe(0);
   });
 
-  it('calls getMimeType with contentUri and sets data.content', async () => {
+  it('calls getMimeType with contentUri and sets content + animation_url', async () => {
     mockGetMetadata.mockResolvedValue({ name: 'T', content: null } as any);
     mockGetMimeType.mockResolvedValue('audio/wav');
 
@@ -106,6 +106,7 @@ describe('mapMetadataToSupabase', () => {
       mime: 'audio/wav',
       uri: 'ipfs://content',
     });
+    expect(result.records[0].animation_url).toBe('ipfs://content');
   });
 
   it('skips getMimeType when contentUri is absent', async () => {
