@@ -119,7 +119,7 @@ describe('mapMetadataToSupabase', () => {
     expect(result.artistNamesByAddresses.has('0xCREATOR')).toBe(false);
   });
 
-  it('retries up to 3 times on failure, then logs and continues', async () => {
+  it('retries up to 5 times on failure, then logs and continues', async () => {
     mockGetMetadata.mockRejectedValue(new Error('fetch failed'));
 
     const moments = [
@@ -129,7 +129,7 @@ describe('mapMetadataToSupabase', () => {
 
     // After all retries fail, the record is simply not added
     expect(result.records).toHaveLength(0);
-    expect(mockGetMetadata).toHaveBeenCalledTimes(3);
+    expect(mockGetMetadata).toHaveBeenCalledTimes(5);
   });
 
   it('stops retrying after success', async () => {

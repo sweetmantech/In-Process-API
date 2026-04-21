@@ -1,6 +1,10 @@
 import type { Database } from '@/lib/supabase/types';
 import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
 import sleep from '@/lib/sleep';
+import { getRetryDelay } from '@/lib/getRetryDelay';
+
+const MAX_ATTEMPTS = 5;
+const BASE_DELAY_MS = 1000;
 
 export type MapMetadataResult = {
   records: Array<Database['public']['Tables']['in_process_metadata']['Insert']>;
@@ -26,8 +30,8 @@ export async function mapMetadataToSupabase(
 
   await Promise.all(
     moments.map(async ({ id, uri, contentUri, owner, collection }) => {
-      let lastErr: unknown;
-      for (let attempt = 1; attempt <= 3; attempt++) {
+      let lastErr: unknown = null;
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         try {
           const data = await getMetadataHandler({ uri, contentUri });
           const creatorAddress = owner ?? collection.creator;
@@ -46,7 +50,9 @@ export async function mapMetadataToSupabase(
           break;
         } catch (err) {
           lastErr = err;
-          if (attempt < 3) await sleep(1000 * attempt);
+          const isLastAttempt = attempt === MAX_ATTEMPTS - 1;
+          if (isLastAttempt) break;
+          await sleep(getRetryDelay(err, attempt, BASE_DELAY_MS));
         }
       }
       if (lastErr)
