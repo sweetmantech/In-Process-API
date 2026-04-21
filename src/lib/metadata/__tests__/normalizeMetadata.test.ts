@@ -116,30 +116,6 @@ describe('normalizeMetadata', () => {
   });
 
   describe('animation_url / content', () => {
-    it('prioritizes contentUri override over animation_url and image', async () => {
-      vi.mocked(fetchUri).mockResolvedValueOnce({
-        ok: true,
-        headers: { get: vi.fn().mockReturnValue('audio/mpeg') },
-      } as unknown as Response);
-
-      const result = await normalizeMetadata(
-        {
-          ...CATALOG_RAW,
-          animation_url: 'ar://animation-hash',
-          image: 'ar://image-hash',
-        },
-        'ar://forced-content-hash'
-      );
-
-      expect(fetchUri).toHaveBeenCalledWith('ar://forced-content-hash', {
-        method: 'HEAD',
-      });
-      expect(result.content).toEqual({
-        mime: 'audio/mpeg',
-        uri: 'ar://forced-content-hash',
-      });
-    });
-
     it('uses animation_url when non-empty (catalog)', async () => {
       const result = await normalizeMetadata(CATALOG_RAW);
       expect(result.animation_url).toBe(

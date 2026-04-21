@@ -9,8 +9,8 @@ const validateMetadataQuery = (req: NextRequest) => {
   );
   if (!result.success) return result.response;
 
-  const { uri, content_uri } = result.data;
-  return { uri, contentUri: content_uri };
+  const { uri } = result.data;
+  return { uri };
 };
 
 export default validateMetadataQuery;

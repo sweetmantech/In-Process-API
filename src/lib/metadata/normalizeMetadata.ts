@@ -1,12 +1,11 @@
-import fetchUri from '@/lib/arweave/fetchUri';
+import getMimeType from '@/lib/arweave/getMimeType';
 import type { TokenMetadataJson } from '@/lib/protocolSdk/ipfs/types';
 
 type NormalizedAttribute = { trait_type: string; value: string | string[] };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const normalizeMetadata = async (
-  raw: any,
-  contentUriOverride?: string
+  raw: any
 ): Promise<
   Omit<TokenMetadataJson, 'attributes'> & {
     attributes?: NormalizedAttribute[];
@@ -25,23 +24,14 @@ const normalizeMetadata = async (
 
   // Resolve content: prefer explicit content field, fall back to mimeType + animationUri,
   // then fall back to fetching animationUri (or imageUri) HEAD to detect mime from content-type header
-  const contentUri = contentUriOverride ?? animationUri ?? image;
+  const contentUri = animationUri ?? image;
   let content: { mime: string; uri: string } | null = body.content ?? null;
   if (!content && contentUri && hasWrappedBody && body.mimeType) {
     content = { mime: body.mimeType, uri: contentUri };
   }
   if (!content && contentUri) {
-    try {
-      const res = await fetchUri(contentUri, { method: 'HEAD' });
-      if (res.ok) {
-        const mime = res.headers.get('content-type');
-        if (mime) {
-          content = { mime: mime.split(';')[0].trim(), uri: contentUri };
-        }
-      }
-    } catch {
-      // leave content as null if fetch fails
-    }
+    const mime = await getMimeType(contentUri);
+    if (mime) content = { mime, uri: contentUri };
   }
 
   // Resolve attributes: start from raw attributes, then inject genre as Genres

@@ -35,25 +35,8 @@ describe('getMetadataHandler', () => {
     expect(mockFetchUri).toHaveBeenCalledWith('ipfs://meta', {
       cache: 'no-store',
     });
-    expect(mockNormalize).toHaveBeenCalledWith(raw, undefined);
+    expect(mockNormalize).toHaveBeenCalledWith(raw);
     expect(result).toMatchObject({ name: 'Track' });
-  });
-
-  it('passes content_uri override to normalizeMetadata', async () => {
-    const raw = { name: 'Track', image: 'ipfs://img' };
-    mockFetchUri.mockResolvedValue(makeResponse(raw) as any);
-    mockNormalize.mockReturnValue({
-      name: 'Track',
-      image: 'ipfs://img',
-      description: '',
-      external_url: '',
-    } as any);
-
-    await getMetadataHandler({
-      uri: 'ipfs://meta',
-      contentUri: 'ar://forced-content',
-    });
-    expect(mockNormalize).toHaveBeenCalledWith(raw, 'ar://forced-content');
   });
 
   it('parses text response when content-type is not json', async () => {
@@ -67,7 +50,7 @@ describe('getMetadataHandler', () => {
     } as any);
 
     await getMetadataHandler({ uri: 'ar://hash' });
-    expect(mockNormalize).toHaveBeenCalledWith(raw, undefined);
+    expect(mockNormalize).toHaveBeenCalledWith(raw);
   });
 
   it('returns empty metadata on AbortError during fetch', async () => {
