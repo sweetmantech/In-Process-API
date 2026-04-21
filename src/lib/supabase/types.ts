@@ -314,18 +314,21 @@ export type Database = {
           metadata: string;
           parts: Json;
           role: Database['public']['Enums']['message_role'];
+          room: string | null;
         };
         Insert: {
           id?: string;
           metadata: string;
           parts: Json;
           role: Database['public']['Enums']['message_role'];
+          room?: string | null;
         };
         Update: {
           id?: string;
           metadata?: string;
           parts?: Json;
           role?: Database['public']['Enums']['message_role'];
+          room?: string | null;
         };
         Relationships: [
           {
@@ -333,6 +336,13 @@ export type Database = {
             columns: ['metadata'];
             isOneToOne: false;
             referencedRelation: 'in_process_message_metadata';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'in_process_messages_room_fkey';
+            columns: ['room'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_rooms';
             referencedColumns: ['id'];
           },
         ];
@@ -535,6 +545,18 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      in_process_rooms: {
+        Row: {
+          id: string;
+        };
+        Insert: {
+          id: string;
+        };
+        Update: {
+          id?: string;
+        };
+        Relationships: [];
       };
       in_process_sales: {
         Row: {
