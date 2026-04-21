@@ -132,11 +132,10 @@ export function mimeTypeToMedia(mimeType?: string | null) {
   );
 }
 
+import fetchMimeType from '@/lib/arweave/getMimeType';
+
 export async function getMimeType(uri?: string) {
   if (!uri) return uri;
 
-  const res = await fetch(uri, { method: 'HEAD' });
-  // eslint-disable-next-line prefer-const
-  let mimeType = res.headers.get('content-type');
-  return mimeType;
+  return fetchMimeType(uri);
 }

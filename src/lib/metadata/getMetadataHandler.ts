@@ -1,13 +1,7 @@
 import fetchUri from '@/lib/arweave/fetchUri';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 
-const getMetadataHandler = async ({
-  uri,
-  contentUri,
-}: {
-  uri: string;
-  contentUri?: string;
-}) => {
+const getMetadataHandler = async ({ uri }: { uri: string }) => {
   let response: Response;
   try {
     response = await fetchUri(uri, { cache: 'no-store' });
@@ -23,7 +17,7 @@ const getMetadataHandler = async ({
     const data = contentType?.includes('application/json')
       ? await response.json()
       : JSON.parse(await response.text());
-    return normalizeMetadata(data, contentUri);
+    return normalizeMetadata(data);
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
       return { image: '', name: '', description: '', external_url: '' };

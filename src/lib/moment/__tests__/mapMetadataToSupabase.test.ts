@@ -1,14 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/metadata/getMetadataHandler', () => ({ default: vi.fn() }));
+vi.mock('@/lib/arweave/getMimeType', () => ({ default: vi.fn() }));
 vi.mock('@/lib/sleep', () => ({
   default: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { mapMetadataToSupabase } from '../mapMetadataToSupabase';
 import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
+import getMimeType from '@/lib/arweave/getMimeType';
 
 const mockGetMetadata = vi.mocked(getMetadataHandler);
+const mockGetMimeType = vi.mocked(getMimeType);
 
 describe('mapMetadataToSupabase', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -83,8 +86,9 @@ describe('mapMetadataToSupabase', () => {
     expect(result.artistNamesByAddresses.size).toBe(0);
   });
 
-  it('passes contentUri to getMetadataHandler', async () => {
-    mockGetMetadata.mockResolvedValue({ name: 'T', artist: 'Alice' } as any);
+  it('calls getMimeType with contentUri and sets content + animation_url', async () => {
+    mockGetMetadata.mockResolvedValue({ name: 'T', content: null } as any);
+    mockGetMimeType.mockResolvedValue('audio/wav');
 
     const moments = [
       {
@@ -94,12 +98,71 @@ describe('mapMetadataToSupabase', () => {
         collection: { creator: '0xABC' },
       },
     ];
+    const result = await mapMetadataToSupabase(moments);
+
+    expect(mockGetMetadata).toHaveBeenCalledWith({ uri: 'ipfs://metadata' });
+    expect(mockGetMimeType).toHaveBeenCalledWith('ipfs://content');
+    expect(result.records[0].content).toEqual({
+      mime: 'audio/wav',
+      uri: 'ipfs://content',
+    });
+    expect(result.records[0].animation_url).toBe('ipfs://content');
+  });
+
+  it('skips getMimeType when contentUri is absent', async () => {
+    mockGetMetadata.mockResolvedValue({ name: 'T', content: null } as any);
+
+    const moments = [
+      { id: 'mid', uri: 'ipfs://metadata', collection: { creator: '0xABC' } },
+    ];
     await mapMetadataToSupabase(moments);
 
-    expect(mockGetMetadata).toHaveBeenCalledWith({
-      uri: 'ipfs://metadata',
-      contentUri: 'ipfs://content',
+    expect(mockGetMimeType).not.toHaveBeenCalled();
+  });
+
+  it('falls back to empty mime when getMimeType returns null and metadata has no content', async () => {
+    mockGetMetadata.mockResolvedValue({ name: 'T', content: null } as any);
+    mockGetMimeType.mockResolvedValue(null);
+
+    const moments = [
+      {
+        id: 'mid',
+        uri: 'ipfs://metadata',
+        contentUri: 'ipfs://content',
+        collection: { creator: '0xABC' },
+      },
+    ];
+    const result = await mapMetadataToSupabase(moments);
+
+    expect(result.records[0].content).toEqual({
+      mime: '',
+      uri: 'ipfs://content',
     });
+    expect(result.records[0].animation_url).toBe('ipfs://content');
+  });
+
+  it('falls back to existing content mime when getMimeType returns null', async () => {
+    mockGetMetadata.mockResolvedValue({
+      name: 'T',
+      content: { mime: 'audio/mpeg', uri: 'ar://old' },
+    } as any);
+    mockGetMimeType.mockResolvedValue(null);
+
+    const moments = [
+      {
+        id: 'mid',
+        uri: 'ipfs://metadata',
+        contentUri: 'ipfs://content',
+        collection: { creator: '0xABC' },
+      },
+    ];
+    const result = await mapMetadataToSupabase(moments);
+
+    expect(result.records[0].content).toEqual({
+      mime: 'audio/mpeg',
+      uri: 'ipfs://content',
+    });
+    expect(result.records[0].animation_url).toBe('ipfs://content');
   });
 
   it('uses owner address over collection.creator for artist name mapping', async () => {

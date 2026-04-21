@@ -1,5 +1,6 @@
 import type { Database } from '@/lib/supabase/types';
 import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
+import getMimeType from '@/lib/arweave/getMimeType';
 import sleep from '@/lib/sleep';
 import { getRetryDelay } from '@/lib/getRetryDelay';
 
@@ -33,7 +34,15 @@ export async function mapMetadataToSupabase(
       let lastErr: unknown = null;
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         try {
-          const data = await getMetadataHandler({ uri, contentUri });
+          const data = await getMetadataHandler({ uri });
+          if (contentUri) {
+            const mime = await getMimeType(contentUri);
+            data.content = {
+              mime: mime ?? data.content?.mime ?? '',
+              uri: contentUri,
+            };
+            data.animation_url = contentUri;
+          }
           const creatorAddress = owner ?? collection.creator;
           if (data?.artist)
             artistNamesByAddresses.set(creatorAddress, data.artist);

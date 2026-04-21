@@ -25,6 +25,10 @@ vi.mock('@/lib/metadata/normalizeMetadata', () => ({
   default: vi.fn(),
 }));
 
+vi.mock('@/lib/arweave/getMimeType', () => ({
+  default: vi.fn(),
+}));
+
 vi.mock('@/lib/viem/getZoraMediaInfo', () => ({
   default: vi.fn(),
 }));
@@ -34,6 +38,7 @@ import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import getMetadata from '@/lib/moment/getMetadata';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
+import getMimeType from '@/lib/arweave/getMimeType';
 import getZoraMediaInfo from '@/lib/viem/getZoraMediaInfo';
 import getMomentHandler from '@/lib/moment/getMomentHandler';
 import { MomentType } from '@/types/moment';
@@ -94,6 +99,7 @@ describe('getMomentHandler', () => {
     vi.mocked(getMetadata).mockResolvedValue(rawMetadata as any);
     vi.mocked(getMomentAdmins).mockResolvedValue([ADMIN] as any);
     vi.mocked(normalizeMetadata).mockResolvedValue(normalizedMetadata as any);
+    vi.mocked(getMimeType).mockResolvedValue('audio/mpeg');
   });
 
   it('returns moment info with metadata on success', async () => {
@@ -169,22 +175,30 @@ describe('getMomentHandler', () => {
     });
   });
 
-  it('normalizes metadata with contentUri override', async () => {
+  it('normalizes metadata and applies contentUri as animation_url and content', async () => {
     await getMomentHandler(moment);
-    expect(normalizeMetadata).toHaveBeenCalledWith(
-      rawMetadata,
-      'ar://content-hash'
-    );
+
+    expect(normalizeMetadata).toHaveBeenCalledWith(rawMetadata);
+    expect(getMimeType).toHaveBeenCalledWith('ar://content-hash');
+
+    const json = await (await getMomentHandler(moment)).json();
+    expect(json.metadata.animation_url).toBe('ar://content-hash');
+    expect(json.metadata.content).toEqual({
+      mime: 'audio/mpeg',
+      uri: 'ar://content-hash',
+    });
   });
 
-  it('normalizes metadata with undefined contentUri when not present', async () => {
+  it('skips getMimeType when contentUri is absent', async () => {
     vi.mocked(resolveMomentInfo).mockResolvedValue({
       ...mockResolved,
       contentUri: null,
     } as any);
 
     await getMomentHandler(moment);
-    expect(normalizeMetadata).toHaveBeenCalledWith(rawMetadata, undefined);
+
+    expect(normalizeMetadata).toHaveBeenCalledWith(rawMetadata);
+    expect(getMimeType).not.toHaveBeenCalled();
   });
 
   it('returns null metadata when getMetadata resolves null', async () => {

@@ -13,17 +13,7 @@ const makeRequest = (params: Record<string, string>) => {
 describe('validateMetadataQuery', () => {
   it('returns uri when present', () => {
     const result = validateMetadataQuery(makeRequest({ uri: 'ipfs://QmABC' }));
-    expect(result).toEqual({ uri: 'ipfs://QmABC', contentUri: undefined });
-  });
-
-  it('returns uri and content_uri when both are present', () => {
-    const result = validateMetadataQuery(
-      makeRequest({ uri: 'ipfs://QmABC', content_uri: 'ar://contentHash' })
-    );
-    expect(result).toEqual({
-      uri: 'ipfs://QmABC',
-      contentUri: 'ar://contentHash',
-    });
+    expect(result).toEqual({ uri: 'ipfs://QmABC' });
   });
 
   it('returns 400 when uri is missing', () => {

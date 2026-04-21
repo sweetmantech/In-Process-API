@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
+import getMimeType from '@/lib/arweave/getMimeType';
 import getMetadata from '@/lib/moment/getMetadata';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
@@ -42,6 +43,16 @@ const getMomentHandler = async (moment: Moment) => {
     }
   }
 
+  let normalizedMetadata = null;
+  if (metadata) {
+    normalizedMetadata = await normalizeMetadata(metadata);
+    if (contentUri) {
+      const mime = await getMimeType(contentUri);
+      if (mime) normalizedMetadata.content = { mime, uri: contentUri };
+      normalizedMetadata.animation_url = contentUri;
+    }
+  }
+
   return NextResponse.json({
     id,
     uri,
@@ -50,9 +61,7 @@ const getMomentHandler = async (moment: Moment) => {
     saleConfig,
     protocol,
     momentAdmins,
-    metadata: metadata
-      ? await normalizeMetadata(metadata, contentUri ?? undefined)
-      : null,
+    metadata: normalizedMetadata,
   });
 };
 
