@@ -5,9 +5,6 @@ import { registerOnNewMention } from '../onNewMention';
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_rooms/upsertRoom', () => ({
-  default: vi.fn(),
-}));
 vi.mock('@/lib/supabase/in_process_artists/upsertProfile', () => ({
   upsertProfile: vi.fn(),
 }));
@@ -17,7 +14,6 @@ vi.mock('../../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('../../replyAfterSuccess', () => ({ default: vi.fn() }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import upsertRoom from '@/lib/supabase/in_process_rooms/upsertRoom';
 import { upsertProfile } from '@/lib/supabase/in_process_artists/upsertProfile';
 import { logMessage } from '@/lib/messages/logMessage';
 import processMediaThread from '../../processMediaThread';
@@ -82,7 +78,6 @@ beforeEach(() => {
     error: null,
   } as never);
   vi.mocked(logMessage).mockResolvedValue('msg-id' as never);
-  vi.mocked(upsertRoom).mockResolvedValue(undefined as never);
   vi.mocked(upsertProfile).mockResolvedValue({ error: null } as never);
   vi.mocked(createMomentFromYoutubeLink).mockResolvedValue(
     MOMENT_RESULT as never

@@ -103,7 +103,7 @@ describe('logMessage', () => {
     });
   });
 
-  it('passes roomId to insertMessage as room', async () => {
+  it('passes chatId to insertMessage as chat_id', async () => {
     vi.mocked(insertMessageMetadata).mockResolvedValue({
       data: { id: 'metadata-123' },
       error: null,
@@ -125,7 +125,7 @@ describe('logMessage', () => {
       metadata: 'metadata-123',
       parts: [{ type: 'text', text: 'Hello' }],
       role: 'user',
-      room: 'chat-999',
+      chat_id: 'chat-999',
     });
   });
 

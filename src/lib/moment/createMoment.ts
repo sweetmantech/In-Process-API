@@ -29,7 +29,7 @@ export interface CreateContractResult {
  */
 export async function createMoment(
   input: CreateMomentContractInput,
-  ctx?: { roomId?: string }
+  ctx?: { chatId?: string }
 ): Promise<CreateContractResult> {
   const smartAccount = await getOrCreateSmartWallet({
     address: input.account as Address,
@@ -88,7 +88,7 @@ export async function createMoment(
     tokenId,
     artistAddress: input.account,
     channel: input.channel,
-    roomId: ctx?.roomId,
+    chatId: ctx?.chatId,
   });
 
   return {

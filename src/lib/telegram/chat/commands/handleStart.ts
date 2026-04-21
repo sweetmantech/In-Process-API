@@ -5,7 +5,7 @@ import type { Address } from 'viem';
 
 const handleStart = async (
   thread: Thread<TelegramThreadState>,
-  roomId: string,
+  chatId: string,
   artistAddress: Address,
   artistUsername: string | null,
   telegramUsername: string
@@ -15,7 +15,7 @@ const handleStart = async (
   await logMessage(
     [{ type: 'text', text }],
     'assistant',
-    roomId,
+    chatId,
     artistAddress,
     'telegram'
   );

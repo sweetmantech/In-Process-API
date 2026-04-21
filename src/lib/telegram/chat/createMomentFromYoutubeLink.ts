@@ -9,7 +9,7 @@ import { MomentType } from '@/types/moment';
 const createMomentFromYoutubeLink = async (
   url: string,
   artistAddress: Address,
-  roomId?: string
+  chatId?: string
 ) => {
   const detail = await getYoutubeDetail(url);
   if (!detail) throw new Error('Failed to fetch YouTube details');
@@ -57,7 +57,7 @@ const createMomentFromYoutubeLink = async (
       account: artistAddress,
       channel: 'telegram',
     },
-    { roomId }
+    { chatId }
   );
 };
 

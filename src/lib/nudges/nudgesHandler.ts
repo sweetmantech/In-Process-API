@@ -10,22 +10,22 @@ const nudgesHandler = async () => {
 
   const results = await Promise.all(
     (targets ?? []).map(
-      async ({ artist_address, room_id, days_since_last_moment }) => {
+      async ({ artist_address, chat_id, days_since_last_moment }) => {
         try {
           await sendNudge({
-            roomId: room_id,
+            chatId: chat_id,
             artistAddress: artist_address,
             daysSinceLastMoment: days_since_last_moment,
           });
           return {
             artist: artist_address,
-            roomId: room_id,
+            chatId: chat_id,
             sent: true as const,
           };
         } catch (e: any) {
           return {
             artist: artist_address,
-            roomId: room_id,
+            chatId: chat_id,
             sent: false as const,
             error: e?.message ?? 'unknown',
           };

@@ -313,25 +313,25 @@ export type Database = {
       };
       in_process_messages: {
         Row: {
+          chat_id: string | null;
           id: string;
           metadata: string;
           parts: Json;
           role: Database['public']['Enums']['message_role'];
-          room: string | null;
         };
         Insert: {
+          chat_id?: string | null;
           id?: string;
           metadata: string;
           parts: Json;
           role: Database['public']['Enums']['message_role'];
-          room?: string | null;
         };
         Update: {
+          chat_id?: string | null;
           id?: string;
           metadata?: string;
           parts?: Json;
           role?: Database['public']['Enums']['message_role'];
-          room?: string | null;
         };
         Relationships: [
           {
@@ -339,13 +339,6 @@ export type Database = {
             columns: ['metadata'];
             isOneToOne: false;
             referencedRelation: 'in_process_message_metadata';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'in_process_messages_room_fkey';
-            columns: ['room'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_rooms';
             referencedColumns: ['id'];
           },
         ];
@@ -549,21 +542,6 @@ export type Database = {
           },
         ];
       };
-      in_process_rooms: {
-        Row: {
-          created_at: string;
-          id: string;
-        };
-        Insert: {
-          created_at?: string;
-          id: string;
-        };
-        Update: {
-          created_at?: string;
-          id?: string;
-        };
-        Relationships: [];
-      };
       in_process_sales: {
         Row: {
           created_at: string;
@@ -743,8 +721,8 @@ export type Database = {
         Args: { p_inactivity_days?: number; p_recent_assistant_days?: number };
         Returns: {
           artist_address: string;
+          chat_id: string;
           days_since_last_moment: number;
-          room_id: string;
         }[];
       };
       get_in_process_timeline: {
