@@ -175,6 +175,7 @@ export type Database = {
           bio: string | null;
           farcaster_username: string | null;
           instagram_username: string | null;
+          nudge_enabled: boolean;
           smart_wallet: string | null;
           telegram_username: string | null;
           twitter_username: string | null;
@@ -185,6 +186,7 @@ export type Database = {
           bio?: string | null;
           farcaster_username?: string | null;
           instagram_username?: string | null;
+          nudge_enabled?: boolean;
           smart_wallet?: string | null;
           telegram_username?: string | null;
           twitter_username?: string | null;
@@ -195,6 +197,7 @@ export type Database = {
           bio?: string | null;
           farcaster_username?: string | null;
           instagram_username?: string | null;
+          nudge_enabled?: boolean;
           smart_wallet?: string | null;
           telegram_username?: string | null;
           twitter_username?: string | null;
