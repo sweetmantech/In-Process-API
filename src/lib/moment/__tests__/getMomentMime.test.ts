@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/arweave/fetchUri', () => ({
   default: vi.fn(),
@@ -9,51 +9,131 @@ import getMomentMime from '@/lib/moment/getMomentMime';
 
 const mockFetchUri = vi.mocked(fetchUri);
 
-const mockResponse = (body: object) =>
-  ({ json: () => Promise.resolve(body) }) as any;
+const okResponse = (body: unknown) =>
+  ({
+    ok: true,
+    status: 200,
+    text: () => Promise.resolve(JSON.stringify(body)),
+  }) as unknown as Response;
+
+const rawOkResponse = (text: string) =>
+  ({
+    ok: true,
+    status: 200,
+    text: () => Promise.resolve(text),
+  }) as unknown as Response;
+
+const notOkResponse = (status: number) =>
+  ({
+    ok: false,
+    status,
+    text: () => Promise.resolve(''),
+  }) as unknown as Response;
 
 describe('getMomentMime', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('returns the mime type from metadata content', async () => {
-    mockFetchUri.mockResolvedValue(
-      mockResponse({ content: { mime: 'video/mp4', uri: 'ar://hash' } })
-    );
+  describe('happy path (no retries)', () => {
+    it('returns the mime type from metadata content', async () => {
+      mockFetchUri.mockResolvedValue(
+        okResponse({ content: { mime: 'video/mp4', uri: 'ar://hash' } })
+      );
 
-    expect(await getMomentMime('ar://metadata-hash')).toBe('video/mp4');
+      expect(await getMomentMime('ar://metadata-hash')).toBe('video/mp4');
+      expect(mockFetchUri).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns null when content field is absent (no retry)', async () => {
+      mockFetchUri.mockResolvedValue(okResponse({ name: 'My Moment' }));
+
+      expect(await getMomentMime('ar://metadata-hash')).toBeNull();
+      expect(mockFetchUri).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns null when content.mime is absent (no retry)', async () => {
+      mockFetchUri.mockResolvedValue(
+        okResponse({ content: { uri: 'ar://hash' } })
+      );
+
+      expect(await getMomentMime('ar://metadata-hash')).toBeNull();
+      expect(mockFetchUri).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls fetchUri with the provided URI', async () => {
+      mockFetchUri.mockResolvedValue(
+        okResponse({ content: { mime: 'image/jpeg' } })
+      );
+
+      await getMomentMime('https://example.com/metadata.json');
+
+      expect(mockFetchUri).toHaveBeenCalledWith(
+        'https://example.com/metadata.json'
+      );
+    });
   });
 
-  it('returns null when content field is absent', async () => {
-    mockFetchUri.mockResolvedValue(mockResponse({ name: 'My Moment' }));
+  describe('retry with exponential backoff', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-    expect(await getMomentMime('ar://metadata-hash')).toBeNull();
-  });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-  it('returns null when content.mime is absent', async () => {
-    mockFetchUri.mockResolvedValue(
-      mockResponse({ content: { uri: 'ar://hash' } })
-    );
+    const flushRetries = async () => {
+      // Two retry gaps: 500ms, 1000ms
+      await vi.advanceTimersByTimeAsync(500);
+      await vi.advanceTimersByTimeAsync(1000);
+    };
 
-    expect(await getMomentMime('ar://metadata-hash')).toBeNull();
-  });
+    it('retries on thrown network error and returns null after max attempts', async () => {
+      mockFetchUri.mockRejectedValue(new Error('Network error'));
 
-  it('calls fetchUri with the provided URI', async () => {
-    mockFetchUri.mockResolvedValue(
-      mockResponse({ content: { mime: 'image/jpeg' } })
-    );
+      const promise = getMomentMime('ar://bad');
+      await flushRetries();
+      expect(await promise).toBeNull();
+      expect(mockFetchUri).toHaveBeenCalledTimes(3);
+    });
 
-    await getMomentMime('https://example.com/metadata.json');
+    it('retries on non-ok response and returns null after max attempts', async () => {
+      mockFetchUri.mockResolvedValue(notOkResponse(502));
 
-    expect(mockFetchUri).toHaveBeenCalledWith(
-      'https://example.com/metadata.json'
-    );
-  });
+      const promise = getMomentMime('ar://bad');
+      await flushRetries();
+      expect(await promise).toBeNull();
+      expect(mockFetchUri).toHaveBeenCalledTimes(3);
+    });
 
-  it('propagates errors from fetchUri', async () => {
-    mockFetchUri.mockRejectedValue(new Error('Network error'));
+    it('retries on empty body and returns null after max attempts', async () => {
+      mockFetchUri.mockResolvedValue(rawOkResponse(''));
 
-    await expect(getMomentMime('ar://bad')).rejects.toThrow('Network error');
+      const promise = getMomentMime('ar://bad');
+      await flushRetries();
+      expect(await promise).toBeNull();
+      expect(mockFetchUri).toHaveBeenCalledTimes(3);
+    });
+
+    it('retries on JSON parse error and returns null after max attempts', async () => {
+      mockFetchUri.mockResolvedValue(rawOkResponse('<html>not json</html>'));
+
+      const promise = getMomentMime('ar://bad');
+      await flushRetries();
+      expect(await promise).toBeNull();
+      expect(mockFetchUri).toHaveBeenCalledTimes(3);
+    });
+
+    it('recovers when a transient failure is followed by success', async () => {
+      mockFetchUri
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce(okResponse({ content: { mime: 'video/mp4' } }));
+
+      const promise = getMomentMime('ar://flaky');
+      await vi.advanceTimersByTimeAsync(500);
+      expect(await promise).toBe('video/mp4');
+      expect(mockFetchUri).toHaveBeenCalledTimes(2);
+    });
   });
 });

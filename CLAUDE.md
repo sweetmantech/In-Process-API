@@ -201,7 +201,7 @@ Because `room` is a real FK, the room row must exist before the first message re
 
 ```typescript
 const roomId = thread.channelId;
-await upsertRoom(roomId);              // idempotent: ON CONFLICT DO NOTHING
+await upsertRoom(roomId); // idempotent: ON CONFLICT DO NOTHING
 // … subsequent logMessage calls pass roomId
 ```
 
