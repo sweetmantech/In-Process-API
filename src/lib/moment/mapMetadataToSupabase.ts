@@ -37,7 +37,10 @@ export async function mapMetadataToSupabase(
           const data = await getMetadataHandler({ uri });
           if (contentUri) {
             const mime = await getMimeType(contentUri);
-            if (mime) data.content = { mime, uri: contentUri };
+            data.content = {
+              mime: mime ?? data.content?.mime ?? '',
+              uri: contentUri,
+            };
             data.animation_url = contentUri;
           }
           const creatorAddress = owner ?? collection.creator;
