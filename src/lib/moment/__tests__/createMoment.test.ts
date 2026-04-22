@@ -180,20 +180,20 @@ describe('createMoment', () => {
       tokenId: '7',
       artistAddress: ARTIST,
       channel: 'web',
-      roomId: undefined,
+      chatId: undefined,
     });
   });
 
-  it('forwards ctx.roomId to processMessageMoment', async () => {
+  it('forwards ctx.chatId to processMessageMoment', async () => {
     const input = { ...baseInput, channel: 'telegram' };
-    await createMoment(input, { roomId: 'chat-42' });
+    await createMoment(input, { chatId: 'chat-42' });
 
     expect(processMessageMoment).toHaveBeenCalledWith({
       contractAddress: RESULT_CONTRACT,
       tokenId: '7',
       artistAddress: ARTIST,
       channel: 'telegram',
-      roomId: 'chat-42',
+      chatId: 'chat-42',
     });
   });
 });

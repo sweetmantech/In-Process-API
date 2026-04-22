@@ -122,7 +122,7 @@ describe('createMomentsFromGroup', () => {
       [{ uri: UPLOAD_RESULT_1.uri, name: PENDING_IMAGE.name }],
       ARTIST_ADDRESS,
       'telegram',
-      { roomId: CHANNEL_ID }
+      { chatId: CHANNEL_ID }
     );
   });
 

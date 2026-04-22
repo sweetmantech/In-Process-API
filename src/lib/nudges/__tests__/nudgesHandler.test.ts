@@ -14,10 +14,10 @@ import nudgesHandler from '../nudgesHandler';
 const TARGETS = [
   {
     artist_address: '0xAlice',
-    room_id: 'telegram:1',
+    chat_id: 'telegram:1',
     days_since_last_moment: 3,
   },
-  { artist_address: '0xBob', room_id: 'telegram:2', days_since_last_moment: 7 },
+  { artist_address: '0xBob', chat_id: 'telegram:2', days_since_last_moment: 7 },
 ];
 
 beforeEach(() => {
@@ -65,12 +65,12 @@ describe('nudgesHandler', () => {
 
     expect(sendNudge).toHaveBeenCalledTimes(2);
     expect(sendNudge).toHaveBeenCalledWith({
-      roomId: 'telegram:1',
+      chatId: 'telegram:1',
       artistAddress: '0xAlice',
       daysSinceLastMoment: 3,
     });
     expect(sendNudge).toHaveBeenCalledWith({
-      roomId: 'telegram:2',
+      chatId: 'telegram:2',
       artistAddress: '0xBob',
       daysSinceLastMoment: 7,
     });

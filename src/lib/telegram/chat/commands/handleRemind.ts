@@ -6,7 +6,7 @@ import type { Address } from 'viem';
 
 const handleRemind = async (
   thread: Thread<TelegramThreadState>,
-  roomId: string,
+  chatId: string,
   artistAddress: Address,
   currentNudgeEnabled: boolean
 ) => {
@@ -24,7 +24,7 @@ const handleRemind = async (
   await logMessage(
     [{ type: 'text', text }],
     'assistant',
-    roomId,
+    chatId,
     artistAddress,
     'telegram'
   );

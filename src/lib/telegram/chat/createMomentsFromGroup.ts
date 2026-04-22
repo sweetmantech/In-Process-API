@@ -47,7 +47,7 @@ const createMomentsFromGroup = async (
       name: pending[i].name,
     }));
     const results = await createMoments(inputs, artistAddress, 'telegram', {
-      roomId: thread.channelId,
+      chatId: thread.channelId,
     });
     await Promise.all(
       results.map(({ contractAddress, tokenId }, i) =>

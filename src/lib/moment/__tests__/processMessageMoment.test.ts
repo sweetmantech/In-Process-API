@@ -68,13 +68,13 @@ describe('processMessageMoment', () => {
     );
   });
 
-  it('passes roomId to logMessage when provided', async () => {
+  it('passes chatId to logMessage when provided', async () => {
     await processMessageMoment({
       contractAddress: CONTRACT,
       tokenId: '7',
       artistAddress: ARTIST,
       channel: 'telegram',
-      roomId: 'chat-42',
+      chatId: 'chat-42',
     });
 
     expect(logMessage).toHaveBeenCalledWith(

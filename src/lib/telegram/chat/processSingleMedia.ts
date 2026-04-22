@@ -48,7 +48,7 @@ const processSingleMedia = async (
         account: artistAddress,
         channel: 'telegram',
       },
-      { roomId: thread.channelId }
+      { chatId: thread.channelId }
     );
 
     await replyAfterSuccess(
