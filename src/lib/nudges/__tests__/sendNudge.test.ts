@@ -1,13 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/telegram/chat/bot', () => {
-  const post = vi.fn().mockResolvedValue(undefined);
-  const channel = vi.fn().mockReturnValue({ post });
-  return { default: { channel } };
-});
+vi.mock('@/lib/telegram/client', () => ({
+  telegramChatBotClient: { sendMessage: vi.fn().mockResolvedValue(undefined) },
+}));
 vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
 
-import telegramChatBot from '@/lib/telegram/chat/bot';
+import { telegramChatBotClient } from '@/lib/telegram/client';
 import { logMessage } from '@/lib/messages/logMessage';
 import sendNudge from '../sendNudge';
 
@@ -20,16 +18,17 @@ beforeEach(() => {
 });
 
 describe('sendNudge', () => {
-  it('posts the nudge to the correct chat with singular "day" for 1 day', async () => {
+  it('sends to the correct chat with singular "day" for 1 day', async () => {
     await sendNudge({
       chatId: CHAT_ID,
       artistAddress: ARTIST_ADDRESS,
       daysSinceLastMoment: 1,
     });
 
-    expect(telegramChatBot.channel).toHaveBeenCalledWith(CHAT_ID);
-    const { post } = vi.mocked(telegramChatBot.channel).mock.results[0].value;
-    expect(post).toHaveBeenCalledWith(expect.stringContaining('1 day since'));
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
+      CHAT_ID,
+      expect.stringContaining('1 day since')
+    );
   });
 
   it('uses plural "days" for more than 1 day', async () => {
@@ -39,8 +38,10 @@ describe('sendNudge', () => {
       daysSinceLastMoment: 3,
     });
 
-    const { post } = vi.mocked(telegramChatBot.channel).mock.results[0].value;
-    expect(post).toHaveBeenCalledWith(expect.stringContaining('3 days since'));
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining('3 days since')
+    );
   });
 
   it('includes the call-to-action text', async () => {
@@ -50,9 +51,14 @@ describe('sendNudge', () => {
       daysSinceLastMoment: 5,
     });
 
-    const { post } = vi.mocked(telegramChatBot.channel).mock.results[0].value;
-    expect(post).toHaveBeenCalledWith(expect.stringContaining('In Process'));
-    expect(post).toHaveBeenCalledWith(expect.stringContaining('cooking'));
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining('In Process')
+    );
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining('cooking')
+    );
   });
 
   it('logs the message as an assistant telegram message', async () => {
