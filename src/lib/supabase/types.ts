@@ -756,6 +756,17 @@ export type Database = {
         Args: { p_collection: string; p_token_id: number };
         Returns: Json;
       };
+      get_weekly_wrap_up_stats: {
+        Args: { p_days?: number };
+        Returns: {
+          api_count: number;
+          chat_id: string;
+          sms_count: number;
+          telegram_count: number;
+          username: string;
+          web_count: number;
+        }[];
+      };
       moment_is_visible: {
         Args: { p_collection: string; p_hidden: boolean; p_token_id: number };
         Returns: boolean;
