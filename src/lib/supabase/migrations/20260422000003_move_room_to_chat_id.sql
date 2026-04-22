@@ -66,6 +66,7 @@ AS $function$
     FROM public.in_process_messages msg2
     JOIN public.in_process_message_metadata md2 ON md2.id = msg2.metadata
     WHERE msg2.chat_id = lc.chat_id
+      AND md2.artist_address = ia.address
       AND msg2.role = 'assistant'
       AND md2.client = 'telegram'
       AND md2.created_at > now() - make_interval(days => p_recent_assistant_days)
