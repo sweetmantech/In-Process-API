@@ -1,0 +1,57 @@
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase/client';
+import sendWrapUp from '@/lib/wrap-up/sendWrapUp';
+
+const wrapUpHandler = async (): Promise<NextResponse> => {
+  const { data, error } = await supabase.rpc('get_weekly_wrap_up_stats');
+
+  if (error) {
+    return NextResponse.json(
+      { status: 'error', message: error.message },
+      { status: 500 }
+    );
+  }
+
+  const targets = data ?? [];
+
+  const results = await Promise.all(
+    targets.map(
+      async ({
+        username,
+        chat_id,
+        telegram_count,
+        web_count,
+        api_count,
+        sms_count,
+      }) => {
+        try {
+          await sendWrapUp({
+            chatId: chat_id,
+            username,
+            telegramCount: telegram_count,
+            webCount: web_count,
+            apiCount: api_count,
+            smsCount: sms_count,
+          });
+          return { username, chatId: chat_id, sent: true as const };
+        } catch (e: any) {
+          return {
+            username,
+            chatId: chat_id,
+            sent: false as const,
+            error: e?.message ?? 'unknown',
+          };
+        }
+      }
+    )
+  );
+
+  return NextResponse.json({
+    status: 'success',
+    total: results.length,
+    sent: results.filter((r) => r.sent).length,
+    results,
+  });
+};
+
+export default wrapUpHandler;

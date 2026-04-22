@@ -7,6 +7,10 @@
     {
       "path": "/api/nudges",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/wrap-up",
+      "schedule": "0 21 * * 5"
     }
   ]
 }
