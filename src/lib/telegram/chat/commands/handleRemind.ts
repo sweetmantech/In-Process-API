@@ -18,7 +18,7 @@ const handleRemind = async (
   if (error) throw error;
 
   const text = enabled
-    ? "🔔 Nudges are now ON. I'll check in when you haven't posted in a while."
+    ? "🔔 Nudges are now ON. I'll remind you if you haven't posted in 3 or more days."
     : '🔕 Nudges are now OFF. You can turn them back on anytime with /remind.';
   await thread.post(text);
   await logMessage(
