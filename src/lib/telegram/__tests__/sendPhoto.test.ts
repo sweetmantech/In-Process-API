@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/telegram/client', () => ({
-  telegramFeedbackBotClient: { sendPhoto: vi.fn().mockResolvedValue(undefined) },
+  telegramFeedbackBotClient: {
+    sendPhoto: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 vi.mock('@/lib/consts', () => ({
   INPROCESS_GROUP_CHAT_ID: '-1002592953370',

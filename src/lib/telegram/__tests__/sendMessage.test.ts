@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/telegram/client', () => ({
-  telegramFeedbackBotClient: { sendMessage: vi.fn().mockResolvedValue(undefined) },
+  telegramFeedbackBotClient: {
+    sendMessage: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 vi.mock('@/lib/consts', () => ({
   INPROCESS_GROUP_CHAT_ID: '-1002592953370',
@@ -32,7 +34,8 @@ describe('sendMessage', () => {
 
     await sendMessage(longText);
 
-    const sent = vi.mocked(telegramFeedbackBotClient.sendMessage).mock.calls[0][1] as string;
+    const sent = vi.mocked(telegramFeedbackBotClient.sendMessage).mock
+      .calls[0][1] as string;
     expect(sent.length).toBeLessThan(5000);
     expect(sent).toContain('...[trimmed]');
   });
