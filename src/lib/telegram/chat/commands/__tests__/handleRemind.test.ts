@@ -70,9 +70,7 @@ describe('handleRemind', () => {
     it('mentions the 3-day inactivity threshold in the ON confirmation', async () => {
       const thread = makeThread();
       await handleRemind(thread as never, ROOM_ID, ARTIST_ADDRESS, false);
-      expect(thread.post).toHaveBeenCalledWith(
-        expect.stringContaining('3')
-      );
+      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('3'));
     });
   });
 
