@@ -5,6 +5,7 @@ import type { Tables } from '@/lib/supabase/types';
 import handleWelcome from './handleWelcome';
 import handleStart from './handleStart';
 import handleRemind from './handleRemind';
+import handleNotify from './handleNotify';
 
 const commandsHandler = async (
   text: string,
@@ -32,6 +33,9 @@ const commandsHandler = async (
       return true;
     case '/remind':
       await handleRemind(thread, chatId, artistAddress, artist.nudge_enabled);
+      return true;
+    case '/notify':
+      await handleNotify(thread, chatId, artistAddress, artist.notify_enabled);
       return true;
     default:
       return false;
