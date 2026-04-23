@@ -9,7 +9,7 @@ if (!process.env.TELEGRAM_CHAT_BOT_TOKEN) {
 }
 
 export const telegramChatBotClient = new TelegramBot(
-  process.env.TELEGRAM_BOT_TOKEN,
+  process.env.TELEGRAM_CHAT_BOT_TOKEN,
   {
     polling: false,
   }
@@ -20,7 +20,7 @@ telegramChatBotClient.on('error', (error: Error) => {
 });
 
 export const telegramFeedbackBotClient = new TelegramBot(
-  process.env.TELEGRAM_CHAT_BOT_TOKEN,
+  process.env.TELEGRAM_BOT_TOKEN,
   { polling: false }
 );
 
