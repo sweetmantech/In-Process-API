@@ -3,14 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/telegram/client', () => ({
   telegramChatBotClient: { sendMessage: vi.fn().mockResolvedValue(undefined) },
 }));
-vi.mock('@/lib/consts', () => ({
-  WRAP_UP_CHANNEL_LABELS: {
-    telegram: '📱 Telegram',
-    web: '🌐 Web',
-    api: '🔌 API',
-    sms: '💬 SMS',
-  },
-}));
 
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import sendWrapUp from '../sendWrapUp';
@@ -65,18 +57,21 @@ describe('sendWrapUp', () => {
     );
   });
 
-  it('only shows channels with a non-zero count in the breakdown', async () => {
-    await sendWrapUp({ ...BASE, telegramCount: 7, webCount: 0, apiCount: 2 });
+  it('follows the weekly wrap-up template with summed totals only', async () => {
+    await sendWrapUp({ ...BASE, telegramCount: 4 });
 
     const text = vi.mocked(telegramChatBotClient.sendMessage).mock
       .calls[0][1] as string;
-    expect(text).toContain('📱 Telegram: 7');
-    expect(text).toContain('🔌 API: 2');
-    expect(text).not.toContain('🌐 Web');
-    expect(text).not.toContain('💬 SMS');
+    expect(text).toBe(
+      `📊 Weekly Wrap-Up 📊
+
+Great week, @cxy! You posted 4 moments this week.
+
+Keep creating. See you next Friday! 🙌`
+    );
   });
 
-  it('includes the breakdown header and closing message', async () => {
+  it('includes title and closing', async () => {
     await sendWrapUp({ ...BASE, telegramCount: 1 });
 
     const text = vi.mocked(telegramChatBotClient.sendMessage).mock
