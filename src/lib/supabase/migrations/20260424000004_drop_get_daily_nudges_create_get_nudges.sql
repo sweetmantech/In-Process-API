@@ -50,6 +50,7 @@ AS $function$
     INNER JOIN public.in_process_messages msg ON msg.metadata = md.id
     WHERE md.client = 'telegram'
       AND msg.chat_id IS NOT NULL
+      AND msg.chat_id <> ''
     ORDER BY md.artist_address, md.created_at DESC
   )
   SELECT ia.artist_address, lc.chat_id, ia.days_inactive, ia.nudge_period
