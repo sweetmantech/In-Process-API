@@ -7,14 +7,11 @@ vi.mock(
   '@/lib/supabase/account_notifications/upsertAccountNotification',
   () => ({ default: vi.fn() })
 );
-vi.mock('../../commands/handleRemind', () => ({
-  NUDGE_PERIOD_ACTION_ID: 'remind_period',
-}));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import { registerOnNudgePeriod } from '../onNudgePeriod';
-import { NUDGE_PERIOD_ACTION_ID } from '../../commands/handleRemind';
+import { NUDGE_PERIOD_ACTION_ID } from '@/lib/consts';
 
 const ARTIST_ADDRESS = '0xArtist';
 const TELEGRAM_USERNAME = 'artist_user';

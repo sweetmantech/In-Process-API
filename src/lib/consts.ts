@@ -75,3 +75,11 @@ export const INDEX_INTERVAL_MS = 1000;
 export const INDEX_INTERVAL_EMPTY_MS = 1500;
 
 export const REDIS_TIMESTAMP_KEY = 'indexer:cached_timestamps';
+
+export const NUDGE_PERIOD_ACTION_ID = 'remind_period';
+
+export const NUDGE_PERIODS: Record<string, { buttonLabel: string; description: string }> = {
+  '1': { buttonLabel: 'Every day', description: '1 day' },
+  '3': { buttonLabel: 'Every 3 days', description: '3 days' },
+  '7': { buttonLabel: 'Every week', description: 'a week' },
+};

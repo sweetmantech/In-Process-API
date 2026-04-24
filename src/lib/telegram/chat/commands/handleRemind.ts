@@ -5,8 +5,7 @@ import selectAccountNotification from '@/lib/supabase/account_notifications/sele
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import { logMessage } from '@/lib/messages/logMessage';
 import type { Address } from 'viem';
-
-export const NUDGE_PERIOD_ACTION_ID = 'remind_period';
+import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';
 
 const handleRemind = async (
   thread: Thread<TelegramThreadState>,
@@ -24,7 +23,7 @@ const handleRemind = async (
   if (error) throw error;
 
   const text = enabled
-    ? '🔔 Nudges are now ON. How often would you like to be reminded?'
+    ? "🔔 Nudges are now ON. I'll remind you if you haven't posted in 3 or more days.\nWould you like to change how many days I wait before nudging?"
     : '🔕 Nudges are now OFF. You can turn them back on anytime with /remind.';
 
   await logMessage(
@@ -40,23 +39,11 @@ const handleRemind = async (
       Card({
         title: text,
         children: [
-          Actions([
-            Button({
-              id: NUDGE_PERIOD_ACTION_ID,
-              label: 'Every day',
-              value: '1',
-            }),
-            Button({
-              id: NUDGE_PERIOD_ACTION_ID,
-              label: 'Every 3 days',
-              value: '3',
-            }),
-            Button({
-              id: NUDGE_PERIOD_ACTION_ID,
-              label: 'Every week',
-              value: '7',
-            }),
-          ]),
+          Actions(
+            Object.entries(NUDGE_PERIODS).map(([value, { buttonLabel }]) =>
+              Button({ id: NUDGE_PERIOD_ACTION_ID, label: buttonLabel, value })
+            )
+          ),
         ],
       })
     );
