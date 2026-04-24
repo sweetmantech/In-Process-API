@@ -6,7 +6,7 @@ import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTIONS_LOAD_MORE_ACTION_ID,
 } from '../consts';
-import { truncateTelegramButtonLabel } from '../../truncateTelegramButtonLabel';
+import truncateTelegramButtonLabel from '../../truncateTelegramButtonLabel';
 import { CHAIN_ID } from '@/lib/consts';
 
 export function registerOnCollectionsLoadMore(bot: TelegramChatBot) {
@@ -35,6 +35,8 @@ export function registerOnCollectionsLoadMore(bot: TelegramChatBot) {
     if (error) throw error;
 
     const list = data ?? [];
+    if (list.length === 0) return;
+
     const total = count ?? list.length;
     const hasMore = total > page * 20;
 
@@ -62,6 +64,6 @@ export function registerOnCollectionsLoadMore(bot: TelegramChatBot) {
       );
     }
 
-    await thread.post(Card({ children }));
+    await thread.post(Card({ title: 'Select a collection', children }));
   });
 }

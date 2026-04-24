@@ -7,7 +7,7 @@ import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTIONS_LOAD_MORE_ACTION_ID,
 } from '../consts';
-import { truncateTelegramButtonLabel } from '../../truncateTelegramButtonLabel';
+import truncateTelegramButtonLabel from '../../truncateTelegramButtonLabel';
 import { CHAIN_ID } from '@/lib/consts';
 
 const handleCollections = async (
@@ -18,6 +18,7 @@ const handleCollections = async (
     artists: [artistAddress],
     limit: 20,
     chainId: CHAIN_ID,
+    page: 1,
   });
   if (error) throw error;
 
