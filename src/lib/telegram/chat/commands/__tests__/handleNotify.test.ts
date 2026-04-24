@@ -31,7 +31,7 @@ const makeThread = () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(selectAccountNotification).mockResolvedValue({
-    data: { notify_enabled: false, nudge_enabled: false, nudge_period: 1 },
+    data: { notify_enabled: false, nudge_period: null },
     error: null,
   } as never);
   vi.mocked(upsertAccountNotification).mockResolvedValue({
@@ -44,7 +44,7 @@ describe('handleNotify', () => {
   describe('when notify_enabled is currently true', () => {
     beforeEach(() => {
       vi.mocked(selectAccountNotification).mockResolvedValue({
-        data: { notify_enabled: true, nudge_enabled: false, nudge_period: 1 },
+        data: { notify_enabled: true, nudge_period: null },
         error: null,
       } as never);
     });

@@ -38,20 +38,17 @@ export type Database = {
         Row: {
           artist_address: string;
           notify_enabled: boolean;
-          nudge_enabled: boolean;
-          nudge_period: number;
+          nudge_period: number | null;
         };
         Insert: {
           artist_address: string;
           notify_enabled?: boolean;
-          nudge_enabled?: boolean;
-          nudge_period?: number;
+          nudge_period?: number | null;
         };
         Update: {
           artist_address?: string;
           notify_enabled?: boolean;
-          nudge_enabled?: boolean;
-          nudge_period?: number;
+          nudge_period?: number | null;
         };
         Relationships: [];
       };

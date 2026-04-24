@@ -90,7 +90,7 @@ beforeEach(() => {
     error: null,
   } as never);
   vi.mocked(selectAccountNotification).mockResolvedValue({
-    data: { notify_enabled: false, nudge_enabled: true, nudge_period: 1 },
+    data: { notify_enabled: false, nudge_period: 1 },
     error: null,
   } as never);
   vi.mocked(upsertAccountNotification).mockResolvedValue({
@@ -199,7 +199,7 @@ describe('registerOnNewMention', () => {
   });
 
   describe('when a linked artist sends /remind', () => {
-    it('toggles nudge_enabled off and posts confirmation', async () => {
+    it('sets nudge_period to null (disables nudge) and posts confirmation', async () => {
       const { invoke } = setup();
       const thread = makeThread();
 
@@ -208,15 +208,15 @@ describe('registerOnNewMention', () => {
       expect(upsertAccountNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           artist_address: ARTIST_ADDRESS,
-          nudge_enabled: false,
+          nudge_period: null,
         })
       );
       expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('🔕'));
     });
 
-    it('toggles nudge_enabled on when currently false', async () => {
+    it('sets nudge_period to 3 (enables nudge) when currently disabled', async () => {
       vi.mocked(selectAccountNotification).mockResolvedValue({
-        data: { notify_enabled: false, nudge_enabled: false, nudge_period: 1 },
+        data: { notify_enabled: false, nudge_period: null },
         error: null,
       } as never);
       const { invoke } = setup();
@@ -227,7 +227,7 @@ describe('registerOnNewMention', () => {
       expect(upsertAccountNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           artist_address: ARTIST_ADDRESS,
-          nudge_enabled: true,
+          nudge_period: 3,
         })
       );
       expect(thread.post).toHaveBeenCalledWith(
