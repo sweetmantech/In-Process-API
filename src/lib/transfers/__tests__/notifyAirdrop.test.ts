@@ -8,7 +8,7 @@ vi.mock('@/lib/consts', () => ({
     1: 'eth',
   },
 }));
-vi.mock('@/lib/supabase/in_process_messages/selectChatMessage', () => ({
+vi.mock('@/lib/supabase/in_process_messages/selectMessage', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/telegram/client', () => ({
@@ -18,12 +18,12 @@ vi.mock('@/lib/messages/logMessage', () => ({
   logMessage: vi.fn(),
 }));
 import { logMessage } from '@/lib/messages/logMessage';
-import selectChatMessage from '@/lib/supabase/in_process_messages/selectChatMessage';
+import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import type { Transfers_t } from '@/types/envio';
 import notifyAirdrop from '../notifyAirdrop';
 
-const mockSelectChat = vi.mocked(selectChatMessage);
+const mockSelectMessage = vi.mocked(selectMessage);
 const mockSend = vi.mocked(telegramChatBotClient.sendMessage);
 const mockLog = vi.mocked(logMessage);
 
@@ -46,7 +46,7 @@ const transfer = (over: Partial<Transfers_t> = {}): Transfers_t => ({
 describe('notifyAirdrop', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSelectChat.mockResolvedValue({
+    mockSelectMessage.mockResolvedValue({
       error: null,
       data: {
         chat_id: 'chat-1',
@@ -64,7 +64,7 @@ describe('notifyAirdrop', () => {
   it('returns without calling Telegram when batch is empty', async () => {
     await notifyAirdrop([]);
 
-    expect(mockSelectChat).not.toHaveBeenCalled();
+    expect(mockSelectMessage).not.toHaveBeenCalled();
     expect(mockSend).not.toHaveBeenCalled();
     expect(mockLog).not.toHaveBeenCalled();
   });
@@ -77,7 +77,7 @@ describe('notifyAirdrop', () => {
       }),
     ]);
 
-    expect(mockSelectChat).not.toHaveBeenCalled();
+    expect(mockSelectMessage).not.toHaveBeenCalled();
     expect(mockSend).not.toHaveBeenCalled();
   });
 
@@ -85,11 +85,11 @@ describe('notifyAirdrop', () => {
     const t = transfer();
     await notifyAirdrop([t]);
 
-    expect(mockSelectChat).toHaveBeenCalledWith(
+    expect(mockSelectMessage).toHaveBeenCalledWith(
       '0xrecipient00000000000000000000000000dead'
     );
     const expectedText =
-      'You received a new moment on In Process. \n\n' +
+      'You were airdropped a new moment on In Process. \n\n' +
       'https://inprocess.test/collect/base:0xabc/7';
     expect(mockSend).toHaveBeenCalledTimes(1);
     expect(mockSend).toHaveBeenCalledWith('chat-1', expectedText);
@@ -102,8 +102,8 @@ describe('notifyAirdrop', () => {
     );
   });
 
-  it('does not send when selectChatMessage has no chat_id', async () => {
-    mockSelectChat.mockResolvedValue({ error: null, data: null });
+  it('does not send when selectMessage has no chat_id', async () => {
+    mockSelectMessage.mockResolvedValue({ error: null, data: null });
     await notifyAirdrop([transfer()]);
 
     expect(mockSend).not.toHaveBeenCalled();
@@ -116,7 +116,7 @@ describe('notifyAirdrop', () => {
       transfer({ id: 'b', token_id: '2' }),
     ]);
 
-    expect(mockSelectChat).toHaveBeenCalledTimes(2);
+    expect(mockSelectMessage).toHaveBeenCalledTimes(2);
     expect(mockSend).toHaveBeenCalledTimes(2);
     expect(mockLog).toHaveBeenCalledTimes(2);
     expect(mockSend).toHaveBeenNthCalledWith(

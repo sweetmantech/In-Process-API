@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_messages/selectMessages', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '@/lib/supabase/in_process_message_metadata/selectMessageMetadatas',
+  () => ({
+    default: vi.fn(),
+  })
+);
 vi.mock('@/lib/messages/getMomentFromMessage', () => ({ default: vi.fn() }));
 vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
   default: vi.fn(),
@@ -14,7 +17,7 @@ vi.mock('@/lib/messages/formatMessages', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({ CHAIN_ID: 8453 }));
 
 import indexMomentHandler from '../indexMomentHandler';
-import selectMessage from '@/lib/supabase/in_process_messages/selectMessages';
+import selectMessage from '@/lib/supabase/in_process_message_metadata/selectMessageMetadatas';
 import getMomentFromMessage from '@/lib/messages/getMomentFromMessage';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import upsertMessageMoment from '@/lib/supabase/in_process_message_moment/upsertMessageMoment';

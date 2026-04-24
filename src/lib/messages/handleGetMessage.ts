@@ -1,9 +1,9 @@
-import selectMessages from '@/lib/supabase/in_process_messages/selectMessages';
+import selectMessageMetadatas from '@/lib/supabase/in_process_message_metadata/selectMessageMetadatas';
 import { NextResponse } from 'next/server';
 import formatMessages from './formatMessages';
 
 const handleGetMessage = async ({ messageId }: { messageId: string }) => {
-  const { data, error } = await selectMessages({
+  const { data, error } = await selectMessageMetadatas({
     messageId,
   });
 

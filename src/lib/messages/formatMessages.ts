@@ -1,13 +1,12 @@
 import { Tables } from '@/lib/supabase/types';
-import selectMessages from '@/lib/supabase/in_process_messages/selectMessages';
+import selectMessageMetadatas from '@/lib/supabase/in_process_message_metadata/selectMessageMetadatas';
 
 type MomentData = Tables<'in_process_moments'> & {
   collection: Tables<'in_process_collections'> | null;
 };
 
-// New data structure from selectMessages (querying from metadata)
 type SelectMessagesData = NonNullable<
-  Awaited<ReturnType<typeof selectMessages>>['data']
+  Awaited<ReturnType<typeof selectMessageMetadatas>>['data']
 >;
 
 export type FormattedMessage = Omit<

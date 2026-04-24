@@ -1,4 +1,4 @@
-import selectMessages from '@/lib/supabase/in_process_messages/selectMessages';
+import selectMessageMetadatas from '@/lib/supabase/in_process_message_metadata/selectMessageMetadatas';
 import { NextResponse } from 'next/server';
 import formatMessages from './formatMessages';
 import { ADMIN_ADDRESSES } from '../consts';
@@ -14,7 +14,7 @@ const handleGetMessages = async ({
   page: number;
   limit: number;
 }) => {
-  const { data, error, count } = await selectMessages({
+  const { data, error, count } = await selectMessageMetadatas({
     artistAddress: ADMIN_ADDRESSES.includes(artistAddress.toLowerCase())
       ? undefined
       : artistAddress,
