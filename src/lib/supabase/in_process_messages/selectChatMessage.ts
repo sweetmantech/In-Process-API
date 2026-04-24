@@ -1,10 +1,23 @@
 import { supabase } from '../client';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 /**
  * Latest non-empty Telegram `chat_id` for an artist, by `in_process_message_metadata.created_at`
  * (same intent as the `latest_chats` CTE in nudges / wrap-up).
  */
-const selectChatId = async (artistAddress: string): Promise<string | null> => {
+const selectChatMessage = async (
+  artistAddress: string
+): Promise<{
+  error: PostgrestError | null;
+  data: {
+    chat_id: string | null;
+    in_process_message_metadata: {
+      created_at: string;
+      artist_address: string | null;
+      client: 'telegram' | 'sms' | 'web' | 'api';
+    };
+  } | null;
+}> => {
   const { data, error } = await supabase
     .from('in_process_messages')
     .select(
@@ -21,11 +34,8 @@ const selectChatId = async (artistAddress: string): Promise<string | null> => {
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    console.error('selectChatId:', error.message);
-    return null;
-  }
-  return data?.chat_id && data.chat_id !== '' ? data.chat_id : null;
+  if (error) return { error, data: null };
+  return { error: null, data };
 };
 
-export default selectChatId;
+export default selectChatMessage;

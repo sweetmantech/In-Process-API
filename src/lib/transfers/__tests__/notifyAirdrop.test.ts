@@ -8,7 +8,7 @@ vi.mock('@/lib/consts', () => ({
     1: 'eth',
   },
 }));
-vi.mock('@/lib/supabase/in_process_messages/selectChatId', () => ({
+vi.mock('@/lib/supabase/in_process_messages/selectChatMessage', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/telegram/client', () => ({
@@ -17,17 +17,13 @@ vi.mock('@/lib/telegram/client', () => ({
 vi.mock('@/lib/messages/logMessage', () => ({
   logMessage: vi.fn(),
 }));
-vi.mock('@/lib/telegram/trimMessage', () => ({
-  trimMessage: (text: string) => text,
-}));
-
 import { logMessage } from '@/lib/messages/logMessage';
-import selectChatId from '@/lib/supabase/in_process_messages/selectChatId';
+import selectChatMessage from '@/lib/supabase/in_process_messages/selectChatMessage';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import type { Transfers_t } from '@/types/envio';
 import notifyAirdrop from '../notifyAirdrop';
 
-const mockSelectChat = vi.mocked(selectChatId);
+const mockSelectChat = vi.mocked(selectChatMessage);
 const mockSend = vi.mocked(telegramChatBotClient.sendMessage);
 const mockLog = vi.mocked(logMessage);
 
@@ -50,7 +46,17 @@ const transfer = (over: Partial<Transfers_t> = {}): Transfers_t => ({
 describe('notifyAirdrop', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSelectChat.mockResolvedValue('chat-1');
+    mockSelectChat.mockResolvedValue({
+      error: null,
+      data: {
+        chat_id: 'chat-1',
+        in_process_message_metadata: {
+          created_at: '2020-01-01T00:00:00.000Z',
+          artist_address: null,
+          client: 'telegram',
+        },
+      },
+    });
     mockSend.mockResolvedValue({} as never);
     mockLog.mockResolvedValue('msg-1');
   });
@@ -96,8 +102,8 @@ describe('notifyAirdrop', () => {
     );
   });
 
-  it('does not send when selectChatId returns null', async () => {
-    mockSelectChat.mockResolvedValue(null);
+  it('does not send when selectChatMessage has no chat_id', async () => {
+    mockSelectChat.mockResolvedValue({ error: null, data: null });
     await notifyAirdrop([transfer()]);
 
     expect(mockSend).not.toHaveBeenCalled();
