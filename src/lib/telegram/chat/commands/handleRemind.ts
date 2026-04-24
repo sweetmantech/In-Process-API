@@ -1,9 +1,12 @@
 import type { Thread } from 'chat';
+import { Card, Actions, Button } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import { logMessage } from '@/lib/messages/logMessage';
 import type { Address } from 'viem';
+
+export const NUDGE_PERIOD_ACTION_ID = 'remind_period';
 
 const handleRemind = async (
   thread: Thread<TelegramThreadState>,
@@ -21,7 +24,7 @@ const handleRemind = async (
   if (error) throw error;
 
   const text = enabled
-    ? "🔔 Nudges are now ON. I'll remind you if you haven't posted in 3 or more days."
+    ? '🔔 Nudges are now ON. How often would you like to be reminded?'
     : '🔕 Nudges are now OFF. You can turn them back on anytime with /remind.';
   await thread.post(text);
   await logMessage(
@@ -31,6 +34,32 @@ const handleRemind = async (
     artistAddress,
     'telegram'
   );
+
+  if (enabled) {
+    await thread.post(
+      Card({
+        children: [
+          Actions([
+            Button({
+              id: NUDGE_PERIOD_ACTION_ID,
+              label: 'Every day',
+              value: '1',
+            }),
+            Button({
+              id: NUDGE_PERIOD_ACTION_ID,
+              label: 'Every 3 days',
+              value: '3',
+            }),
+            Button({
+              id: NUDGE_PERIOD_ACTION_ID,
+              label: 'Every week',
+              value: '7',
+            }),
+          ]),
+        ],
+      })
+    );
+  }
 };
 
 export default handleRemind;
