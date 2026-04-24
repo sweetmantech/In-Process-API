@@ -17,6 +17,9 @@ vi.mock('@/lib/telegram/client', () => ({
 vi.mock('@/lib/messages/logMessage', () => ({
   logMessage: vi.fn(),
 }));
+vi.mock('@/lib/telegram/trimMessage', () => ({
+  trimMessage: (text: string) => text,
+}));
 
 import { logMessage } from '@/lib/messages/logMessage';
 import selectChatId from '@/lib/supabase/in_process_messages/selectChatId';
@@ -142,5 +145,19 @@ describe('notifyAirdrop', () => {
       'chat-1',
       expect.stringContaining('collect/base:0xabc/7')
     );
+  });
+
+  it('logs and continues when sendMessage throws', async () => {
+    const err = new Error('telegram down');
+    mockSend.mockRejectedValueOnce(err);
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await notifyAirdrop([transfer({ id: 'e-fail' })]);
+
+    expect(errSpy).toHaveBeenCalledWith(
+      '❌ notifyAirdrop failed (recipient 0xrecipient00000000000000000000000000dead, transfer e-fail):',
+      'telegram down'
+    );
+    errSpy.mockRestore();
   });
 });

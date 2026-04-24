@@ -5,13 +5,12 @@ import { supabase } from '../client';
  * (same intent as the `latest_chats` CTE in nudges / wrap-up).
  */
 const selectChatId = async (artistAddress: string): Promise<string | null> => {
-  const addr = artistAddress.toLowerCase();
   const { data, error } = await supabase
     .from('in_process_messages')
     .select(
       'chat_id, in_process_message_metadata!inner(created_at, artist_address, client)'
     )
-    .eq('in_process_message_metadata.artist_address', addr)
+    .eq('in_process_message_metadata.artist_address', artistAddress)
     .eq('in_process_message_metadata.client', 'telegram')
     .not('chat_id', 'is', null)
     .neq('chat_id', '')
