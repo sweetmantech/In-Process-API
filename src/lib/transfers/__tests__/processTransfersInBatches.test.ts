@@ -5,6 +5,7 @@ vi.mock('../distribute', () => ({ distribute: vi.fn() }));
 vi.mock('../mapTransfersToSupabase', () => ({
   mapTransfersToSupabase: vi.fn(),
 }));
+vi.mock('../notifyAirdrop', () => ({ default: vi.fn() }));
 vi.mock('@/lib/artists/ensureArtists', () => ({
   ensureArtists: vi.fn(),
 }));
