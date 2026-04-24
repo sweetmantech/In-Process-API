@@ -1,18 +1,21 @@
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
-import { upsertProfile } from '@/lib/supabase/in_process_artists/upsertProfile';
+import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
+import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import { logMessage } from '@/lib/messages/logMessage';
 import type { Address } from 'viem';
 
 const handleNotify = async (
   thread: Thread<TelegramThreadState>,
-  chatId: string,
-  artistAddress: Address,
-  currentNotifyEnabled: boolean
+  artistAddress: Address
 ) => {
-  const enabled = !currentNotifyEnabled;
-  const { error } = await upsertProfile({
-    address: artistAddress,
+  const { data, error: fetchError } =
+    await selectAccountNotification(artistAddress);
+  if (fetchError) throw fetchError;
+
+  const enabled = !(data?.notify_enabled ?? false);
+  const { error } = await upsertAccountNotification({
+    artist_address: artistAddress,
     notify_enabled: enabled,
   });
   if (error) throw error;
@@ -24,7 +27,7 @@ const handleNotify = async (
   await logMessage(
     [{ type: 'text', text }],
     'assistant',
-    chatId,
+    thread.channelId,
     artistAddress,
     'telegram'
   );

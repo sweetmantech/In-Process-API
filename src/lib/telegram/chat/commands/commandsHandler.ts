@@ -10,12 +10,11 @@ import handleNotify from './handleNotify';
 const commandsHandler = async (
   text: string,
   thread: Thread<TelegramThreadState>,
-  chatId: string,
   telegramUsername: string,
   artist: Tables<'in_process_artists'> | null
 ): Promise<boolean> => {
   if (!artist) {
-    await handleWelcome(thread, chatId, text);
+    await handleWelcome(thread, text);
     return true;
   }
 
@@ -25,17 +24,16 @@ const commandsHandler = async (
     case '/start':
       await handleStart(
         thread,
-        chatId,
         artistAddress,
         artist.username,
         telegramUsername
       );
       return true;
     case '/remind':
-      await handleRemind(thread, chatId, artistAddress, artist.nudge_enabled);
+      await handleRemind(thread, artistAddress);
       return true;
     case '/notify':
-      await handleNotify(thread, chatId, artistAddress, artist.notify_enabled);
+      await handleNotify(thread, artistAddress);
       return true;
     default:
       return false;
