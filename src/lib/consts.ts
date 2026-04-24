@@ -1,4 +1,4 @@
-import { baseSepolia, base } from 'viem/chains';
+import { base, baseSepolia, mainnet } from 'viem/chains';
 import { Address } from 'viem';
 
 export const INPROCESS_GROUP_CHAT_ID = '-1002592953370';
@@ -16,6 +16,13 @@ export const CDP_PAYMASTER_URL = `https://api.developer.coinbase.com/rpc/v1/base
 // Wagmi
 export const CHAIN = IS_TESTNET ? baseSepolia : base;
 export const CHAIN_ID = CHAIN.id;
+
+/** Zora collect / inprocess URL path segment by `chain_id`. */
+export const SHORT_CHAIN_NAME: Record<number, 'base' | 'bsep' | 'eth'> = {
+  [base.id]: 'base',
+  [baseSepolia.id]: 'bsep',
+  [mainnet.id]: 'eth',
+};
 // Zora
 export const REFERRAL_RECIPIENT = '0x749B7b7A6944d72266Be9500FC8C221B6A7554Ce';
 export const ROYALTY_BPS_DEFAULT = 1000; // Default royalty bps (10%)
