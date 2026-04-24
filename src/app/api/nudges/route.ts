@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-  // const unauthorized = validateCronHandler(req);
-  // if (unauthorized) return unauthorized;
+  const unauthorized = validateCronHandler(req);
+  if (unauthorized) return unauthorized;
 
   try {
     return await nudgesHandler();
