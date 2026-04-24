@@ -38,6 +38,7 @@ const handleRemind = async (
   if (enabled) {
     await thread.post(
       Card({
+        title: 'How often would you like to be reminded?',
         children: [
           Actions([
             Button({
