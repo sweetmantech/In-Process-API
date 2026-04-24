@@ -7,13 +7,12 @@ const WELCOME_MESSAGE =
 
 const handleWelcome = async (
   thread: Thread<TelegramThreadState>,
-  chatId: string,
   userMessageText: string
 ) => {
   await logMessage(
     [{ type: 'text', text: userMessageText }],
     'user',
-    chatId,
+    thread.channelId,
     undefined,
     'telegram'
   );
@@ -21,7 +20,7 @@ const handleWelcome = async (
   await logMessage(
     [{ type: 'text', text: WELCOME_MESSAGE }],
     'assistant',
-    chatId,
+    thread.channelId,
     undefined,
     'telegram'
   );

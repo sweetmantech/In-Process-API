@@ -30,7 +30,6 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       const handled = await commandsHandler(
         text,
         thread,
-        chatId,
         telegramUsername,
         artist
       );

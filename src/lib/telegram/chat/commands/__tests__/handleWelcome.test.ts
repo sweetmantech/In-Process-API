@@ -9,6 +9,7 @@ const ROOM_ID = 'telegram:99';
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
+  channelId: ROOM_ID,
 });
 
 beforeEach(() => {
@@ -19,7 +20,7 @@ beforeEach(() => {
 describe('handleWelcome', () => {
   it('posts a message containing the manage link', async () => {
     const thread = makeThread();
-    await handleWelcome(thread as never, ROOM_ID, 'hello');
+    await handleWelcome(thread as never, 'hello');
     expect(thread.post).toHaveBeenCalledWith(
       expect.stringContaining('inprocess.world/manage')
     );
@@ -27,7 +28,7 @@ describe('handleWelcome', () => {
 
   it('logs the original user message as role "user"', async () => {
     const thread = makeThread();
-    await handleWelcome(thread as never, ROOM_ID, 'hello there');
+    await handleWelcome(thread as never, 'hello there');
 
     expect(logMessage).toHaveBeenCalledWith(
       [{ type: 'text', text: 'hello there' }],
@@ -40,7 +41,7 @@ describe('handleWelcome', () => {
 
   it('logs the welcome reply as role "assistant"', async () => {
     const thread = makeThread();
-    await handleWelcome(thread as never, ROOM_ID, 'hello');
+    await handleWelcome(thread as never, 'hello');
 
     expect(logMessage).toHaveBeenCalledWith(
       expect.any(Array),
@@ -53,7 +54,7 @@ describe('handleWelcome', () => {
 
   it('logs exactly twice (user + assistant)', async () => {
     const thread = makeThread();
-    await handleWelcome(thread as never, ROOM_ID, 'hey');
+    await handleWelcome(thread as never, 'hey');
     expect(logMessage).toHaveBeenCalledTimes(2);
   });
 });

@@ -5,16 +5,26 @@ import { registerOnNewMention } from '../onNewMention';
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_artists/upsertProfile', () => ({
-  upsertProfile: vi.fn(),
-}));
+vi.mock(
+  '@/lib/supabase/account_notifications/selectAccountNotification',
+  () => ({
+    default: vi.fn(),
+  })
+);
+vi.mock(
+  '@/lib/supabase/account_notifications/upsertAccountNotification',
+  () => ({
+    default: vi.fn(),
+  })
+);
 vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
 vi.mock('../../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('../../replyAfterSuccess', () => ({ default: vi.fn() }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import { upsertProfile } from '@/lib/supabase/in_process_artists/upsertProfile';
+import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
+import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import { logMessage } from '@/lib/messages/logMessage';
 import processMediaThread from '../../processMediaThread';
 import createMomentFromYoutubeLink from '../../createMomentFromYoutubeLink';
@@ -24,7 +34,6 @@ const ARTIST_ADDRESS = '0xArtist' as Address;
 const ARTIST = {
   address: ARTIST_ADDRESS,
   username: 'alice',
-  nudge_enabled: true,
 };
 const CHANNEL_ID = 'chat-telegram';
 
@@ -77,8 +86,14 @@ beforeEach(() => {
     data: [ARTIST],
     error: null,
   } as never);
+  vi.mocked(selectAccountNotification).mockResolvedValue({
+    data: { notify_enabled: false, nudge_enabled: true, nudge_period: 1 },
+    error: null,
+  } as never);
+  vi.mocked(upsertAccountNotification).mockResolvedValue({
+    error: null,
+  } as never);
   vi.mocked(logMessage).mockResolvedValue('msg-id' as never);
-  vi.mocked(upsertProfile).mockResolvedValue({ error: null } as never);
   vi.mocked(createMomentFromYoutubeLink).mockResolvedValue(
     MOMENT_RESULT as never
   );
@@ -194,9 +209,9 @@ describe('registerOnNewMention', () => {
 
       await invoke(thread, makeMessage({ text: '/remind' }));
 
-      expect(upsertProfile).toHaveBeenCalledWith(
+      expect(upsertAccountNotification).toHaveBeenCalledWith(
         expect.objectContaining({
-          address: ARTIST_ADDRESS,
+          artist_address: ARTIST_ADDRESS,
           nudge_enabled: false,
         })
       );
@@ -204,8 +219,8 @@ describe('registerOnNewMention', () => {
     });
 
     it('toggles nudge_enabled on when currently false', async () => {
-      vi.mocked(selectArtists).mockResolvedValue({
-        data: [{ ...ARTIST, nudge_enabled: false }],
+      vi.mocked(selectAccountNotification).mockResolvedValue({
+        data: { notify_enabled: false, nudge_enabled: false, nudge_period: 1 },
         error: null,
       } as never);
       const { invoke } = setup();
@@ -213,9 +228,9 @@ describe('registerOnNewMention', () => {
 
       await invoke(thread, makeMessage({ text: '/remind' }));
 
-      expect(upsertProfile).toHaveBeenCalledWith(
+      expect(upsertAccountNotification).toHaveBeenCalledWith(
         expect.objectContaining({
-          address: ARTIST_ADDRESS,
+          artist_address: ARTIST_ADDRESS,
           nudge_enabled: true,
         })
       );

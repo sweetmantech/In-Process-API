@@ -23,9 +23,7 @@ const TG_USERNAME = 'testuser';
 const ARTIST = {
   address: ARTIST_ADDRESS,
   username: 'alice',
-  nudge_enabled: true,
-  notify_enabled: false,
-} as never;
+};
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
@@ -47,23 +45,16 @@ describe('commandsHandler', () => {
       const result = await commandsHandler(
         'hello',
         thread as never,
-        ROOM_ID,
         TG_USERNAME,
         null
       );
 
-      expect(handleWelcome).toHaveBeenCalledWith(thread, ROOM_ID, 'hello');
+      expect(handleWelcome).toHaveBeenCalledWith(thread, 'hello');
       expect(result).toBe(true);
     });
 
     it('does not call handleStart, handleRemind, or handleNotify', async () => {
-      await commandsHandler(
-        '/start',
-        makeThread() as never,
-        ROOM_ID,
-        TG_USERNAME,
-        null
-      );
+      await commandsHandler('/start', makeThread() as never, TG_USERNAME, null);
       expect(handleStart).not.toHaveBeenCalled();
       expect(handleRemind).not.toHaveBeenCalled();
       expect(handleNotify).not.toHaveBeenCalled();
@@ -76,14 +67,12 @@ describe('commandsHandler', () => {
       const result = await commandsHandler(
         '/start',
         thread as never,
-        ROOM_ID,
         TG_USERNAME,
-        ARTIST
+        ARTIST as never
       );
 
       expect(handleStart).toHaveBeenCalledWith(
         thread,
-        ROOM_ID,
         ARTIST_ADDRESS,
         ARTIST.username,
         TG_USERNAME
@@ -96,17 +85,11 @@ describe('commandsHandler', () => {
       const result = await commandsHandler(
         '/remind',
         thread as never,
-        ROOM_ID,
         TG_USERNAME,
-        ARTIST
+        ARTIST as never
       );
 
-      expect(handleRemind).toHaveBeenCalledWith(
-        thread,
-        ROOM_ID,
-        ARTIST_ADDRESS,
-        ARTIST.nudge_enabled
-      );
+      expect(handleRemind).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
       expect(result).toBe(true);
     });
 
@@ -115,17 +98,11 @@ describe('commandsHandler', () => {
       const result = await commandsHandler(
         '/notify',
         thread as never,
-        ROOM_ID,
         TG_USERNAME,
-        ARTIST
+        ARTIST as never
       );
 
-      expect(handleNotify).toHaveBeenCalledWith(
-        thread,
-        ROOM_ID,
-        ARTIST_ADDRESS,
-        false
-      );
+      expect(handleNotify).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
       expect(result).toBe(true);
     });
 
@@ -133,9 +110,8 @@ describe('commandsHandler', () => {
       const result = await commandsHandler(
         'just some text',
         makeThread() as never,
-        ROOM_ID,
         TG_USERNAME,
-        ARTIST
+        ARTIST as never
       );
 
       expect(result).toBe(false);
