@@ -89,7 +89,7 @@ describe('notifyAirdrop', () => {
       '0xrecipient00000000000000000000000000dead'
     );
     const expectedText =
-      'You were airdropped a new moment on In Process. \n\n' +
+      'You were airdropped a moment on In Process. \n\n' +
       'https://inprocess.test/collect/base:0xabc/7';
     expect(mockSend).toHaveBeenCalledTimes(1);
     expect(mockSend).toHaveBeenCalledWith('chat-1', expectedText);
