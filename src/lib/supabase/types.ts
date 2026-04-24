@@ -741,14 +741,6 @@ export type Database = {
         };
         Returns: boolean;
       };
-      get_daily_nudges: {
-        Args: { p_inactivity_days?: number; p_recent_assistant_days?: number };
-        Returns: {
-          artist_address: string;
-          chat_id: string;
-          days_since_last_moment: number;
-        }[];
-      };
       get_in_process_timeline: {
         Args: {
           p_chainid?: number;
@@ -779,6 +771,15 @@ export type Database = {
       get_moment_admins_json: {
         Args: { p_collection: string; p_token_id: number };
         Returns: Json;
+      };
+      get_nudges: {
+        Args: never;
+        Returns: {
+          artist_address: string;
+          chat_id: string;
+          days_since_last_moment: number;
+          nudge_period: number;
+        }[];
       };
       get_weekly_wrap_up_stats: {
         Args: { p_days?: number };
