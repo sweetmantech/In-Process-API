@@ -83,12 +83,12 @@ describe('registerOnCollectionsLoadMore', () => {
     expect(selectCollections).not.toHaveBeenCalled();
   });
 
-  it('posts an empty card when the page has no collections', async () => {
+  it('does not post when the page has no collections', async () => {
     const { bot, handler } = makeBot();
     registerOnCollectionsLoadMore(bot as never);
     const event = makeEvent();
     await handler.fn(event);
-    expect(event.thread?.post).toHaveBeenCalledWith(Card({ children: [] }));
+    expect(event.thread?.post).not.toHaveBeenCalled();
   });
 
   it('posts a card with collection buttons for the requested page', async () => {
@@ -111,6 +111,7 @@ describe('registerOnCollectionsLoadMore', () => {
     });
     expect(event.thread?.post).toHaveBeenCalledWith(
       Card({
+        title: 'Select a collection',
         children: [
           Actions([
             Button({
@@ -138,6 +139,7 @@ describe('registerOnCollectionsLoadMore', () => {
 
     expect(event.thread?.post).toHaveBeenCalledWith(
       Card({
+        title: 'Select a collection',
         children: [
           Actions([
             Button({

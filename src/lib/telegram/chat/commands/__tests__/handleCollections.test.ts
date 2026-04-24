@@ -40,6 +40,7 @@ describe('handleCollections', () => {
       artists: [ARTIST_ADDRESS],
       limit: 20,
       chainId: CHAIN_ID,
+      page: 1,
     });
     expect(thread.post).toHaveBeenCalledWith(
       "You don't have any collections yet."
