@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase/client';
 import sendNudge from '@/lib/nudges/sendNudge';
 
 const nudgesHandler = async () => {
-  const { data: targets, error } = await supabase.rpc('get_daily_nudges');
+  const { data: targets, error } = await supabase.rpc('get_nudges');
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
