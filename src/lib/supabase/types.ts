@@ -34,6 +34,27 @@ export type Database = {
   };
   public: {
     Tables: {
+      account_notifications: {
+        Row: {
+          artist_address: string;
+          notify_enabled: boolean;
+          nudge_enabled: boolean;
+          nudge_period: number;
+        };
+        Insert: {
+          artist_address: string;
+          notify_enabled?: boolean;
+          nudge_enabled?: boolean;
+          nudge_period?: number;
+        };
+        Update: {
+          artist_address?: string;
+          notify_enabled?: boolean;
+          nudge_enabled?: boolean;
+          nudge_period?: number;
+        };
+        Relationships: [];
+      };
       in_process_admins: {
         Row: {
           artist_address: string;
