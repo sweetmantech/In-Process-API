@@ -14,7 +14,7 @@ const commandsHandler = async (
   artist: Tables<'in_process_artists'> | null
 ): Promise<boolean> => {
   if (!artist) {
-    await handleWelcome(thread, text);
+    await handleWelcome(thread);
     return true;
   }
 

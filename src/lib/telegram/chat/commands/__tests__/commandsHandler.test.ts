@@ -49,7 +49,7 @@ describe('commandsHandler', () => {
         null
       );
 
-      expect(handleWelcome).toHaveBeenCalledWith(thread, 'hello');
+      expect(handleWelcome).toHaveBeenCalledWith(thread);
       expect(result).toBe(true);
     });
 

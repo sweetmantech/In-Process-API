@@ -137,20 +137,13 @@ describe('registerOnNewMention', () => {
       );
     });
 
-    it('logs the user message and the assistant welcome reply', async () => {
+    it('logs the welcome reply as assistant', async () => {
       const { invoke } = setup();
       const thread = makeThread();
 
       await invoke(thread, makeMessage({ text: 'hello' }));
 
-      expect(logMessage).toHaveBeenCalledTimes(2);
-      expect(logMessage).toHaveBeenCalledWith(
-        expect.any(Array),
-        'user',
-        CHANNEL_ID,
-        undefined,
-        'telegram'
-      );
+      expect(logMessage).toHaveBeenCalledTimes(1);
       expect(logMessage).toHaveBeenCalledWith(
         expect.any(Array),
         'assistant',

@@ -20,28 +20,15 @@ beforeEach(() => {
 describe('handleWelcome', () => {
   it('posts a message containing the manage link', async () => {
     const thread = makeThread();
-    await handleWelcome(thread as never, 'hello');
+    await handleWelcome(thread as never);
     expect(thread.post).toHaveBeenCalledWith(
       expect.stringContaining('inprocess.world/manage')
     );
   });
 
-  it('logs the original user message as role "user"', async () => {
-    const thread = makeThread();
-    await handleWelcome(thread as never, 'hello there');
-
-    expect(logMessage).toHaveBeenCalledWith(
-      [{ type: 'text', text: 'hello there' }],
-      'user',
-      ROOM_ID,
-      undefined,
-      'telegram'
-    );
-  });
-
   it('logs the welcome reply as role "assistant"', async () => {
     const thread = makeThread();
-    await handleWelcome(thread as never, 'hello');
+    await handleWelcome(thread as never);
 
     expect(logMessage).toHaveBeenCalledWith(
       expect.any(Array),
@@ -52,9 +39,9 @@ describe('handleWelcome', () => {
     );
   });
 
-  it('logs exactly twice (user + assistant)', async () => {
+  it('logs exactly once (assistant only)', async () => {
     const thread = makeThread();
-    await handleWelcome(thread as never, 'hey');
-    expect(logMessage).toHaveBeenCalledTimes(2);
+    await handleWelcome(thread as never);
+    expect(logMessage).toHaveBeenCalledTimes(1);
   });
 });
