@@ -6,6 +6,7 @@ import handleWelcome from './handleWelcome';
 import handleStart from './handleStart';
 import handleRemind from './handleRemind';
 import handleNotify from './handleNotify';
+import handleCollections from './handleCollections';
 
 const commandsHandler = async (
   text: string,
@@ -34,6 +35,9 @@ const commandsHandler = async (
       return true;
     case '/notify':
       await handleNotify(thread, artistAddress);
+      return true;
+    case '/collections':
+      await handleCollections(thread, artistAddress);
       return true;
     default:
       return false;

@@ -5,6 +5,9 @@ import { registerOnNewMention } from '../onNewMention';
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+  default: vi.fn().mockResolvedValue({ data: [], count: 0, error: null }),
+}));
 vi.mock(
   '@/lib/supabase/account_notifications/selectAccountNotification',
   () => ({
