@@ -31,7 +31,7 @@ const makeThread = () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(selectAccountNotification).mockResolvedValue({
-    data: { notify_enabled: false, nudge_enabled: false, nudge_period: 1 },
+    data: { notify_enabled: false, nudge_period: null },
     error: null,
   } as never);
   vi.mocked(upsertAccountNotification).mockResolvedValue({
@@ -41,20 +41,20 @@ beforeEach(() => {
 });
 
 describe('handleRemind', () => {
-  describe('when nudge_enabled is currently true', () => {
+  describe('when nudge_period is currently set (nudge enabled)', () => {
     beforeEach(() => {
       vi.mocked(selectAccountNotification).mockResolvedValue({
-        data: { notify_enabled: false, nudge_enabled: true, nudge_period: 1 },
+        data: { notify_enabled: false, nudge_period: 1 },
         error: null,
       } as never);
     });
 
-    it('updates nudge_enabled to false', async () => {
+    it('sets nudge_period to null', async () => {
       await handleRemind(makeThread() as never, ARTIST_ADDRESS);
       expect(upsertAccountNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           artist_address: ARTIST_ADDRESS,
-          nudge_enabled: false,
+          nudge_period: null,
         })
       );
     });
@@ -74,13 +74,13 @@ describe('handleRemind', () => {
     });
   });
 
-  describe('when nudge_enabled is currently false', () => {
-    it('updates nudge_enabled to true', async () => {
+  describe('when nudge_period is null (nudge disabled)', () => {
+    it('sets nudge_period to 3 (default)', async () => {
       await handleRemind(makeThread() as never, ARTIST_ADDRESS);
       expect(upsertAccountNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           artist_address: ARTIST_ADDRESS,
-          nudge_enabled: true,
+          nudge_period: 3,
         })
       );
     });

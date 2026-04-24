@@ -15,14 +15,14 @@ const handleRemind = async (
     await selectAccountNotification(artistAddress);
   if (fetchError) throw fetchError;
 
-  const enabled = !(data?.nudge_enabled ?? false);
+  const disabled = data?.nudge_period == null;
   const { error } = await upsertAccountNotification({
     artist_address: artistAddress,
-    nudge_enabled: enabled,
+    nudge_period: disabled ? 3 : null,
   });
   if (error) throw error;
 
-  const text = enabled
+  const text = disabled
     ? "🔔 Nudges are now ON. I'll remind you if you haven't posted in 3 or more days.\nWould you like to change how many days I wait before nudging?"
     : '🔕 Nudges are now OFF. You can turn them back on anytime with /remind.';
 
@@ -34,7 +34,7 @@ const handleRemind = async (
     'telegram'
   );
 
-  if (enabled) {
+  if (disabled) {
     await thread.post(
       Card({
         title: text,
