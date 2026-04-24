@@ -1,6 +1,6 @@
 import { supabase } from '../client';
 
-const selectMessages = async ({
+const selectMessageMetadatas = async ({
   messageId,
   artistAddress,
   moment,
@@ -43,4 +43,4 @@ const selectMessages = async ({
   return { data, error, count };
 };
 
-export default selectMessages;
+export default selectMessageMetadatas;

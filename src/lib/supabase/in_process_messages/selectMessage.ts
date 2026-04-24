@@ -5,7 +5,7 @@ import type { PostgrestError } from '@supabase/supabase-js';
  * Latest non-empty Telegram `chat_id` for an artist, by `in_process_message_metadata.created_at`
  * (same intent as the `latest_chats` CTE in nudges / wrap-up).
  */
-const selectChatMessage = async (
+const selectMessage = async (
   artistAddress: string
 ): Promise<{
   error: PostgrestError | null;
@@ -38,4 +38,4 @@ const selectChatMessage = async (
   return { error: null, data };
 };
 
-export default selectChatMessage;
+export default selectMessage;
