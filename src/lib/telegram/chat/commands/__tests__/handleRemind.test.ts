@@ -85,18 +85,14 @@ describe('handleRemind', () => {
       );
     });
 
-    it('posts the ON confirmation with 🔔', async () => {
+    it('posts a period selection card with 🔔 title and 3 buttons', async () => {
       const thread = makeThread();
       await handleRemind(thread as never, ARTIST_ADDRESS);
-      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('🔔'));
-    });
-
-    it('posts a period selection card with 3 buttons after the ON confirmation', async () => {
-      const thread = makeThread();
-      await handleRemind(thread as never, ARTIST_ADDRESS);
-      const cardArg = thread.post.mock.calls[1]?.[0];
+      expect(thread.post).toHaveBeenCalledTimes(1);
+      const cardArg = thread.post.mock.calls[0]?.[0];
       expect(cardArg).toMatchObject({
         type: 'card',
+        title: expect.stringContaining('🔔'),
         children: [
           {
             type: 'actions',

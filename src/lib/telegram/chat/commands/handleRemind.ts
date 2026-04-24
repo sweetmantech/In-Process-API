@@ -26,7 +26,7 @@ const handleRemind = async (
   const text = enabled
     ? '🔔 Nudges are now ON. How often would you like to be reminded?'
     : '🔕 Nudges are now OFF. You can turn them back on anytime with /remind.';
-  await thread.post(text);
+
   await logMessage(
     [{ type: 'text', text }],
     'assistant',
@@ -38,7 +38,7 @@ const handleRemind = async (
   if (enabled) {
     await thread.post(
       Card({
-        title: 'How often would you like to be reminded?',
+        title: text,
         children: [
           Actions([
             Button({
@@ -60,7 +60,9 @@ const handleRemind = async (
         ],
       })
     );
+    return;
   }
+  await thread.post(text);
 };
 
 export default handleRemind;

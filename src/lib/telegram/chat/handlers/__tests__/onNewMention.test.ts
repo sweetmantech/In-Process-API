@@ -227,7 +227,9 @@ describe('registerOnNewMention', () => {
           nudge_enabled: true,
         })
       );
-      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('🔔'));
+      expect(thread.post).toHaveBeenCalledWith(
+        expect.objectContaining({ title: expect.stringContaining('🔔') })
+      );
     });
 
     it('logs the remind response as assistant', async () => {
