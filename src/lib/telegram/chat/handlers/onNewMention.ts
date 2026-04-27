@@ -8,10 +8,8 @@ import processMediaThread from '../processMediaThread';
 import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
 import replyAfterSuccess from '../replyAfterSuccess';
 import youtubeParser from '@/lib/link/youtubeParser';
-import {
-  clearSelectedCollectionAddress,
-  getSelectedCollectionAddress,
-} from '../selectedCollectionState';
+import clearSelectedCollectionAddress from '../clearSelectedCollectionAddress';
+import getSelectedCollectionAddress from '../getSelectedCollectionAddress';
 
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;

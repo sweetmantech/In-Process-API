@@ -6,10 +6,8 @@ import { createMoment } from '@/lib/moment/createMoment';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
 import type { TelegramThreadState } from './telegramThreadState';
-import {
-  clearSelectedCollectionAddress,
-  getSelectedCollectionAddress,
-} from './selectedCollectionState';
+import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
+import getSelectedCollectionAddress from './getSelectedCollectionAddress';
 
 const processSingleMedia = async (
   thread: Thread<TelegramThreadState>,

@@ -6,10 +6,8 @@ import uploadAndLogAttachment from './uploadAndLogAttachment';
 import createMoments from '@/lib/moment/createMoments';
 import replyAfterSuccess from './replyAfterSuccess';
 import type { PendingMediaGroupAsset } from '@/types/telegram';
-import {
-  clearSelectedCollectionAddress,
-  getSelectedCollectionAddress,
-} from './selectedCollectionState';
+import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
+import getSelectedCollectionAddress from './getSelectedCollectionAddress';
 
 const createMomentsFromGroup = async (
   thread: Thread<TelegramThreadState>,

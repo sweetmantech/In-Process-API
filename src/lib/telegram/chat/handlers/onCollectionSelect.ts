@@ -4,7 +4,7 @@ import type { TelegramChatBot } from '../bot';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { COLLECTION_SELECT_ACTION_ID } from '../consts';
 import type { TelegramThreadState } from '../telegramThreadState';
-import { setSelectedCollectionAddress } from '../selectedCollectionState';
+import setSelectedCollectionAddress from '../setSelectedCollectionAddress';
 
 export function registerOnCollectionSelect(bot: TelegramChatBot) {
   bot.onAction(COLLECTION_SELECT_ACTION_ID, async (event) => {
