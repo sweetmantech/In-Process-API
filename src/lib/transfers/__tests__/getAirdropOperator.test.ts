@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getAddress } from 'viem';
 import { getPublicClient } from '@/lib/viem/publicClient';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import getCoinbaseAddressOwner from '@/lib/smartwallets/getCoinbaseAddressOwner';
 import isCoinbaseSmartWallet from '@/lib/smartwallets/isCoinbaseSmartWallet';
 import getAirdropOperator from '../getAirdropOperator';
 
@@ -31,16 +30,12 @@ vi.mock('@/lib/viem/publicClient', () => ({
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/smartwallets/getCoinbaseAddressOwner', () => ({
-  default: vi.fn(),
-}));
 vi.mock('@/lib/smartwallets/isCoinbaseSmartWallet', () => ({
   default: vi.fn(),
 }));
 
 const mockGetPublicClient = vi.mocked(getPublicClient);
 const mockSelectArtists = vi.mocked(selectArtists);
-const mockGetOwner = vi.mocked(getCoinbaseAddressOwner);
 const mockIsCb = vi.mocked(isCoinbaseSmartWallet);
 
 describe('getAirdropOperator', () => {
@@ -129,28 +124,30 @@ describe('getAirdropOperator', () => {
     });
   });
 
-  it('returns empty address and null username when no artist and no Coinbase owner', async () => {
+  it('throws when artist is not in DB (not a Coinbase smart wallet path)', async () => {
     mockIsCb.mockResolvedValue(false);
     mockSelectArtists.mockResolvedValue({ data: null } as never);
-    mockGetOwner.mockResolvedValue(null);
 
-    const result = await getAirdropOperator(hash, chainId);
-
-    expect(result).toEqual({ address: '', username: null });
+    await expect(getAirdropOperator(hash, chainId)).rejects.toThrow(
+      'Airdrop operator not found'
+    );
   });
 
-  it('returns Coinbase EOA owner when artist is not in DB', async () => {
+  it('throws when artist is not in DB (Coinbase smart wallet path)', async () => {
     mockIsCb.mockResolvedValue(true);
     mockSelectArtists.mockResolvedValue({ data: null } as never);
-    mockGetOwner.mockResolvedValue(
-      '0x6666666666666666666666666666666666666666'
+
+    await expect(getAirdropOperator(hash, chainId)).rejects.toThrow(
+      'Airdrop operator not found'
     );
+  });
 
-    const result = await getAirdropOperator(hash, chainId);
+  it('throws when selectArtists returns an empty list', async () => {
+    mockIsCb.mockResolvedValue(false);
+    mockSelectArtists.mockResolvedValue({ data: [] } as never);
 
-    expect(result).toEqual({
-      address: '0x6666666666666666666666666666666666666666',
-      username: null,
-    });
+    await expect(getAirdropOperator(hash, chainId)).rejects.toThrow(
+      'Airdrop operator not found'
+    );
   });
 });

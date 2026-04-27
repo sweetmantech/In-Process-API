@@ -1,7 +1,6 @@
 import { getAddress, type Hex } from 'viem';
 import { getPublicClient } from '@/lib/viem/publicClient';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import getCoinbaseAddressOwner from '@/lib/smartwallets/getCoinbaseAddressOwner';
 import isCoinbaseSmartWallet from '@/lib/smartwallets/isCoinbaseSmartWallet';
 
 const TRANSFER_SINGLE_TOPIC =
@@ -29,19 +28,13 @@ const getAirdropOperator = async (
     address: isCb ? undefined : address,
   });
 
-  if (artists) {
+  if (artists?.length) {
     return {
       address: artists[0].address,
       username: artists[0].username,
     };
   }
-
-  const ownerAddress = await getCoinbaseAddressOwner(address, chainId);
-
-  return {
-    address: ownerAddress?.toLowerCase() ?? '',
-    username: null,
-  };
+  throw new Error('Airdrop operator not found');
 };
 
 export default getAirdropOperator;

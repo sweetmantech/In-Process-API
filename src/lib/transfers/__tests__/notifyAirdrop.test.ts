@@ -134,14 +134,20 @@ describe('notifyAirdrop', () => {
     expect(mockLog).not.toHaveBeenCalled();
   });
 
-  it('does not send when getAirdropOperator returns empty address', async () => {
-    mockGetAirdropOperator.mockResolvedValue({
-      address: '',
-      username: 'someone',
-    });
-    await notifyAirdrop([transfer()]);
+  it('logs and does not send when getAirdropOperator throws (e.g. operator not found)', async () => {
+    mockGetAirdropOperator.mockRejectedValue(
+      new Error('Airdrop operator not found')
+    );
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
+    await notifyAirdrop([transfer({ id: 'e-noop' })]);
+
+    expect(errSpy).toHaveBeenCalledWith(
+      '❌ notifyAirdrop failed (recipient 0xrecipient00000000000000000000000000dead, transfer e-noop):',
+      'Airdrop operator not found'
+    );
     expect(mockSend).not.toHaveBeenCalled();
+    errSpy.mockRestore();
   });
 
   it('sends two messages for two airdrops to the same recipient', async () => {
