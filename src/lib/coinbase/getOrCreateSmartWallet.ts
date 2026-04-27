@@ -20,11 +20,11 @@ export async function getOrCreateSmartWallet({
   const { data: artists } = await selectArtists({
     address,
   });
-  if (artists?.[0]?.smart_wallet !== evmAccount.address.toLowerCase()) {
+  if (artists?.[0]?.smart_wallet !== smartAccount.address.toLowerCase()) {
     await upsertArtists([
       {
         address,
-        smart_wallet: evmAccount.address,
+        smart_wallet: smartAccount.address,
       },
     ]);
   }
