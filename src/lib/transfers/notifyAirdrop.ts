@@ -5,6 +5,7 @@ import type { Transfers_t } from '@/types/envio';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from './getAirdropOperator';
 import type { Hex } from 'viem';
+import truncateAddress from '@/lib/truncateAddress';
 
 /** One Telegram per airdrop transfer in `batch` (`value` and `currency` not both set). */
 const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
@@ -23,7 +24,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
       );
 
       if (!address && !username) continue;
-      const text = `${username || address.slice(0, 6)}... airdropped a moment on In Process. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
+      const text = `${username || truncateAddress(address)} airdropped a moment on In Process. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
 
       await telegramChatBotClient.sendMessage(chatId, text);
       await logMessage(

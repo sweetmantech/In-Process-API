@@ -103,7 +103,7 @@ describe('notifyAirdrop', () => {
       '0xrecipient00000000000000000000000000dead'
     );
     const expectedText =
-      'airdropper... airdropped a moment on In Process. \n\n' +
+      'airdropper airdropped a moment on In Process. \n\n' +
       'https://inprocess.test/collect/base:0xabc/7';
     expect(mockSend).toHaveBeenCalledTimes(1);
     expect(mockSend).toHaveBeenCalledWith('chat-1', expectedText);
@@ -134,7 +134,7 @@ describe('notifyAirdrop', () => {
 
     expect(mockGetAirdropOperator).toHaveBeenCalled();
     const expectedText =
-      '0x1111... airdropped a moment on In Process. \n\n' +
+      '0x1111…1111 airdropped a moment on In Process. \n\n' +
       'https://inprocess.test/collect/base:0xabc/7';
     expect(mockSend).toHaveBeenCalledWith('chat-1', expectedText);
     expect(mockLog).toHaveBeenCalledWith(
