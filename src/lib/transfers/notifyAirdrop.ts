@@ -23,7 +23,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
         t.collection
       );
 
-      if (!address && !username) continue;
+      if ((!address && !username) || address === recipient) continue;
       const text = `${username || truncateAddress(address)} airdropped a moment on In Process. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
 
       await telegramChatBotClient.sendMessage(chatId, text);
