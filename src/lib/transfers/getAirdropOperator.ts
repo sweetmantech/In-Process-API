@@ -24,13 +24,11 @@ const getAirdropOperator = async (
   const address = getAddress(`0x${log.topics[1].slice(-40)}`);
   const isCb = await isCoinbaseSmartWallet(address, chainId);
 
-  console.log('isCb', isCb, address);
   const { data: artists } = await selectArtists({
     smart_wallet: isCb ? address : undefined,
     address: isCb ? undefined : address,
   });
 
-  console.log('artists', artists);
   if (artists) {
     return {
       address: artists[0].address,
