@@ -8,6 +8,10 @@ import processMediaThread from '../processMediaThread';
 import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
 import replyAfterSuccess from '../replyAfterSuccess';
 import youtubeParser from '@/lib/link/youtubeParser';
+import {
+  clearSelectedCollectionAddress,
+  getSelectedCollectionAddress,
+} from '../selectedCollectionState';
 
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
@@ -54,6 +58,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
 
       const youtubeUrl = text.match(YOUTUBE_URL_REGEX)?.[0];
       if (youtubeUrl && youtubeParser(youtubeUrl)) {
+        const selectedCollection = await getSelectedCollectionAddress(thread);
         await thread.post(
           '⏳ In Process will post your moment. Please wait a few seconds...'
         );
@@ -61,8 +66,12 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         const { contractAddress, tokenId } = await createMomentFromYoutubeLink(
           youtubeUrl,
           artistAddress,
-          chatId
+          chatId,
+          selectedCollection ?? undefined
         );
+        if (selectedCollection) {
+          await clearSelectedCollectionAddress(thread);
+        }
         await replyAfterSuccess(
           thread,
           contractAddress,

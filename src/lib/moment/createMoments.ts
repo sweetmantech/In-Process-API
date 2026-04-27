@@ -20,6 +20,7 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import resolvePayoutRecipient from './resolvePayoutRecipient';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import parseMomentsTransaction from './parseMomentsTransaction';
+import parseSetupNewTokenEventsOnContract from './parseSetupNewTokenEventsOnContract';
 import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 import processMessageMoment from './processMessageMoment';
 
@@ -32,9 +33,12 @@ const createMoments = async (
   inputs: MomentInput[],
   artistAddress: Address,
   channel?: 'sms' | 'telegram' | 'web' | 'api',
-  ctx?: { chatId?: string }
+  ctx?: { chatId?: string; existingCollectionAddress?: Address }
 ): Promise<{ contractAddress: Address; tokenId: string }[]> => {
   if (inputs.length === 0) return [];
+
+  const existingCollection = ctx?.existingCollectionAddress;
+  const useExisting = !!existingCollection;
 
   const smartAccount = await getOrCreateSmartWallet({ address: artistAddress });
   const resolvedSplits = await resolveSplitAddresses([]);
@@ -46,13 +50,15 @@ const createMoments = async (
   const additionalSetupActions = await buildAdditionalSetupActions({
     resolvedSplits,
     smartAccountAddress: smartAccount.address,
-    hasExistingContract: false,
+    hasExistingContract: useExisting,
   });
 
   const allParameters = await Promise.all(
     inputs.map(({ uri, name }) =>
       create1155({
-        contract: { name, uri },
+        contract: useExisting
+          ? { address: existingCollection! }
+          : { name, uri },
         token: {
           tokenMetadataURI: uri,
           createReferral: REFERRAL_RECIPIENT as Address,
@@ -93,7 +99,9 @@ const createMoments = async (
     calls,
   });
 
-  const results = parseMomentsTransaction(transaction.logs);
+  const results = useExisting
+    ? parseSetupNewTokenEventsOnContract(transaction.logs, existingCollection!)
+    : parseMomentsTransaction(transaction.logs);
   const resultByUri = new Map(results.map((r) => [r.uri, r]));
 
   const matched = inputs.flatMap(({ uri }) => {

@@ -44,6 +44,11 @@ const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
   startTyping: vi.fn().mockResolvedValue(undefined),
   channelId: CHANNEL_ID,
+  _stateAdapter: {
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue(undefined),
+    delete: vi.fn().mockResolvedValue(undefined),
+  },
 });
 
 const makeMessage = (
@@ -322,7 +327,8 @@ describe('registerOnNewMention', () => {
       expect(createMomentFromYoutubeLink).toHaveBeenCalledWith(
         YOUTUBE_URL,
         ARTIST_ADDRESS,
-        CHANNEL_ID
+        CHANNEL_ID,
+        undefined
       );
     });
 

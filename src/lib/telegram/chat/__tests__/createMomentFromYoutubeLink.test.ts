@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Address } from 'viem';
+import { getAddress, type Address } from 'viem';
 import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
 
 vi.mock('@/lib/link/getYoutubeDetail', () => ({ default: vi.fn() }));
@@ -148,5 +148,20 @@ describe('createMomentFromYoutubeLink', () => {
     );
 
     expect(result).toEqual(MOMENT_RESULT);
+  });
+
+  it('mints to an existing collection when existingCollectionAddress is provided', async () => {
+    const collection = '0x0000000000000000000000000000000000000002' as Address;
+
+    await createMomentFromYoutubeLink(
+      YOUTUBE_URL,
+      ARTIST_ADDRESS,
+      undefined,
+      collection
+    );
+
+    const call = vi.mocked(createMoment).mock.calls[0][0];
+    expect(call.contract).toEqual({ address: getAddress(collection) });
+    expect(call.token.tokenMetadataURI).toBe('ar://metadata-hash');
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Address } from 'viem';
+import { getAddress, type Address } from 'viem';
 import createMomentsFromGroup from '../createMomentsFromGroup';
 
 vi.mock('../fetchTelegramFile', () => ({ default: vi.fn() }));
@@ -44,6 +44,8 @@ const MOMENT_2 = { contractAddress: '0xC2' as Address, tokenId: '2' };
 
 const makeStateAdapter = (assets: unknown[] = []) => ({
   getList: vi.fn().mockResolvedValue(assets),
+  get: vi.fn().mockResolvedValue(null),
+  delete: vi.fn().mockResolvedValue(undefined),
 });
 
 const CHANNEL_ID = 'chat-xyz';
@@ -123,6 +125,31 @@ describe('createMomentsFromGroup', () => {
       ARTIST_ADDRESS,
       'telegram',
       { chatId: CHANNEL_ID }
+    );
+  });
+
+  it('passes existingCollectionAddress and clears selection when a collection was selected', async () => {
+    const collection = '0x0000000000000000000000000000000000000003' as Address;
+    const stateAdapter = {
+      getList: vi.fn().mockResolvedValue([PENDING_IMAGE]),
+      get: vi.fn().mockResolvedValue(collection),
+      delete: vi.fn().mockResolvedValue(undefined),
+    };
+    const thread = makeThread(stateAdapter);
+
+    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
+
+    expect(createMoments).toHaveBeenCalledWith(
+      [{ uri: UPLOAD_RESULT_1.uri, name: PENDING_IMAGE.name }],
+      ARTIST_ADDRESS,
+      'telegram',
+      {
+        chatId: CHANNEL_ID,
+        existingCollectionAddress: getAddress(collection),
+      }
+    );
+    expect(stateAdapter.delete).toHaveBeenCalledWith(
+      'selected_collection_address'
     );
   });
 

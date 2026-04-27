@@ -6,6 +6,10 @@ import uploadAndLogAttachment from './uploadAndLogAttachment';
 import createMoments from '@/lib/moment/createMoments';
 import replyAfterSuccess from './replyAfterSuccess';
 import type { PendingMediaGroupAsset } from '@/types/telegram';
+import {
+  clearSelectedCollectionAddress,
+  getSelectedCollectionAddress,
+} from './selectedCollectionState';
 
 const createMomentsFromGroup = async (
   thread: Thread<TelegramThreadState>,
@@ -19,6 +23,8 @@ const createMomentsFromGroup = async (
   )) as PendingMediaGroupAsset[];
 
   if (pending.length === 0) return;
+
+  const selectedCollection = await getSelectedCollectionAddress(thread);
 
   await thread.startTyping();
   const typingInterval = setInterval(() => void thread.startTyping(), 4000);
@@ -48,7 +54,13 @@ const createMomentsFromGroup = async (
     }));
     const results = await createMoments(inputs, artistAddress, 'telegram', {
       chatId: thread.channelId,
+      ...(selectedCollection && {
+        existingCollectionAddress: selectedCollection,
+      }),
     });
+    if (selectedCollection) {
+      await clearSelectedCollectionAddress(thread);
+    }
     await Promise.all(
       results.map(({ contractAddress, tokenId }, i) =>
         replyAfterSuccess(
