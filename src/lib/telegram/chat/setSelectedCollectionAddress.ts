@@ -1,8 +1,7 @@
 import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from './telegramThreadState';
-import {
-  getStateAdapter,
+import getStateAdapter, {
   TELEGRAM_SELECTED_COLLECTION_KEY,
 } from './stateAdapter';
 

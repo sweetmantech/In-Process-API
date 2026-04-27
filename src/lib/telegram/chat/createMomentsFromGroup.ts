@@ -8,14 +8,14 @@ import replyAfterSuccess from './replyAfterSuccess';
 import type { PendingMediaGroupAsset } from '@/types/telegram';
 import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
 import getSelectedCollectionAddress from './getSelectedCollectionAddress';
+import getStateAdapter from './stateAdapter';
 
 const createMomentsFromGroup = async (
   thread: Thread<TelegramThreadState>,
   mediaGroupId: string,
   artistAddress: Address
 ): Promise<void> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const stateAdapter = (thread as any)._stateAdapter;
+  const stateAdapter = getStateAdapter(thread);
   const pending = (await stateAdapter.getList(
     `media_group_assets:${mediaGroupId}`
   )) as PendingMediaGroupAsset[];
