@@ -121,14 +121,34 @@ describe('notifyAirdrop', () => {
     expect(mockLog).not.toHaveBeenCalled();
   });
 
-  it('does not send when getAirdropOperator returns no username', async () => {
+  it('sends with address prefix when username is null', async () => {
     mockGetAirdropOperator.mockResolvedValue({
       address: '0x1111111111111111111111111111111111111111',
       username: null,
     });
     await notifyAirdrop([transfer()]);
 
-    expect(mockSelectMessage).toHaveBeenCalled();
+    expect(mockGetAirdropOperator).toHaveBeenCalled();
+    const expectedText =
+      '0x1111... airdropped a moment on In Process. \n\n' +
+      'https://inprocess.test/collect/base:0xabc/7';
+    expect(mockSend).toHaveBeenCalledWith('chat-1', expectedText);
+    expect(mockLog).toHaveBeenCalledWith(
+      [{ type: 'text', text: expectedText }],
+      'assistant',
+      'chat-1',
+      '0xrecipient00000000000000000000000000dead',
+      'telegram'
+    );
+  });
+
+  it('does not send when getAirdropOperator returns neither address nor username', async () => {
+    mockGetAirdropOperator.mockResolvedValue({
+      address: '',
+      username: null,
+    });
+    await notifyAirdrop([transfer()]);
+
     expect(mockGetAirdropOperator).toHaveBeenCalled();
     expect(mockSend).not.toHaveBeenCalled();
     expect(mockLog).not.toHaveBeenCalled();
