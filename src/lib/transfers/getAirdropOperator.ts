@@ -31,7 +31,7 @@ const getAirdropOperator = async (
   });
 
   console.log('artists', artists);
-  if (artists) {
+  if (artists && artists.length > 0) {
     return {
       address: artists[0].address,
       username: artists[0].username,
