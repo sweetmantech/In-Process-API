@@ -18,7 +18,8 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
 
       const { address, username } = await getAirdropOperator(
         t.transaction_hash as Hex,
-        t.chain_id
+        t.chain_id,
+        t.collection
       );
 
       if (!address && !username) continue;

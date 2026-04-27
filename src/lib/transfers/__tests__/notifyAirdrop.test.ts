@@ -94,7 +94,11 @@ describe('notifyAirdrop', () => {
     const t = transfer();
     await notifyAirdrop([t]);
 
-    expect(mockGetAirdropOperator).toHaveBeenCalledWith('0xtx1', 8453);
+    expect(mockGetAirdropOperator).toHaveBeenCalledWith(
+      '0xtx1',
+      8453,
+      t.collection
+    );
     expect(mockSelectMessage).toHaveBeenCalledWith(
       '0xrecipient00000000000000000000000000dead'
     );
