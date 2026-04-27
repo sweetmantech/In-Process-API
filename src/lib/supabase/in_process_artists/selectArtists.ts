@@ -2,7 +2,6 @@ import { supabase } from '@/lib/supabase/client';
 
 const selectArtists = async ({
   address,
-  smart_wallet,
   telegram_username,
   q,
   type = 'human',
@@ -10,7 +9,6 @@ const selectArtists = async ({
   page = 1,
 }: {
   address?: string;
-  smart_wallet?: string;
   telegram_username?: string;
   q?: string;
   type?: 'human' | 'bot';
@@ -23,10 +21,6 @@ const selectArtists = async ({
 
   if (address) {
     return query.eq('address', address.toLowerCase()).limit(1);
-  }
-
-  if (smart_wallet) {
-    return query.eq('smart_wallet', smart_wallet.toLowerCase()).limit(1);
   }
 
   if (telegram_username) {
