@@ -40,7 +40,6 @@ const getAirdropOperator = async (
 
   const ownerAddress = await getCoinbaseAddressOwner(address, chainId);
 
-  console.log('ownerAddress', ownerAddress, transactionHash);
   return {
     address: ownerAddress?.toLowerCase() ?? '',
     username: null,
