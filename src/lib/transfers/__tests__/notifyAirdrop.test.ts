@@ -17,15 +17,20 @@ vi.mock('@/lib/telegram/client', () => ({
 vi.mock('@/lib/messages/logMessage', () => ({
   logMessage: vi.fn(),
 }));
+vi.mock('../getAirdropOperator', () => ({
+  default: vi.fn(),
+}));
 import { logMessage } from '@/lib/messages/logMessage';
 import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import type { Transfers_t } from '@/types/envio';
+import getAirdropOperator from '../getAirdropOperator';
 import notifyAirdrop from '../notifyAirdrop';
 
 const mockSelectMessage = vi.mocked(selectMessage);
 const mockSend = vi.mocked(telegramChatBotClient.sendMessage);
 const mockLog = vi.mocked(logMessage);
+const mockGetAirdropOperator = vi.mocked(getAirdropOperator);
 
 const USDC = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as const;
 
@@ -46,6 +51,10 @@ const transfer = (over: Partial<Transfers_t> = {}): Transfers_t => ({
 describe('notifyAirdrop', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetAirdropOperator.mockResolvedValue({
+      address: '0x9999999999999999999999999999999999999999',
+      username: 'airdropper',
+    });
     mockSelectMessage.mockResolvedValue({
       error: null,
       data: {
@@ -85,11 +94,12 @@ describe('notifyAirdrop', () => {
     const t = transfer();
     await notifyAirdrop([t]);
 
+    expect(mockGetAirdropOperator).toHaveBeenCalledWith('0xtx1', 8453);
     expect(mockSelectMessage).toHaveBeenCalledWith(
       '0xrecipient00000000000000000000000000dead'
     );
     const expectedText =
-      'You were airdropped a moment on In Process. \n\n' +
+      'airdropper... airdropped a moment on In Process. \n\n' +
       'https://inprocess.test/collect/base:0xabc/7';
     expect(mockSend).toHaveBeenCalledTimes(1);
     expect(mockSend).toHaveBeenCalledWith('chat-1', expectedText);
@@ -106,8 +116,58 @@ describe('notifyAirdrop', () => {
     mockSelectMessage.mockResolvedValue({ error: null, data: null });
     await notifyAirdrop([transfer()]);
 
+    expect(mockGetAirdropOperator).not.toHaveBeenCalled();
     expect(mockSend).not.toHaveBeenCalled();
     expect(mockLog).not.toHaveBeenCalled();
+  });
+
+  it('sends with address prefix when username is null', async () => {
+    mockGetAirdropOperator.mockResolvedValue({
+      address: '0x1111111111111111111111111111111111111111',
+      username: null,
+    });
+    await notifyAirdrop([transfer()]);
+
+    expect(mockGetAirdropOperator).toHaveBeenCalled();
+    const expectedText =
+      '0x1111... airdropped a moment on In Process. \n\n' +
+      'https://inprocess.test/collect/base:0xabc/7';
+    expect(mockSend).toHaveBeenCalledWith('chat-1', expectedText);
+    expect(mockLog).toHaveBeenCalledWith(
+      [{ type: 'text', text: expectedText }],
+      'assistant',
+      'chat-1',
+      '0xrecipient00000000000000000000000000dead',
+      'telegram'
+    );
+  });
+
+  it('does not send when getAirdropOperator returns neither address nor username', async () => {
+    mockGetAirdropOperator.mockResolvedValue({
+      address: '',
+      username: null,
+    });
+    await notifyAirdrop([transfer()]);
+
+    expect(mockGetAirdropOperator).toHaveBeenCalled();
+    expect(mockSend).not.toHaveBeenCalled();
+    expect(mockLog).not.toHaveBeenCalled();
+  });
+
+  it('logs and does not send when getAirdropOperator throws (e.g. operator not found)', async () => {
+    mockGetAirdropOperator.mockRejectedValue(
+      new Error('Airdrop operator not found')
+    );
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await notifyAirdrop([transfer({ id: 'e-noop' })]);
+
+    expect(errSpy).toHaveBeenCalledWith(
+      '❌ notifyAirdrop failed (recipient 0xrecipient00000000000000000000000000dead, transfer e-noop):',
+      'Airdrop operator not found'
+    );
+    expect(mockSend).not.toHaveBeenCalled();
+    errSpy.mockRestore();
   });
 
   it('sends two messages for two airdrops to the same recipient', async () => {
