@@ -21,9 +21,10 @@ const processSingleMedia = async (
     '⏳ In Process will post your moment. Please wait a few seconds...'
   );
   await thread.startTyping();
-  const typingInterval = setInterval(() => void thread.startTyping(), 4000);
-  const selectedCollection = await getSelectedCollectionAddress(thread);
+  let typingInterval: ReturnType<typeof setInterval> | undefined;
   try {
+    const selectedCollection = await getSelectedCollectionAddress(thread);
+    typingInterval = setInterval(() => void thread.startTyping(), 4000);
     const uploaded = await uploadAndLogAttachment(
       attachment,
       fileId,
@@ -68,7 +69,9 @@ const processSingleMedia = async (
       artistAddress
     );
   } finally {
-    clearInterval(typingInterval);
+    if (typingInterval !== undefined) {
+      clearInterval(typingInterval);
+    }
   }
 };
 
