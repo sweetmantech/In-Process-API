@@ -9,7 +9,8 @@ import { MomentType } from '@/types/moment';
 const createMomentFromYoutubeLink = async (
   url: string,
   artistAddress: Address,
-  chatId?: string
+  chatId?: string,
+  existingCollectionAddress?: Address
 ) => {
   const detail = await getYoutubeDetail(url);
   if (!detail) throw new Error('Failed to fetch YouTube details');
@@ -40,7 +41,9 @@ const createMomentFromYoutubeLink = async (
 
   return createMoment(
     {
-      contract: { name: detail.title || 'Untitled Video', uri: metadataUri },
+      contract: existingCollectionAddress
+        ? { address: existingCollectionAddress }
+        : { name: detail.title || 'Untitled Video', uri: metadataUri },
       token: {
         tokenMetadataURI: metadataUri,
         createReferral: REFERRAL_RECIPIENT as Address,

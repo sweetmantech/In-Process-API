@@ -5,9 +5,12 @@ import replyAfterSuccess from './replyAfterSuccess';
 import { createMoment } from '@/lib/moment/createMoment';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
+import type { TelegramThreadState } from './telegramThreadState';
+import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
+import getSelectedCollectionAddress from './getSelectedCollectionAddress';
 
 const processSingleMedia = async (
-  thread: Thread,
+  thread: Thread<TelegramThreadState>,
   attachment: Attachment,
   fileId: string,
   name: string,
@@ -18,8 +21,10 @@ const processSingleMedia = async (
     '⏳ In Process will post your moment. Please wait a few seconds...'
   );
   await thread.startTyping();
-  const typingInterval = setInterval(() => void thread.startTyping(), 4000);
+  let typingInterval: ReturnType<typeof setInterval> | undefined;
   try {
+    const selectedCollection = await getSelectedCollectionAddress(thread);
+    typingInterval = setInterval(() => void thread.startTyping(), 4000);
     const uploaded = await uploadAndLogAttachment(
       attachment,
       fileId,
@@ -31,7 +36,9 @@ const processSingleMedia = async (
 
     const { contractAddress, tokenId } = await createMoment(
       {
-        contract: { name, uri: uploaded.uri },
+        contract: selectedCollection
+          ? { address: selectedCollection }
+          : { name, uri: uploaded.uri },
         token: {
           tokenMetadataURI: uploaded.uri,
           createReferral: REFERRAL_RECIPIENT as Address,
@@ -51,6 +58,10 @@ const processSingleMedia = async (
       { chatId: thread.channelId }
     );
 
+    if (selectedCollection) {
+      await clearSelectedCollectionAddress(thread);
+    }
+
     await replyAfterSuccess(
       thread,
       contractAddress.toString(),
@@ -58,7 +69,9 @@ const processSingleMedia = async (
       artistAddress
     );
   } finally {
-    clearInterval(typingInterval);
+    if (typingInterval !== undefined) {
+      clearInterval(typingInterval);
+    }
   }
 };
 

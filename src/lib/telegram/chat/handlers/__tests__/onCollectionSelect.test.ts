@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { getAddress } from 'viem';
 
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
@@ -10,7 +11,7 @@ import { COLLECTION_SELECT_ACTION_ID } from '../../consts';
 
 const ARTIST_ADDRESS = '0xaaa';
 const TELEGRAM_USERNAME = 'u1';
-const COL_ADDRESS = '0xcollection123';
+const COL_ADDRESS = '0x0000000000000000000000000000000000000001';
 
 const makeBot = () => {
   const handler = { fn: (_event: unknown) => Promise.resolve() };
@@ -26,14 +27,19 @@ const makeEvent = (
   overrides: {
     value?: string;
     userName?: string | null;
-    thread?: { post: ReturnType<typeof vi.fn>; channelId: string } | null;
+    thread?: {
+      post: ReturnType<typeof vi.fn>;
+      channelId: string;
+      _stateAdapter: { set: ReturnType<typeof vi.fn> };
+    } | null;
   } = {}
 ) => {
   const post = vi.fn().mockResolvedValue(undefined);
+  const set = vi.fn().mockResolvedValue(undefined);
   return {
     value: COL_ADDRESS,
     user: { userName: TELEGRAM_USERNAME },
-    thread: { post, channelId: 'telegram:1' },
+    thread: { post, channelId: 'telegram:1', _stateAdapter: { set } },
     ...overrides,
   };
 };
@@ -56,14 +62,19 @@ describe('registerOnCollectionSelect', () => {
     );
   });
 
-  it('posts a confirmation with the collection address', async () => {
+  it('stores the collection and posts instructions for the next moment', async () => {
     const { bot, handler } = makeBot();
     registerOnCollectionSelect(bot as never);
     const event = makeEvent();
     await handler.fn(event);
 
+    const normalized = getAddress(COL_ADDRESS);
+    expect(event.thread?._stateAdapter.set).toHaveBeenCalledWith(
+      'selected_collection_address',
+      normalized
+    );
     expect(event.thread?.post).toHaveBeenCalledWith(
-      `Selected collection: ${COL_ADDRESS}`
+      `Next moment will be created in this collection:\n\`${normalized}\`\n\nSend a photo, video, YouTube link to create.`
     );
   });
 

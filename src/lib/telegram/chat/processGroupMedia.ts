@@ -3,6 +3,7 @@ import type { Address } from 'viem';
 import type { Thread, Attachment } from 'chat';
 import type { TelegramThreadState } from './telegramThreadState';
 import createMomentsFromGroup from './createMomentsFromGroup';
+import getStateAdapter from './stateAdapter';
 
 import type { PendingMediaGroupAsset } from '@/types/telegram';
 
@@ -19,8 +20,7 @@ const processGroupMedia = async (
   date: number | undefined,
   thumbFileId?: string
 ): Promise<void> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const stateAdapter = (thread as any)._stateAdapter;
+  const stateAdapter = getStateAdapter(thread);
 
   const isFirst = await stateAdapter.setIfNotExists(
     `media_group:${mediaGroupId}`,
