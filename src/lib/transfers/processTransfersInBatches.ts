@@ -31,7 +31,7 @@ export async function processTransfersInBatches(
       );
 
       await distribute(batch);
-      const rows = await mapTransfersToSupabase(batch);
+      const { rows, processedTransfers } = await mapTransfersToSupabase(batch);
 
       const recipients = [...new Set(rows.map((r) => r.recipient))];
       if (recipients.length > 0) {
@@ -39,7 +39,7 @@ export async function processTransfersInBatches(
       }
 
       await upsertTransfers(rows);
-      await notifyAirdrop(batch);
+      await notifyAirdrop(processedTransfers);
       totalProcessed += rows.length;
       console.log(
         `✅ Batch ${batchNumber}: Upserted ${rows.length} row(s) into in_process_transfers`
