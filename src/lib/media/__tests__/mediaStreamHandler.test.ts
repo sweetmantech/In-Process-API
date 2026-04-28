@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextResponse } from 'next/server';
 import mediaStreamHandler from '@/lib/media/mediaStreamHandler';
 
+const VIDEO = 'https://example.com/video.mp4';
+
 const createMockStream = () => {
   return new ReadableStream({
     start(controller) {
@@ -10,6 +12,8 @@ const createMockStream = () => {
     },
   });
 };
+
+const h = (entries: Record<string, string>) => new Headers(entries);
 
 describe('mediaStreamHandler', () => {
   beforeEach(() => {
@@ -22,18 +26,19 @@ describe('mediaStreamHandler', () => {
         ok: true,
         status: 200,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '1000',
+        }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: null,
       });
 
       expect(result.status).toBe(200);
-      expect(result.headers.get('Content-Type')).toBe('audio/mpeg');
+      expect(result.headers.get('Content-Type')).toBe('video/mp4');
       expect(result.headers.get('Content-Length')).toBe('1000');
       expect(result.headers.get('Accept-Ranges')).toBe('bytes');
       expect(result.headers.get('Content-Range')).toBeNull();
@@ -44,13 +49,14 @@ describe('mediaStreamHandler', () => {
         ok: true,
         status: 200,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '1000',
+        }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: 'bytes=0-499',
       });
 
@@ -59,26 +65,31 @@ describe('mediaStreamHandler', () => {
       expect(result.headers.get('Content-Range')).toBeNull();
     });
 
-    it('should return 200 when origin does not support ranges', async () => {
+    it('should send Range when client requests bytes (origin may still return 200)', async () => {
       vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '1000',
+        }),
       } as Response);
 
-      const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: false,
-        contentType: 'audio/mpeg',
+      await mediaStreamHandler({
+        uri: VIDEO,
         rangeHeader: 'bytes=0-499',
       });
 
-      expect(result.status).toBe(200);
-      expect(result.headers.get('Content-Range')).toBeNull();
-      expect(fetch).toHaveBeenCalledWith('https://example.com/audio.mp3', {
-        headers: {},
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        VIDEO,
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Range: 'bytes=0-499',
+            'Accept-Encoding': 'identity',
+          }),
+        })
+      );
     });
   });
 
@@ -88,22 +99,27 @@ describe('mediaStreamHandler', () => {
         ok: true,
         status: 206,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '500',
+          'content-range': 'bytes 0-499/1000',
+        }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: 'bytes=0-499',
       });
 
       expect(result.status).toBe(206);
       expect(result.headers.get('Content-Length')).toBe('500');
       expect(result.headers.get('Content-Range')).toBe('bytes 0-499/1000');
-      expect(fetch).toHaveBeenCalledWith('https://example.com/audio.mp3', {
-        headers: { Range: 'bytes=0-499' },
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        VIDEO,
+        expect.objectContaining({
+          headers: expect.objectContaining({ Range: 'bytes=0-499' }),
+        })
+      );
     });
 
     it('should handle open-ended range', async () => {
@@ -111,13 +127,15 @@ describe('mediaStreamHandler', () => {
         ok: true,
         status: 206,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '500',
+          'content-range': 'bytes 500-999/1000',
+        }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: 'bytes=500-',
       });
 
@@ -131,13 +149,15 @@ describe('mediaStreamHandler', () => {
         ok: true,
         status: 206,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '1',
+          'content-range': 'bytes 0-0/1000',
+        }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: 'bytes=0-0',
       });
 
@@ -153,13 +173,14 @@ describe('mediaStreamHandler', () => {
         ok: true,
         status: 200,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '1000',
+        }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: 'invalid',
       });
 
@@ -172,35 +193,35 @@ describe('mediaStreamHandler', () => {
         ok: true,
         status: 200,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '1000',
+        }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: 'bytes=0-100,200-300',
       });
 
       expect(result.status).toBe(200);
     });
 
-    it('should return 200 for out-of-bounds range', async () => {
+    it('should propagate 416 when origin rejects out-of-bounds range', async () => {
       vi.spyOn(global, 'fetch').mockResolvedValue({
-        ok: true,
-        status: 200,
-        body: createMockStream(),
+        ok: false,
+        status: 416,
+        statusText: 'Range Not Satisfiable',
+        body: null,
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: 'bytes=1000-',
       });
 
-      expect(result.status).toBe(200);
+      expect(result).toBeInstanceOf(NextResponse);
+      expect(result.status).toBe(416);
     });
   });
 
@@ -213,10 +234,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: null,
       });
 
@@ -232,10 +250,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: null,
       });
 
@@ -251,10 +266,7 @@ describe('mediaStreamHandler', () => {
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: null,
       });
 
@@ -269,13 +281,11 @@ describe('mediaStreamHandler', () => {
         ok: true,
         status: 200,
         body: createMockStream(),
+        headers: h({ 'content-type': 'video/mp4', 'content-length': '100' }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.mp3',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/mpeg',
+        uri: VIDEO,
         rangeHeader: null,
       });
 
@@ -284,22 +294,23 @@ describe('mediaStreamHandler', () => {
       );
     });
 
-    it('should preserve content type from validation', async () => {
+    it('should use Content-Type from origin response', async () => {
       vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),
+        headers: h({
+          'content-type': 'video/quicktime',
+          'content-length': '1000',
+        }),
       } as Response);
 
       const result = await mediaStreamHandler({
-        uri: 'https://example.com/audio.wav',
-        totalSize: 1000,
-        supportsRange: true,
-        contentType: 'audio/wav',
+        uri: VIDEO,
         rangeHeader: null,
       });
 
-      expect(result.headers.get('Content-Type')).toBe('audio/wav');
+      expect(result.headers.get('Content-Type')).toBe('video/quicktime');
     });
   });
 });

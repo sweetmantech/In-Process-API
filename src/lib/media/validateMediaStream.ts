@@ -1,13 +1,13 @@
 import { mediaStreamSchema } from '@/lib/schema/mediaStreamSchema';
 import { NextRequest, NextResponse } from 'next/server';
 import { validate } from '@/lib/schema/validate';
-import getContentInfo from './getContentInfo';
 
 export const validateMediaStream = async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
   const queryParams = {
     url: searchParams.get('url') ?? undefined,
+    proxy: searchParams.get('proxy') ?? undefined,
   };
 
   const validationResult = validate(mediaStreamSchema, queryParams);
@@ -15,35 +15,12 @@ export const validateMediaStream = async (request: NextRequest) => {
     return validationResult.response;
   }
 
-  const { url } = validationResult.data;
-
-  const contentInfo = await getContentInfo(url);
-
-  if (!contentInfo.ok) {
-    return NextResponse.json(
-      {
-        error: `Origin returned ${contentInfo.status}: ${contentInfo.statusText}`,
-      },
-      { status: contentInfo.status }
-    );
-  }
-
-  const { totalSize, supportsRange, contentType } = contentInfo;
-
-  if (!totalSize) {
-    return NextResponse.json(
-      { error: 'Unable to determine content length' },
-      { status: 502 }
-    );
-  }
-
+  const { url, proxy: useProxy } = validationResult.data;
   const rangeHeader = request.headers.get('range');
 
   return {
     uri: url,
-    totalSize,
-    supportsRange,
-    contentType,
     rangeHeader,
+    useProxy,
   };
 };

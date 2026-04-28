@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateMediaStream } from '@/lib/media/validateMediaStream';
 import mediaStreamHandler from '@/lib/media/mediaStreamHandler';
+import resolveRedirectableMediaUrl from '@/lib/media/resolveRedirectableMediaUrl';
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,7 +11,22 @@ export async function GET(req: NextRequest) {
       return validated;
     }
 
-    return mediaStreamHandler(validated);
+    const { useProxy, ...streamInput } = validated;
+
+    if (!useProxy) {
+      const resolved = await resolveRedirectableMediaUrl(streamInput.uri);
+      if (!resolved.ok) {
+        return NextResponse.json(
+          {
+            error: `Origin returned ${resolved.status}: ${resolved.statusText}`,
+          },
+          { status: resolved.status }
+        );
+      }
+      return NextResponse.redirect(resolved.url, 307);
+    }
+
+    return mediaStreamHandler(streamInput);
   } catch (error: any) {
     console.error('Media stream error:', error);
     return NextResponse.json(
