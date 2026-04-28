@@ -34,17 +34,18 @@ describe('mapTransfersToSupabase', () => {
     );
   });
 
-  it('returns empty array for empty input after getMomentIdMap([])', async () => {
+  it('returns empty rows for empty input after getMomentIdMap([])', async () => {
     mockGetMomentIdMap.mockResolvedValue(new Map());
     const result = await mapTransfersToSupabase([]);
-    expect(result).toEqual([]);
+    expect(result).toEqual({ rows: [], processedTransfers: [] });
     expect(mockGetMomentIdMap).toHaveBeenCalledWith([]);
   });
 
   it('skips transfers when moment is not in Supabase map', async () => {
     mockGetMomentIdMap.mockResolvedValue(new Map());
-    const result = await mapTransfersToSupabase([base()]);
-    expect(result).toEqual([]);
+    const row = base();
+    const result = await mapTransfersToSupabase([row]);
+    expect(result).toEqual({ rows: [], processedTransfers: [] });
   });
 
   it('maps a single transfer with lowercased recipient and currency', async () => {
@@ -52,8 +53,9 @@ describe('mapTransfersToSupabase', () => {
     const result = await mapTransfersToSupabase([row]);
 
     expect(mockGetMomentIdMap).toHaveBeenCalledWith([row]);
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
+    expect(result.rows).toHaveLength(1);
+    expect(result.processedTransfers).toEqual([row]);
+    expect(result.rows[0]).toEqual({
       recipient: '0xabcdef0000000000000000000000000000000001',
       quantity: 2,
       value: 1,
@@ -65,23 +67,22 @@ describe('mapTransfersToSupabase', () => {
   });
 
   it('uses 18 decimals when currency is zero address', async () => {
-    const result = await mapTransfersToSupabase([
-      base({
-        value: '1000000000000000000',
-        currency: zeroAddress,
-      }),
-    ]);
+    const t = base({
+      value: '1000000000000000000',
+      currency: zeroAddress,
+    });
+    const result = await mapTransfersToSupabase([t]);
 
-    expect(result[0].value).toBe(1);
-    expect(result[0].currency).toBe(zeroAddress.toLowerCase());
+    expect(result.rows[0].value).toBe(1);
+    expect(result.rows[0].currency).toBe(zeroAddress.toLowerCase());
   });
 
   it('sets value to null when value is missing or currency is missing', async () => {
     const a = await mapTransfersToSupabase([base({ value: undefined })]);
-    expect(a[0].value).toBeNull();
+    expect(a.rows[0].value).toBeNull();
 
     const b = await mapTransfersToSupabase([base({ currency: undefined })]);
-    expect(b[0].value).toBeNull();
+    expect(b.rows[0].value).toBeNull();
   });
 
   it('merges duplicate recipient+tx+moment by summing quantity and value', async () => {
@@ -90,9 +91,10 @@ describe('mapTransfersToSupabase', () => {
 
     const result = await mapTransfersToSupabase([t1, t2]);
 
-    expect(result).toHaveLength(1);
-    expect(result[0].quantity).toBe(8);
-    expect(result[0].value).toBe(3);
+    expect(result.rows).toHaveLength(1);
+    expect(result.processedTransfers).toEqual([t1, t2]);
+    expect(result.rows[0].quantity).toBe(8);
+    expect(result.rows[0].value).toBe(3);
   });
 
   it('does not add value on merge when duplicate has no priced leg', async () => {
@@ -101,7 +103,7 @@ describe('mapTransfersToSupabase', () => {
 
     const result = await mapTransfersToSupabase([t1, t2]);
 
-    expect(result[0].quantity).toBe(4);
-    expect(result[0].value).toBe(1);
+    expect(result.rows[0].quantity).toBe(4);
+    expect(result.rows[0].value).toBe(1);
   });
 });

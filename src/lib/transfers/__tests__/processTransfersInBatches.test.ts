@@ -18,12 +18,14 @@ import { distribute } from '../distribute';
 import { mapTransfersToSupabase } from '../mapTransfersToSupabase';
 import { ensureArtists } from '@/lib/artists/ensureArtists';
 import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
+import notifyAirdrop from '../notifyAirdrop';
 import type { Transfers_t } from '@/types/envio';
 
 const mockDistribute = vi.mocked(distribute);
 const mockMap = vi.mocked(mapTransfersToSupabase);
 const mockEnsureArtists = vi.mocked(ensureArtists);
 const mockUpsert = vi.mocked(upsertTransfers);
+const mockNotifyAirdrop = vi.mocked(notifyAirdrop);
 
 const transfer = (id: string): Transfers_t => ({
   id,
@@ -65,9 +67,12 @@ describe('processTransfersInBatches', () => {
         moment: 'm1',
       },
     ];
-    mockMap.mockResolvedValue(rows as never);
-
     const batch = [transfer('1')];
+    mockMap.mockResolvedValue({
+      rows: rows as never,
+      processedTransfers: batch,
+    });
+
     await processTransfersInBatches(batch);
 
     expect(mockDistribute).toHaveBeenCalledTimes(1);
@@ -78,10 +83,11 @@ describe('processTransfersInBatches', () => {
     );
     expect(mockEnsureArtists).toHaveBeenCalledWith(['0xab']);
     expect(mockUpsert).toHaveBeenCalledWith(rows);
+    expect(mockNotifyAirdrop).toHaveBeenCalledWith(batch);
   });
 
   it('does not call ensureArtists when map returns no rows', async () => {
-    mockMap.mockResolvedValue([]);
+    mockMap.mockResolvedValue({ rows: [], processedTransfers: [] });
 
     await processTransfersInBatches([transfer('1')]);
 
@@ -91,15 +97,18 @@ describe('processTransfersInBatches', () => {
   });
 
   it('throws when upsert rejects', async () => {
-    mockMap.mockResolvedValue([
-      {
-        recipient: '0xab',
-        quantity: 1,
-        moment: 'm1',
-        transaction_hash: '0xt',
-        transferred_at: new Date().toISOString(),
-      },
-    ] as never);
+    mockMap.mockResolvedValue({
+      rows: [
+        {
+          recipient: '0xab',
+          quantity: 1,
+          moment: 'm1',
+          transaction_hash: '0xt',
+          transferred_at: new Date().toISOString(),
+        },
+      ] as never,
+      processedTransfers: [transfer('1')],
+    });
     mockUpsert.mockRejectedValue(new Error('db fail'));
 
     await expect(processTransfersInBatches([transfer('1')])).rejects.toThrow(
@@ -126,16 +135,16 @@ describe('processTransfersInBatches', () => {
   });
 
   it('processes multiple batches when length exceeds BATCH_SIZE', async () => {
-    mockMap.mockImplementation(
-      async (batch: Transfers_t[]) =>
-        batch.map((t) => ({
-          recipient: t.recipient,
-          quantity: 1,
-          moment: t.id,
-          transaction_hash: t.transaction_hash,
-          transferred_at: new Date().toISOString(),
-        })) as never
-    );
+    mockMap.mockImplementation(async (batch: Transfers_t[]) => ({
+      rows: batch.map((t) => ({
+        recipient: t.recipient,
+        quantity: 1,
+        moment: t.id,
+        transaction_hash: t.transaction_hash,
+        transferred_at: new Date().toISOString(),
+      })) as never,
+      processedTransfers: batch,
+    }));
 
     await processTransfersInBatches([
       transfer('1'),
