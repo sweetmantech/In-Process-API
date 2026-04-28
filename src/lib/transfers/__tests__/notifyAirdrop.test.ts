@@ -94,11 +94,7 @@ describe('notifyAirdrop', () => {
     const t = transfer();
     await notifyAirdrop([t]);
 
-    expect(mockGetAirdropOperator).toHaveBeenCalledWith(
-      '0xtx1',
-      8453,
-      t.collection
-    );
+    expect(mockGetAirdropOperator).toHaveBeenCalledWith(t);
     expect(mockSelectMessage).toHaveBeenCalledWith(
       '0xrecipient00000000000000000000000000dead'
     );
@@ -125,16 +121,18 @@ describe('notifyAirdrop', () => {
     expect(mockLog).not.toHaveBeenCalled();
   });
 
-  it('sends with address prefix when username is null', async () => {
+  it('sends full operator address when username is null', async () => {
+    const operatorAddr = `0x${'1'.repeat(40)}`;
     mockGetAirdropOperator.mockResolvedValue({
-      address: '0x1111111111111111111111111111111111111111',
+      address: operatorAddr,
       username: null,
     });
-    await notifyAirdrop([transfer()]);
+    const t = transfer();
+    await notifyAirdrop([t]);
 
-    expect(mockGetAirdropOperator).toHaveBeenCalled();
+    expect(mockGetAirdropOperator).toHaveBeenCalledWith(t);
     const expectedText =
-      '0x1111…1111 airdropped a moment on In Process. \n\n' +
+      `${operatorAddr} airdropped a moment on In Process. \n\n` +
       'https://inprocess.test/collect/base:0xabc/7';
     expect(mockSend).toHaveBeenCalledWith('chat-1', expectedText);
     expect(mockLog).toHaveBeenCalledWith(
@@ -151,9 +149,23 @@ describe('notifyAirdrop', () => {
       address: '',
       username: null,
     });
-    await notifyAirdrop([transfer()]);
+    const t = transfer();
+    await notifyAirdrop([t]);
 
-    expect(mockGetAirdropOperator).toHaveBeenCalled();
+    expect(mockGetAirdropOperator).toHaveBeenCalledWith(t);
+    expect(mockSend).not.toHaveBeenCalled();
+    expect(mockLog).not.toHaveBeenCalled();
+  });
+
+  it('does not send when operator address equals recipient (self-mint)', async () => {
+    mockGetAirdropOperator.mockResolvedValue({
+      address: '0xrecipient00000000000000000000000000dead',
+      username: 'self',
+    });
+    const t = transfer();
+    await notifyAirdrop([t]);
+
+    expect(mockGetAirdropOperator).toHaveBeenCalledWith(t);
     expect(mockSend).not.toHaveBeenCalled();
     expect(mockLog).not.toHaveBeenCalled();
   });
