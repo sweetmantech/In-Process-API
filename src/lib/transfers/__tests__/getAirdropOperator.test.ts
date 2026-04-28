@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getAddress } from 'viem';
+import { FACTORY_ADDRESSES } from '@/lib/protocolSdk/create/factory-addresses';
 import { getPublicClient } from '@/lib/viem/publicClient';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import isCoinbaseSmartWallet from '@/lib/smartwallets/isCoinbaseSmartWallet';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import type { Transfers_t } from '@/types/envio';
 import getAirdropOperator from '../getAirdropOperator';
 
 const TRANSFER_SINGLE_TOPIC =
@@ -19,6 +22,9 @@ const ZERO_FROM_TOPIC =
 const toTopic =
   '0x000000000000000000000000af1452d289e22fbd0dea9d5097353c72a90fac33' as const;
 
+const factoryLc = FACTORY_ADDRESSES[8453].toLowerCase().slice(2);
+const factoryOperatorTopic = `0x000000000000000000000000${factoryLc}` as const;
+
 const operatorTopic =
   '0x0000000000000000000000004444444444444444444444444444444444444444' as const;
 const operatorAddress = getAddress(
@@ -31,6 +37,26 @@ const mintTransferTopics = [
   ZERO_FROM_TOPIC,
   toTopic,
 ] as const;
+
+const recipientForMintLog = getAddress(
+  `0x${toTopic.slice(-40)}` as `0x${string}`
+).toLowerCase();
+
+const chainId = 8453;
+
+const transferFixture = (over: Partial<Transfers_t> = {}): Transfers_t => ({
+  id: 't1',
+  collection: collectionAddress,
+  token_id: '1',
+  chain_id: chainId,
+  recipient: recipientForMintLog,
+  quantity: '1',
+  value: undefined,
+  currency: undefined,
+  transaction_hash: hash,
+  transferred_at: 0,
+  ...over,
+});
 
 const receiptWithTransferSingle = (
   topics: readonly (string | undefined)[],
@@ -53,14 +79,16 @@ vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
 vi.mock('@/lib/smartwallets/isCoinbaseSmartWallet', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+  default: vi.fn(),
+}));
 
 const mockGetPublicClient = vi.mocked(getPublicClient);
 const mockSelectArtists = vi.mocked(selectArtists);
 const mockIsCb = vi.mocked(isCoinbaseSmartWallet);
+const mockSelectCollections = vi.mocked(selectCollections);
 
 describe('getAirdropOperator', () => {
-  const chainId = 8453;
-
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetPublicClient.mockReturnValue({
@@ -78,7 +106,7 @@ describe('getAirdropOperator', () => {
     } as never);
 
     await expect(
-      getAirdropOperator(hash, chainId, collectionAddress)
+      getAirdropOperator(transferFixture())
     ).rejects.toThrow('Airdrop mint TransferSingle log not found');
   });
 
@@ -92,7 +120,7 @@ describe('getAirdropOperator', () => {
     } as never);
 
     await expect(
-      getAirdropOperator(hash, chainId, collectionAddress)
+      getAirdropOperator(transferFixture())
     ).rejects.toThrow('Airdrop mint TransferSingle log not found');
   });
 
@@ -106,7 +134,7 @@ describe('getAirdropOperator', () => {
     } as never);
 
     await expect(
-      getAirdropOperator(hash, chainId, collectionAddress)
+      getAirdropOperator(transferFixture())
     ).rejects.toThrow('Airdrop mint TransferSingle log not found');
   });
 
@@ -124,8 +152,113 @@ describe('getAirdropOperator', () => {
     } as never);
 
     await expect(
-      getAirdropOperator(hash, chainId, collectionAddress)
+      getAirdropOperator(transferFixture())
     ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+  });
+
+  it('throws when TransferSingle `to` topic does not match recipient', async () => {
+    await expect(
+      getAirdropOperator(
+        transferFixture({
+          recipient: '0x0000000000000000000000000000000000000001',
+        })
+      )
+    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+  });
+
+  it('returns collection creator join as operator when mint operator is factory (admin mint)', async () => {
+    mockGetPublicClient.mockReturnValue({
+      getTransactionReceipt: vi
+        .fn()
+        .mockImplementation(async () =>
+          receiptWithTransferSingle([
+            TRANSFER_SINGLE_TOPIC,
+            factoryOperatorTopic,
+            ZERO_FROM_TOPIC,
+            toTopic,
+          ])
+        ),
+    } as never);
+    const creatorAddr = getAddress(
+      '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as `0x${string}`
+    );
+    mockSelectCollections.mockResolvedValue({
+      data: [
+        {
+          address: collectionAddress.toLowerCase(),
+          chain_id: chainId,
+          creator: {
+            address: creatorAddr,
+            username: 'factoryCreator',
+          },
+        },
+      ],
+      count: 1,
+      error: null,
+    } as never);
+
+    const t = transferFixture();
+    const result = await getAirdropOperator(t);
+
+    expect(mockSelectCollections).toHaveBeenCalledWith({
+      collections: [{ address: t.collection, chainId }],
+    });
+    expect(mockSelectArtists).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      address: {
+        address: creatorAddr,
+        username: 'factoryCreator',
+      },
+      username: 'factoryCreator',
+    });
+  });
+
+  it('throws Collection not found when mint operator is factory but selectCollections returns no rows', async () => {
+    mockGetPublicClient.mockReturnValue({
+      getTransactionReceipt: vi
+        .fn()
+        .mockImplementation(async () =>
+          receiptWithTransferSingle([
+            TRANSFER_SINGLE_TOPIC,
+            factoryOperatorTopic,
+            ZERO_FROM_TOPIC,
+            toTopic,
+          ])
+        ),
+    } as never);
+    mockSelectCollections.mockResolvedValue({
+      data: [],
+      count: 0,
+      error: null,
+    } as never);
+
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Collection not found'
+    );
+  });
+
+  it('throws Collection not found when mint operator is factory but selectCollections returns an error', async () => {
+    mockGetPublicClient.mockReturnValue({
+      getTransactionReceipt: vi
+        .fn()
+        .mockImplementation(async () =>
+          receiptWithTransferSingle([
+            TRANSFER_SINGLE_TOPIC,
+            factoryOperatorTopic,
+            ZERO_FROM_TOPIC,
+            toTopic,
+          ])
+        ),
+    } as never);
+    mockSelectCollections.mockResolvedValue({
+      data: null,
+      count: null,
+      error: { message: 'db down' },
+    } as never);
+
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Collection not found'
+    );
   });
 
   it('returns artist from DB by smart_wallet when address is a Coinbase smart wallet', async () => {
@@ -136,8 +269,9 @@ describe('getAirdropOperator', () => {
       ],
     } as never);
 
-    const result = await getAirdropOperator(hash, chainId, collectionAddress);
+    const result = await getAirdropOperator(transferFixture());
 
+    expect(mockSelectCollections).not.toHaveBeenCalled();
     expect(mockSelectArtists).toHaveBeenCalledWith({
       smart_wallet: operatorAddress,
       address: undefined,
@@ -159,8 +293,9 @@ describe('getAirdropOperator', () => {
       ],
     } as never);
 
-    const result = await getAirdropOperator(hash, chainId, collectionAddress);
+    const result = await getAirdropOperator(transferFixture());
 
+    expect(mockSelectCollections).not.toHaveBeenCalled();
     expect(mockSelectArtists).toHaveBeenCalledWith({
       smart_wallet: undefined,
       address: operatorAddress,
@@ -176,7 +311,7 @@ describe('getAirdropOperator', () => {
     mockSelectArtists.mockResolvedValue({ data: null } as never);
 
     await expect(
-      getAirdropOperator(hash, chainId, collectionAddress)
+      getAirdropOperator(transferFixture())
     ).rejects.toThrow('Airdrop operator not found');
   });
 
@@ -185,7 +320,7 @@ describe('getAirdropOperator', () => {
     mockSelectArtists.mockResolvedValue({ data: null } as never);
 
     await expect(
-      getAirdropOperator(hash, chainId, collectionAddress)
+      getAirdropOperator(transferFixture())
     ).rejects.toThrow('Airdrop operator not found');
   });
 
@@ -194,7 +329,7 @@ describe('getAirdropOperator', () => {
     mockSelectArtists.mockResolvedValue({ data: [] } as never);
 
     await expect(
-      getAirdropOperator(hash, chainId, collectionAddress)
+      getAirdropOperator(transferFixture())
     ).rejects.toThrow('Airdrop operator not found');
   });
 });

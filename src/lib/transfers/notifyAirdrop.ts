@@ -4,8 +4,6 @@ import selectMessage from '@/lib/supabase/in_process_messages/selectMessage';
 import type { Transfers_t } from '@/types/envio';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from './getAirdropOperator';
-import type { Hex } from 'viem';
-import truncateAddress from '@/lib/truncateAddress';
 
 /** One Telegram per airdrop transfer in `batch` (`value` and `currency` not both set). */
 const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
@@ -17,14 +15,10 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
       const chatId = data?.chat_id;
       if (error || !chatId) continue;
 
-      const { address, username } = await getAirdropOperator(
-        t.transaction_hash as Hex,
-        t.chain_id,
-        t.collection
-      );
+      const { address, username } = await getAirdropOperator(t);
 
       if ((!address && !username) || address === recipient) continue;
-      const text = `${username || truncateAddress(address)} airdropped a moment on In Process. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
+      const text = `${username || address} airdropped a moment on In Process. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
 
       await telegramChatBotClient.sendMessage(chatId, text);
       await logMessage(
