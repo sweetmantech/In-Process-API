@@ -54,11 +54,13 @@ const createMoments = async (
   });
 
   const allParameters = await Promise.all(
-    inputs.map(({ uri, name }) =>
-      create1155({
-        contract: useExisting
-          ? { address: existingCollection! }
-          : { name, uri },
+    inputs.map(({ uri, name }) => {
+      const contract = useExisting
+        ? { address: existingCollection! }
+        : { name, uri };
+
+      return create1155({
+        contract,
         token: {
           tokenMetadataURI: uri,
           createReferral: REFERRAL_RECIPIENT as Address,
@@ -75,8 +77,8 @@ const createMoments = async (
         account: artistAddress,
         channel,
         ...(additionalSetupActions && { additionalSetupActions }),
-      })
-    )
+      });
+    })
   );
 
   const calls = allParameters.map(({ parameters }) => {
