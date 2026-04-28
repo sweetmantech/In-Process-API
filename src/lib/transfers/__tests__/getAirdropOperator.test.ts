@@ -105,9 +105,9 @@ describe('getAirdropOperator', () => {
       getTransactionReceipt: vi.fn().mockResolvedValue({ logs: [] }),
     } as never);
 
-    await expect(
-      getAirdropOperator(transferFixture())
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Airdrop mint TransferSingle log not found'
+    );
   });
 
   it('throws when topics[0] does not match TransferSingle (wrong log picked)', async () => {
@@ -119,9 +119,9 @@ describe('getAirdropOperator', () => {
         ),
     } as never);
 
-    await expect(
-      getAirdropOperator(transferFixture())
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Airdrop mint TransferSingle log not found'
+    );
   });
 
   it('throws when TransferSingle is from another contract (not collection)', async () => {
@@ -133,9 +133,9 @@ describe('getAirdropOperator', () => {
         ),
     } as never);
 
-    await expect(
-      getAirdropOperator(transferFixture())
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Airdrop mint TransferSingle log not found'
+    );
   });
 
   it('throws when from is not zero (not a mint)', async () => {
@@ -151,9 +151,9 @@ describe('getAirdropOperator', () => {
         .mockResolvedValue(receiptWithTransferSingle(nonMintTopics)),
     } as never);
 
-    await expect(
-      getAirdropOperator(transferFixture())
-    ).rejects.toThrow('Airdrop mint TransferSingle log not found');
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Airdrop mint TransferSingle log not found'
+    );
   });
 
   it('throws when TransferSingle `to` topic does not match recipient', async () => {
@@ -205,10 +205,7 @@ describe('getAirdropOperator', () => {
     });
     expect(mockSelectArtists).not.toHaveBeenCalled();
     expect(result).toEqual({
-      address: {
-        address: creatorAddr,
-        username: 'factoryCreator',
-      },
+      address: creatorAddr,
       username: 'factoryCreator',
     });
   });
@@ -310,26 +307,26 @@ describe('getAirdropOperator', () => {
     mockIsCb.mockResolvedValue(false);
     mockSelectArtists.mockResolvedValue({ data: null } as never);
 
-    await expect(
-      getAirdropOperator(transferFixture())
-    ).rejects.toThrow('Airdrop operator not found');
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Airdrop operator not found'
+    );
   });
 
   it('throws when artist is not in DB (Coinbase smart wallet path)', async () => {
     mockIsCb.mockResolvedValue(true);
     mockSelectArtists.mockResolvedValue({ data: null } as never);
 
-    await expect(
-      getAirdropOperator(transferFixture())
-    ).rejects.toThrow('Airdrop operator not found');
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Airdrop operator not found'
+    );
   });
 
   it('throws when selectArtists returns an empty list', async () => {
     mockIsCb.mockResolvedValue(false);
     mockSelectArtists.mockResolvedValue({ data: [] } as never);
 
-    await expect(
-      getAirdropOperator(transferFixture())
-    ).rejects.toThrow('Airdrop operator not found');
+    await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
+      'Airdrop operator not found'
+    );
   });
 });

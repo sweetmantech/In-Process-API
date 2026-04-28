@@ -10,7 +10,9 @@ import type { Transfers_t } from '@/types/envio';
 const TRANSFER_SINGLE_TOPIC =
   '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62';
 
-const getAirdropOperator = async (t: Transfers_t): Promise<{
+const getAirdropOperator = async (
+  t: Transfers_t
+): Promise<{
   address: string;
   username: string | null;
 }> => {
@@ -44,7 +46,7 @@ const getAirdropOperator = async (t: Transfers_t): Promise<{
     });
     if (collections?.length) {
       return {
-        address: collections[0].creator,
+        address: collections[0].creator.address,
         username: collections[0].creator.username,
       };
     }
