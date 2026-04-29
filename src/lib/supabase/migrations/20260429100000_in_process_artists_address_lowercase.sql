@@ -1,4 +1,4 @@
--- Normalize in_process_artists.address on insert/update (trigger).
+-- Lowercase in_process_artists.address on insert / update of address.
 
 set check_function_bodies = off;
 
