@@ -9,11 +9,4 @@ export const mediaStreamSchema = z.object({
       (url) => /^(https|ipfs|ar):/.test(url),
       'Invalid or unsupported URL format'
     ),
-  /**
-   * When `1` or `true`, stream through this API instead of 307 to the origin.
-   */
-  proxy: z
-    .string()
-    .optional()
-    .transform((v) => v === '1' || v?.toLowerCase() === 'true'),
 });

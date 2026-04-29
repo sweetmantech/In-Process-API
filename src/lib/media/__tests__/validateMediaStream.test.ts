@@ -86,7 +86,6 @@ describe('validateMediaStream', () => {
       expect(result).toEqual({
         uri: 'https://example.com/video.mp4',
         rangeHeader: null,
-        useProxy: false,
       });
     });
 
@@ -100,7 +99,6 @@ describe('validateMediaStream', () => {
       expect(result).toEqual({
         uri: 'ipfs://bafyVIDEO',
         rangeHeader: null,
-        useProxy: false,
       });
     });
 
@@ -114,7 +112,6 @@ describe('validateMediaStream', () => {
       expect(result).toEqual({
         uri: 'ar://abc123',
         rangeHeader: null,
-        useProxy: false,
       });
     });
 
@@ -129,20 +126,6 @@ describe('validateMediaStream', () => {
       expect(result).toEqual({
         uri: 'https://example.com/video.mp4',
         rangeHeader: 'bytes=0-1024',
-        useProxy: false,
-      });
-    });
-
-    it('should set useProxy when proxy=1', async () => {
-      const request = createMockRequest(
-        'https://api.example.com/media/stream?url=https://example.com/video.mp4&proxy=1'
-      );
-      const result = await validateMediaStream(request);
-
-      expect(result).not.toBeInstanceOf(NextResponse);
-      expect(result).toMatchObject({
-        useProxy: true,
-        uri: 'https://example.com/video.mp4',
       });
     });
   });

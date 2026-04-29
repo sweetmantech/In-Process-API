@@ -7,7 +7,6 @@ export const validateMediaStream = async (request: NextRequest) => {
 
   const queryParams = {
     url: searchParams.get('url') ?? undefined,
-    proxy: searchParams.get('proxy') ?? undefined,
   };
 
   const validationResult = validate(mediaStreamSchema, queryParams);
@@ -15,12 +14,11 @@ export const validateMediaStream = async (request: NextRequest) => {
     return validationResult.response;
   }
 
-  const { url, proxy: useProxy } = validationResult.data;
+  const { url } = validationResult.data;
   const rangeHeader = request.headers.get('range');
 
   return {
     uri: url,
     rangeHeader,
-    useProxy,
   };
 };
