@@ -1,7 +1,6 @@
 import { maxUint64, parseUnits, type Address } from 'viem';
-import { uploadJson } from '@/lib/arweave/uploadJson';
-import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import getYoutubeDetail from '@/lib/link/getYoutubeDetail';
+import uploadYtDetails from '@/lib/link/uploadYtDetails';
 import { createMoment } from '@/lib/moment/createMoment';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
@@ -15,35 +14,15 @@ const createMomentFromYoutubeLink = async (
   const detail = await getYoutubeDetail(url);
   if (!detail) throw new Error('Failed to fetch YouTube details');
 
-  let imageUri = '';
-  let contentType = 'image/jpeg';
-  const thumbnailUrl = detail.images?.[0] || detail.favicons?.[0];
-  if (thumbnailUrl) {
-    const thumbnailRes = await fetch(thumbnailUrl);
-    contentType = thumbnailRes.headers.get('content-type') || 'image/jpeg';
-    const thumbnailBlob = await thumbnailRes.blob();
-    const thumbnailFile = new File([thumbnailBlob], 'thumbnail', {
-      type: contentType,
-    });
-    imageUri = await uploadToArweave(thumbnailFile);
-  }
+  const { metadataUri } = await uploadYtDetails(detail, url);
 
-  const metadataUri = await uploadJson({
-    name: detail.title,
-    description: detail.description,
-    image: imageUri,
-    external_url: url,
-    content: {
-      mime: contentType,
-      uri: imageUri,
-    },
-  });
+  const contract = existingCollectionAddress
+    ? { address: existingCollectionAddress }
+    : { name: detail.title || 'Untitled Video', uri: metadataUri };
 
   return createMoment(
     {
-      contract: existingCollectionAddress
-        ? { address: existingCollectionAddress }
-        : { name: detail.title || 'Untitled Video', uri: metadataUri },
+      contract,
       token: {
         tokenMetadataURI: metadataUri,
         createReferral: REFERRAL_RECIPIENT as Address,

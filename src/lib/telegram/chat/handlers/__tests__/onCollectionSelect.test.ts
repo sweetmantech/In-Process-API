@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getAddress } from 'viem';
+import { Actions, Button, Card, CardText } from 'chat';
 
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
@@ -7,7 +8,10 @@ vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { registerOnCollectionSelect } from '../onCollectionSelect';
-import { COLLECTION_SELECT_ACTION_ID } from '../../consts';
+import {
+  COLLECTION_SELECT_ACTION_ID,
+  COLLECTION_SELECTION_CANCEL_ACTION_ID,
+} from '../../consts';
 
 const ARTIST_ADDRESS = '0xaaa';
 const TELEGRAM_USERNAME = 'u1';
@@ -73,8 +77,19 @@ describe('registerOnCollectionSelect', () => {
       'selected_collection_address',
       normalized
     );
+    const text = `Next moment will be created in this collection:\n\`${normalized}\`\n\nSend a photo, video, YouTube link to create.`;
     expect(event.thread?.post).toHaveBeenCalledWith(
-      `Next moment will be created in this collection:\n\`${normalized}\`\n\nSend a photo, video, YouTube link to create.`
+      Card({
+        children: [
+          CardText(text),
+          Actions([
+            Button({
+              id: COLLECTION_SELECTION_CANCEL_ACTION_ID,
+              label: 'Cancel',
+            }),
+          ]),
+        ],
+      })
     );
   });
 
