@@ -18,7 +18,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
       const { address, username } = await getAirdropOperator(t);
 
       if ((!address && !username) || address === recipient) continue;
-      const text = `${username || address} airdropped a moment on In Process. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
+      const text = `${username || address} airdropped a moment to you. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
 
       await telegramChatBotClient.sendMessage(chatId, text);
       await logMessage(
