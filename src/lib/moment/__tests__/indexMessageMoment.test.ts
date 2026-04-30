@@ -74,7 +74,10 @@ beforeEach(() => {
   ]);
 
   vi.mocked(logMessage).mockResolvedValue('msg-id-123');
-  vi.mocked(upsertMessageMoment).mockResolvedValue({ data: {}, error: null });
+  vi.mocked(upsertMessageMoment).mockResolvedValue({
+    data: null,
+    error: null,
+  } as never);
 });
 
 describe('indexMessageMoment', () => {
@@ -237,7 +240,13 @@ describe('indexMessageMoment', () => {
   it('does not reject when upsertMessageMoment reports an error (unchecked result)', async () => {
     vi.mocked(upsertMessageMoment).mockResolvedValue({
       data: null,
-      error: new Error('link failed'),
+      error: {
+        name: 'PostgrestError',
+        message: 'link failed',
+        details: '',
+        hint: '',
+        code: 'PGRST000',
+      },
     });
 
     await expect(indexMessageMoment(basePayload())).resolves.toBeUndefined();
