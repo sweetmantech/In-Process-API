@@ -27,7 +27,7 @@ export interface CreateCollectionResult {
 }
 
 /**
- * Creates a new collection (contract) on-chain without creating any tokens.
+ * Creates a new collection (contract) onchain without creating any tokens.
  * Uses the Zora 1155 factory to create a new contract with the specified parameters.
  */
 export async function createCollection(

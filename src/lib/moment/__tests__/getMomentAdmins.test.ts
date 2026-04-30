@@ -93,7 +93,7 @@ describe('getMomentAdmins', () => {
     });
   });
 
-  describe('without collection, in_process protocol (on-chain path)', () => {
+  describe('without collection, in_process protocol (onchain path)', () => {
     beforeEach(() => {
       vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
         address: SMART_ACCOUNT,

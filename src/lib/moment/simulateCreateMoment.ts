@@ -20,7 +20,7 @@ export interface SimulateCreateMomentResult {
 }
 
 /**
- * Simulates a moment creation without submitting an on-chain transaction.
+ * Simulates a moment creation without submitting an onchain transaction.
  * - Step 1: simulateContract (viem) — validates contract-level logic
  * - Step 2: prepareUserOperation (CDP) — validates at AA/paymaster level
  * Throws if either step would fail.
