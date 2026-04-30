@@ -2,7 +2,7 @@ import type { Thread } from 'chat';
 import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
 
-const COLLAGE_DELAY_MS = 15_000;
+const COLLAGE_DELAY_MS = 30_000;
 
 const replyAfterSuccess = async (
   thread: Thread,
