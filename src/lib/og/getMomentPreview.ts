@@ -1,14 +1,13 @@
 import { imageMeta } from 'image-meta';
 import sharp from 'sharp';
 import { ImageMetadata } from '@/types/og';
-import fetchUri from '../arweave/fetchUri';
+import fetchUriWithRetries from './fetchUriWithRetries';
 import getSafeImageContentType from './getSafeImageContentType';
 
-const getMomentImageData = async (
+const getMomentPreview = async (
   previewBackgroundUrl: string
 ): Promise<ImageMetadata> => {
-  const response = await fetchUri(previewBackgroundUrl);
-  if (!response.ok) throw Error('failed to get image metadata');
+  const response = await fetchUriWithRetries(previewBackgroundUrl);
   const data = await response.arrayBuffer();
   const uint8Array = new Uint8Array(data);
   const meta = imageMeta(uint8Array);
@@ -34,4 +33,4 @@ const getMomentImageData = async (
   };
 };
 
-export default getMomentImageData;
+export default getMomentPreview;
