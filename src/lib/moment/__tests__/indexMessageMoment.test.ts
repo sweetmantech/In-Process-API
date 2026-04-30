@@ -214,30 +214,37 @@ describe('indexMessageMoment', () => {
     expect(upsertMessageMoment).not.toHaveBeenCalled();
   });
 
-  it('throws when upsertCollections returns no ids', async () => {
+  it('returns early without touching moments flow when upsertCollections yields no collection id', async () => {
     vi.mocked(upsertCollections).mockResolvedValue([]);
 
-    await expect(indexMessageMoment(basePayload())).rejects.toThrow(
-      /upsertCollections did not return an id/
-    );
+    await expect(indexMessageMoment(basePayload())).resolves.toBeUndefined();
+
+    expect(selectMoments).not.toHaveBeenCalled();
+    expect(logMessage).not.toHaveBeenCalled();
+    expect(upsertMessageMoment).not.toHaveBeenCalled();
   });
 
-  it('throws when upsertMoments returns no ids', async () => {
+  it('returns early without logging when upsertMoments yields no moment id', async () => {
     vi.mocked(upsertMoments).mockResolvedValue([]);
 
-    await expect(indexMessageMoment(basePayload())).rejects.toThrow(
-      /upsertMoments did not return an id/
-    );
+    await expect(indexMessageMoment(basePayload())).resolves.toBeUndefined();
+
+    expect(selectMoments).toHaveBeenCalled();
+    expect(logMessage).not.toHaveBeenCalled();
+    expect(upsertMessageMoment).not.toHaveBeenCalled();
   });
 
-  it('propagates failure from upsertMessageMoment after logMessage', async () => {
+  it('does not reject when upsertMessageMoment reports an error (unchecked result)', async () => {
     vi.mocked(upsertMessageMoment).mockResolvedValue({
       data: null,
       error: new Error('link failed'),
     });
 
-    await expect(indexMessageMoment(basePayload())).rejects.toThrow(
-      /link failed/
-    );
+    await expect(indexMessageMoment(basePayload())).resolves.toBeUndefined();
+
+    expect(upsertMessageMoment).toHaveBeenCalledWith({
+      message: 'msg-id-123',
+      moment: 'moment-uuid-1',
+    });
   });
 });

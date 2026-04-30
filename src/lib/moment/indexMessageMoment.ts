@@ -61,12 +61,8 @@ const indexMessageMoment = async ({
       } as Database['public']['Tables']['in_process_collections']['Insert'],
     ]);
     collectionId = collections[0]?.id ?? '';
-    if (!collectionId) {
-      throw new Error(
-        'indexMessageMoment: upsertCollections did not return an id'
-      );
-    }
   }
+  if (!collectionId) return;
 
   const { data: existingMoments } = await selectMoments({
     moments: [
@@ -94,10 +90,8 @@ const indexMessageMoment = async ({
       },
     ]);
     momentId = moments[0]?.id;
-    if (!momentId) {
-      throw new Error('indexMessageMoment: upsertMoments did not return an id');
-    }
   }
+  if (!momentId) return;
 
   const successMessage = getMomentSuccessMessage(contractAddress, tokenId);
   const messageId = await logMessage(
@@ -110,16 +104,10 @@ const indexMessageMoment = async ({
 
   if (!messageId) return;
 
-  const { error } = await upsertMessageMoment({
+  await upsertMessageMoment({
     message: messageId,
     moment: momentId,
   });
-  if (error) {
-    throw new Error(
-      error.message ??
-        'indexMessageMoment: failed to link message id to moment id'
-    );
-  }
 };
 
 export default indexMessageMoment;
