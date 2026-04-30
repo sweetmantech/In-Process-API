@@ -242,7 +242,7 @@ describe('getMomentHandler', () => {
       expect(getZoraMediaInfo).not.toHaveBeenCalled();
     });
 
-    it('falls back to on-chain owner when admins list is empty', async () => {
+    it('falls back to onchain owner when admins list is empty', async () => {
       vi.mocked(getMomentAdmins).mockResolvedValue([] as any);
       vi.mocked(getZoraMediaInfo).mockResolvedValue({
         owner: ON_CHAIN_OWNER,
@@ -257,7 +257,7 @@ describe('getMomentHandler', () => {
       expect(getZoraMediaInfo).toHaveBeenCalledWith(moment);
     });
 
-    it('falls back to resolved owner when admins are empty and on-chain owner is null', async () => {
+    it('falls back to resolved owner when admins are empty and onchain owner is null', async () => {
       vi.mocked(getMomentAdmins).mockResolvedValue([] as any);
       vi.mocked(getZoraMediaInfo).mockResolvedValue({
         owner: null,

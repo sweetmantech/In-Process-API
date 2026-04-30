@@ -59,7 +59,7 @@ describe('resolveMomentFromDb', () => {
       expect(result.saleConfig).toEqual(mockSaleConfig);
     });
 
-    it('falls back to on-chain when no DB sale', async () => {
+    it('falls back to onchain when no DB sale', async () => {
       vi.mocked(selectSale).mockResolvedValue(null);
       vi.mocked(getOnChainSaleConfig).mockResolvedValue(mockSaleConfig as any);
 
