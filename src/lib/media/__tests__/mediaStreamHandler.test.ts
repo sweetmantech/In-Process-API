@@ -15,6 +15,9 @@ const createMockStream = () => {
 
 const h = (entries: Record<string, string>) => new Headers(entries);
 
+const EXPECTED_STREAM_CACHE_CONTROL =
+  'public, max-age=31536000, immutable, s-maxage=31536000';
+
 describe('mediaStreamHandler', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -290,8 +293,31 @@ describe('mediaStreamHandler', () => {
       });
 
       expect(result.headers.get('Cache-Control')).toBe(
-        'public, max-age=31536000, immutable'
+        EXPECTED_STREAM_CACHE_CONTROL
       );
+    });
+
+    it('should set Vary: Range on 206 responses', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        status: 206,
+        body: createMockStream(),
+        headers: h({
+          'content-type': 'video/mp4',
+          'content-length': '100',
+          'content-range': 'bytes 0-99/1000',
+        }),
+      } as Response);
+
+      const result = await mediaStreamHandler({
+        uri: VIDEO,
+        rangeHeader: 'bytes=0-99',
+      });
+
+      expect(result.headers.get('Cache-Control')).toBe(
+        EXPECTED_STREAM_CACHE_CONTROL
+      );
+      expect(result.headers.get('Vary')).toBe('Range');
     });
 
     it('should use Content-Type from origin response', async () => {

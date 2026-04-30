@@ -78,7 +78,8 @@ const mediaStreamHandler = async ({
       'Content-Type': contentType,
       'Accept-Ranges': 'bytes',
       'Content-Length': contentLength.toString(),
-      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Cache-Control': 'public, max-age=31536000, immutable, s-maxage=31536000',
+      Vary: 'Range',
     });
 
     if (total !== null) {
@@ -97,7 +98,7 @@ const mediaStreamHandler = async ({
   const responseHeaders = new Headers({
     'Content-Type': contentType,
     'Accept-Ranges': 'bytes',
-    'Cache-Control': 'public, max-age=31536000, immutable',
+    'Cache-Control': 'public, max-age=31536000, immutable, s-maxage=31536000',
   });
   if (fullLength) {
     responseHeaders.set('Content-Length', fullLength);
