@@ -5,10 +5,12 @@ export async function upsertCollections(
   collections: Array<
     Database['public']['Tables']['in_process_collections']['Insert']
   >
-): Promise<void> {
-  if (!collections.length) return;
-  const { error } = await supabase
+): Promise<Array<{ id: string }>> {
+  if (!collections.length) return [];
+  const { data, error } = await supabase
     .from('in_process_collections')
-    .upsert(collections, { onConflict: 'address, chain_id' });
+    .upsert(collections, { onConflict: 'address, chain_id' })
+    .select('id');
   if (error) throw error;
+  return data ?? [];
 }

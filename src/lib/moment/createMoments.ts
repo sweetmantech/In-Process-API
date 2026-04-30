@@ -22,7 +22,7 @@ import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import parseMomentsTransaction from './parseMomentsTransaction';
 import parseSetupNewTokenEventsOnContract from './parseSetupNewTokenEventsOnContract';
 import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
-import processMessageMoment from './processMessageMoment';
+import indexMessageMoment from './indexMessageMoment';
 
 export interface MomentInput {
   uri: string;
@@ -112,23 +112,40 @@ const createMoments = async (
   });
 
   await Promise.all(
-    matched.map(({ contractAddress, tokenId, uri }) =>
-      Promise.all([
+    matched.map(({ contractAddress, tokenId, uri }) => {
+      let contractSlice: { address: Address } | { name: string; uri: string };
+      if (useExisting) {
+        contractSlice = { address: existingCollection! };
+      } else {
+        const row = inputs.find((i) => i.uri === uri);
+        if (!row) {
+          throw new Error(
+            'createMoments: matched result uri missing from inputs'
+          );
+        }
+        contractSlice = { name: row.name, uri: row.uri };
+      }
+
+      return Promise.all([
         triggerMuxMigration({
           uri,
           collectionAddress: contractAddress,
           tokenId,
           artistAddress,
         }),
-        processMessageMoment({
+        indexMessageMoment({
           contractAddress,
           tokenId,
           artistAddress,
           channel,
           chatId: ctx?.chatId,
+          contract: contractSlice,
+          token: {
+            tokenMetadataURI: uri,
+          },
         }),
-      ])
-    )
+      ]);
+    })
   );
 
   return matched.map(({ contractAddress, tokenId }) => ({

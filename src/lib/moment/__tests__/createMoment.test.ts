@@ -32,7 +32,7 @@ vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/moment/processMessageMoment', () => ({
+vi.mock('@/lib/moment/indexMessageMoment', () => ({
   default: vi.fn(),
 }));
 
@@ -55,7 +55,7 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import parseMomentTransaction from '@/lib/moment/parseMomentTransaction';
 import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
-import processMessageMoment from '@/lib/moment/processMessageMoment';
+import indexMessageMoment from '@/lib/moment/indexMessageMoment';
 import {
   createMoment,
   type CreateMomentContractInput,
@@ -116,7 +116,7 @@ describe('createMoment', () => {
     } as any);
 
     vi.mocked(triggerMuxMigration).mockResolvedValue(undefined);
-    vi.mocked(processMessageMoment).mockResolvedValue(undefined);
+    vi.mocked(indexMessageMoment).mockResolvedValue(undefined);
   });
 
   it('returns contractAddress, tokenId, hash, and chainId', async () => {
@@ -171,29 +171,33 @@ describe('createMoment', () => {
     );
   });
 
-  it('calls processMessageMoment with contractAddress, tokenId, account, and channel', async () => {
+  it('calls indexMessageMoment with indexed fields plus contract/token slices', async () => {
     const input = { ...baseInput, channel: 'web' };
     await createMoment(input);
 
-    expect(processMessageMoment).toHaveBeenCalledWith({
+    expect(indexMessageMoment).toHaveBeenCalledWith({
       contractAddress: RESULT_CONTRACT,
       tokenId: '7',
       artistAddress: ARTIST,
       channel: 'web',
       chatId: undefined,
+      contract: baseInput.contract,
+      token: baseInput.token,
     });
   });
 
-  it('forwards ctx.chatId to processMessageMoment', async () => {
+  it('forwards ctx.chatId to indexMessageMoment', async () => {
     const input = { ...baseInput, channel: 'telegram' };
     await createMoment(input, { chatId: 'chat-42' });
 
-    expect(processMessageMoment).toHaveBeenCalledWith({
+    expect(indexMessageMoment).toHaveBeenCalledWith({
       contractAddress: RESULT_CONTRACT,
       tokenId: '7',
       artistAddress: ARTIST,
       channel: 'telegram',
       chatId: 'chat-42',
+      contract: baseInput.contract,
+      token: baseInput.token,
     });
   });
 });
