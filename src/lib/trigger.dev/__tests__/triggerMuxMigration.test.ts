@@ -1,15 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/moment/getMomentMime', () => ({
+vi.mock('@/lib/metadata/getMetadataHandler', () => ({
   default: vi.fn(),
+}));
+
+vi.mock('@/lib/protocolSdk/retries', () => ({
+  retriesGeneric: vi.fn(({ tryFn }: { tryFn: () => unknown }) =>
+    Promise.resolve(tryFn())
+  ),
 }));
 
 vi.mock('@trigger.dev/sdk', () => ({
   tasks: { trigger: vi.fn() },
 }));
 
-import getMomentMime from '@/lib/moment/getMomentMime';
+import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
 import { tasks } from '@trigger.dev/sdk';
+import { CHAIN_ID } from '@/lib/consts';
 import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 
 const COLLECTION = '0x1111111111111111111111111111111111111111' as const;
@@ -27,56 +34,81 @@ describe('triggerMuxMigration', () => {
     vi.clearAllMocks();
   });
 
-  it('triggers migrate-mux-to-arweave for video mime type', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue('video/mp4');
+  it('triggers migrate-mux-to-arweave when content uri points at Mux', async () => {
+    vi.mocked(getMetadataHandler).mockResolvedValue({
+      name: 't',
+      content: {
+        mime: 'video/mp4',
+        uri: 'https://stream.mux.com/playback-id.m3u8',
+      },
+    });
 
     await triggerMuxMigration(baseInput);
 
     expect(tasks.trigger).toHaveBeenCalledWith('migrate-mux-to-arweave', {
       collectionAddress: COLLECTION,
       tokenId: '7',
-      chainId: 8453,
+      chainId: CHAIN_ID,
       artistAddress: ARTIST,
     });
   });
 
-  it('does not trigger for image mime type', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue('image/jpeg');
+  it('does not trigger when content uri is not mux.com', async () => {
+    vi.mocked(getMetadataHandler).mockResolvedValue({
+      name: 't',
+      content: { mime: 'video/mp4', uri: 'https://example.com/foo.mp4' },
+    });
 
     await triggerMuxMigration(baseInput);
 
     expect(tasks.trigger).not.toHaveBeenCalled();
   });
 
-  it('does not trigger for a mime type that contains "video" but is not video/*', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue('application/x-video-codec');
+  it('does not trigger when mux.com appears elsewhere but not in content uri', async () => {
+    vi.mocked(getMetadataHandler).mockResolvedValue({
+      name: 'https://mux.com/not-the-content-uri',
+      content: {
+        mime: 'video/mp4',
+        uri: 'https://example.com/video.mp4',
+      },
+    });
 
     await triggerMuxMigration(baseInput);
 
     expect(tasks.trigger).not.toHaveBeenCalled();
   });
 
-  it('does not trigger when getMomentMime returns null', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue(null);
+  it('does not trigger when metadata has no content', async () => {
+    vi.mocked(getMetadataHandler).mockResolvedValue({
+      name: 't',
+      image: 'https://example.com/img.png',
+    });
 
     await triggerMuxMigration(baseInput);
 
     expect(tasks.trigger).not.toHaveBeenCalled();
   });
 
-  it('calls getMomentMime with the provided uri', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue(null);
+  it('calls getMetadataHandler with the provided uri', async () => {
+    vi.mocked(getMetadataHandler).mockResolvedValue({
+      name: 't',
+    });
 
     await triggerMuxMigration({
       ...baseInput,
       uri: 'https://example.com/meta.json',
     });
 
-    expect(getMomentMime).toHaveBeenCalledWith('https://example.com/meta.json');
+    expect(getMetadataHandler).toHaveBeenCalledWith({
+      uri: 'https://example.com/meta.json',
+    });
   });
 
   it('does not throw when tasks.trigger fails', async () => {
-    vi.mocked(getMomentMime).mockResolvedValue('video/mp4');
+    vi.mocked(getMetadataHandler).mockResolvedValue({
+      name: 't',
+      content: { mime: 'video/mp4', uri: 'https://mux.com/x' },
+    });
     vi.mocked(tasks.trigger).mockRejectedValue(
       new Error('Trigger.dev unavailable')
     );
@@ -84,8 +116,8 @@ describe('triggerMuxMigration', () => {
     await expect(triggerMuxMigration(baseInput)).resolves.not.toThrow();
   });
 
-  it('propagates errors from getMomentMime', async () => {
-    vi.mocked(getMomentMime).mockRejectedValue(new Error('Fetch failed'));
+  it('propagates errors from getMetadataHandler', async () => {
+    vi.mocked(getMetadataHandler).mockRejectedValue(new Error('Fetch failed'));
 
     await expect(triggerMuxMigration(baseInput)).rejects.toThrow(
       'Fetch failed'
