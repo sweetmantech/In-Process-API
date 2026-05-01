@@ -54,11 +54,6 @@ export const ADMIN_ADDRESSES = [
   '0x6e786fcfcb98da9df87ab0b7a2d64067c90daba9',
 ];
 
-export const ARWEAVE_GATEWAY = 'https://ar-io.net';
-
-export const CATALOG_MINT_CONTROLLER: Address =
-  '0xbcEaBFcC30a0e050367A6A5FaEa247A43C314709';
-
 export const SOUND_METADATA_ADDRESS: Address =
   '0x0000000000f5A96Dc85959cAeb0Cfe680f108FB5';
 

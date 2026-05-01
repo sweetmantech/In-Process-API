@@ -2,7 +2,7 @@ import { Readable } from 'stream';
 import turboClient from './turboClient';
 import patchFetch from './patchFetch';
 
-export const uploadToArweave = async (file: File): Promise<string> => {
+const uploadToArweave = async (file: File): Promise<string> => {
   const uint8Array = new Uint8Array(await file.arrayBuffer());
   const restoreFetch = patchFetch();
 
