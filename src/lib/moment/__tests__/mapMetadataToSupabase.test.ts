@@ -1,10 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/metadata/getMetadataHandler', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/getMimeType', () => ({ default: vi.fn() }));
-vi.mock('@/lib/sleep', () => ({
-  default: vi.fn().mockResolvedValue(undefined),
-}));
 
 import { mapMetadataToSupabase } from '../mapMetadataToSupabase';
 import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
@@ -182,37 +179,50 @@ describe('mapMetadataToSupabase', () => {
     expect(result.artistNamesByAddresses.has('0xCREATOR')).toBe(false);
   });
 
-  it('retries up to 5 times on failure, then logs and continues', async () => {
-    mockGetMetadata.mockRejectedValue(new Error('fetch failed'));
+  describe('retriesGeneric backoff', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-    const moments = [
-      { id: 'mid', uri: 'bad://uri', collection: { creator: '0xABC' } },
-    ];
-    const result = await mapMetadataToSupabase(moments);
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-    // After all retries fail, the record is simply not added
-    expect(result.records).toHaveLength(0);
-    expect(mockGetMetadata).toHaveBeenCalledTimes(5);
-  });
+    it('retries up to 5 times on failure, then logs and continues', async () => {
+      mockGetMetadata.mockRejectedValue(new Error('fetch failed'));
 
-  it('stops retrying after success', async () => {
-    mockGetMetadata
-      .mockRejectedValueOnce(new Error('fail'))
-      .mockResolvedValueOnce({
-        name: 'T',
-        description: null,
-        image: null,
-        animation_url: null,
-        external_url: null,
-        content: null,
-      } as any);
+      const moments = [
+        { id: 'mid', uri: 'bad://uri', collection: { creator: '0xABC' } },
+      ];
+      const promise = mapMetadataToSupabase(moments);
+      await vi.advanceTimersByTimeAsync(1000 + 2000 + 3000 + 4000);
+      const result = await promise;
 
-    const moments = [
-      { id: 'mid', uri: 'ipfs://meta', collection: { creator: '0xABC' } },
-    ];
-    const result = await mapMetadataToSupabase(moments);
+      expect(result.records).toHaveLength(0);
+      expect(mockGetMetadata).toHaveBeenCalledTimes(5);
+    });
 
-    expect(result.records).toHaveLength(1);
-    expect(mockGetMetadata).toHaveBeenCalledTimes(2);
+    it('stops retrying after success', async () => {
+      mockGetMetadata
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValueOnce({
+          name: 'T',
+          description: null,
+          image: null,
+          animation_url: null,
+          external_url: null,
+          content: null,
+        } as any);
+
+      const moments = [
+        { id: 'mid', uri: 'ipfs://meta', collection: { creator: '0xABC' } },
+      ];
+      const promise = mapMetadataToSupabase(moments);
+      await vi.advanceTimersByTimeAsync(1000);
+      const result = await promise;
+
+      expect(result.records).toHaveLength(1);
+      expect(mockGetMetadata).toHaveBeenCalledTimes(2);
+    });
   });
 });

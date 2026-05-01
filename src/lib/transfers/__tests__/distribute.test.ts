@@ -1,29 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/splits/isSplitContract', () => ({ default: vi.fn() }));
 vi.mock('@/lib/splits/distribute', () => ({ distribute: vi.fn() }));
-vi.mock('@/lib/getRetryDelay', () => ({ getRetryDelay: vi.fn(() => 0) }));
-vi.mock('@/lib/isRateLimitError', () => ({
-  isRateLimitError: vi.fn(() => false),
-}));
-vi.mock('@/lib/sleep', () => ({
-  default: vi.fn().mockResolvedValue(undefined),
-}));
 
 import { distribute } from '../distribute';
 import isSplitContract from '@/lib/splits/isSplitContract';
 import { distribute as splitDistribute } from '@/lib/splits/distribute';
-import { getRetryDelay } from '@/lib/getRetryDelay';
-import { isRateLimitError } from '@/lib/isRateLimitError';
-import sleep from '@/lib/sleep';
 import type { Transfers_t } from '@/types/envio';
 import { zeroAddress } from 'viem';
 
 const mockIsSplit = vi.mocked(isSplitContract);
 const mockSplitDistribute = vi.mocked(splitDistribute);
-const mockGetRetryDelay = vi.mocked(getRetryDelay);
-const mockIsRateLimit = vi.mocked(isRateLimitError);
-const mockSleep = vi.mocked(sleep);
 
 const baseTransfer = (over: Partial<Transfers_t> = {}): Transfers_t => ({
   id: '1',
@@ -42,9 +29,6 @@ const baseTransfer = (over: Partial<Transfers_t> = {}): Transfers_t => ({
 describe('distribute (transfers)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetRetryDelay.mockReturnValue(0);
-    mockIsRateLimit.mockReturnValue(false);
-    mockSleep.mockResolvedValue(undefined);
   });
 
   it('does not call split distribute for empty input', async () => {
@@ -97,25 +81,37 @@ describe('distribute (transfers)', () => {
     });
   });
 
-  it('retries on failure then succeeds', async () => {
-    mockIsSplit.mockResolvedValue(true);
-    mockSplitDistribute
-      .mockRejectedValueOnce(new Error('fail'))
-      .mockResolvedValueOnce('0xhash2');
+  describe('retriesGeneric (linear backoff)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-    await distribute([baseTransfer()]);
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-    expect(mockSplitDistribute).toHaveBeenCalledTimes(2);
-    expect(mockGetRetryDelay).toHaveBeenCalled();
-    expect(mockSleep).toHaveBeenCalled();
-  });
+    it('retries on failure then succeeds', async () => {
+      mockIsSplit.mockResolvedValue(true);
+      mockSplitDistribute
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValueOnce('0xhash2');
 
-  it('stops after maxRetries + 1 attempts without rethrowing', async () => {
-    mockIsSplit.mockResolvedValue(true);
-    mockSplitDistribute.mockRejectedValue(new Error('always fail'));
+      const promise = distribute([baseTransfer()]);
+      await vi.advanceTimersByTimeAsync(1000);
+      await promise;
 
-    await expect(distribute([baseTransfer()])).resolves.toBeUndefined();
-    expect(mockSplitDistribute).toHaveBeenCalledTimes(4);
+      expect(mockSplitDistribute).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops after maxRetries + 1 attempts without rethrowing', async () => {
+      mockIsSplit.mockResolvedValue(true);
+      mockSplitDistribute.mockRejectedValue(new Error('always fail'));
+
+      const promise = distribute([baseTransfer()]);
+      await vi.advanceTimersByTimeAsync(1000 + 2000 + 3000);
+      await expect(promise).resolves.toBeUndefined();
+      expect(mockSplitDistribute).toHaveBeenCalledTimes(4);
+    });
   });
 
   it('handles multiple transfers independently', async () => {
