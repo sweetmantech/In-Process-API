@@ -1,7 +1,8 @@
 import { Address } from 'viem';
 import { tasks } from '@trigger.dev/sdk';
 import { CHAIN_ID } from '@/lib/consts';
-import getMomentMime from '@/lib/moment/getMomentMime';
+import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
+import { retriesGeneric } from '@/lib/protocolSdk/retries';
 
 const triggerMuxMigration = async ({
   uri,
@@ -14,8 +15,13 @@ const triggerMuxMigration = async ({
   tokenId?: string;
   artistAddress: Address;
 }) => {
-  const mimeType = await getMomentMime(uri);
-  if (!mimeType || !mimeType.trim().toLowerCase().startsWith('video/')) return;
+  const metadata = await retriesGeneric({
+    tryFn: () => getMetadataHandler({ uri }),
+    maxTries: 3,
+    linearBackoffMS: 500,
+  });
+  if (!metadata) return;
+  if (!metadata.content?.uri?.includes('mux.com')) return;
 
   try {
     await tasks.trigger('migrate-mux-to-arweave', {
