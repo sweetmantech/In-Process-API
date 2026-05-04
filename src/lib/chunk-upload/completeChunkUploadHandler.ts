@@ -1,20 +1,23 @@
 import { NextResponse } from 'next/server';
 import blobDel from '@/lib/vercel-blob/blobDel';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
-import markChunkUploadSessionCompleting from '@/lib/supabase/in_process_chunk_upload_sessions/markChunkUploadSessionCompleting';
-import deleteChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/deleteChunkUploadSession';
+import updateChunkUploadSessionStatus from '@/lib/supabase/in_process_chunk_upload_sessions/updateChunkUploadSessionStatus';
 import listChunkUploadParts from '@/lib/supabase/in_process_chunk_upload_parts/listChunkUploadParts';
 import { chunkUploadMaxTotalBytes } from '@/lib/chunk-upload/chunkUploadMaxPartBytes';
 import getFileFromBlobs from '@/lib/chunk-upload/getFileFromBlobs';
-import revertChunkUploadSessionOpen from '../supabase/in_process_chunk_upload_sessions/revertChunkUploadSessionOpen';
 
 const completeChunkUploadHandler = async (sessionId: string) => {
   try {
-    const { data: locked, error: lockErr } =
-      await markChunkUploadSessionCompleting(sessionId, 'open');
+    const { data, error: lockErr } = await updateChunkUploadSessionStatus({
+      id: sessionId,
+      from: 'open',
+      to: 'completing',
+    });
+    const locked = data?.[0];
 
     if (lockErr || !locked) {
-      if (lockErr) console.error('markChunkUploadSessionCompleting', lockErr);
+      if (lockErr)
+        console.error('updateChunkUploadSessionStatus lock', lockErr);
       throw new Error('Upload session is not available for completion');
     }
 
@@ -52,14 +55,23 @@ const completeChunkUploadHandler = async (sessionId: string) => {
       console.error('del chunk blobs', e)
     );
 
-    const { error: delErr } = await deleteChunkUploadSession(sessionId);
-    if (delErr) console.error('deleteChunkUploadSession', delErr);
+    const { error: doneErr } = await updateChunkUploadSessionStatus({
+      id: sessionId,
+      from: 'completing',
+      to: 'done',
+      extra: { completed_at: new Date().toISOString() },
+    });
+    if (doneErr) console.error('updateChunkUploadSessionStatus done', doneErr);
 
     return NextResponse.json({ uri });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Upload failed';
-    const { error } = await revertChunkUploadSessionOpen(sessionId);
-    if (error) console.error('revertChunkUploadSessionOpen', error);
+    const { error } = await updateChunkUploadSessionStatus({
+      id: sessionId,
+      from: 'completing',
+      to: 'open',
+    });
+    if (error) console.error('updateChunkUploadSessionStatus revert', error);
     return NextResponse.json({ message }, { status: 500 });
   }
 };

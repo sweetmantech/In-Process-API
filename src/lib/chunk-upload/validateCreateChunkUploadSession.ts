@@ -3,6 +3,9 @@ import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import chunkUploadSessionBodySchema from '@/lib/schema/chunkUploadSessionBodySchema';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import getCompletedUploads from '@/lib/supabase/in_process_chunk_upload_sessions/getCompletedUploads';
+
+const FREE_UPLOADS_PER_MONTH = 11;
 
 const validateCreateChunkUploadSession = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
@@ -37,6 +40,33 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
         message:
           'Artist username must be set before creating a chunk upload session',
       },
+      { status: 403 }
+    );
+  }
+
+  const now = new Date();
+  const monthStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+  ).toISOString();
+  const monthEnd = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
+  ).toISOString();
+
+  const { count, error: countError } = await getCompletedUploads(
+    authResult.artistAddress,
+    monthStart,
+    monthEnd
+  );
+  if (countError) {
+    console.error('getCompletedUploads', countError);
+    return NextResponse.json(
+      { message: 'Failed to check upload quota' },
+      { status: 500 }
+    );
+  }
+  if ((count ?? 0) >= FREE_UPLOADS_PER_MONTH) {
+    return NextResponse.json(
+      { message: 'Monthly free upload limit reached' },
       { status: 403 }
     );
   }
