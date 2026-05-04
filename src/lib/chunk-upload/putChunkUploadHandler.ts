@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import blobDel from '@/lib/vercel-blob/blobDel';
 import blobPut from '@/lib/vercel-blob/blobPut';
 import insertChunkUploadPart from '@/lib/supabase/in_process_chunk_upload_parts/insertChunkUploadPart';
-import chunkUploadMaxPartBytes from '@/lib/chunk-upload/chunkUploadMaxPartBytes';
+import { CHUNK_UPLOAD_MAX_PART_BYTES } from '@/lib/consts';
 import chunkUploadBlobPathname from '@/lib/chunk-upload/chunkUploadBlobPathname';
 import type { Database } from '@/lib/supabase/types';
 
@@ -27,16 +27,16 @@ const putChunkUploadHandler = async (
     if (n === 0) {
       throw new Error('Chunk body must not be empty');
     }
-    if (n > chunkUploadMaxPartBytes) {
+    if (n > CHUNK_UPLOAD_MAX_PART_BYTES) {
       throw new Error(
-        `Chunk exceeds max size of ${chunkUploadMaxPartBytes} bytes`
+        `Chunk exceeds max size of ${CHUNK_UPLOAD_MAX_PART_BYTES} bytes`
       );
     }
 
     const isLast = chunkIndex === session.total_chunks - 1;
-    if (!isLast && n !== chunkUploadMaxPartBytes) {
+    if (!isLast && n !== CHUNK_UPLOAD_MAX_PART_BYTES) {
       throw new Error(
-        `Non-final chunks must be exactly ${chunkUploadMaxPartBytes} bytes`
+        `Non-final chunks must be exactly ${CHUNK_UPLOAD_MAX_PART_BYTES} bytes`
       );
     }
 

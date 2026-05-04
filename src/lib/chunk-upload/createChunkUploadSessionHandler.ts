@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import insertChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/insertChunkUploadSession';
-import chunkUploadMaxPartBytes, {
-  chunkUploadMaxChunkCount,
-  chunkUploadMaxTotalBytes,
-} from '@/lib/chunk-upload/chunkUploadMaxPartBytes';
+import {
+  CHUNK_UPLOAD_MAX_PART_BYTES,
+  CHUNK_UPLOAD_MAX_CHUNK_COUNT,
+  CHUNK_UPLOAD_MAX_TOTAL_BYTES,
+} from '@/lib/consts';
 
 const createChunkUploadSessionHandler = async (
   artistAddress: string,
@@ -32,9 +33,9 @@ const createChunkUploadSessionHandler = async (
 
   return NextResponse.json({
     session_id: row.id,
-    chunk_size_bytes: chunkUploadMaxPartBytes,
-    max_total_bytes: chunkUploadMaxTotalBytes,
-    max_chunks: chunkUploadMaxChunkCount,
+    chunk_size_bytes: CHUNK_UPLOAD_MAX_PART_BYTES,
+    max_total_bytes: CHUNK_UPLOAD_MAX_TOTAL_BYTES,
+    max_chunks: CHUNK_UPLOAD_MAX_CHUNK_COUNT,
   });
 };
 

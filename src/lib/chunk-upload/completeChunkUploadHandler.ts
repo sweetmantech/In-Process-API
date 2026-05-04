@@ -3,7 +3,7 @@ import blobDel from '@/lib/vercel-blob/blobDel';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import updateChunkUploadSessionStatus from '@/lib/supabase/in_process_chunk_upload_sessions/updateChunkUploadSessionStatus';
 import listChunkUploadParts from '@/lib/supabase/in_process_chunk_upload_parts/listChunkUploadParts';
-import { chunkUploadMaxTotalBytes } from '@/lib/chunk-upload/chunkUploadMaxPartBytes';
+import { CHUNK_UPLOAD_MAX_TOTAL_BYTES } from '@/lib/consts';
 import getFileFromBlobs from '@/lib/chunk-upload/getFileFromBlobs';
 
 const completeChunkUploadHandler = async (sessionId: string) => {
@@ -43,7 +43,7 @@ const completeChunkUploadHandler = async (sessionId: string) => {
       filename: locked.filename,
       contentType: locked.content_type,
       totalSizeBytes: locked.total_size_bytes,
-      maxTotalBytes: chunkUploadMaxTotalBytes,
+      maxTotalBytes: CHUNK_UPLOAD_MAX_TOTAL_BYTES,
     });
     if (!assembled.ok) {
       throw new Error(assembled.message);

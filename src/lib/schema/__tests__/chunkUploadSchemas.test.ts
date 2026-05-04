@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import chunkUploadSessionBodySchema from '@/lib/schema/chunkUploadSessionBodySchema';
 import chunkUploadCompleteBodySchema from '@/lib/schema/chunkUploadCompleteBodySchema';
-import chunkUploadMaxPartBytes, {
-  chunkUploadMaxChunkCount,
-  chunkUploadMaxTotalBytes,
-} from '@/lib/chunk-upload/chunkUploadMaxPartBytes';
+import {
+  CHUNK_UPLOAD_MAX_PART_BYTES,
+  CHUNK_UPLOAD_MAX_CHUNK_COUNT,
+  CHUNK_UPLOAD_MAX_TOTAL_BYTES,
+} from '@/lib/consts';
 
 const SESSION_ID = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -26,7 +27,7 @@ describe('chunkUploadSessionBodySchema', () => {
   it('rejects total_chunks above max', () => {
     const r = chunkUploadSessionBodySchema.safeParse({
       ...minimal,
-      total_chunks: chunkUploadMaxChunkCount + 1,
+      total_chunks: CHUNK_UPLOAD_MAX_CHUNK_COUNT + 1,
     });
     expect(r.success).toBe(false);
   });
@@ -34,7 +35,7 @@ describe('chunkUploadSessionBodySchema', () => {
   it('rejects total_size_bytes above global max', () => {
     const r = chunkUploadSessionBodySchema.safeParse({
       ...minimal,
-      total_size_bytes: chunkUploadMaxTotalBytes + 1,
+      total_size_bytes: CHUNK_UPLOAD_MAX_TOTAL_BYTES + 1,
     });
     expect(r.success).toBe(false);
     if (r.success) return;
@@ -47,7 +48,7 @@ describe('chunkUploadSessionBodySchema', () => {
     const r = chunkUploadSessionBodySchema.safeParse({
       filename: 'x',
       total_chunks: 2,
-      total_size_bytes: 2 * chunkUploadMaxPartBytes + 1,
+      total_size_bytes: 2 * CHUNK_UPLOAD_MAX_PART_BYTES + 1,
     });
     expect(r.success).toBe(false);
   });
@@ -56,7 +57,7 @@ describe('chunkUploadSessionBodySchema', () => {
     const r = chunkUploadSessionBodySchema.safeParse({
       filename: 'x',
       total_chunks: 2,
-      total_size_bytes: 2 * chunkUploadMaxPartBytes,
+      total_size_bytes: 2 * CHUNK_UPLOAD_MAX_PART_BYTES,
     });
     expect(r.success).toBe(true);
   });
