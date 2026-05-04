@@ -20,7 +20,10 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@vercel/blob": ["./node_modules/@vercel/blob/dist/index.d.ts"]
+      "@vercel/blob": ["./node_modules/@vercel/blob/dist/index.d.ts"],
+      "@vercel/blob/dist/index.js": [
+        "./node_modules/@vercel/blob/dist/index.d.ts"
+      ]
     }
   },
   "include": [

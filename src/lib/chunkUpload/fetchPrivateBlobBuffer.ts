@@ -1,4 +1,4 @@
-import { get } from '@vercel/blob';
+import { get } from '@vercel/blob/dist/index.js';
 import { Buffer } from 'node:buffer';
 
 const fetchPrivateBlobBuffer = async (blobUrl: string): Promise<Buffer> => {

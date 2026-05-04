@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { NextResponse } from 'next/server';
-import { del } from '@vercel/blob';
+import { del } from '@vercel/blob/dist/index.js';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import markChunkUploadSessionCompleting from '@/lib/supabase/in_process_chunk_upload_sessions/markChunkUploadSessionCompleting';
 import revertChunkUploadSessionOpen from '@/lib/supabase/in_process_chunk_upload_sessions/revertChunkUploadSessionOpen';
