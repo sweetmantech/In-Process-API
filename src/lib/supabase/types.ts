@@ -220,6 +220,71 @@ export type Database = {
         };
         Relationships: [];
       };
+      in_process_chunk_upload_parts: {
+        Row: {
+          blob_url: string;
+          byte_length: number;
+          chunk_index: number;
+          session_id: string;
+        };
+        Insert: {
+          blob_url: string;
+          byte_length: number;
+          chunk_index: number;
+          session_id: string;
+        };
+        Update: {
+          blob_url?: string;
+          byte_length?: number;
+          chunk_index?: number;
+          session_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_chunk_upload_parts_session_id_fkey';
+            columns: ['session_id'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_chunk_upload_sessions';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      in_process_chunk_upload_sessions: {
+        Row: {
+          artist_address: string;
+          content_type: string;
+          created_at: string;
+          expires_at: string;
+          filename: string;
+          id: string;
+          status: string;
+          total_chunks: number;
+          total_size_bytes: number | null;
+        };
+        Insert: {
+          artist_address: string;
+          content_type?: string;
+          created_at?: string;
+          expires_at?: string;
+          filename: string;
+          id?: string;
+          status?: string;
+          total_chunks: number;
+          total_size_bytes?: number | null;
+        };
+        Update: {
+          artist_address?: string;
+          content_type?: string;
+          created_at?: string;
+          expires_at?: string;
+          filename?: string;
+          id?: string;
+          status?: string;
+          total_chunks?: number;
+          total_size_bytes?: number | null;
+        };
+        Relationships: [];
+      };
       in_process_collections: {
         Row: {
           address: string;
