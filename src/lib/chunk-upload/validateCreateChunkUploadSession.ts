@@ -3,8 +3,8 @@ import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import chunkUploadSessionBodySchema from '@/lib/schema/chunkUploadSessionBodySchema';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import getCompletedFreeUploads from '@/lib/supabase/in_process_chunk_upload_sessions/getCompletedFreeUploads';
-import { FREE_TIER_MAX_BYTES, FREE_UPLOADS_PER_MONTH } from '@/lib/consts';
+import getChunkUploadType from './getChunkUploadType';
+import getUsdcForChunkUpload from './getUsdcForChunkUpload';
 
 const validateCreateChunkUploadSession = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
@@ -20,20 +20,12 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
   const parsed = validate(chunkUploadSessionBodySchema, body);
   if (!parsed.success) return parsed.response;
 
-  if (
-    parsed.data.total_size_bytes !== undefined &&
-    parsed.data.total_size_bytes > FREE_TIER_MAX_BYTES
-  ) {
-    return NextResponse.json(
-      { message: 'File size exceeds the free tier limit' },
-      { status: 413 }
-    );
-  }
+  const { data } = parsed;
+  const artistAddress = authResult.artistAddress;
 
   const { data: artistRows, error: artistError } = await selectArtists({
-    address: authResult.artistAddress,
+    address: artistAddress,
   });
-
   if (artistError) {
     console.error('selectArtists', artistError);
     return NextResponse.json(
@@ -41,9 +33,7 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
       { status: 500 }
     );
   }
-
-  const artist = artistRows?.[0];
-  if (!artist?.username?.trim()) {
+  if (!artistRows?.[0]?.username?.trim()) {
     return NextResponse.json(
       {
         message:
@@ -53,34 +43,41 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
     );
   }
 
-  const now = new Date();
-  const monthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
-  ).toISOString();
-  const monthEnd = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
-  ).toISOString();
-
-  const { count, error: countError } = await getCompletedFreeUploads(
-    authResult.artistAddress,
-    monthStart,
-    monthEnd
+  const uploadTypeResult = await getChunkUploadType(
+    artistAddress,
+    data.total_size_bytes
   );
-  if (countError) {
-    console.error('getCompletedFreeUploads', countError);
+  if ('error' in uploadTypeResult) {
     return NextResponse.json(
-      { message: 'Failed to check upload quota' },
-      { status: 500 }
+      { message: uploadTypeResult.error },
+      { status: uploadTypeResult.status }
     );
   }
-  if ((count ?? 0) >= FREE_UPLOADS_PER_MONTH) {
-    return NextResponse.json(
-      { message: 'Monthly free upload limit reached' },
-      { status: 403 }
+  const { uploadType } = uploadTypeResult;
+
+  let usdcAmount: number | undefined;
+  if (uploadType === 'paid') {
+    const usdcResult = await getUsdcForChunkUpload(
+      artistAddress,
+      data.total_size_bytes!
     );
+    if ('error' in usdcResult) {
+      return NextResponse.json(
+        {
+          message: usdcResult.error,
+          required: usdcResult.required,
+          available: usdcResult.available,
+          ...(usdcResult.smart_wallet !== undefined && {
+            smart_wallet: usdcResult.smart_wallet,
+          }),
+        },
+        { status: usdcResult.status }
+      );
+    }
+    usdcAmount = usdcResult.usdcAmount;
   }
 
-  return { artistAddress: authResult.artistAddress, ...parsed.data };
+  return { artistAddress, ...data, uploadType, usdcAmount };
 };
 
 export default validateCreateChunkUploadSession;
