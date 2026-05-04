@@ -9,17 +9,26 @@ const migrateProfile = async ({
   artist_wallet: string;
 }) => {
   try {
-    const existingProfile = await getProfile(social_wallet.toLowerCase());
+    const existingProfile = await getProfile(social_wallet);
+    const artistExistingProfile = await getProfile(artist_wallet);
 
     await upsertArtists([
       {
         address: artist_wallet.toLowerCase(),
-        username: existingProfile?.username,
-        bio: existingProfile?.bio,
-        farcaster_username: existingProfile?.farcaster_username,
-        instagram_username: existingProfile?.instagram_username,
-        twitter_username: existingProfile?.twitter_username,
-        telegram_username: existingProfile?.telegram_username,
+        username: artistExistingProfile?.username || existingProfile?.username,
+        bio: artistExistingProfile?.bio || existingProfile?.bio,
+        farcaster_username:
+          artistExistingProfile?.farcaster_username ||
+          existingProfile?.farcaster_username,
+        instagram_username:
+          artistExistingProfile?.instagram_username ||
+          existingProfile?.instagram_username,
+        twitter_username:
+          artistExistingProfile?.twitter_username ||
+          existingProfile?.twitter_username,
+        telegram_username:
+          artistExistingProfile?.telegram_username ||
+          existingProfile?.telegram_username,
       },
     ]);
 
@@ -34,10 +43,9 @@ const migrateProfile = async ({
         telegram_username: '',
       },
     ]);
-    console.log('✅ migrated profile from social wallet to artist wallet');
   } catch (error) {
     console.error(error);
-    throw new Error('❌ migrateProfile: Failed to migrate profile');
+    throw new Error('Failed to migrate profile');
   }
 };
 
