@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { NextResponse } from 'next/server';
-import { del } from '@vercel/blob/dist/index.js';
+import { blobDel } from '@/lib/chunkUpload/vercelBlobApi';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import markChunkUploadSessionCompleting from '@/lib/supabase/in_process_chunk_upload_sessions/markChunkUploadSessionCompleting';
 import revertChunkUploadSessionOpen from '@/lib/supabase/in_process_chunk_upload_sessions/revertChunkUploadSessionOpen';
@@ -87,7 +87,7 @@ const completeChunkUploadHandler = async (sessionId: string) => {
 
     const blobUrls = parts.map((p) => p.blob_url);
     try {
-      await del(blobUrls);
+      await blobDel(blobUrls);
     } catch (e: unknown) {
       console.error('del chunk blobs', e);
     }

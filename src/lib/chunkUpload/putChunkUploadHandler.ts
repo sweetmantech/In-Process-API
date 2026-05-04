@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { del, put } from '@vercel/blob/dist/index.js';
+import { blobDel, blobPut } from '@/lib/chunkUpload/vercelBlobApi';
 import insertChunkUploadPart from '@/lib/supabase/in_process_chunk_upload_parts/insertChunkUploadPart';
 import chunkUploadMaxPartBytes from '@/lib/chunkUpload/chunkUploadMaxPartBytes';
 import chunkUploadBlobPathname from '@/lib/chunkUpload/chunkUploadBlobPathname';
@@ -58,13 +58,7 @@ const putChunkUploadHandler = async (
 
   let blobUrl: string;
   try {
-    const blob = await put(pathname, buffer, {
-      access: 'private',
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      contentType: 'application/octet-stream',
-    });
-    blobUrl = blob.url;
+    blobUrl = await blobPut(pathname, buffer);
   } catch (e: unknown) {
     console.error('vercel blob put', e);
     return NextResponse.json(
@@ -89,7 +83,7 @@ const putChunkUploadHandler = async (
         { status: 409 }
       );
     }
-    await del(blobUrl).catch((delErr: unknown) =>
+    await blobDel(blobUrl).catch((delErr: unknown) =>
       console.error('del orphaned chunk blob', delErr)
     );
     console.error('insertChunkUploadPart', error);
