@@ -225,18 +225,21 @@ export type Database = {
           blob_url: string;
           byte_length: number;
           chunk_index: number;
+          id: string;
           session_id: string;
         };
         Insert: {
           blob_url: string;
           byte_length: number;
           chunk_index: number;
+          id?: string;
           session_id: string;
         };
         Update: {
           blob_url?: string;
           byte_length?: number;
           chunk_index?: number;
+          id?: string;
           session_id?: string;
         };
         Relationships: [
@@ -283,7 +286,15 @@ export type Database = {
           total_chunks?: number;
           total_size_bytes?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_chunk_upload_sessions_artist_address_fkey';
+            columns: ['artist_address'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['address'];
+          },
+        ];
       };
       in_process_collections: {
         Row: {
