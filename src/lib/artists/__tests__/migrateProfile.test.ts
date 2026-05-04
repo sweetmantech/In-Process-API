@@ -179,7 +179,7 @@ describe('migrateProfile', () => {
         social_wallet: '0xb2',
         artist_wallet: '0xa1',
       })
-    ).rejects.toThrow('Failed to migrate profile');
+    ).rejects.toThrow(/❌ migrateProfile:/);
     errSpy.mockRestore();
   });
 });

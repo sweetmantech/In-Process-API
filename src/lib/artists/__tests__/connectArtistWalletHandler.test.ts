@@ -36,7 +36,7 @@ describe('connectArtistWalletHandler', () => {
     vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
       address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     } as any);
-    vi.mocked(migrateMoments).mockResolvedValue(null);
+    vi.mocked(migrateMoments).mockResolvedValue(undefined);
     vi.mocked(migrateSmartWalletFunds).mockResolvedValue(undefined);
   });
 
@@ -73,6 +73,12 @@ describe('connectArtistWalletHandler', () => {
         smartWalletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       },
     });
+    expect(migrateSmartWalletFunds).toHaveBeenCalledWith({
+      socialSmartAccount: {
+        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+      artistSmartWalletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    });
     expect(json).toEqual({ success: true });
   });
 
@@ -108,10 +114,15 @@ describe('connectArtistWalletHandler', () => {
         smartWalletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       },
     });
+    expect(migrateSmartWalletFunds).toHaveBeenCalledWith({
+      socialSmartAccount: {
+        address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+      artistSmartWalletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    });
   });
 
-  it('runs profile migration before api key and moments', async () => {
-    vi.mocked(insertSocialWallet).mockResolvedValue({ error: null } as any);
+  it('runs profile, api key, moments, then smart wallet funds before insert', async () => {
     const order: string[] = [];
     vi.mocked(migrateProfile).mockImplementation(async () => {
       order.push('profile');
@@ -122,13 +133,20 @@ describe('connectArtistWalletHandler', () => {
     vi.mocked(migrateMoments).mockImplementation(async () => {
       order.push('moments');
     });
+    vi.mocked(migrateSmartWalletFunds).mockImplementation(async () => {
+      order.push('funds');
+    });
+    vi.mocked(insertSocialWallet).mockImplementation(async () => {
+      order.push('insert');
+      return { error: null } as any;
+    });
 
     await connectArtistWalletHandler({
       artist_wallet: '0xa123456789012345678901234567890123456789',
       social_wallet: '0xb234567890123456789012345678901234567891',
     });
 
-    expect(order).toEqual(['profile', 'apiKey', 'moments']);
+    expect(order).toEqual(['profile', 'apiKey', 'moments', 'funds', 'insert']);
   });
 
   it('throws when social wallet is already connected', async () => {
