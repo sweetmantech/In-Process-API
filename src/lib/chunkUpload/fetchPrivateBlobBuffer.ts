@@ -1,4 +1,4 @@
-import { get } from '@/lib/chunkUpload/vercelBlobSdk';
+import { get } from '@vercel/blob';
 import { Buffer } from 'node:buffer';
 
 const fetchPrivateBlobBuffer = async (blobUrl: string): Promise<Buffer> => {

@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@vercel/blob": ["./node_modules/@vercel/blob/dist/index.d.ts"]
     }
   },
   "include": [
