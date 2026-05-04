@@ -3,6 +3,7 @@ import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import connectArtistWalletSchema from '@/lib/schema/connectArtistWalletSchema';
 import { AuthMethod } from '@/types/auth';
+import { Address } from 'viem';
 
 const validateConnectArtistWalletBody = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
@@ -26,7 +27,7 @@ const validateConnectArtistWalletBody = async (req: NextRequest) => {
 
   return {
     ...result.data,
-    social_wallet: authorizedAddress,
+    social_wallet: authorizedAddress.toLowerCase() as Address,
   };
 };
 

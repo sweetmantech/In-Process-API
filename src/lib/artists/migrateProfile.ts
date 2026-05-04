@@ -9,7 +9,7 @@ const migrateProfile = async ({
   artist_wallet: string;
 }) => {
   try {
-    const existingProfile = await getProfile(social_wallet);
+    const existingProfile = await getProfile(social_wallet.toLowerCase());
 
     await upsertArtists([
       {
@@ -34,9 +34,10 @@ const migrateProfile = async ({
         telegram_username: '',
       },
     ]);
+    console.log('✅ migrated profile from social wallet to artist wallet');
   } catch (error) {
     console.error(error);
-    throw new Error('Failed to migrate profile');
+    throw new Error('❌ migrateProfile: Failed to migrate profile');
   }
 };
 

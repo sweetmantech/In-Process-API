@@ -1,27 +1,29 @@
-import { Address, getAddress, Hash } from 'viem';
+import { Address, getAddress } from 'viem';
 import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '../coinbase/sendUserOperation';
 import getAddPermissionCall from '../viem/getAddPermissionCall';
+import { CHAIN_ID, IS_TESTNET } from '../consts';
+import selectCollections from '../supabase/in_process_collections/selectCollections';
 
 const migrateMoments = async ({
-  collections,
   socialWallet,
   artistWallet,
-  chainId,
 }: {
-  collections: Array<{
-    address: string;
-    admins: Array<{ artist_address: string; token_id: number }>;
-  }>;
   socialWallet: Address;
   artistWallet: {
     address: Address;
     smartWalletAddress: Address;
   };
-  chainId: number;
 }) => {
   try {
-    const network = chainId === 84532 ? 'base-sepolia' : 'base';
+    const { data: collections, error: collectionsError } =
+      await selectCollections({
+        artists: [socialWallet],
+        chainId: CHAIN_ID,
+      });
+    if (!collections || collectionsError) return;
+
+    const network = IS_TESTNET ? 'base-sepolia' : 'base';
     const smartAccount = await getOrCreateSmartWallet({
       address: socialWallet,
     });
@@ -47,16 +49,16 @@ const migrateMoments = async ({
         )
     );
 
-    if (!filtered.length) return null;
+    if (!filtered.length) return;
 
     for (const collection of filtered) {
       const collectionAddress = getAddress(collection.address);
       const addPermissionCall = getAddPermissionCall(
-        { collectionAddress, tokenId: '0', chainId },
+        { collectionAddress, tokenId: '0', chainId: CHAIN_ID },
         artistWallet.address
       );
       const addSmartAccountPermissionCall = getAddPermissionCall(
-        { collectionAddress, tokenId: '0', chainId },
+        { collectionAddress, tokenId: '0', chainId: CHAIN_ID },
         artistWallet.smartWalletAddress
       );
       calls.push(addPermissionCall, addSmartAccountPermissionCall);
@@ -68,14 +70,12 @@ const migrateMoments = async ({
       calls,
     });
 
-    return {
-      hash: transaction.transactionHash as Hash,
-      chainId,
-    };
-  } catch (e: any) {
-    console.log(e);
-    const message = e?.message ?? 'Failed to migrate moments';
-    throw new Error(message);
+    console.log(
+      `✅ migrated moments from social wallet to artist wallet: ${transaction.transactionHash}`
+    );
+  } catch (error) {
+    console.error(`❌ migrateMoments: ${error}`);
+    throw new Error(`❌ migrateMoments: ${error}`);
   }
 };
 

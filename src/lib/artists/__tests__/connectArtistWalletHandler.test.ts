@@ -1,15 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CHAIN_ID } from '@/lib/consts';
 
 vi.mock(
   '@/lib/supabase/in_process_artist_social_wallets/insertSocialWallet',
   () => ({ insertSocialWallet: vi.fn() })
 );
-vi.mock('@/lib/supabase/in_process_api_keys/getApiKeys', () => ({
-  getApiKeys: vi.fn(),
-}));
-vi.mock('@/lib/supabase/in_process_api_keys/updateArtistAddress', () => ({
-  updateArtistAddress: vi.fn(),
+vi.mock('@/lib/artists/migrateApiKey', () => ({
+  default: vi.fn(),
 }));
 vi.mock('@/lib/artists/migrateProfile', () => ({
   default: vi.fn(),
@@ -17,19 +13,14 @@ vi.mock('@/lib/artists/migrateProfile', () => ({
 vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
   getOrCreateSmartWallet: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
-  default: vi.fn(),
-}));
 vi.mock('@/lib/moment/migrateMoments', () => ({
   default: vi.fn(),
 }));
 
 import { insertSocialWallet } from '@/lib/supabase/in_process_artist_social_wallets/insertSocialWallet';
-import { getApiKeys } from '@/lib/supabase/in_process_api_keys/getApiKeys';
-import { updateArtistAddress } from '@/lib/supabase/in_process_api_keys/updateArtistAddress';
+import migrateApiKey from '@/lib/artists/migrateApiKey';
 import migrateProfile from '@/lib/artists/migrateProfile';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import migrateMoments from '@/lib/moment/migrateMoments';
 import connectArtistWalletHandler from '@/lib/artists/connectArtistWalletHandler';
 
@@ -37,15 +28,9 @@ describe('connectArtistWalletHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(migrateProfile).mockResolvedValue(undefined);
-    vi.mocked(getApiKeys).mockResolvedValue({ data: [], error: null } as any);
-    vi.mocked(updateArtistAddress).mockResolvedValue({ error: null } as any);
+    vi.mocked(migrateApiKey).mockResolvedValue(undefined);
     vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
       address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    } as any);
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [],
-      count: 0,
-      error: null,
     } as any);
     vi.mocked(migrateMoments).mockResolvedValue(null);
   });
@@ -66,20 +51,23 @@ describe('connectArtistWalletHandler', () => {
       social_wallet: '0xb234567890123456789012345678901234567891',
       artist_wallet: '0xa123456789012345678901234567890123456789',
     });
-    expect(selectCollections).toHaveBeenCalledWith({
-      artists: ['0xb234567890123456789012345678901234567891'],
-      chainId: CHAIN_ID,
+    expect(migrateApiKey).toHaveBeenCalledWith({
+      social_wallet: '0xb234567890123456789012345678901234567891',
+      artist_wallet: '0xa123456789012345678901234567890123456789',
     });
-    expect(migrateMoments).not.toHaveBeenCalled();
+    expect(migrateMoments).toHaveBeenCalledTimes(1);
+    expect(migrateMoments).toHaveBeenCalledWith({
+      socialWallet: '0xb234567890123456789012345678901234567891',
+      artistWallet: {
+        address: '0xa123456789012345678901234567890123456789',
+        smartWalletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+    });
     expect(json).toEqual({ success: true });
   });
 
-  it('lowercases artist and social wallet before insertSocialWallet', async () => {
+  it('forwards wallet casing from input to migrations and insertSocialWallet', async () => {
     vi.mocked(insertSocialWallet).mockResolvedValue({ error: null } as any);
-    vi.mocked(getApiKeys).mockResolvedValue({
-      data: [{ id: 'key-1' } as any],
-      error: null,
-    } as any);
 
     await connectArtistWalletHandler({
       artist_wallet: '0xA123456789012345678901234567890123456789',
@@ -87,70 +75,45 @@ describe('connectArtistWalletHandler', () => {
     });
 
     expect(migrateProfile).toHaveBeenCalledWith({
-      social_wallet: '0xb234567890123456789012345678901234567891',
-      artist_wallet: '0xa123456789012345678901234567890123456789',
-    });
-    expect(updateArtistAddress).toHaveBeenCalledWith(
-      'key-1',
-      '0xa123456789012345678901234567890123456789'
-    );
-    expect(insertSocialWallet).toHaveBeenCalledWith({
-      artist_address: '0xa123456789012345678901234567890123456789',
-      social_wallet: '0xb234567890123456789012345678901234567891',
-    });
-  });
-
-  it('calls migrateMoments when social wallet has collections', async () => {
-    vi.mocked(insertSocialWallet).mockResolvedValue({ error: null } as any);
-    const collections = [
-      {
-        address: '0x1111111111111111111111111111111111111111',
-        admins: [
-          {
-            artist_address: '0xffffffffffffffffffffffffffffffffffffffff',
-            token_id: 0,
-          },
-        ],
-      },
-    ];
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: collections as any,
-      count: 1,
-      error: null,
-    } as any);
-
-    await connectArtistWalletHandler({
+      social_wallet: '0xB234567890123456789012345678901234567891',
       artist_wallet: '0xA123456789012345678901234567890123456789',
-      social_wallet: '0xb234567890123456789012345678901234567891',
     });
-
-    expect(migrateMoments).toHaveBeenCalledTimes(1);
+    expect(migrateApiKey).toHaveBeenCalledWith({
+      social_wallet: '0xB234567890123456789012345678901234567891',
+      artist_wallet: '0xA123456789012345678901234567890123456789',
+    });
+    expect(insertSocialWallet).toHaveBeenCalledWith({
+      artist_address: '0xA123456789012345678901234567890123456789',
+      social_wallet: '0xB234567890123456789012345678901234567891',
+    });
     expect(migrateMoments).toHaveBeenCalledWith({
-      collections,
-      socialWallet: '0xb234567890123456789012345678901234567891',
+      socialWallet: '0xB234567890123456789012345678901234567891',
       artistWallet: {
-        address: '0xa123456789012345678901234567890123456789',
+        address: '0xA123456789012345678901234567890123456789',
         smartWalletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       },
-      chainId: CHAIN_ID,
     });
   });
 
-  it('does not migrate when collection query errors', async () => {
+  it('runs profile migration before api key and moments', async () => {
     vi.mocked(insertSocialWallet).mockResolvedValue({ error: null } as any);
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: null,
-      count: null,
-      error: { message: 'db failed' },
-    } as any);
+    const order: string[] = [];
+    vi.mocked(migrateProfile).mockImplementation(async () => {
+      order.push('profile');
+    });
+    vi.mocked(migrateApiKey).mockImplementation(async () => {
+      order.push('apiKey');
+    });
+    vi.mocked(migrateMoments).mockImplementation(async () => {
+      order.push('moments');
+    });
 
-    const res = await connectArtistWalletHandler({
+    await connectArtistWalletHandler({
       artist_wallet: '0xa123456789012345678901234567890123456789',
       social_wallet: '0xb234567890123456789012345678901234567891',
     });
 
-    expect(migrateMoments).not.toHaveBeenCalled();
-    expect(await res.json()).toEqual({ success: true });
+    expect(order).toEqual(['profile', 'apiKey', 'moments']);
   });
 
   it('throws when social wallet is already connected', async () => {
