@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import type { Address } from 'viem';
 import insertChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/insertChunkUploadSession';
+import topUpTurboCredits from '@/lib/arweave/topUpTurboCredits';
 import {
   CHUNK_UPLOAD_MAX_PART_BYTES,
   CHUNK_UPLOAD_MAX_CHUNK_COUNT,
@@ -13,8 +15,14 @@ const createChunkUploadSessionHandler = async (
     content_type: string;
     total_chunks: number;
     total_size_bytes?: number;
+    uploadType: 'free' | 'paid';
+    usdcAmount?: number;
   }
 ) => {
+  if (data.uploadType === 'paid') {
+    await topUpTurboCredits(artistAddress as Address, data.usdcAmount!);
+  }
+
   const { data: row, error } = await insertChunkUploadSession({
     artist_address: artistAddress.toLowerCase(),
     filename: data.filename,

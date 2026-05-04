@@ -5,6 +5,7 @@ vi.mock(
   '@/lib/supabase/in_process_chunk_upload_sessions/insertChunkUploadSession',
   () => ({ default: vi.fn() })
 );
+vi.mock('@/lib/arweave/topUpTurboCredits', () => ({ default: vi.fn() }));
 
 import insertChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/insertChunkUploadSession';
 import createChunkUploadSessionHandler from '@/lib/chunk-upload/createChunkUploadSessionHandler';
@@ -32,6 +33,7 @@ describe('createChunkUploadSessionHandler', () => {
       content_type: 'audio/wav',
       total_chunks: 2,
       total_size_bytes: 100,
+      uploadType: 'free',
     });
 
     expect(res).toBeInstanceOf(NextResponse);
@@ -63,6 +65,7 @@ describe('createChunkUploadSessionHandler', () => {
       filename: 'a.wav',
       content_type: 'audio/wav',
       total_chunks: 1,
+      uploadType: 'free',
     });
 
     expect(res.status).toBe(500);
@@ -78,6 +81,7 @@ describe('createChunkUploadSessionHandler', () => {
       filename: 'a.wav',
       content_type: 'audio/wav',
       total_chunks: 1,
+      uploadType: 'free',
     });
 
     expect(res.status).toBe(500);
