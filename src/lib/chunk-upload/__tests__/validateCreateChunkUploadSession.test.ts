@@ -60,7 +60,7 @@ describe('validateCreateChunkUploadSession', () => {
       makeRequest({
         filename: 'big.mp4',
         content_type: 'video/mp4',
-        total_chunks: 2,
+        total_chunks: 3,
         total_size_bytes: 10_000_000,
       })
     );
@@ -84,7 +84,7 @@ describe('validateCreateChunkUploadSession', () => {
       makeRequest({
         filename: 'big.mp4',
         content_type: 'video/mp4',
-        total_chunks: 2,
+        total_chunks: 3,
         total_size_bytes: 10_000_000,
       })
     );

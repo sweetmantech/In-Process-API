@@ -6,7 +6,6 @@ import type {
 import type { Address, Hex } from 'viem';
 import { parseUnits } from 'viem';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
-import { IS_TESTNET } from '@/lib/consts';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import turboClient from './turboClient';
 
@@ -19,7 +18,7 @@ const topUpTurboCredits = async (
     turboClient.signer.getNativeAddress(),
   ]);
 
-  const network = IS_TESTNET ? 'base-sepolia' : 'base';
+  const network = 'base';
 
   const walletAdapter: EthereumWalletAdapter = {
     getSigner: () => ({
