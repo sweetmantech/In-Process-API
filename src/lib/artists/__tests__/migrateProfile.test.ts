@@ -67,6 +67,9 @@ describe('migrateProfile', () => {
       artist_wallet: '0xA123456789012345678901234567890123456789',
     });
 
+    expect(getProfile).toHaveBeenCalledWith(
+      '0xb234567890123456789012345678901234567891'
+    );
     expect(upsertArtists).toHaveBeenNthCalledWith(1, [
       {
         address: '0xa123456789012345678901234567890123456789',

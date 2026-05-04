@@ -45,6 +45,23 @@ describe('validateConnectArtistWalletBody', () => {
     });
   });
 
+  it('lowercases social_wallet from the authorized Privy address', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: '0xB234567890123456789012345678901234567891',
+      authMethod: AuthMethod.Privy,
+    } as any);
+
+    const result = await validateConnectArtistWalletBody(
+      makeRequest({ artist_wallet: ARTIST })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect(result).toEqual({
+      artist_wallet: ARTIST.toLowerCase(),
+      social_wallet: SOCIAL.toLowerCase(),
+    });
+  });
+
   it('returns 403 when auth method is not Privy', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
       artistAddress: SOCIAL,
@@ -68,6 +85,10 @@ describe('validateConnectArtistWalletBody', () => {
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(403);
+    const body = await (result as NextResponse).json();
+    expect(body).toEqual({
+      message: 'An external wallet is already connected',
+    });
   });
 
   it('returns 400 when artist_wallet has invalid format', async () => {
