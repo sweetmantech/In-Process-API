@@ -1,8 +1,8 @@
 import { z } from 'zod';
+import addressSchema from '@/lib/schema/addressSchema';
 
 const connectArtistWalletSchema = z.object({
-  artist_wallet: z.string().min(1, 'artist_wallet is required'),
-  social_wallet: z.string().min(1, 'social_wallet is required'),
+  artist_wallet: addressSchema,
 });
 
 export default connectArtistWalletSchema;
