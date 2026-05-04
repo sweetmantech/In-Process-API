@@ -11,8 +11,8 @@ vi.mock('@/lib/supabase/in_process_api_keys/getApiKeys', () => ({
 vi.mock('@/lib/supabase/in_process_api_keys/updateArtistAddress', () => ({
   updateArtistAddress: vi.fn(),
 }));
-vi.mock('@/lib/artists/ensureArtists', () => ({
-  ensureArtists: vi.fn(),
+vi.mock('@/lib/artists/migrateProfile', () => ({
+  default: vi.fn(),
 }));
 vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
   getOrCreateSmartWallet: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock('@/lib/moment/migrateMoments', () => ({
 import { insertSocialWallet } from '@/lib/supabase/in_process_artist_social_wallets/insertSocialWallet';
 import { getApiKeys } from '@/lib/supabase/in_process_api_keys/getApiKeys';
 import { updateArtistAddress } from '@/lib/supabase/in_process_api_keys/updateArtistAddress';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import migrateProfile from '@/lib/artists/migrateProfile';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import migrateMoments from '@/lib/moment/migrateMoments';
@@ -36,7 +36,7 @@ import connectArtistWalletHandler from '@/lib/artists/connectArtistWalletHandler
 describe('connectArtistWalletHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(ensureArtists).mockResolvedValue(undefined);
+    vi.mocked(migrateProfile).mockResolvedValue(undefined);
     vi.mocked(getApiKeys).mockResolvedValue({ data: [], error: null } as any);
     vi.mocked(updateArtistAddress).mockResolvedValue({ error: null } as any);
     vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
@@ -59,11 +59,12 @@ describe('connectArtistWalletHandler', () => {
     });
     const json = await res.json();
 
-    expect(ensureArtists).toHaveBeenCalledWith([
-      '0xa123456789012345678901234567890123456789',
-    ]);
     expect(getOrCreateSmartWallet).toHaveBeenCalledWith({
       address: '0xa123456789012345678901234567890123456789',
+    });
+    expect(migrateProfile).toHaveBeenCalledWith({
+      social_wallet: '0xb234567890123456789012345678901234567891',
+      artist_wallet: '0xa123456789012345678901234567890123456789',
     });
     expect(selectCollections).toHaveBeenCalledWith({
       artists: ['0xb234567890123456789012345678901234567891'],
@@ -85,9 +86,10 @@ describe('connectArtistWalletHandler', () => {
       social_wallet: '0xB234567890123456789012345678901234567891',
     });
 
-    expect(ensureArtists).toHaveBeenCalledWith([
-      '0xa123456789012345678901234567890123456789',
-    ]);
+    expect(migrateProfile).toHaveBeenCalledWith({
+      social_wallet: '0xb234567890123456789012345678901234567891',
+      artist_wallet: '0xa123456789012345678901234567890123456789',
+    });
     expect(updateArtistAddress).toHaveBeenCalledWith(
       'key-1',
       '0xa123456789012345678901234567890123456789'

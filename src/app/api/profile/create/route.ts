@@ -1,4 +1,4 @@
-import { upsertProfile } from '@/lib/supabase/in_process_artists/upsertProfile';
+import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import { NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
@@ -14,16 +14,17 @@ export async function POST(req: NextRequest) {
       telegram_username,
     } = body;
 
-    const { error } = await upsertProfile({
-      address: address.toLowerCase(),
-      username,
-      bio,
-      twitter_username,
-      instagram_username,
-      farcaster_username,
-      telegram_username,
-    });
-    if (error) throw new Error();
+    await upsertArtists([
+      {
+        address: address.toLowerCase(),
+        username,
+        bio,
+        twitter_username,
+        instagram_username,
+        farcaster_username,
+        telegram_username,
+      },
+    ]);
 
     return Response.json({
       success: true,
