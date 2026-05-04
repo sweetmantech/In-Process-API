@@ -3,9 +3,8 @@ import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import chunkUploadSessionBodySchema from '@/lib/schema/chunkUploadSessionBodySchema';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import getCompletedUploads from '@/lib/supabase/in_process_chunk_upload_sessions/getCompletedUploads';
-
-const FREE_UPLOADS_PER_MONTH = 11;
+import getCompletedFreeUploads from '@/lib/supabase/in_process_chunk_upload_sessions/getCompletedFreeUploads';
+import { FREE_TIER_MAX_BYTES, FREE_UPLOADS_PER_MONTH } from '@/lib/consts';
 
 const validateCreateChunkUploadSession = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
@@ -20,6 +19,16 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
 
   const parsed = validate(chunkUploadSessionBodySchema, body);
   if (!parsed.success) return parsed.response;
+
+  if (
+    parsed.data.total_size_bytes !== undefined &&
+    parsed.data.total_size_bytes > FREE_TIER_MAX_BYTES
+  ) {
+    return NextResponse.json(
+      { message: 'File size exceeds the free tier limit' },
+      { status: 413 }
+    );
+  }
 
   const { data: artistRows, error: artistError } = await selectArtists({
     address: authResult.artistAddress,
@@ -52,13 +61,13 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
   ).toISOString();
 
-  const { count, error: countError } = await getCompletedUploads(
+  const { count, error: countError } = await getCompletedFreeUploads(
     authResult.artistAddress,
     monthStart,
     monthEnd
   );
   if (countError) {
-    console.error('getCompletedUploads', countError);
+    console.error('getCompletedFreeUploads', countError);
     return NextResponse.json(
       { message: 'Failed to check upload quota' },
       { status: 500 }

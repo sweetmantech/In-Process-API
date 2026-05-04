@@ -6,14 +6,15 @@ vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
 vi.mock(
-  '@/lib/supabase/in_process_chunk_upload_sessions/getCompletedUploads',
+  '@/lib/supabase/in_process_chunk_upload_sessions/getCompletedFreeUploads',
   () => ({ default: vi.fn() })
 );
 
 import { authMiddleware } from '@/authMiddleware';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import getCompletedUploads from '@/lib/supabase/in_process_chunk_upload_sessions/getCompletedUploads';
+import getCompletedFreeUploads from '@/lib/supabase/in_process_chunk_upload_sessions/getCompletedFreeUploads';
 import validateCreateChunkUploadSession from '@/lib/chunk-upload/validateCreateChunkUploadSession';
+import { FREE_TIER_MAX_BYTES } from '@/lib/consts';
 
 const ARTIST = '0xaf1452d289e22fbd0dea9d5097353c72a90fac33';
 
@@ -34,7 +35,7 @@ beforeEach(() => {
     status: 200,
     statusText: 'OK',
   } as any);
-  vi.mocked(getCompletedUploads).mockResolvedValue({
+  vi.mocked(getCompletedFreeUploads).mockResolvedValue({
     count: 0,
     error: null,
     data: null,
@@ -94,6 +95,51 @@ describe('validateCreateChunkUploadSession', () => {
     expect((result as NextResponse).status).toBe(400);
   });
 
+  it('returns 413 when total_size_bytes exceeds 5 MiB', async () => {
+    const result = await validateCreateChunkUploadSession(
+      makeRequest({
+        filename: 'big.mp4',
+        content_type: 'video/mp4',
+        total_chunks: 2,
+        total_size_bytes: FREE_TIER_MAX_BYTES + 1,
+      })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(413);
+    const j = await (result as NextResponse).json();
+    expect(j.message).toMatch(/free tier limit/);
+    expect(selectArtists).not.toHaveBeenCalled();
+    expect(getCompletedFreeUploads).not.toHaveBeenCalled();
+  });
+
+  it('allows upload when total_size_bytes is exactly 5 MiB', async () => {
+    const result = await validateCreateChunkUploadSession(
+      makeRequest({
+        filename: 'track.wav',
+        content_type: 'audio/wav',
+        total_chunks: 2,
+        total_size_bytes: FREE_TIER_MAX_BYTES,
+      })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).artistAddress).toBe(ARTIST);
+  });
+
+  it('allows upload when total_size_bytes is not provided', async () => {
+    const result = await validateCreateChunkUploadSession(
+      makeRequest({
+        filename: 'track.wav',
+        content_type: 'audio/wav',
+        total_chunks: 1,
+      })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).artistAddress).toBe(ARTIST);
+  });
+
   it('returns 403 when artist has no username', async () => {
     vi.mocked(selectArtists).mockResolvedValue({
       data: [{ username: null }],
@@ -116,7 +162,7 @@ describe('validateCreateChunkUploadSession', () => {
   });
 
   it('returns 403 when monthly upload limit is reached', async () => {
-    vi.mocked(getCompletedUploads).mockResolvedValue({
+    vi.mocked(getCompletedFreeUploads).mockResolvedValue({
       count: 11,
       error: null,
       data: null,
@@ -139,7 +185,7 @@ describe('validateCreateChunkUploadSession', () => {
   });
 
   it('returns 200 when at exactly 10 completed uploads (limit not yet reached)', async () => {
-    vi.mocked(getCompletedUploads).mockResolvedValue({
+    vi.mocked(getCompletedFreeUploads).mockResolvedValue({
       count: 10,
       error: null,
       data: null,
@@ -159,8 +205,8 @@ describe('validateCreateChunkUploadSession', () => {
     expect((result as any).artistAddress).toBe(ARTIST);
   });
 
-  it('returns 500 when getCompletedUploads fails', async () => {
-    vi.mocked(getCompletedUploads).mockResolvedValue({
+  it('returns 500 when getCompletedFreeUploads fails', async () => {
+    vi.mocked(getCompletedFreeUploads).mockResolvedValue({
       count: null,
       error: { message: 'db error' },
       data: null,

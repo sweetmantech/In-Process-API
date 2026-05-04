@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
-vi.mock('@/lib/chunk-upload/chunkUploadMaxPartBytes', () => ({
-  __esModule: true,
-  default: 100,
-  chunkUploadMaxTotalBytes: 1000,
-  chunkUploadMaxChunkCount: 10,
-}));
+vi.mock('@/lib/consts', async (importOriginal) => {
+  const original = await importOriginal<Record<string, unknown>>();
+  return {
+    ...original,
+    CHUNK_UPLOAD_MAX_PART_BYTES: 100,
+    CHUNK_UPLOAD_MAX_TOTAL_BYTES: 1000,
+    CHUNK_UPLOAD_MAX_CHUNK_COUNT: 10,
+  };
+});
 
 vi.mock('@/lib/vercel-blob/blobPut', () => ({ default: vi.fn() }));
 vi.mock('@/lib/vercel-blob/blobDel', () => ({ default: vi.fn() }));

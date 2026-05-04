@@ -81,3 +81,11 @@ export const NUDGE_PERIODS: Record<
   '3': { buttonLabel: 'Every 3 days', description: '3 days' },
   '7': { buttonLabel: 'Every week', description: 'a week' },
 };
+
+export const CHUNK_UPLOAD_MAX_PART_BYTES = 4 * 1024 * 1024;
+export const CHUNK_UPLOAD_MAX_TOTAL_BYTES = 444 * 1024 * 1024;
+export const CHUNK_UPLOAD_MAX_CHUNK_COUNT = Math.ceil(
+  CHUNK_UPLOAD_MAX_TOTAL_BYTES / CHUNK_UPLOAD_MAX_PART_BYTES
+);
+export const FREE_TIER_MAX_BYTES = 5 * 1024 * 1024;
+export const FREE_UPLOADS_PER_MONTH = 11;

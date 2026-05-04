@@ -8,10 +8,11 @@ vi.mock(
 
 import insertChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/insertChunkUploadSession';
 import createChunkUploadSessionHandler from '@/lib/chunk-upload/createChunkUploadSessionHandler';
-import chunkUploadMaxPartBytes, {
-  chunkUploadMaxChunkCount,
-  chunkUploadMaxTotalBytes,
-} from '@/lib/chunk-upload/chunkUploadMaxPartBytes';
+import {
+  CHUNK_UPLOAD_MAX_PART_BYTES,
+  CHUNK_UPLOAD_MAX_CHUNK_COUNT,
+  CHUNK_UPLOAD_MAX_TOTAL_BYTES,
+} from '@/lib/consts';
 
 const ARTIST = '0xAf1452D289E22FBd0dea9D5097353C72a90FAC33';
 
@@ -37,9 +38,9 @@ describe('createChunkUploadSessionHandler', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.session_id).toBe('new-session-id');
-    expect(json.chunk_size_bytes).toBe(chunkUploadMaxPartBytes);
-    expect(json.max_total_bytes).toBe(chunkUploadMaxTotalBytes);
-    expect(json.max_chunks).toBe(chunkUploadMaxChunkCount);
+    expect(json.chunk_size_bytes).toBe(CHUNK_UPLOAD_MAX_PART_BYTES);
+    expect(json.max_total_bytes).toBe(CHUNK_UPLOAD_MAX_TOTAL_BYTES);
+    expect(json.max_chunks).toBe(CHUNK_UPLOAD_MAX_CHUNK_COUNT);
 
     expect(insertChunkUploadSession).toHaveBeenCalledWith(
       expect.objectContaining({
