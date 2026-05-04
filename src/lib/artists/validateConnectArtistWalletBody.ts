@@ -10,7 +10,7 @@ const validateConnectArtistWalletBody = async (req: NextRequest) => {
   const authMethod = authResult.authMethod;
   if (authMethod !== AuthMethod.Privy)
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-  const social_wallet = authResult.artistAddress;
+  const authorizedAddress = authResult.artistAddress;
 
   const body = await req.json();
   const result = validate(connectArtistWalletSchema, body);
@@ -18,7 +18,7 @@ const validateConnectArtistWalletBody = async (req: NextRequest) => {
 
   const { artist_wallet } = result.data;
 
-  if (social_wallet === artist_wallet)
+  if (authorizedAddress === artist_wallet)
     return NextResponse.json(
       { message: 'An external wallet is already connected' },
       { status: 403 }
@@ -26,7 +26,7 @@ const validateConnectArtistWalletBody = async (req: NextRequest) => {
 
   return {
     ...result.data,
-    social_wallet,
+    social_wallet: authorizedAddress,
   };
 };
 
