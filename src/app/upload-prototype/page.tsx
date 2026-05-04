@@ -58,7 +58,7 @@ export default function UploadPrototypePage() {
   async function run() {
     const file = fileRef.current?.files?.[0];
     if (!file) {
-      setHint('먼저 파일을 골라 주세요 · Pick a file first');
+      setHint('Pick a file first');
       return;
     }
     setHint(null);
@@ -173,7 +173,7 @@ export default function UploadPrototypePage() {
               fontWeight: 500,
             }}
           >
-            조금씩 나눠 올리는 귀여운 프로토타입
+            Chunked uploads, one friendly prototype
           </p>
         </div>
 
@@ -184,7 +184,7 @@ export default function UploadPrototypePage() {
           type="password"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
-          placeholder="x-api-key 붙여 넣기"
+          placeholder="Paste your x-api-key"
           style={inputStyle}
           autoComplete="off"
         />
@@ -247,7 +247,7 @@ export default function UploadPrototypePage() {
               : '0 4px 18px rgba(236, 72, 153, 0.35), 0 2px 8px rgba(168, 85, 247, 0.25)',
           }}
         >
-          {busy ? '올리는 중…' : '업로드 시작'}
+          {busy ? 'Uploading…' : 'Start upload'}
         </button>
 
         {progress && (
@@ -263,7 +263,7 @@ export default function UploadPrototypePage() {
                 color: '#57534e',
               }}
             >
-              <span>진행률</span>
+              <span>Progress</span>
               <span style={{ color: '#a855f7' }}>{pct}%</span>
             </div>
             <div
@@ -333,7 +333,7 @@ export default function UploadPrototypePage() {
           >
             {logs.length === 0 && (
               <span style={{ color: '#a8a29e', fontWeight: 500 }}>
-                여기에 단계별 메시지가 쌓여요
+                Step-by-step messages will show up here
               </span>
             )}
             {logs.map((l, i) => (
