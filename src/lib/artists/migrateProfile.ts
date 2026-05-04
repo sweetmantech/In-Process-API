@@ -43,9 +43,13 @@ const migrateProfile = async ({
         telegram_username: '',
       },
     ]);
+
+    console.log(
+      `✅ migrated profile from social wallet to artist wallet: ${artist_wallet}`
+    );
   } catch (error) {
-    console.error(error);
-    throw new Error('Failed to migrate profile');
+    console.error(`❌ migrateProfile: ${error}`);
+    throw new Error(`❌ migrateProfile: ${error}`);
   }
 };
 
