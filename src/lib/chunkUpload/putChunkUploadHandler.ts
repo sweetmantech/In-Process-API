@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { blobDel, blobPut } from '@/lib/chunkUpload/vercelBlobApi';
+import blobDel from '@/lib/vercel-blob/blobDel';
+import blobPut from '@/lib/vercel-blob/blobPut';
 import insertChunkUploadPart from '@/lib/supabase/in_process_chunk_upload_parts/insertChunkUploadPart';
 import chunkUploadMaxPartBytes from '@/lib/chunkUpload/chunkUploadMaxPartBytes';
 import chunkUploadBlobPathname from '@/lib/chunkUpload/chunkUploadBlobPathname';

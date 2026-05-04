@@ -1,13 +1,13 @@
 import { Buffer } from 'node:buffer';
 import { NextResponse } from 'next/server';
-import { blobDel } from '@/lib/chunkUpload/vercelBlobApi';
+import blobDel from '@/lib/vercel-blob/blobDel';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import markChunkUploadSessionCompleting from '@/lib/supabase/in_process_chunk_upload_sessions/markChunkUploadSessionCompleting';
 import revertChunkUploadSessionOpen from '@/lib/supabase/in_process_chunk_upload_sessions/revertChunkUploadSessionOpen';
 import deleteChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/deleteChunkUploadSession';
 import listChunkUploadParts from '@/lib/supabase/in_process_chunk_upload_parts/listChunkUploadParts';
 import { chunkUploadMaxTotalBytes } from '@/lib/chunkUpload/chunkUploadMaxPartBytes';
-import fetchPrivateBlobBuffer from '@/lib/chunkUpload/fetchPrivateBlobBuffer';
+import blobGetBuffer from '@/lib/vercel-blob/blobGetBuffer';
 
 const completeChunkUploadHandler = async (sessionId: string) => {
   const { data: locked, error: lockErr } =
@@ -52,9 +52,9 @@ const completeChunkUploadHandler = async (sessionId: string) => {
     for (const p of parts) {
       let buf: Buffer;
       try {
-        buf = await fetchPrivateBlobBuffer(p.blob_url);
+        buf = await blobGetBuffer(p.blob_url);
       } catch (e: unknown) {
-        console.error('fetchPrivateBlobBuffer', e);
+        console.error('blobGetBuffer', e);
         return fail(500, 'Failed to read chunk from blob storage');
       }
       if (buf.length !== p.byte_length) {
