@@ -20,57 +20,63 @@ const migrateMoments = async ({
   };
   chainId: number;
 }) => {
-  const network = chainId === 84532 ? 'base-sepolia' : 'base';
-  const smartAccount = await getOrCreateSmartWallet({
-    address: socialWallet,
-  });
+  try {
+    const network = chainId === 84532 ? 'base-sepolia' : 'base';
+    const smartAccount = await getOrCreateSmartWallet({
+      address: socialWallet,
+    });
 
-  const calls: Array<{ to: Address; data: `0x${string}` }> = [];
+    const calls: Array<{ to: Address; data: `0x${string}` }> = [];
 
-  const filtered = collections.filter(
-    (collection) =>
-      collection.admins.some(
-        (admin) =>
-          admin.artist_address.toLowerCase() ===
-          smartAccount.address.toLowerCase()
-      ) &&
-      !collection.admins.some(
-        (admin) =>
-          admin.artist_address.toLowerCase() ===
-          artistWallet.smartWalletAddress.toLowerCase()
-      ) &&
-      !collection.admins.some(
-        (admin) =>
-          admin.artist_address.toLowerCase() ===
-          artistWallet.address.toLowerCase()
-      )
-  );
-
-  if (!filtered.length) return null;
-
-  for (const collection of filtered) {
-    const collectionAddress = getAddress(collection.address);
-    const addPermissionCall = getAddPermissionCall(
-      { collectionAddress, tokenId: '0', chainId },
-      artistWallet.address
+    const filtered = collections.filter(
+      (collection) =>
+        collection.admins.some(
+          (admin) =>
+            admin.artist_address.toLowerCase() ===
+            smartAccount.address.toLowerCase()
+        ) &&
+        !collection.admins.some(
+          (admin) =>
+            admin.artist_address.toLowerCase() ===
+            artistWallet.smartWalletAddress.toLowerCase()
+        ) &&
+        !collection.admins.some(
+          (admin) =>
+            admin.artist_address.toLowerCase() ===
+            artistWallet.address.toLowerCase()
+        )
     );
-    const addSmartAccountPermissionCall = getAddPermissionCall(
-      { collectionAddress, tokenId: '0', chainId },
-      artistWallet.smartWalletAddress
-    );
-    calls.push(addPermissionCall, addSmartAccountPermissionCall);
+
+    if (!filtered.length) return null;
+
+    for (const collection of filtered) {
+      const collectionAddress = getAddress(collection.address);
+      const addPermissionCall = getAddPermissionCall(
+        { collectionAddress, tokenId: '0', chainId },
+        artistWallet.address
+      );
+      const addSmartAccountPermissionCall = getAddPermissionCall(
+        { collectionAddress, tokenId: '0', chainId },
+        artistWallet.smartWalletAddress
+      );
+      calls.push(addPermissionCall, addSmartAccountPermissionCall);
+    }
+
+    const transaction = await sendUserOperation({
+      smartAccount,
+      network,
+      calls,
+    });
+
+    return {
+      hash: transaction.transactionHash as Hash,
+      chainId,
+    };
+  } catch (e: any) {
+    console.log(e);
+    const message = e?.message ?? 'Failed to migrate moments';
+    throw new Error(message);
   }
-
-  const transaction = await sendUserOperation({
-    smartAccount,
-    network,
-    calls,
-  });
-
-  return {
-    hash: transaction.transactionHash as Hash,
-    chainId,
-  };
 };
 
 export default migrateMoments;
