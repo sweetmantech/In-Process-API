@@ -1,124 +1,49 @@
-import { NextRequest } from 'next/server';
-import { generateApiKey } from '@/lib/api-keys/generateApiKey';
-import { hashApiKey } from '@/lib/api-keys/hashApiKey';
-import { getBearerToken } from '@/lib/api-keys/getBearerToken';
-import { insertApiKey } from '@/lib/supabase/in_process_api_keys/insertApiKey';
-import { getApiKeys } from '@/lib/supabase/in_process_api_keys/getApiKeys';
-import { deleteApiKey } from '@/lib/supabase/in_process_api_keys/deleteApiKey';
-import { createApiKeySchema } from '@/lib/schema/apiKeySchema';
-import { PRIVY_PROJECT_SECRET } from '@/lib/consts';
-import privyClient from '@/lib/privy/client';
-import { getAddressesByAuthToken } from '@/lib/privy/getAddressesByAuthToken';
-import { upsertProfile } from '@/lib/supabase/in_process_artists/upsertProfile';
-import { validate } from '@/lib/schema/validate';
+import { NextRequest, NextResponse } from 'next/server';
+import validateArtistApiKeysGet from '@/lib/artists/validateArtistApiKeysGet';
+import getArtistApiKeysHandler from '@/lib/artists/getArtistApiKeysHandler';
+import validateCreateArtistApiKeyBody from '@/lib/artists/validateCreateArtistApiKeyBody';
+import createArtistApiKeyHandler from '@/lib/artists/createArtistApiKeyHandler';
+import validateDeleteArtistApiKeyQuery from '@/lib/artists/validateDeleteArtistApiKeyQuery';
+import deleteArtistApiKeyHandler from '@/lib/artists/deleteArtistApiKeyHandler';
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const authToken = getBearerToken(authHeader);
-    if (!authToken)
-      throw new Error('Authorization header with Bearer token required');
-
-    const {
-      artistAddress: artistAddressFromToken,
-      socialWallet: socialWalletFromToken,
-    } = await getAddressesByAuthToken(authToken);
-    const artistAddress = artistAddressFromToken || socialWalletFromToken || '';
-    if (!artistAddress)
-      throw new Error('No artist address found for this API key');
-
-    const { data, error } = await getApiKeys(artistAddress.toLowerCase());
-
-    if (error) throw new Error('Failed to fetch API keys');
-
-    return Response.json({
-      keys: data || [],
-    });
+    const validated = await validateArtistApiKeysGet(req);
+    if (validated instanceof NextResponse) return validated;
+    const { artistAddress } = validated;
+    return getArtistApiKeysHandler(artistAddress);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'failed to fetch API keys';
+    const message = e?.message ?? 'Failed to fetch API keys';
     return Response.json({ message }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const authToken = getBearerToken(authHeader);
-    if (!authToken)
-      throw new Error('Authorization header with Bearer token required');
-
-    const {
-      artistAddress: artistAddressFromToken,
-      socialWallet: socialWalletFromToken,
-    } = await getAddressesByAuthToken(authToken);
-    const artistAddress = artistAddressFromToken || socialWalletFromToken || '';
-    if (!artistAddress)
-      throw new Error('No artist address found for this API key');
-
-    const body = await req.json();
-    const validationResult = validate(createApiKeySchema, body);
-    if (!validationResult.success) {
-      return validationResult.response;
-    }
-
-    const { key_name } = validationResult.data;
-
-    const rawApiKey = generateApiKey('art_sk');
-    const keyHash = hashApiKey(rawApiKey, PRIVY_PROJECT_SECRET);
-
-    const { error: profileError } = await upsertProfile({
-      address: artistAddress.toLowerCase(),
-    });
-    if (profileError) throw new Error('Failed to upsert profile');
-
-    const { error } = await insertApiKey({
-      name: key_name.trim(),
-      artist_address: artistAddress.toLowerCase(),
-      key_hash: keyHash,
-    });
-
-    if (error) throw new Error('failed to store api key');
-
-    return Response.json({
-      key: rawApiKey,
-    });
+    const validated = await validateCreateArtistApiKeyBody(req);
+    if (validated instanceof NextResponse) return validated;
+    return createArtistApiKeyHandler(validated);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'failed to create an api key';
+    const message = e?.message ?? 'Failed to create an api key';
     return Response.json({ message }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
-    const authToken = getBearerToken(authHeader);
-    if (!authToken)
-      throw new Error('Authorization header with Bearer token required');
-
-    await privyClient.utils().auth().verifyAuthToken(authToken);
-
-    const { searchParams } = new URL(req.url);
-    const keyId = searchParams.get('keyId');
-
-    if (!keyId) {
-      return Response.json(
-        { message: 'keyId parameter required' },
-        { status: 400 }
-      );
-    }
-
-    const { error } = await deleteApiKey(keyId);
-
-    if (error) throw new Error('Failed to delete API key');
-
-    return Response.json({
-      message: 'API key deleted successfully',
-    });
+    const validated = await validateDeleteArtistApiKeyQuery(req);
+    if (validated instanceof NextResponse) return validated;
+    const { keyId } = validated;
+    return deleteArtistApiKeyHandler(keyId);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'failed to delete API key';
+    const message = e?.message ?? 'Failed to delete API key';
     return Response.json({ message }, { status: 500 });
   }
 }
+
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
