@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import validatePutChunkUpload from '@/lib/chunkUpload/validatePutChunkUpload';
-import putChunkUploadHandler from '@/lib/chunkUpload/putChunkUploadHandler';
+import validatePutChunkUpload from '@/lib/chunk-upload/validatePutChunkUpload';
+import putChunkUploadHandler from '@/lib/chunk-upload/putChunkUploadHandler';
 
 export async function PUT(req: NextRequest) {
   try {

@@ -3,6 +3,7 @@ import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import chunkUploadCompleteBodySchema from '@/lib/schema/chunkUploadCompleteBodySchema';
 import getChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/getChunkUploadSession';
+import rejectUnlessUsableChunkUploadSession from '@/lib/chunk-upload/rejectUnlessUsableChunkUploadSession';
 
 const validateCompleteChunkUpload = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
@@ -21,36 +22,15 @@ const validateCompleteChunkUpload = async (req: NextRequest) => {
   const { data: session, error } = await getChunkUploadSession(
     parsed.data.session_id
   );
-  if (error || !session) {
-    return NextResponse.json(
-      { message: 'Upload session not found' },
-      { status: 404 }
-    );
-  }
 
-  if (session.status !== 'open') {
-    return NextResponse.json(
-      { message: 'Upload session is not ready to complete' },
-      { status: 400 }
-    );
-  }
-
-  if (new Date(session.expires_at).getTime() < Date.now()) {
-    return NextResponse.json(
-      { message: 'Upload session expired' },
-      { status: 410 }
-    );
-  }
-
-  if (
-    session.artist_address.toLowerCase() !==
-    authResult.artistAddress.toLowerCase()
-  ) {
-    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-  }
+  const gated = rejectUnlessUsableChunkUploadSession(
+    session,
+    error,
+    authResult.artistAddress
+  );
+  if (!gated.ok) return gated.response;
 
   return {
-    callerAddress: authResult.artistAddress,
     session_id: parsed.data.session_id,
   };
 };

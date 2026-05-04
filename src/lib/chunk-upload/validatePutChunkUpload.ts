@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
 import getChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/getChunkUploadSession';
-import type { Database } from '@/lib/supabase/types';
-
-type SessionRow =
-  Database['public']['Tables']['in_process_chunk_upload_sessions']['Row'];
+import rejectUnlessUsableChunkUploadSession from '@/lib/chunk-upload/rejectUnlessUsableChunkUploadSession';
 
 const validatePutChunkUpload = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
@@ -35,35 +32,15 @@ const validatePutChunkUpload = async (req: NextRequest) => {
   }
 
   const { data: session, error } = await getChunkUploadSession(sessionId);
-  if (error || !session) {
-    return NextResponse.json(
-      { message: 'Upload session not found' },
-      { status: 404 }
-    );
-  }
+  const gated = rejectUnlessUsableChunkUploadSession(
+    session,
+    error,
+    authResult.artistAddress
+  );
+  if (!gated.ok) return gated.response;
 
-  if (session.status !== 'open') {
-    return NextResponse.json(
-      { message: 'Upload session is not accepting chunks' },
-      { status: 400 }
-    );
-  }
-
-  if (new Date(session.expires_at).getTime() < Date.now()) {
-    return NextResponse.json(
-      { message: 'Upload session expired' },
-      { status: 410 }
-    );
-  }
-
-  if (
-    session.artist_address.toLowerCase() !==
-    authResult.artistAddress.toLowerCase()
-  ) {
-    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-  }
-
-  if (chunkIndex >= session.total_chunks) {
+  const { session: unlocked } = gated;
+  if (chunkIndex >= unlocked.total_chunks) {
     return NextResponse.json(
       { message: 'chunk_index out of range' },
       { status: 400 }
@@ -71,8 +48,7 @@ const validatePutChunkUpload = async (req: NextRequest) => {
   }
 
   return {
-    callerAddress: authResult.artistAddress,
-    session: session as SessionRow,
+    session: unlocked,
     chunkIndex,
   };
 };

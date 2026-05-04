@@ -1,19 +1,19 @@
 import { NextRequest } from 'next/server';
-import validateCreateChunkUploadSession from '@/lib/chunkUpload/validateCreateChunkUploadSession';
-import createChunkUploadSessionHandler from '@/lib/chunkUpload/createChunkUploadSessionHandler';
+import validateCreateChunkUploadSession from '@/lib/chunk-upload/validateCreateChunkUploadSession';
+import createChunkUploadSessionHandler from '@/lib/chunk-upload/createChunkUploadSessionHandler';
 
 export async function POST(req: NextRequest) {
   try {
     const validated = await validateCreateChunkUploadSession(req);
     if (validated instanceof Response) return validated;
     const {
-      callerAddress,
+      artistAddress,
       filename,
       content_type,
       total_chunks,
       total_size_bytes,
     } = validated;
-    return createChunkUploadSessionHandler(callerAddress, {
+    return createChunkUploadSessionHandler(artistAddress, {
       filename,
       content_type,
       total_chunks,

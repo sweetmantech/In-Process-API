@@ -1,8 +1,7 @@
-import getBlobReadWriteToken from '@/lib/vercel-blob/getBlobReadWriteToken';
-
-const BLOB_API_URL =
-  process.env.VERCEL_BLOB_API_URL ?? 'https://vercel.com/api/blob';
-const BLOB_API_VERSION = '12';
+import getBlobReadWriteToken, {
+  BLOB_API_URL,
+  BLOB_API_VERSION,
+} from '@/lib/vercel-blob/getBlobReadWriteToken';
 
 export default async function blobPut(
   pathname: string,

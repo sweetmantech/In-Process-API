@@ -17,7 +17,7 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
   const parsed = validate(chunkUploadSessionBodySchema, body);
   if (!parsed.success) return parsed.response;
 
-  return { callerAddress: authResult.artistAddress, ...parsed.data };
+  return { artistAddress: authResult.artistAddress, ...parsed.data };
 };
 
 export default validateCreateChunkUploadSession;

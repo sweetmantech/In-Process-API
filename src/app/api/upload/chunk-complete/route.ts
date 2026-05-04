@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import validateCompleteChunkUpload from '@/lib/chunkUpload/validateCompleteChunkUpload';
-import completeChunkUploadHandler from '@/lib/chunkUpload/completeChunkUploadHandler';
+import validateCompleteChunkUpload from '@/lib/chunk-upload/validateCompleteChunkUpload';
+import completeChunkUploadHandler from '@/lib/chunk-upload/completeChunkUploadHandler';
 
 export async function POST(req: NextRequest) {
   try {

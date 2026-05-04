@@ -2,7 +2,7 @@ import { z } from 'zod';
 import chunkUploadMaxPartBytes, {
   chunkUploadMaxChunkCount,
   chunkUploadMaxTotalBytes,
-} from '@/lib/chunkUpload/chunkUploadMaxPartBytes';
+} from '@/lib/chunk-upload/chunkUploadMaxPartBytes';
 
 const chunkUploadSessionBodySchema = z
   .object({
