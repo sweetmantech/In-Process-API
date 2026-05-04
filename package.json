@@ -29,6 +29,7 @@
     "@mux/upchunk": "^3.5.0",
     "@privy-io/node": "^0.8.0",
     "@supabase/supabase-js": "^2.93.1",
+    "@vercel/blob": "^2.3.3",
     "@trigger.dev/sdk": "^4.3.3",
     "@types/node-telegram-bot-api": "^0.64.13",
     "@vercel/og": "^0.8.6",
@@ -47,6 +48,17 @@
     "uuid": "^13.0.0",
     "viem": "^2.45.0",
     "zod": "^4.3.6"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "@vercel/blob": {
+        "exports": {
+          ".": {
+            "types": "./dist/index.d.ts"
+          }
+        }
+      }
+    }
   },
   "devDependencies": {
     "@types/node": "^25.0.10",
