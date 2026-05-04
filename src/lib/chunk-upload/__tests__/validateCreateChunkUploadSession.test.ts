@@ -2,8 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
 vi.mock('@/authMiddleware', () => ({ authMiddleware: vi.fn() }));
+vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
+  default: vi.fn(),
+}));
 
 import { authMiddleware } from '@/authMiddleware';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import validateCreateChunkUploadSession from '@/lib/chunk-upload/validateCreateChunkUploadSession';
 
 const ARTIST = '0xaf1452d289e22fbd0dea9d5097353c72a90fac33';
@@ -18,6 +22,13 @@ const makeRequest = (body: unknown) =>
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: ARTIST } as any);
+  vi.mocked(selectArtists).mockResolvedValue({
+    data: [{ username: 'coolartist' }],
+    error: null,
+    count: null,
+    status: 200,
+    statusText: 'OK',
+  } as any);
 });
 
 describe('validateCreateChunkUploadSession', () => {
@@ -69,5 +80,47 @@ describe('validateCreateChunkUploadSession', () => {
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);
+  });
+
+  it('returns 403 when artist has no username', async () => {
+    vi.mocked(selectArtists).mockResolvedValue({
+      data: [{ username: null }],
+      error: null,
+      count: null,
+      status: 200,
+      statusText: 'OK',
+    } as any);
+
+    const result = await validateCreateChunkUploadSession(
+      makeRequest({
+        filename: 'track.wav',
+        content_type: 'audio/wav',
+        total_chunks: 1,
+      })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(403);
+  });
+
+  it('returns 500 when selectArtists fails', async () => {
+    vi.mocked(selectArtists).mockResolvedValue({
+      data: null,
+      error: { message: 'db' },
+      count: null,
+      status: 500,
+      statusText: 'Error',
+    } as any);
+
+    const result = await validateCreateChunkUploadSession(
+      makeRequest({
+        filename: 'track.wav',
+        content_type: 'audio/wav',
+        total_chunks: 1,
+      })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(500);
   });
 });
