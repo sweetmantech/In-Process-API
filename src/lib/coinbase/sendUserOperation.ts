@@ -1,7 +1,7 @@
 import { Hash, OneOf } from 'viem';
 import cdp from '@/lib/coinbase/client';
 import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
-import { CDP_PAYMASTER_URL } from '../consts';
+import getCdpPaymasterUrl from '@/lib/coinbase/getCdpPaymasterUrl';
 import { getPublicClient } from '../viem/publicClient';
 
 type EvmUserOperationNetwork = 'base-sepolia' | 'base';
@@ -21,7 +21,7 @@ export async function sendUserOperation({
   const sendResult = await cdp.evm.sendUserOperation({
     smartAccount,
     network,
-    paymasterUrl: CDP_PAYMASTER_URL,
+    paymasterUrl: getCdpPaymasterUrl(network),
     calls,
   });
 
