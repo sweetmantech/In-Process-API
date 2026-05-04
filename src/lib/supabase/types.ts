@@ -255,6 +255,7 @@ export type Database = {
       in_process_chunk_upload_sessions: {
         Row: {
           artist_address: string;
+          completed_at: string | null;
           content_type: string;
           created_at: string;
           expires_at: string;
@@ -266,6 +267,7 @@ export type Database = {
         };
         Insert: {
           artist_address: string;
+          completed_at?: string | null;
           content_type?: string;
           created_at?: string;
           expires_at?: string;
@@ -277,6 +279,7 @@ export type Database = {
         };
         Update: {
           artist_address?: string;
+          completed_at?: string | null;
           content_type?: string;
           created_at?: string;
           expires_at?: string;
