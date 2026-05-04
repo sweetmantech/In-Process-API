@@ -16,12 +16,16 @@ vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
 vi.mock('@/lib/moment/migrateMoments', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/artists/migrateSmartWalletFunds', () => ({
+  default: vi.fn(),
+}));
 
 import { insertSocialWallet } from '@/lib/supabase/in_process_artist_social_wallets/insertSocialWallet';
 import migrateApiKey from '@/lib/artists/migrateApiKey';
 import migrateProfile from '@/lib/artists/migrateProfile';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import migrateMoments from '@/lib/moment/migrateMoments';
+import migrateSmartWalletFunds from '@/lib/artists/migrateSmartWalletFunds';
 import connectArtistWalletHandler from '@/lib/artists/connectArtistWalletHandler';
 
 describe('connectArtistWalletHandler', () => {
@@ -33,6 +37,7 @@ describe('connectArtistWalletHandler', () => {
       address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     } as any);
     vi.mocked(migrateMoments).mockResolvedValue(null);
+    vi.mocked(migrateSmartWalletFunds).mockResolvedValue(undefined);
   });
 
   it('returns success when wallet is connected', async () => {
@@ -57,7 +62,12 @@ describe('connectArtistWalletHandler', () => {
     });
     expect(migrateMoments).toHaveBeenCalledTimes(1);
     expect(migrateMoments).toHaveBeenCalledWith({
-      socialWallet: '0xb234567890123456789012345678901234567891',
+      socialWallet: {
+        address: '0xb234567890123456789012345678901234567891',
+        smartAccount: {
+          address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
+      },
       artistWallet: {
         address: '0xa123456789012345678901234567890123456789',
         smartWalletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -87,7 +97,12 @@ describe('connectArtistWalletHandler', () => {
       social_wallet: '0xB234567890123456789012345678901234567891',
     });
     expect(migrateMoments).toHaveBeenCalledWith({
-      socialWallet: '0xB234567890123456789012345678901234567891',
+      socialWallet: {
+        address: '0xB234567890123456789012345678901234567891',
+        smartAccount: {
+          address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
+      },
       artistWallet: {
         address: '0xA123456789012345678901234567890123456789',
         smartWalletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
