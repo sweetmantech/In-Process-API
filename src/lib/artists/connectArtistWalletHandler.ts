@@ -6,6 +6,7 @@ import migrateMoments from '@/lib/moment/migrateMoments';
 import { retriesGeneric } from '@/lib/protocolSdk/retries';
 import migrateApiKey from './migrateApiKey';
 import migrateProfile from './migrateProfile';
+import migrateSmartWalletFunds from './migrateSmartWalletFunds';
 
 const connectArtistWalletHandler = async ({
   artist_wallet,
@@ -30,11 +31,18 @@ const connectArtistWalletHandler = async ({
     artist_wallet,
   });
 
+  const socialSmartAccount = await getOrCreateSmartWallet({
+    address: social_wallet,
+  });
+
   // 3. Migrate moments from social wallet to artist wallet
   await retriesGeneric({
     tryFn: async () => {
       await migrateMoments({
-        socialWallet: social_wallet,
+        socialWallet: {
+          address: social_wallet,
+          smartAccount: socialSmartAccount,
+        },
         artistWallet: {
           address: artist_wallet,
           smartWalletAddress: artistSmartAccount.address as Address,
@@ -45,7 +53,13 @@ const connectArtistWalletHandler = async ({
     linearBackoffMS: 200,
   });
 
-  // 4. Connect social wallet to artist wallet
+  // 4. Migrate ETH and USDC from social wallet's smart wallet to artist wallet's smart wallet
+  await migrateSmartWalletFunds({
+    socialSmartAccount,
+    artistSmartWalletAddress: artistSmartAccount.address as Address,
+  });
+
+  // 5. Connect social wallet to artist wallet
   const { error: insertError } = await insertSocialWallet({
     artist_address: artist_wallet,
     social_wallet,

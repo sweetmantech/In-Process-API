@@ -1,5 +1,5 @@
 import { Address, getAddress } from 'viem';
-import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
+import { EvmSmartAccount } from '@coinbase/cdp-sdk';
 import { sendUserOperation } from '../coinbase/sendUserOperation';
 import getAddPermissionCall from '../viem/getAddPermissionCall';
 import { CHAIN_ID, IS_TESTNET } from '../consts';
@@ -9,7 +9,10 @@ const migrateMoments = async ({
   socialWallet,
   artistWallet,
 }: {
-  socialWallet: Address;
+  socialWallet: {
+    address: Address;
+    smartAccount: EvmSmartAccount;
+  };
   artistWallet: {
     address: Address;
     smartWalletAddress: Address;
@@ -18,15 +21,13 @@ const migrateMoments = async ({
   try {
     const { data: collections, error: collectionsError } =
       await selectCollections({
-        artists: [socialWallet],
+        artists: [socialWallet.address],
         chainId: CHAIN_ID,
       });
     if (!collections || collectionsError) return;
 
     const network = IS_TESTNET ? 'base-sepolia' : 'base';
-    const smartAccount = await getOrCreateSmartWallet({
-      address: socialWallet,
-    });
+    const smartAccount = socialWallet.smartAccount;
 
     const calls: Array<{ to: Address; data: `0x${string}` }> = [];
 
