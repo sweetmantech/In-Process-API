@@ -7,11 +7,7 @@ import { verifyJwt } from '@/lib/jwt/verifyJwt';
 import verifyFarcasterAuth from '@/lib/farcaster/verifyFarcasterAuth';
 import { farcasterAuthSchema } from '@/lib/schema/farcasterAuthSchema';
 import { AuthErrorMessages, AuthErrorTypes } from './errors';
-
-export interface AuthResult {
-  artistAddress: string;
-  authMethod: 'token' | 'apiKey';
-}
+import { AuthResult, AuthMethod } from '@/types/auth';
 
 export async function authMiddleware(
   req: NextRequest
@@ -29,7 +25,7 @@ export async function authMiddleware(
   }
 
   let artistAddress: string;
-  let authMethod: 'token' | 'apiKey';
+  let authMethod: AuthMethod;
 
   try {
     if (farcasterToken) {
@@ -43,17 +39,17 @@ export async function authMiddleware(
         parsed.data.message,
         parsed.data.signature
       );
-      authMethod = 'token';
+      authMethod = AuthMethod.FARCaster;
     } else if (bearerToken) {
       const {
         artistAddress: artistAddressFromToken,
         socialWallet: socialWalletFromToken,
       } = await getAddressesByAuthToken(bearerToken);
       artistAddress = artistAddressFromToken || socialWalletFromToken || '';
-      authMethod = 'token';
+      authMethod = AuthMethod.Privy;
     } else if (apiKey) {
       artistAddress = await getArtistAddressByApiKey(apiKey);
-      authMethod = 'apiKey';
+      authMethod = AuthMethod.ApiKey;
     } else {
       throw new Error(AuthErrorMessages.NO_VALID_AUTH_METHOD);
     }

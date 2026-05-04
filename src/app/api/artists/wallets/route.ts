@@ -22,10 +22,7 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateConnectArtistWalletBody(req);
     if (validated instanceof NextResponse) return validated;
-    return connectArtistWalletHandler(
-      validated.artist_wallet,
-      validated.social_wallet
-    );
+    return connectArtistWalletHandler(validated);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to connect.';
