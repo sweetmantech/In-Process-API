@@ -5,7 +5,13 @@ import getSmartWalletUsdcBalance from '@/lib/smartwallets/getSmartWalletUsdcBala
 
 type UsdcForChunkUpload =
   | { usdcAmount: number }
-  | { error: string; status: 402 | 500; required?: string; available?: string };
+  | {
+      error: string;
+      status: 402 | 500;
+      required?: string;
+      available?: string;
+      smart_wallet?: string;
+    };
 
 const getUsdcForChunkUpload = async (
   artistAddress: string,
@@ -24,11 +30,13 @@ const getUsdcForChunkUpload = async (
   const requiredMicroUsdc = parseUnits(usdcAmount.toString(), 6);
 
   if (usdcBalance < requiredMicroUsdc) {
+    const addr = smartWalletAddress.toLowerCase();
     return {
-      error: 'Insufficient USDC balance in smart wallet',
+      error: `Insufficient USDC balance in smart wallet ${addr}`,
       status: 402,
       required: requiredMicroUsdc.toString(),
       available: usdcBalance.toString(),
+      smart_wallet: addr,
     };
   }
 

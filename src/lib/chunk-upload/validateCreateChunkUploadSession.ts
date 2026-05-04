@@ -67,6 +67,9 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
           message: usdcResult.error,
           required: usdcResult.required,
           available: usdcResult.available,
+          ...(usdcResult.smart_wallet !== undefined && {
+            smart_wallet: usdcResult.smart_wallet,
+          }),
         },
         { status: usdcResult.status }
       );

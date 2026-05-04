@@ -74,10 +74,11 @@ describe('validateCreateChunkUploadSession', () => {
   it('returns 402 when smart wallet has insufficient USDC', async () => {
     vi.mocked(getChunkUploadType).mockResolvedValue({ uploadType: 'paid' });
     vi.mocked(getUsdcForChunkUpload).mockResolvedValue({
-      error: 'Insufficient USDC balance in smart wallet',
+      error: 'Insufficient USDC balance in smart wallet 0xabc',
       status: 402,
       required: '50000',
       available: '10000',
+      smart_wallet: '0xabc',
     });
 
     const result = await validateCreateChunkUploadSession(
@@ -94,6 +95,8 @@ describe('validateCreateChunkUploadSession', () => {
     const j = await (result as NextResponse).json();
     expect(j.required).toBe('50000');
     expect(j.available).toBe('10000');
+    expect(j.smart_wallet).toBe('0xabc');
+    expect(j.message).toContain('0xabc');
   });
 
   it('returns 400 when getChunkUploadType returns 400 error', async () => {
