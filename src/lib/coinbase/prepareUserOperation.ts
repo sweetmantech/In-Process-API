@@ -1,6 +1,6 @@
 import { Hex } from 'viem';
 import cdp from '@/lib/coinbase/client';
-import { CDP_PAYMASTER_URL } from '../consts';
+import getCdpPaymasterUrl from '@/lib/coinbase/getCdpPaymasterUrl';
 
 export interface EvmCall {
   to: `0x${string}`;
@@ -21,7 +21,7 @@ export async function prepareUserOperation({
   return cdp.evm.prepareUserOperation({
     smartAccount,
     network,
-    paymasterUrl: CDP_PAYMASTER_URL,
+    paymasterUrl: getCdpPaymasterUrl(network),
     calls: calls as any,
   });
 }

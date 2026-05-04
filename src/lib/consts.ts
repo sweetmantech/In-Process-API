@@ -10,8 +10,6 @@ export const IS_TESTNET =
     : false;
 
 export const PRIVY_PROJECT_SECRET = process.env.PRIVY_PROJECT_SECRET as string;
-// Coinbase
-export const CDP_PAYMASTER_URL = `https://api.developer.coinbase.com/rpc/v1/base${IS_TESTNET ? '-sepolia' : ''}/${process.env.CDP_PAYMASTER_KEY}`;
 
 // Wagmi
 export const CHAIN = IS_TESTNET ? baseSepolia : base;
