@@ -4,14 +4,13 @@ import type {
   TurboCryptoFundResponse,
 } from '@ardrive/turbo-sdk/node';
 import type { Address, Hex } from 'viem';
-import { parseUnits } from 'viem';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import turboClient from './turboClient';
 
 const topUpTurboCredits = async (
   artistAddress: Address,
-  usdcAmount: number
+  usdcAmountMicros: bigint
 ): Promise<TurboCryptoFundResponse> => {
   try {
     const [smartAccount, ourArweaveAddress] = await Promise.all([
@@ -58,7 +57,7 @@ const topUpTurboCredits = async (
     });
 
     return payerTurbo.topUpWithTokens({
-      tokenAmount: parseUnits(usdcAmount.toString(), 6).toString(),
+      tokenAmount: usdcAmountMicros.toString(),
       turboCreditDestinationAddress: ourArweaveAddress,
     });
   } catch (error) {

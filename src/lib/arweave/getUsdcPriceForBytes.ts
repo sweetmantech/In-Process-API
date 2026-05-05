@@ -1,15 +1,18 @@
 import { TurboFactory } from '@ardrive/turbo-sdk/node';
+import { parseUnits } from 'viem';
 
 const unauthTurbo = TurboFactory.unauthenticated({ token: 'base-usdc' });
 
-const PRICE_BUFFER = 1.1;
+// Buffer = 1.1 — ceil(micros * 11 / 10)
+const BUFFER_NUM = BigInt(11);
+const BUFFER_DEN = BigInt(10);
 
-// Returns the USDC amount (whole units, e.g. 0.05) needed to upload byteCount bytes,
-// with a 10% buffer for price fluctuations between quote and settlement.
-const getUsdcPriceForBytes = async (byteCount: number): Promise<number> => {
+// Returns USDC in micros (1e-6 units) for byteCount, with a 10% buffer for
+// price fluctuations between quote and settlement.
+const getUsdcPriceForBytes = async (byteCount: number): Promise<bigint> => {
   const { tokenPrice } = await unauthTurbo.getTokenPriceForBytes({ byteCount });
-  const microUsdc = Math.ceil(Number(tokenPrice) * PRICE_BUFFER);
-  return microUsdc / 1_000_000;
+  const baseMicros = parseUnits(tokenPrice, 6);
+  return (baseMicros * BUFFER_NUM + BUFFER_DEN - BigInt(1)) / BUFFER_DEN;
 };
 
 export default getUsdcPriceForBytes;

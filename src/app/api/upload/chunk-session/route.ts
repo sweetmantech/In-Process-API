@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       total_chunks,
       total_size_bytes,
       uploadType,
-      usdcAmount,
+      usdcAmountMicros,
     } = validated;
     return createChunkUploadSessionHandler(artistAddress, {
       filename,
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       total_chunks,
       total_size_bytes,
       uploadType,
-      usdcAmount,
+      usdcAmountMicros,
     });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Failed';

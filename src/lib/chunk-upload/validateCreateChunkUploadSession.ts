@@ -55,7 +55,7 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
   }
   const { uploadType } = uploadTypeResult;
 
-  let usdcAmount: number | undefined;
+  let usdcAmountMicros: bigint | undefined;
   if (uploadType === 'paid') {
     const usdcResult = await getUsdcForChunkUpload(
       artistAddress,
@@ -74,10 +74,10 @@ const validateCreateChunkUploadSession = async (req: NextRequest) => {
         { status: usdcResult.status }
       );
     }
-    usdcAmount = usdcResult.usdcAmount;
+    usdcAmountMicros = usdcResult.usdcAmountMicros;
   }
 
-  return { artistAddress, ...data, uploadType, usdcAmount };
+  return { artistAddress, ...data, uploadType, usdcAmountMicros };
 };
 
 export default validateCreateChunkUploadSession;

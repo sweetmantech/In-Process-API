@@ -8,6 +8,7 @@ vi.mock(
 vi.mock('@/lib/arweave/topUpTurboCredits', () => ({ default: vi.fn() }));
 
 import insertChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/insertChunkUploadSession';
+import topUpTurboCredits from '@/lib/arweave/topUpTurboCredits';
 import createChunkUploadSessionHandler from '@/lib/chunk-upload/createChunkUploadSessionHandler';
 import {
   CHUNK_UPLOAD_MAX_PART_BYTES,
@@ -53,6 +54,49 @@ describe('createChunkUploadSessionHandler', () => {
         total_size_bytes: 100,
       })
     );
+  });
+
+  it('tops up Turbo credits before inserting session for paid uploads', async () => {
+    vi.mocked(insertChunkUploadSession).mockResolvedValue({
+      data: { id: 'paid-session-id' },
+      error: null,
+    } as any);
+
+    await createChunkUploadSessionHandler(ARTIST, {
+      filename: 'a.wav',
+      content_type: 'audio/wav',
+      total_chunks: 1,
+      uploadType: 'paid',
+      usdcAmountMicros: BigInt(50_000),
+    });
+
+    expect(
+      vi.mocked(topUpTurboCredits).mock.invocationCallOrder[0]
+    ).toBeLessThan(
+      vi.mocked(insertChunkUploadSession).mock.invocationCallOrder[0]
+    );
+    expect(topUpTurboCredits).toHaveBeenCalledWith(ARTIST, BigInt(50_000));
+    expect(insertChunkUploadSession).toHaveBeenCalled();
+  });
+
+  it('rejects when Turbo funding fails before insert', async () => {
+    vi.mocked(insertChunkUploadSession).mockResolvedValue({
+      data: { id: 'paid-session-id' },
+      error: null,
+    } as any);
+    vi.mocked(topUpTurboCredits).mockRejectedValue(new Error('turbo down'));
+
+    await expect(
+      createChunkUploadSessionHandler(ARTIST, {
+        filename: 'a.wav',
+        content_type: 'audio/wav',
+        total_chunks: 1,
+        uploadType: 'paid',
+        usdcAmountMicros: BigInt(50_000),
+      })
+    ).rejects.toThrow('turbo down');
+
+    expect(insertChunkUploadSession).not.toHaveBeenCalled();
   });
 
   it('returns 500 when insert fails', async () => {

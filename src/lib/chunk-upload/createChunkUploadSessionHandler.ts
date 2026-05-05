@@ -16,11 +16,11 @@ const createChunkUploadSessionHandler = async (
     total_chunks: number;
     total_size_bytes?: number;
     uploadType: 'free' | 'paid';
-    usdcAmount?: number;
+    usdcAmountMicros?: bigint;
   }
 ) => {
   if (data.uploadType === 'paid') {
-    await topUpTurboCredits(artistAddress as Address, data.usdcAmount!);
+    await topUpTurboCredits(artistAddress as Address, data.usdcAmountMicros!);
   }
 
   const { data: row, error } = await insertChunkUploadSession({

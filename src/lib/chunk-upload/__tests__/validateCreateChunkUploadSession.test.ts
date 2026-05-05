@@ -33,7 +33,9 @@ beforeEach(() => {
     error: null,
   } as any);
   vi.mocked(getChunkUploadType).mockResolvedValue({ uploadType: 'free' });
-  vi.mocked(getUsdcForChunkUpload).mockResolvedValue({ usdcAmount: 0.05 });
+  vi.mocked(getUsdcForChunkUpload).mockResolvedValue({
+    usdcAmountMicros: BigInt(50000),
+  });
 });
 
 describe('validateCreateChunkUploadSession', () => {
@@ -50,10 +52,10 @@ describe('validateCreateChunkUploadSession', () => {
     expect((result as any).artistAddress).toBe(ARTIST);
     expect((result as any).filename).toBe('track.wav');
     expect((result as any).uploadType).toBe('free');
-    expect((result as any).usdcAmount).toBeUndefined();
+    expect((result as any).usdcAmountMicros).toBeUndefined();
   });
 
-  it('returns paid upload type and usdcAmount when getChunkUploadType returns paid', async () => {
+  it('returns paid upload type and usdcAmountMicros when getChunkUploadType returns paid', async () => {
     vi.mocked(getChunkUploadType).mockResolvedValue({ uploadType: 'paid' });
 
     const result = await validateCreateChunkUploadSession(
@@ -67,7 +69,7 @@ describe('validateCreateChunkUploadSession', () => {
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).uploadType).toBe('paid');
-    expect((result as any).usdcAmount).toBe(0.05);
+    expect((result as any).usdcAmountMicros).toBe(BigInt(50000));
     expect(getUsdcForChunkUpload).toHaveBeenCalledWith(ARTIST, 10_000_000);
   });
 

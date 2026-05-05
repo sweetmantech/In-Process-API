@@ -1,10 +1,10 @@
-import { parseUnits, type Address } from 'viem';
+import type { Address } from 'viem';
 import getUsdcPriceForBytes from '@/lib/arweave/getUsdcPriceForBytes';
 import getSmartWalletAddress from '@/lib/smartwallets/getSmartWalletAddress';
 import getSmartWalletUsdcBalance from '@/lib/smartwallets/getSmartWalletUsdcBalance';
 
 type UsdcForChunkUpload =
-  | { usdcAmount: number }
+  | { usdcAmountMicros: bigint }
   | {
       error: string;
       status: 402 | 500;
@@ -17,7 +17,7 @@ const getUsdcForChunkUpload = async (
   artistAddress: string,
   totalSizeBytes: number
 ): Promise<UsdcForChunkUpload> => {
-  const usdcAmount = await getUsdcPriceForBytes(totalSizeBytes);
+  const usdcAmountMicros = await getUsdcPriceForBytes(totalSizeBytes);
 
   let smartWalletAddress: Address;
   try {
@@ -27,7 +27,7 @@ const getUsdcForChunkUpload = async (
   }
 
   const usdcBalance = await getSmartWalletUsdcBalance(smartWalletAddress);
-  const requiredMicroUsdc = parseUnits(usdcAmount.toString(), 6);
+  const requiredMicroUsdc = usdcAmountMicros;
 
   if (usdcBalance < requiredMicroUsdc) {
     const addr = smartWalletAddress.toLowerCase();
@@ -40,7 +40,7 @@ const getUsdcForChunkUpload = async (
     };
   }
 
-  return { usdcAmount };
+  return { usdcAmountMicros };
 };
 
 export default getUsdcForChunkUpload;
