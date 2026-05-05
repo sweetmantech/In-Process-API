@@ -3,6 +3,7 @@ import uploadVideoAttachment from '../uploadVideoAttachment';
 
 vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadJson', () => ({ uploadJson: vi.fn() }));
+vi.mock('@/lib/arweave/logArweaveUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/mux/uploadVideoToMux', () => ({ default: vi.fn() }));
 vi.mock('../getTelegramFilePath', () => ({ default: vi.fn() }));
 vi.mock('../fetchTelegramFile', () => ({ default: vi.fn() }));
@@ -15,6 +16,7 @@ import fetchTelegramFile from '../fetchTelegramFile';
 
 const BUFFER = Buffer.from('video data');
 const THUMB_BUFFER = Buffer.from('thumb data');
+const ARTIST = '0xartist';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -27,8 +29,14 @@ beforeEach(() => {
     buffer: THUMB_BUFFER,
     mimeType: 'image/jpeg',
   });
-  vi.mocked(uploadToArweave).mockResolvedValue('ar://thumb-hash');
-  vi.mocked(uploadJson).mockResolvedValue('ar://metadata-hash');
+  vi.mocked(uploadToArweave).mockResolvedValue({
+    arweave_uri: 'ar://thumb-hash',
+    winc_cost: '100',
+  });
+  vi.mocked(uploadJson).mockResolvedValue({
+    arweave_uri: 'ar://metadata-hash',
+    winc_cost: '100',
+  });
 });
 
 const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
@@ -40,7 +48,12 @@ const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
 describe('uploadVideoAttachment', () => {
   it('throws when attachment has no fetchData', async () => {
     await expect(
-      uploadVideoAttachment({ type: 'video' } as never, 'file-id', 'Video')
+      uploadVideoAttachment(
+        { type: 'video' } as never,
+        'file-id',
+        'Video',
+        ARTIST
+      )
     ).rejects.toThrow('Attachment has no fetchData');
   });
 
@@ -49,6 +62,7 @@ describe('uploadVideoAttachment', () => {
       makeAttachment() as never,
       'file-id',
       'My Video',
+      ARTIST,
       'thumb-id'
     );
 
@@ -63,7 +77,8 @@ describe('uploadVideoAttachment', () => {
     const result = await uploadVideoAttachment(
       makeAttachment({ mimeType: 'video/quicktime' }) as never,
       'file-id',
-      'My Video'
+      'My Video',
+      ARTIST
     );
 
     expect(result.mimeType).toBe('video/quicktime');
@@ -75,6 +90,7 @@ describe('uploadVideoAttachment', () => {
         makeAttachment() as never,
         'file-id',
         'My Video',
+        ARTIST,
         'thumb-id'
       );
       expect(fetchTelegramFile).toHaveBeenCalledWith('thumb-id');
@@ -85,6 +101,7 @@ describe('uploadVideoAttachment', () => {
         makeAttachment() as never,
         'file-id',
         'My Video',
+        ARTIST,
         'thumb-id'
       );
       expect(uploadToArweave).toHaveBeenCalledOnce();
@@ -95,6 +112,7 @@ describe('uploadVideoAttachment', () => {
         makeAttachment() as never,
         'file-id',
         'My Video',
+        ARTIST,
         'thumb-id'
       );
       expect(uploadJson).toHaveBeenCalledWith(
@@ -108,7 +126,8 @@ describe('uploadVideoAttachment', () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video'
+        'My Video',
+        ARTIST
       );
       expect(fetchTelegramFile).not.toHaveBeenCalled();
     });
@@ -117,7 +136,8 @@ describe('uploadVideoAttachment', () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video'
+        'My Video',
+        ARTIST
       );
       expect(uploadToArweave).not.toHaveBeenCalled();
     });
@@ -126,7 +146,8 @@ describe('uploadVideoAttachment', () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video'
+        'My Video',
+        ARTIST
       );
       const callArg = vi.mocked(uploadJson).mock.calls[0][0] as Record<
         string,
@@ -140,7 +161,8 @@ describe('uploadVideoAttachment', () => {
     await uploadVideoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Video'
+      'My Video',
+      ARTIST
     );
 
     expect(uploadJson).toHaveBeenCalledWith(

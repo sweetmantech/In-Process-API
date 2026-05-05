@@ -49,7 +49,7 @@ describe('completeChunkUploadHandler', () => {
       error: { message: 'x' },
     } as any);
 
-    const res = await completeChunkUploadHandler(SESSION_ID);
+    const res = await completeChunkUploadHandler(SESSION_ID, '0xartist');
     expect(res.status).toBe(500);
     expect(updateChunkUploadSessionStatus).toHaveBeenCalledWith({
       id: SESSION_ID,
@@ -64,7 +64,7 @@ describe('completeChunkUploadHandler', () => {
       error: { message: 'x' },
     } as any);
 
-    const res = await completeChunkUploadHandler(SESSION_ID);
+    const res = await completeChunkUploadHandler(SESSION_ID, '0xartist');
     expect(res.status).toBe(500);
   });
 
@@ -74,7 +74,7 @@ describe('completeChunkUploadHandler', () => {
       error: null,
     } as any);
 
-    const res = await completeChunkUploadHandler(SESSION_ID);
+    const res = await completeChunkUploadHandler(SESSION_ID, '0xartist');
     expect(res.status).toBe(500);
     const j = await res.json();
     expect(j.message).toMatch(/Expected 2 chunks/);
@@ -89,7 +89,7 @@ describe('completeChunkUploadHandler', () => {
       error: null,
     } as any);
 
-    const res = await completeChunkUploadHandler(SESSION_ID);
+    const res = await completeChunkUploadHandler(SESSION_ID, '0xartist');
     expect(res.status).toBe(500);
     const j = await res.json();
     expect(j.message).toMatch(/out-of-order|Missing/);
@@ -109,7 +109,7 @@ describe('completeChunkUploadHandler', () => {
       message: 'bad file',
     });
 
-    const res = await completeChunkUploadHandler(SESSION_ID);
+    const res = await completeChunkUploadHandler(SESSION_ID, '0xartist');
     expect(res.status).toBe(500);
     const j = await res.json();
     expect(j.message).toBe('bad file');
@@ -128,9 +128,12 @@ describe('completeChunkUploadHandler', () => {
       error: null,
     } as any);
     vi.mocked(getFileFromBlobs).mockResolvedValue({ ok: true, file });
-    vi.mocked(uploadToArweave).mockResolvedValue('ar://hash');
+    vi.mocked(uploadToArweave).mockResolvedValue({
+      arweave_uri: 'ar://hash',
+      winc_cost: '100',
+    });
 
-    const res = await completeChunkUploadHandler(SESSION_ID);
+    const res = await completeChunkUploadHandler(SESSION_ID, '0xartist');
 
     expect(res.status).toBe(200);
     const j = await res.json();
@@ -151,7 +154,7 @@ describe('completeChunkUploadHandler', () => {
       error: { message: 'db' },
     } as any);
 
-    const res = await completeChunkUploadHandler(SESSION_ID);
+    const res = await completeChunkUploadHandler(SESSION_ID, '0xartist');
 
     expect(res.status).toBe(500);
     expect(updateChunkUploadSessionStatus).toHaveBeenCalledWith({
@@ -167,7 +170,7 @@ describe('completeChunkUploadHandler', () => {
       error: null,
     } as any);
 
-    const res = await completeChunkUploadHandler(SESSION_ID);
+    const res = await completeChunkUploadHandler(SESSION_ID, '0xartist');
     expect(res).toBeInstanceOf(NextResponse);
   });
 });

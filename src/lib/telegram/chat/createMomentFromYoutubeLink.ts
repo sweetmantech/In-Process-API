@@ -14,7 +14,7 @@ const createMomentFromYoutubeLink = async (
   const detail = await getYoutubeDetail(url);
   if (!detail) throw new Error('Failed to fetch YouTube details');
 
-  const { metadataUri } = await uploadYtDetails(detail, url);
+  const { metadataUri } = await uploadYtDetails(detail, url, artistAddress);
 
   const contract = existingCollectionAddress
     ? { address: existingCollectionAddress }

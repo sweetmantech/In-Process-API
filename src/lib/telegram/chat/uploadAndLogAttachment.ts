@@ -15,6 +15,7 @@ const uploadAndLogAttachment = async (
     attachment,
     fileId,
     name,
+    artistAddress,
     thumbFileId
   );
 

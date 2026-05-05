@@ -18,6 +18,8 @@ const VIDEO_RESULT = {
   mediaUri: 'https://mux.com/play',
 };
 
+const ARTIST = '0xartist';
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(uploadPhotoAttachment).mockResolvedValue(PHOTO_RESULT);
@@ -31,13 +33,15 @@ describe('processAttachmentUpload', () => {
     const result = await processAttachmentUpload(
       attachment as never,
       'file-id',
-      'My Photo'
+      'My Photo',
+      ARTIST
     );
 
     expect(uploadPhotoAttachment).toHaveBeenCalledWith(
       attachment,
       'file-id',
-      'My Photo'
+      'My Photo',
+      ARTIST
     );
     expect(uploadVideoAttachment).not.toHaveBeenCalled();
     expect(result).toEqual(PHOTO_RESULT);
@@ -50,6 +54,7 @@ describe('processAttachmentUpload', () => {
       attachment as never,
       'file-id',
       'My Video',
+      ARTIST,
       'thumb-id'
     );
 
@@ -57,6 +62,7 @@ describe('processAttachmentUpload', () => {
       attachment,
       'file-id',
       'My Video',
+      ARTIST,
       'thumb-id'
     );
     expect(uploadPhotoAttachment).not.toHaveBeenCalled();
@@ -70,6 +76,7 @@ describe('processAttachmentUpload', () => {
       attachment as never,
       'file-id',
       'My Video',
+      ARTIST,
       'thumb-123'
     );
 
@@ -77,6 +84,7 @@ describe('processAttachmentUpload', () => {
       attachment,
       'file-id',
       'My Video',
+      ARTIST,
       'thumb-123'
     );
   });
@@ -84,7 +92,12 @@ describe('processAttachmentUpload', () => {
   it('calls uploadVideoAttachment for non-image types', async () => {
     const attachment = { type: 'document', size: 200 };
 
-    await processAttachmentUpload(attachment as never, 'file-id', 'Doc');
+    await processAttachmentUpload(
+      attachment as never,
+      'file-id',
+      'Doc',
+      ARTIST
+    );
 
     expect(uploadVideoAttachment).toHaveBeenCalled();
     expect(uploadPhotoAttachment).not.toHaveBeenCalled();

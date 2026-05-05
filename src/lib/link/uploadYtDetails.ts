@@ -1,10 +1,12 @@
 import { uploadJson } from '@/lib/arweave/uploadJson';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
+import logArweaveUpload from '@/lib/arweave/logArweaveUpload';
 import type { LinkPreview } from '@/types/link';
 
 const uploadYtDetails = async (
   detail: LinkPreview,
-  url: string
+  url: string,
+  artistAddress: string
 ): Promise<{ metadataUri: string }> => {
   let imageUri = '';
   let contentType = 'image/jpeg';
@@ -16,10 +18,16 @@ const uploadYtDetails = async (
     const thumbnailFile = new File([thumbnailBlob], 'thumbnail', {
       type: contentType,
     });
-    imageUri = await uploadToArweave(thumbnailFile);
+    const thumbResult = await uploadToArweave(thumbnailFile);
+    logArweaveUpload(thumbResult, {
+      file_size_bytes: thumbnailFile.size,
+      content_type: contentType,
+      artist_address: artistAddress,
+    });
+    imageUri = thumbResult.arweave_uri;
   }
 
-  const metadataUri = await uploadJson({
+  const jsonObject = {
     name: detail.title,
     description: detail.description,
     image: imageUri,
@@ -28,9 +36,15 @@ const uploadYtDetails = async (
       mime: contentType,
       uri: imageUri,
     },
+  };
+  const jsonResult = await uploadJson(jsonObject);
+  logArweaveUpload(jsonResult, {
+    file_size_bytes: Buffer.byteLength(JSON.stringify(jsonObject)),
+    content_type: 'application/json',
+    artist_address: artistAddress,
   });
 
-  return { metadataUri };
+  return { metadataUri: jsonResult.arweave_uri };
 };
 
 export default uploadYtDetails;

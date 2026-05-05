@@ -1,10 +1,9 @@
-import uploadToArweave from './uploadToArweave';
+import uploadToArweave, { type ArweaveUploadResult } from './uploadToArweave';
 
-export async function uploadJson(json: object): Promise<string> {
+export async function uploadJson(json: object): Promise<ArweaveUploadResult> {
   const jsonString = JSON.stringify(json);
   const file = new File([jsonString], 'upload.json', {
     type: 'application/json',
   });
-  const uri = await uploadToArweave(file);
-  return uri;
+  return uploadToArweave(file);
 }

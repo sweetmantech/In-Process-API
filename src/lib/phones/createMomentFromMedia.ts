@@ -10,7 +10,7 @@ const createMomentFromMedia = async (
   payload: InboundMessagePayload | undefined,
   artistAddress: string
 ) => {
-  const { uri, name } = await uploadMetadata(media, payload);
+  const { uri, name } = await uploadMetadata(media, payload, artistAddress);
   const momentCreateParameters = {
     contract: {
       name,

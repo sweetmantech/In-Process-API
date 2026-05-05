@@ -49,8 +49,8 @@ export async function PUT(req: NextRequest) {
   try {
     const validated = await validateCompleteChunkUpload(req);
     if (validated instanceof Response) return validated;
-    const { session_id } = validated;
-    return completeChunkUploadHandler(session_id);
+    const { session_id, artistAddress } = validated;
+    return completeChunkUploadHandler(session_id, artistAddress);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Failed';
     return Response.json({ message }, { status: 500 });
