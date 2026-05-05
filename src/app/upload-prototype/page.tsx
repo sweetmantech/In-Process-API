@@ -77,7 +77,7 @@ export default function UploadPrototypePage() {
       addLog('Creating session…');
       const session = await callApi(
         'POST',
-        '/api/upload/chunk-session',
+        '/api/upload',
         JSON.stringify({
           filename: file.name,
           content_type: file.type || 'application/octet-stream',
@@ -91,7 +91,7 @@ export default function UploadPrototypePage() {
       for (let i = 0; i < totalChunks; i++) {
         const buf = await file.slice(i * CHUNK, (i + 1) * CHUNK).arrayBuffer();
         addLog(`Chunk ${i + 1}/${totalChunks} (${buf.byteLength} bytes)`);
-        await callApi('PUT', '/api/upload/chunk', buf, {
+        await callApi('PATCH', '/api/upload', buf, {
           'x-session-id': session.session_id as string,
           'x-chunk-index': String(i),
           'Content-Type': 'application/octet-stream',
@@ -102,8 +102,8 @@ export default function UploadPrototypePage() {
 
       addLog('Completing upload (Arweave)…');
       const result = await callApi(
-        'POST',
-        '/api/upload/chunk-complete',
+        'PUT',
+        '/api/upload',
         JSON.stringify({ session_id: session.session_id }),
         { 'Content-Type': 'application/json' }
       );

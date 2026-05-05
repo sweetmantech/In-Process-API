@@ -3,7 +3,7 @@ import { authMiddleware } from '@/authMiddleware';
 import getChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/getChunkUploadSession';
 import rejectUnlessUsableChunkUploadSession from '@/lib/chunk-upload/rejectUnlessUsableChunkUploadSession';
 
-const validatePutChunkUpload = async (req: NextRequest) => {
+const validatePatchChunkUpload = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
   if (authResult instanceof Response) return authResult as NextResponse;
 
@@ -53,4 +53,4 @@ const validatePutChunkUpload = async (req: NextRequest) => {
   };
 };
 
-export default validatePutChunkUpload;
+export default validatePatchChunkUpload;

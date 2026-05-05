@@ -7,14 +7,14 @@ import chunkUploadBlobPathname from '@/lib/chunk-upload/chunkUploadBlobPathname'
 import type { Database } from '@/lib/supabase/types';
 
 /** Only `getChunkUploadSession` fields plus what this handler reads: `total_chunks`. */
-type SessionForPutChunk = Pick<
+type SessionForPatchChunk = Pick<
   Database['public']['Tables']['in_process_chunk_upload_sessions']['Row'],
   'id' | 'total_chunks'
 >;
 
-const putChunkUploadHandler = async (
+const patchChunkUploadHandler = async (
   req: NextRequest,
-  session: SessionForPutChunk,
+  session: SessionForPatchChunk,
   chunkIndex: number
 ) => {
   try {
@@ -81,4 +81,4 @@ const putChunkUploadHandler = async (
   }
 };
 
-export default putChunkUploadHandler;
+export default patchChunkUploadHandler;

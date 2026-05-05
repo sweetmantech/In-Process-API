@@ -21,13 +21,13 @@ vi.mock(
 import blobPut from '@/lib/vercel-blob/blobPut';
 import blobDel from '@/lib/vercel-blob/blobDel';
 import insertChunkUploadPart from '@/lib/supabase/in_process_chunk_upload_parts/insertChunkUploadPart';
-import putChunkUploadHandler from '@/lib/chunk-upload/putChunkUploadHandler';
+import patchChunkUploadHandler from '@/lib/chunk-upload/patchChunkUploadHandler';
 
 const SESSION_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 const makeReq = (body: ArrayBuffer) =>
   new NextRequest('http://localhost/api/upload/chunk', {
-    method: 'PUT',
+    method: 'PATCH',
     body,
   });
 
@@ -37,11 +37,11 @@ beforeEach(() => {
   vi.mocked(insertChunkUploadPart).mockResolvedValue({ error: null } as any);
 });
 
-describe('putChunkUploadHandler', () => {
+describe('patchChunkUploadHandler', () => {
   const sessionTwo = { id: SESSION_ID, total_chunks: 2 };
 
   it('returns 500 for empty chunk body', async () => {
-    const res = await putChunkUploadHandler(
+    const res = await patchChunkUploadHandler(
       makeReq(new ArrayBuffer(0)),
       sessionTwo,
       0
@@ -52,7 +52,7 @@ describe('putChunkUploadHandler', () => {
   });
 
   it('returns 500 when chunk exceeds max part size', async () => {
-    const res = await putChunkUploadHandler(
+    const res = await patchChunkUploadHandler(
       makeReq(new Uint8Array(101).buffer),
       sessionTwo,
       0
@@ -63,7 +63,7 @@ describe('putChunkUploadHandler', () => {
   });
 
   it('returns 500 when non-final chunk is not exactly max part size', async () => {
-    const res = await putChunkUploadHandler(
+    const res = await patchChunkUploadHandler(
       makeReq(new Uint8Array(50).buffer),
       sessionTwo,
       0
@@ -74,7 +74,7 @@ describe('putChunkUploadHandler', () => {
   });
 
   it('allows non-final chunk of exact max size', async () => {
-    const res = await putChunkUploadHandler(
+    const res = await patchChunkUploadHandler(
       makeReq(new Uint8Array(100).buffer),
       sessionTwo,
       0
@@ -87,7 +87,7 @@ describe('putChunkUploadHandler', () => {
   });
 
   it('allows final chunk smaller than max part size', async () => {
-    const res = await putChunkUploadHandler(
+    const res = await patchChunkUploadHandler(
       makeReq(new Uint8Array(7).buffer),
       sessionTwo,
       1
@@ -100,7 +100,7 @@ describe('putChunkUploadHandler', () => {
   it('returns 500 when blob put fails', async () => {
     vi.mocked(blobPut).mockRejectedValueOnce(new Error('network'));
 
-    const res = await putChunkUploadHandler(
+    const res = await patchChunkUploadHandler(
       makeReq(new Uint8Array(100).buffer),
       sessionTwo,
       0
@@ -115,7 +115,7 @@ describe('putChunkUploadHandler', () => {
       error: { code: '23505' },
     } as any);
 
-    const res = await putChunkUploadHandler(
+    const res = await patchChunkUploadHandler(
       makeReq(new Uint8Array(100).buffer),
       sessionTwo,
       0
@@ -129,7 +129,7 @@ describe('putChunkUploadHandler', () => {
       error: { code: '23503' },
     } as any);
 
-    const res = await putChunkUploadHandler(
+    const res = await patchChunkUploadHandler(
       makeReq(new Uint8Array(100).buffer),
       sessionTwo,
       0
