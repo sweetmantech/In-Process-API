@@ -9,7 +9,7 @@ vi.mock(
 
 import { authMiddleware } from '@/authMiddleware';
 import getChunkUploadSession from '@/lib/supabase/in_process_chunk_upload_sessions/getChunkUploadSession';
-import validatePutChunkUpload from '@/lib/chunk-upload/validatePutChunkUpload';
+import validatePatchChunkUpload from '@/lib/chunk-upload/validatePatchChunkUpload';
 
 const ARTIST = '0xaf1452d289e22fbd0dea9d5097353c72a90fac33';
 const SESSION_ID = '550e8400-e29b-41d4-a716-446655440000';
@@ -24,7 +24,7 @@ const openSession = {
 
 const makeRequest = (headers: Record<string, string>) =>
   new NextRequest('http://localhost/api/upload/chunk', {
-    method: 'PUT',
+    method: 'PATCH',
     headers: new Headers(headers),
   });
 
@@ -37,9 +37,9 @@ beforeEach(() => {
   } as any);
 });
 
-describe('validatePutChunkUpload', () => {
+describe('validatePatchChunkUpload', () => {
   it('returns session and chunkIndex when headers and session are valid', async () => {
-    const result = await validatePutChunkUpload(
+    const result = await validatePatchChunkUpload(
       makeRequest({
         'x-session-id': SESSION_ID,
         'x-chunk-index': '1',
@@ -56,7 +56,7 @@ describe('validatePutChunkUpload', () => {
       NextResponse.json({ message: 'No' }, { status: 401 })
     );
 
-    const result = await validatePutChunkUpload(
+    const result = await validatePatchChunkUpload(
       makeRequest({ 'x-session-id': SESSION_ID, 'x-chunk-index': '0' })
     );
     expect(result).toBeInstanceOf(NextResponse);
@@ -64,21 +64,21 @@ describe('validatePutChunkUpload', () => {
   });
 
   it('returns 400 when x-session-id is missing', async () => {
-    const result = await validatePutChunkUpload(
+    const result = await validatePatchChunkUpload(
       makeRequest({ 'x-chunk-index': '0' })
     );
     expect((result as NextResponse).status).toBe(400);
   });
 
   it('returns 400 when x-chunk-index is missing', async () => {
-    const result = await validatePutChunkUpload(
+    const result = await validatePatchChunkUpload(
       makeRequest({ 'x-session-id': SESSION_ID })
     );
     expect((result as NextResponse).status).toBe(400);
   });
 
   it('returns 400 for non-integer chunk index', async () => {
-    const result = await validatePutChunkUpload(
+    const result = await validatePatchChunkUpload(
       makeRequest({
         'x-session-id': SESSION_ID,
         'x-chunk-index': 'nope',
@@ -88,7 +88,7 @@ describe('validatePutChunkUpload', () => {
   });
 
   it('returns 400 when chunk_index >= total_chunks', async () => {
-    const result = await validatePutChunkUpload(
+    const result = await validatePatchChunkUpload(
       makeRequest({
         'x-session-id': SESSION_ID,
         'x-chunk-index': '3',
@@ -103,7 +103,7 @@ describe('validatePutChunkUpload', () => {
       error: null,
     } as any);
 
-    const result = await validatePutChunkUpload(
+    const result = await validatePatchChunkUpload(
       makeRequest({
         'x-session-id': SESSION_ID,
         'x-chunk-index': '0',
