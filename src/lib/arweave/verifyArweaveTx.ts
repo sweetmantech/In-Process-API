@@ -24,13 +24,35 @@ const verifyArweaveTx = async (arweave_uri: string): Promise<boolean> => {
     body: JSON.stringify({ query }),
   });
 
-  if (!res.ok) throw new Error(`Irys graphql returned ${res.status}`);
+  console.log('[verifyArweaveTx] txId:', txId, '| ourAddress:', ourAddress);
 
-  const { data } = await res.json();
-  const node = data?.transactions?.edges?.[0]?.node;
+  if (!res.ok) {
+    const body = await Promise.resolve()
+      .then(() => res.text())
+      .catch(() => '(unreadable)');
+    console.log('[verifyArweaveTx] HTTP error', res.status, body);
+    throw new Error(`Irys graphql returned ${res.status}`);
+  }
 
-  if (!node) return false;
-  return node.address.toLowerCase() === ourAddress.toLowerCase();
+  const json = await res.json();
+  const node = json.data?.transactions?.edges?.[0]?.node;
+
+  if (!node) {
+    console.log(
+      '[verifyArweaveTx] no node found — raw response:',
+      JSON.stringify(json)
+    );
+    return false;
+  }
+
+  const match = node.address.toLowerCase() === ourAddress.toLowerCase();
+  console.log(
+    '[verifyArweaveTx] node.address:',
+    node.address,
+    '| match:',
+    match
+  );
+  return match;
 };
 
 export default verifyArweaveTx;
