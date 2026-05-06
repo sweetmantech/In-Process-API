@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_arweave_uploads/selectArweaveUploads', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '@/lib/supabase/in_process_arweave_uploads/selectArweaveUploads',
+  () => ({
+    default: vi.fn(),
+  })
+);
 
 import selectArweaveUploads from '@/lib/supabase/in_process_arweave_uploads/selectArweaveUploads';
 import getArweaveLogsHandler from '@/lib/arweave/getArweaveLogsHandler';

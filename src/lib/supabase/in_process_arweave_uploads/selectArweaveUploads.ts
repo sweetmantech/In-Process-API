@@ -10,7 +10,7 @@ const selectArweaveUploads = (params: {
   let query = supabase
     .from('in_process_arweave_uploads')
     .select(
-      'id, arweave_uri, winc_cost, usdc_cost, file_size_bytes, content_type, created_at, in_process_artists!inner(username, artist_address)',
+      'id, arweave_uri, winc_cost, usdc_cost, file_size_bytes, content_type, created_at, artist:in_process_artists!inner(username, artist_address)',
       { count: 'estimated' }
     )
     .order('created_at', { ascending: false });
