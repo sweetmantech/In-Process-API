@@ -1,5 +1,6 @@
 import { after } from 'next/server';
 import insertArweaveUpload from '@/lib/supabase/in_process_arweave_uploads/insertArweaveUpload';
+import { ensureArtists } from '@/lib/artists/ensureArtists';
 import type { ArweaveUploadResult } from './uploadToArweave';
 import { unauthTurboClient } from './turboClient';
 
@@ -12,10 +13,12 @@ const logArweaveUpload = (
   }
 ) => {
   after(
-    unauthTurboClient
-      .getTokenPriceForBytes({
-        byteCount: meta.file_size_bytes,
-      })
+    ensureArtists([meta.artist_address])
+      .then(() =>
+        unauthTurboClient.getTokenPriceForBytes({
+          byteCount: meta.file_size_bytes,
+        })
+      )
       .then(({ tokenPrice }) =>
         insertArweaveUpload({
           arweave_uri: result.arweave_uri,
