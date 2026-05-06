@@ -220,6 +220,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      in_process_arweave_uploads: {
+        Row: {
+          artist_address: string;
+          arweave_uri: string;
+          content_type: string;
+          created_at: string;
+          file_size_bytes: number;
+          id: string;
+          usdc_cost: number | null;
+          winc_cost: string;
+        };
+        Insert: {
+          artist_address: string;
+          arweave_uri: string;
+          content_type: string;
+          created_at?: string;
+          file_size_bytes: number;
+          id?: string;
+          usdc_cost?: number | null;
+          winc_cost: string;
+        };
+        Update: {
+          artist_address?: string;
+          arweave_uri?: string;
+          content_type?: string;
+          created_at?: string;
+          file_size_bytes?: number;
+          id?: string;
+          usdc_cost?: number | null;
+          winc_cost?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_arweave_uploads_artist_address_fkey';
+            columns: ['artist_address'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['address'];
+          },
+        ];
+      };
       in_process_chunk_upload_parts: {
         Row: {
           blob_url: string;
