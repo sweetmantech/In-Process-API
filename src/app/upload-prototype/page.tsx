@@ -1,123 +1,64 @@
 'use client';
 
 import { Quicksand } from 'next/font/google';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
 const quicksand = Quicksand({
   subsets: ['latin'],
   weight: ['500', '600', '700'],
 });
 
-const CHUNK = 4 * 1024 * 1024;
-
 type LogLine = { msg: string; type: 'ok' | 'err' | 'inf' | 'default' };
 
 export default function UploadPrototypePage() {
   const [apiKey, setApiKey] = useState('');
+  const [url, setUrl] = useState('');
   const [logs, setLogs] = useState<LogLine[]>([]);
-  const [progress, setProgress] = useState<{
-    done: number;
-    total: number;
-  } | null>(null);
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const logRef = useRef<HTMLDivElement>(null);
+
+  const logLines: LogLine[] = logs;
 
   function addLog(msg: string, type: LogLine['type'] = 'default') {
     setLogs((prev) => [...prev, { msg, type }]);
-    setTimeout(() => {
-      if (logRef.current)
-        logRef.current.scrollTop = logRef.current.scrollHeight;
-    }, 0);
-  }
-
-  async function callApi(
-    method: string,
-    path: string,
-    body?: BodyInit,
-    extra: HeadersInit = {}
-  ) {
-    const res = await fetch(path, {
-      method,
-      headers: { 'x-api-key': apiKey, ...extra },
-      body,
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err: Error & { status?: number; json?: unknown } = new Error(
-        (json as { message?: string }).message ?? res.statusText
-      );
-      err.status = res.status;
-      err.json = json;
-      throw err;
-    }
-    return json as Record<string, unknown>;
   }
 
   async function run() {
-    const file = fileRef.current?.files?.[0];
-    if (!file) {
-      setHint('Pick a file first');
+    if (!url.trim()) {
+      setHint('Enter a URL first');
       return;
     }
     setHint(null);
-
     setLogs([]);
-    setProgress(null);
     setBusy(true);
 
-    const totalChunks = Math.ceil(file.size / CHUNK);
-    addLog(
-      `File: ${file.name}  (${(file.size / 1024 / 1024).toFixed(2)} MiB, ${totalChunks} chunks)`,
-      'inf'
-    );
-
     try {
-      addLog('Creating session…');
-      const session = await callApi(
-        'POST',
-        '/api/upload',
-        JSON.stringify({
-          filename: file.name,
-          content_type: file.type || 'application/octet-stream',
-          total_chunks: totalChunks,
-          total_size_bytes: file.size,
-        }),
-        { 'Content-Type': 'application/json' }
-      );
-      addLog(`session_id: ${session.session_id}`, 'ok');
+      addLog(`Uploading from URL…`, 'inf');
 
-      for (let i = 0; i < totalChunks; i++) {
-        const buf = await file.slice(i * CHUNK, (i + 1) * CHUNK).arrayBuffer();
-        addLog(`Chunk ${i + 1}/${totalChunks} (${buf.byteLength} bytes)`);
-        await callApi('PATCH', '/api/upload', buf, {
-          'x-session-id': session.session_id as string,
-          'x-chunk-index': String(i),
-          'Content-Type': 'application/octet-stream',
-        });
-        setProgress({ done: i + 1, total: totalChunks });
-        addLog(`Chunk ${i + 1} done`, 'ok');
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const message =
+          (json as { message?: string }).message ?? res.statusText;
+        addLog(`Error ${res.status}: ${message}`, 'err');
+        if (Object.keys(json).length > 1)
+          addLog(JSON.stringify(json, null, 2), 'err');
+        return;
       }
 
-      addLog('Completing upload (Arweave)…');
-      const result = await callApi(
-        'PUT',
-        '/api/upload',
-        JSON.stringify({ session_id: session.session_id }),
-        { 'Content-Type': 'application/json' }
-      );
-      addLog(`✓ URI: ${result.uri}`, 'ok');
+      addLog(`✓ URI: ${(json as { uri?: string }).uri}`, 'ok');
     } catch (e: unknown) {
-      const err = e as Error & { status?: number; json?: unknown };
-      addLog(`Error ${err.status ?? ''}: ${err.message}`, 'err');
-      if (err.json) addLog(JSON.stringify(err.json, null, 2), 'err');
+      addLog(`Error: ${e instanceof Error ? e.message : String(e)}`, 'err');
     } finally {
       setBusy(false);
     }
   }
-
-  const pct = progress ? Math.round((progress.done / progress.total) * 100) : 0;
 
   return (
     <div
@@ -163,7 +104,7 @@ export default function UploadPrototypePage() {
               backgroundClip: 'text',
             }}
           >
-            Chunk upload lab
+            Upload lab
           </h1>
           <p
             style={{
@@ -173,7 +114,7 @@ export default function UploadPrototypePage() {
               fontWeight: 500,
             }}
           >
-            Chunked uploads, one friendly prototype
+            Upload from URL to Arweave
           </p>
         </div>
 
@@ -190,30 +131,15 @@ export default function UploadPrototypePage() {
         />
 
         <label style={labelStyle}>
-          <span style={pill}>📁</span> File
+          <span style={pill}>🔗</span> File URL
         </label>
-        <div
-          style={{
-            marginBottom: 14,
-            padding: '14px 16px',
-            borderRadius: 16,
-            border: '2px dashed rgba(168, 85, 247, 0.35)',
-            background: 'rgba(250, 245, 255, 0.6)',
-            transition: 'border-color 0.2s, background 0.2s',
-          }}
-        >
-          <input
-            ref={fileRef}
-            type="file"
-            style={{
-              width: '100%',
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#57534e',
-              cursor: 'pointer',
-            }}
-          />
-        </div>
+        <input
+          type="text"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://example.com/file.mp4"
+          style={{ ...inputStyle, fontFamily: 'monospace', fontSize: 13 }}
+        />
 
         {hint && (
           <p
@@ -247,58 +173,8 @@ export default function UploadPrototypePage() {
               : '0 4px 18px rgba(236, 72, 153, 0.35), 0 2px 8px rgba(168, 85, 247, 0.25)',
           }}
         >
-          {busy ? 'Uploading…' : 'Start upload'}
+          {busy ? 'Uploading…' : 'Upload'}
         </button>
-
-        {progress && (
-          <div style={{ marginTop: 22 }}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-                marginBottom: 8,
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#57534e',
-              }}
-            >
-              <span>Progress</span>
-              <span style={{ color: '#a855f7' }}>{pct}%</span>
-            </div>
-            <div
-              style={{
-                background: 'rgba(243, 232, 255, 0.9)',
-                borderRadius: 999,
-                height: 14,
-                overflow: 'hidden',
-                border: '1px solid rgba(233, 213, 255, 0.8)',
-              }}
-            >
-              <div
-                style={{
-                  height: '100%',
-                  width: `${pct}%`,
-                  borderRadius: 999,
-                  background:
-                    'linear-gradient(90deg, #c084fc, #f472b6, #fb923c)',
-                  transition: 'width 0.25s ease-out',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45)',
-                }}
-              />
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: '#a8a29e',
-                marginTop: 8,
-                fontWeight: 500,
-              }}
-            >
-              {progress.done} / {progress.total} chunks
-            </div>
-          </div>
-        )}
 
         <div style={{ marginTop: 22 }}>
           <div
@@ -315,7 +191,6 @@ export default function UploadPrototypePage() {
             <span>📜</span> Log
           </div>
           <div
-            ref={logRef}
             style={{
               background: 'rgba(255, 251, 235, 0.65)',
               border: '1px solid rgba(254, 215, 170, 0.5)',
@@ -331,12 +206,12 @@ export default function UploadPrototypePage() {
               lineHeight: 1.55,
             }}
           >
-            {logs.length === 0 && (
+            {logLines.length === 0 && (
               <span style={{ color: '#a8a29e', fontWeight: 500 }}>
-                Step-by-step messages will show up here
+                Messages will appear here
               </span>
             )}
-            {logs.map((l, i) => (
+            {logLines.map((l, i) => (
               <span
                 key={i}
                 style={{
