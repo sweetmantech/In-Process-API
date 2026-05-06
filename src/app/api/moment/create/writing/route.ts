@@ -20,7 +20,8 @@ export async function POST(req: NextRequest) {
       : (data.contract.name ?? data.title);
     const metadataUri = await uploadWritingWithJson(
       collectionName,
-      data.token.tokenContent
+      data.token.tokenContent,
+      data.account
     );
     const convertedData = convertWritingToContractSchema(data, metadataUri);
     const result = await createMoment(convertedData);

@@ -4,6 +4,7 @@ import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
 
 vi.mock('@/lib/link/getYoutubeDetail', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
+vi.mock('@/lib/arweave/logArweaveUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadJson', () => ({ uploadJson: vi.fn() }));
 vi.mock('@/lib/moment/createMoment', () => ({ createMoment: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
@@ -45,8 +46,14 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getYoutubeDetail).mockResolvedValue(DETAIL);
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeFetchResponse()));
-  vi.mocked(uploadToArweave).mockResolvedValue('ar://image-hash');
-  vi.mocked(uploadJson).mockResolvedValue('ar://metadata-hash');
+  vi.mocked(uploadToArweave).mockResolvedValue({
+    arweave_uri: 'ar://image-hash',
+    winc_cost: '100',
+  });
+  vi.mocked(uploadJson).mockResolvedValue({
+    arweave_uri: 'ar://metadata-hash',
+    winc_cost: '100',
+  });
   vi.mocked(createMoment).mockResolvedValue(MOMENT_RESULT as never);
 });
 

@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import blobDel from '@/lib/vercel-blob/blobDel';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
+import logArweaveUpload from '@/lib/arweave/logArweaveUpload';
 import updateChunkUploadSessionStatus from '@/lib/supabase/in_process_chunk_upload_sessions/updateChunkUploadSessionStatus';
 import listChunkUploadParts from '@/lib/supabase/in_process_chunk_upload_parts/listChunkUploadParts';
 import { CHUNK_UPLOAD_MAX_TOTAL_BYTES } from '@/lib/consts';
 import getFileFromBlobs from '@/lib/chunk-upload/getFileFromBlobs';
 
-const completeChunkUploadHandler = async (sessionId: string) => {
+const completeChunkUploadHandler = async (
+  sessionId: string,
+  artistAddress: string
+) => {
   try {
     const { data, error: lockErr } = await updateChunkUploadSessionStatus({
       id: sessionId,
@@ -49,7 +53,13 @@ const completeChunkUploadHandler = async (sessionId: string) => {
       throw new Error(assembled.message);
     }
 
-    const uri = await uploadToArweave(assembled.file);
+    const uploadResult = await uploadToArweave(assembled.file);
+    logArweaveUpload(uploadResult, {
+      file_size_bytes: assembled.file.size,
+      content_type: assembled.file.type,
+      artist_address: artistAddress,
+    });
+    const uri = uploadResult.arweave_uri;
 
     await blobDel(parts.map((p) => p.blob_url)).catch((e: unknown) =>
       console.error('del chunk blobs', e)

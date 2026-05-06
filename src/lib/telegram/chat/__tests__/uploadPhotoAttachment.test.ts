@@ -3,6 +3,7 @@ import uploadPhotoAttachment from '../uploadPhotoAttachment';
 
 vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadJson', () => ({ uploadJson: vi.fn() }));
+vi.mock('@/lib/arweave/logArweaveUpload', () => ({ default: vi.fn() }));
 vi.mock('../getTelegramFilePath', () => ({ default: vi.fn() }));
 
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
@@ -10,12 +11,19 @@ import { uploadJson } from '@/lib/arweave/uploadJson';
 import getTelegramFilePath from '../getTelegramFilePath';
 
 const BUFFER = Buffer.from('image data');
+const ARTIST = '0xartist';
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getTelegramFilePath).mockResolvedValue('photos/file.jpg');
-  vi.mocked(uploadToArweave).mockResolvedValue('ar://image-hash');
-  vi.mocked(uploadJson).mockResolvedValue('ar://metadata-hash');
+  vi.mocked(uploadToArweave).mockResolvedValue({
+    arweave_uri: 'ar://image-hash',
+    winc_cost: '100',
+  });
+  vi.mocked(uploadJson).mockResolvedValue({
+    arweave_uri: 'ar://metadata-hash',
+    winc_cost: '100',
+  });
 });
 
 const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
@@ -27,7 +35,12 @@ const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
 describe('uploadPhotoAttachment', () => {
   it('throws when attachment has no fetchData', async () => {
     await expect(
-      uploadPhotoAttachment({ type: 'image' } as never, 'file-id', 'Photo')
+      uploadPhotoAttachment(
+        { type: 'image' } as never,
+        'file-id',
+        'Photo',
+        ARTIST
+      )
     ).rejects.toThrow('Attachment has no fetchData');
   });
 
@@ -35,7 +48,8 @@ describe('uploadPhotoAttachment', () => {
     const result = await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Photo'
+      'My Photo',
+      ARTIST
     );
 
     expect(result).toEqual({
@@ -49,7 +63,8 @@ describe('uploadPhotoAttachment', () => {
     const result = await uploadPhotoAttachment(
       makeAttachment({ mimeType: 'image/png' }) as never,
       'file-id',
-      'My Photo'
+      'My Photo',
+      ARTIST
     );
 
     expect(result.mimeType).toBe('image/png');
@@ -61,7 +76,8 @@ describe('uploadPhotoAttachment', () => {
     const result = await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Photo'
+      'My Photo',
+      ARTIST
     );
 
     expect(result.mimeType).toBe('image/webp');
@@ -71,7 +87,8 @@ describe('uploadPhotoAttachment', () => {
     await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Photo'
+      'My Photo',
+      ARTIST
     );
 
     expect(uploadToArweave).toHaveBeenCalledOnce();
@@ -84,7 +101,8 @@ describe('uploadPhotoAttachment', () => {
     await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Photo'
+      'My Photo',
+      ARTIST
     );
 
     expect(uploadJson).toHaveBeenCalledWith({

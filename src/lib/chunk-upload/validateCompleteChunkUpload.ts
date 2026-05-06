@@ -32,6 +32,7 @@ const validateCompleteChunkUpload = async (req: NextRequest) => {
 
   return {
     session_id: parsed.data.session_id,
+    artistAddress: authResult.artistAddress,
   };
 };
 
