@@ -7,12 +7,12 @@ const getCompletedFreeUploads = async (
   to: string
 ) =>
   supabase
-    .from('in_process_chunk_upload_sessions')
+    .from('in_process_arweave_uploads')
     .select('id', { count: 'exact', head: true })
     .eq('artist_address', artistAddress.toLowerCase())
-    .eq('status', 'done')
-    .gte('completed_at', from)
-    .lt('completed_at', to)
-    .or(`total_size_bytes.is.null,total_size_bytes.lte.${FREE_TIER_MAX_BYTES}`);
+    .gte('created_at', from)
+    .lt('created_at', to)
+    .lte('file_size_bytes', FREE_TIER_MAX_BYTES)
+    .neq('winc_cost', '0');
 
 export default getCompletedFreeUploads;
