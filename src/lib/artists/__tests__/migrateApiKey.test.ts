@@ -3,18 +3,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/supabase/in_process_api_keys/getApiKeys', () => ({
   getApiKeys: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_api_keys/updateArtistAddress', () => ({
-  updateArtistAddress: vi.fn(),
+vi.mock('@/lib/supabase/in_process_api_keys/updateApiKey', () => ({
+  updateApiKey: vi.fn(),
 }));
 
 import { getApiKeys } from '@/lib/supabase/in_process_api_keys/getApiKeys';
-import { updateArtistAddress } from '@/lib/supabase/in_process_api_keys/updateArtistAddress';
+import { updateApiKey } from '@/lib/supabase/in_process_api_keys/updateApiKey';
 import migrateApiKey from '@/lib/artists/migrateApiKey';
 
 describe('migrateApiKey', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(updateArtistAddress).mockResolvedValue({ error: null });
+    vi.mocked(updateApiKey).mockResolvedValue({ error: null });
   });
 
   it('does nothing when social wallet has no api keys', async () => {
@@ -31,7 +31,7 @@ describe('migrateApiKey', () => {
     expect(getApiKeys).toHaveBeenCalledWith(
       '0xb234567890123456789012345678901234567891'
     );
-    expect(updateArtistAddress).not.toHaveBeenCalled();
+    expect(updateApiKey).not.toHaveBeenCalled();
   });
 
   it('moves the most recent api key artist_address to the artist wallet (lowercased)', async () => {
@@ -48,7 +48,7 @@ describe('migrateApiKey', () => {
     expect(getApiKeys).toHaveBeenCalledWith(
       '0xb234567890123456789012345678901234567891'
     );
-    expect(updateArtistAddress).toHaveBeenCalledWith(
+    expect(updateApiKey).toHaveBeenCalledWith(
       'key-1',
       '0xa123456789012345678901234567890123456789'
     );
@@ -70,13 +70,13 @@ describe('migrateApiKey', () => {
     errSpy.mockRestore();
   });
 
-  it('throws when updateArtistAddress returns an error', async () => {
+  it('throws when updateApiKey returns an error', async () => {
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.mocked(getApiKeys).mockResolvedValue({
       data: [{ id: 'key-1', name: 'a', created_at: 't' }],
       error: null,
     } as any);
-    vi.mocked(updateArtistAddress).mockResolvedValue({
+    vi.mocked(updateApiKey).mockResolvedValue({
       error: { message: 'update failed' },
     } as any);
 

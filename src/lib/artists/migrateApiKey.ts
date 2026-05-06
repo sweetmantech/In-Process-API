@@ -1,5 +1,5 @@
 import { getApiKeys } from '@/lib/supabase/in_process_api_keys/getApiKeys';
-import { updateArtistAddress } from '@/lib/supabase/in_process_api_keys/updateArtistAddress';
+import { updateApiKey } from '@/lib/supabase/in_process_api_keys/updateApiKey';
 
 const migrateApiKey = async ({
   social_wallet,
@@ -18,10 +18,7 @@ const migrateApiKey = async ({
     if (!apiKeys?.length) return;
 
     const apiKeyId = apiKeys[0].id;
-    const { error: updateError } = await updateArtistAddress(
-      apiKeyId,
-      artistWalletLc
-    );
+    const { error: updateError } = await updateApiKey(apiKeyId, artistWalletLc);
     if (updateError) throw updateError;
 
     console.log('✅ migrated api keys from social wallet to artist wallet');
