@@ -4,6 +4,7 @@ import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
 
 vi.mock('@/lib/link/getYoutubeDetail', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
+vi.mock('@/lib/arweave/logArweaveUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadJson', () => ({ uploadJson: vi.fn() }));
 vi.mock('@/lib/moment/createMoment', () => ({ createMoment: vi.fn() }));
 vi.mock('@/lib/consts', () => ({

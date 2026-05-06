@@ -12,6 +12,7 @@ vi.mock(
 vi.mock('@/lib/chunk-upload/getFileFromBlobs', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
 vi.mock('@/lib/vercel-blob/blobDel', () => ({ default: vi.fn() }));
+vi.mock('@/lib/arweave/logArweaveUpload', () => ({ default: vi.fn() }));
 
 import updateChunkUploadSessionStatus from '@/lib/supabase/in_process_chunk_upload_sessions/updateChunkUploadSessionStatus';
 import listChunkUploadParts from '@/lib/supabase/in_process_chunk_upload_parts/listChunkUploadParts';
