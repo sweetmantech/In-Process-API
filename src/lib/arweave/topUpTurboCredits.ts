@@ -18,8 +18,7 @@ const topUpTurboCredits = async (
       turboClient.signer.getNativeAddress(),
     ]);
 
-    const network = 'base';
-    const walletAdapter = createTurboWalletAdapter(smartAccount, network);
+    const walletAdapter = createTurboWalletAdapter(smartAccount);
 
     const payerTurbo = TurboFactory.authenticated({
       walletAdapter,

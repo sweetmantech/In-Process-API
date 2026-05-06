@@ -7,8 +7,7 @@ import {
 import type { EvmSmartAccount } from '@coinbase/cdp-sdk';
 
 const createTurboWalletAdapter = (
-  smartAccount: EvmSmartAccount,
-  network: SendUserOperationParams['network']
+  smartAccount: EvmSmartAccount
 ): EthereumWalletAdapter => ({
   getSigner: () => ({
     signMessage: async (message: string | Uint8Array): Promise<string> => {
@@ -24,7 +23,7 @@ const createTurboWalletAdapter = (
     sendTransaction: async ({ to, value, data }: any): Promise<any> => {
       const receipt = await sendUserOperation({
         smartAccount,
-        network,
+        network: 'base',
         calls: [
           {
             to: to as `0x${string}`,
