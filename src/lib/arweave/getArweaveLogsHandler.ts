@@ -20,6 +20,7 @@ const getArweaveLogsHandler = async ({
   });
 
   if (error) {
+    console.error('Failed to fetch arweave logs', error);
     return NextResponse.json(
       { message: 'Failed to fetch arweave logs' },
       { status: 500 }

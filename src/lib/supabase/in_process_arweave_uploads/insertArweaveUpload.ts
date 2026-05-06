@@ -7,6 +7,9 @@ const insertArweaveUpload = (row: {
   file_size_bytes: number;
   content_type: string;
   artist_address: string;
-}) => supabase.from('in_process_arweave_uploads').insert(row);
+}) =>
+  supabase
+    .from('in_process_arweave_uploads')
+    .upsert(row, { onConflict: 'arweave_uri', ignoreDuplicates: true });
 
 export default insertArweaveUpload;
