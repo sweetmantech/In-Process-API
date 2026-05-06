@@ -1,65 +1,50 @@
 import { TurboFactory } from '@ardrive/turbo-sdk/node';
 import type {
-  EthereumWalletAdapter,
   TurboCryptoFundResponse,
+  TurboSubmitFundTxResponse,
 } from '@ardrive/turbo-sdk/node';
-import type { Address, Hex } from 'viem';
+import type { Address } from 'viem';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
-import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import turboClient from './turboClient';
+import createTurboWalletAdapter from './createTurboWalletAdapter';
 
 const topUpTurboCredits = async (
   artistAddress: Address,
   usdcAmountMicros: bigint
-): Promise<TurboCryptoFundResponse> => {
+): Promise<TurboCryptoFundResponse | TurboSubmitFundTxResponse> => {
   try {
     const [smartAccount, ourArweaveAddress] = await Promise.all([
       getOrCreateSmartWallet({ address: artistAddress }),
       turboClient.signer.getNativeAddress(),
     ]);
 
-    const network = 'base';
-
-    const walletAdapter: EthereumWalletAdapter = {
-      getSigner: () => ({
-        signMessage: async (message: string | Uint8Array): Promise<string> => {
-          const owner = smartAccount.owners[0];
-          return owner.signMessage({
-            message:
-              typeof message === 'string'
-                ? message
-                : { raw: Buffer.from(message) as unknown as Hex },
-          });
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sendTransaction: async ({ to, value, data }: any): Promise<any> => {
-          const receipt = await sendUserOperation({
-            smartAccount,
-            network,
-            calls: [
-              {
-                to: to as `0x${string}`,
-                value: (value ?? BigInt(0)) as bigint,
-                data: (data ?? '0x') as `0x${string}`,
-              },
-            ],
-          });
-          return { hash: receipt.transactionHash };
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        provider: null as any,
-      }),
-    };
+    const walletAdapter = createTurboWalletAdapter(smartAccount);
 
     const payerTurbo = TurboFactory.authenticated({
       walletAdapter,
       token: 'base-usdc',
     });
 
-    return payerTurbo.topUpWithTokens({
-      tokenAmount: usdcAmountMicros.toString(),
-      turboCreditDestinationAddress: ourArweaveAddress,
-    });
+    try {
+      return await payerTurbo.topUpWithTokens({
+        tokenAmount: usdcAmountMicros.toString(),
+        turboCreditDestinationAddress: ourArweaveAddress,
+      });
+    } catch (fundError: unknown) {
+      const message =
+        fundError instanceof Error ? fundError.message : String(fundError);
+      const txIdMatch = message.match(
+        /submitFundTransaction\(id\)':\s*(0x[0-9a-fA-F]+)/
+      );
+      if (txIdMatch) {
+        const txId = txIdMatch[1];
+        console.warn(
+          `⚠️ topUpWithTokens Phase 2 failed, retrying submitFundTransaction for ${txId}`
+        );
+        return await payerTurbo.submitFundTransaction({ txId });
+      }
+      throw fundError;
+    }
   } catch (error) {
     console.error(`❌ topUpTurboCredits: ${error}`);
     throw new Error(`❌ topUpTurboCredits: ${error}`);
