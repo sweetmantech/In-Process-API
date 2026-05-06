@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import verifyArweaveTx from '@/lib/arweave/verifyArweaveTx';
 import logArweaveUpload from '@/lib/arweave/logArweaveUpload';
 import type { logArweaveUploadItemSchema } from '@/lib/schema/logArweaveUploadSchema';
 import type { z } from 'zod';
@@ -10,19 +9,9 @@ const logArweaveUploadsHandler = async (
   artistAddress: string,
   uploads: Upload[]
 ) => {
-  const verifyResults = await Promise.all(
-    uploads.map((u) => verifyArweaveTx(u.arweave_uri))
-  );
-
   const logged: string[] = [];
-  const failed: string[] = [];
 
-  for (let i = 0; i < uploads.length; i++) {
-    const upload = uploads[i];
-    if (!verifyResults[i]) {
-      failed.push(upload.arweave_uri);
-      continue;
-    }
+  for (const upload of uploads) {
     logArweaveUpload(
       { arweave_uri: upload.arweave_uri, winc_cost: upload.winc_cost },
       {
@@ -34,7 +23,7 @@ const logArweaveUploadsHandler = async (
     logged.push(upload.arweave_uri);
   }
 
-  return NextResponse.json({ logged, failed });
+  return NextResponse.json({ logged });
 };
 
 export default logArweaveUploadsHandler;
