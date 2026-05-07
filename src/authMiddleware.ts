@@ -8,6 +8,7 @@ import verifyFarcasterAuth from '@/lib/farcaster/verifyFarcasterAuth';
 import { farcasterAuthSchema } from '@/lib/schema/farcasterAuthSchema';
 import { AuthErrorMessages, AuthErrorTypes } from './errors';
 import { AuthResult, AuthMethod } from '@/types/auth';
+import verifyRecaptchaToken from '@/lib/recaptcha/verifyRecaptchaToken';
 
 export async function authMiddleware(
   req: NextRequest
@@ -71,5 +72,16 @@ export async function authMiddleware(
     throw error;
   }
 
-  return { artistAddress, authMethod };
+  const recaptchaToken = req.headers.get('x-recaptcha-token');
+  const isOfficialArtist = recaptchaToken
+    ? await verifyRecaptchaToken(recaptchaToken)
+    : false;
+
+  console.log('[authMiddleware]', {
+    artistAddress,
+    authMethod,
+    isOfficialArtist,
+  });
+
+  return { artistAddress, authMethod, isOfficialArtist };
 }
