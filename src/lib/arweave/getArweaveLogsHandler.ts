@@ -18,8 +18,8 @@ const getArweaveLogsHandler = async ({
   limit: number;
   page: number;
 }) => {
-
-  const days = period && period !== 'all' ? PERIOD_INTERVALS[period] : undefined;
+  const days =
+    period && period !== 'all' ? PERIOD_INTERVALS[period] : undefined;
   const from = days
     ? new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
     : undefined;

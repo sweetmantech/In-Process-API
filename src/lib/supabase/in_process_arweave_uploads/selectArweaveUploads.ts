@@ -17,10 +17,12 @@ const selectArweaveUploads = (params: {
     .order('created_at', { ascending: false });
 
   if (artist) {
-    query = query.or(
-      `artist_address.eq.${artist.toLowerCase()},in_process_artists.username.ilike.${artist}`
-    );
-  } 
+    if (/^0x[0-9a-fA-F]{40}$/.test(artist)) {
+      query = query.eq('artist_address', artist.toLowerCase());
+    } else {
+      query = query.ilike('in_process_artists.username', artist);
+    }
+  }
 
   if (from) {
     query = query.gte('created_at', from);
