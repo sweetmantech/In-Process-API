@@ -1,0 +1,4 @@
+DROP INDEX CONCURRENTLY IF EXISTS public.idx_in_process_transfers_moment;
+DROP INDEX CONCURRENTLY IF EXISTS public.idx_in_process_notifications_artist;
+DROP INDEX CONCURRENTLY IF EXISTS public.idx_in_process_notifications_viewed;
+DROP INDEX CONCURRENTLY IF EXISTS public.idx_in_process_transfers_airdrop_transferred_at_desc;
