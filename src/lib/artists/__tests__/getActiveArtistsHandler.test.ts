@@ -1,0 +1,103 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/lib/supabase/in_process_artists/getActiveArtistsStats', () => ({
+  default: vi.fn(),
+}));
+
+import getActiveArtistsStats from '@/lib/supabase/in_process_artists/getActiveArtistsStats';
+import getActiveArtistsHandler from '@/lib/artists/getActiveArtistsHandler';
+
+const BASE_PARAMS = {
+  period: 'all' as const,
+  limit: 20,
+  page: 1,
+  artist: undefined as string | undefined,
+};
+
+describe('getActiveArtistsHandler', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns data with pagination metadata on success', async () => {
+    vi.mocked(getActiveArtistsStats).mockResolvedValue({
+      data: [
+        {
+          address: '0xartist',
+          username: 'alice',
+          moments_created: 10,
+          airdropped: 5,
+          telegram_count: 2,
+          web_count: 4,
+          api_count: 3,
+          sms_count: 1,
+          total_count: 33,
+        },
+      ] as any,
+      totalCount: 33,
+      error: null,
+    });
+
+    const res = await getActiveArtistsHandler(BASE_PARAMS);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data).toHaveLength(1);
+    expect(json.total_count).toBe(33);
+    expect(json.page).toBe(1);
+    expect(json.total_pages).toBe(2);
+  });
+
+  it('passes all params to getActiveArtistsStats', async () => {
+    vi.mocked(getActiveArtistsStats).mockResolvedValue({
+      data: [],
+      totalCount: 0,
+      error: null,
+    });
+
+    await getActiveArtistsHandler({
+      period: 'week',
+      limit: 10,
+      page: 3,
+      artist: 'alice',
+    });
+
+    expect(getActiveArtistsStats).toHaveBeenCalledWith({
+      period: 'week',
+      limit: 10,
+      page: 3,
+      artist: 'alice',
+    });
+  });
+
+  it('returns total_pages as 0 when totalCount is 0', async () => {
+    vi.mocked(getActiveArtistsStats).mockResolvedValue({
+      data: [],
+      totalCount: 0,
+      error: null,
+    });
+
+    const res = await getActiveArtistsHandler(BASE_PARAMS);
+    const json = await res.json();
+
+    expect(json.total_count).toBe(0);
+    expect(json.total_pages).toBe(0);
+  });
+
+  it('returns 500 when getActiveArtistsStats returns an error', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(getActiveArtistsStats).mockResolvedValue({
+      data: null,
+      totalCount: 0,
+      error: new Error('DB failed'),
+    });
+
+    const res = await getActiveArtistsHandler(BASE_PARAMS);
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json).toEqual({ message: 'Failed to fetch active artists stats' });
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+});
