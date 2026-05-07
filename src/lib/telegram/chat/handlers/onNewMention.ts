@@ -4,6 +4,7 @@ import type { TelegramChatBot } from '../bot';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
+import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import commandsHandler from '../commands/commandsHandler';
 import processMediaThread from '../processMediaThread';
 import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
@@ -31,7 +32,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       if (artist) {
         await upsertAccountNotification({
           artist_address: artist.address as Address,
-          telegram_chat_id: thread.channelId,
+          telegram_chat_id: parseTelegramChatId(thread.channelId),
         });
       }
 
