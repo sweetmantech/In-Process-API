@@ -16,7 +16,10 @@ import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 
 const PHONE_NUMBER = '+15550001234';
 const ARTIST_ADDRESS = '0xArtist';
-const phone = { phone_number: PHONE_NUMBER, artist: { address: ARTIST_ADDRESS } };
+const phone = {
+  phone_number: PHONE_NUMBER,
+  artist: { address: ARTIST_ADDRESS },
+};
 
 const makeMedia = (
   content_type: string
@@ -40,9 +43,16 @@ beforeEach(() => {
 
 describe('processMmsMedia', () => {
   it('sends video-not-supported message for video content and returns early', async () => {
-    const result = await processMmsMedia(phone, makeMedia('video/mp4'), undefined);
+    const result = await processMmsMedia(
+      phone,
+      makeMedia('video/mp4'),
+      undefined
+    );
 
-    expect(sendVideoNotSupported).toHaveBeenCalledWith(PHONE_NUMBER, ARTIST_ADDRESS);
+    expect(sendVideoNotSupported).toHaveBeenCalledWith(
+      PHONE_NUMBER,
+      ARTIST_ADDRESS
+    );
     expect(createMomentFromMedia).not.toHaveBeenCalled();
     expect(result).toBeUndefined();
   });
@@ -62,11 +72,18 @@ describe('processMmsMedia', () => {
     await processMmsMedia(phone, makeMedia('image/jpeg'), undefined);
 
     expect(getMomentSuccessMessage).toHaveBeenCalledWith('0xContract', '1');
-    expect(sendSms).toHaveBeenCalledWith(PHONE_NUMBER, 'Success! Check it out.');
+    expect(sendSms).toHaveBeenCalledWith(
+      PHONE_NUMBER,
+      'Success! Check it out.'
+    );
   });
 
   it('returns contractAddress and tokenId on success', async () => {
-    const result = await processMmsMedia(phone, makeMedia('image/jpeg'), undefined);
+    const result = await processMmsMedia(
+      phone,
+      makeMedia('image/jpeg'),
+      undefined
+    );
 
     expect(result).toEqual({ contractAddress: '0xContract', tokenId: '1' });
   });

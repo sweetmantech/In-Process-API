@@ -4,9 +4,12 @@ import type { Address } from 'viem';
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/supabase/account_notifications/upsertAccountNotification', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '@/lib/supabase/account_notifications/upsertAccountNotification',
+  () => ({
+    default: vi.fn(),
+  })
+);
 vi.mock('@/lib/telegram/parseTelegramChatId', () => ({ default: vi.fn() }));
 vi.mock('../../commands/commandsHandler', () => ({ default: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
@@ -63,8 +66,14 @@ beforeEach(() => {
   vi.clearAllMocks();
   capturedHandler = undefined;
   vi.mocked(parseTelegramChatId).mockReturnValue(RAW_CHAT_ID);
-  vi.mocked(selectArtists).mockResolvedValue({ data: [ARTIST], error: null } as never);
-  vi.mocked(upsertAccountNotification).mockResolvedValue({ data: null, error: null } as never);
+  vi.mocked(selectArtists).mockResolvedValue({
+    data: [ARTIST],
+    error: null,
+  } as never);
+  vi.mocked(upsertAccountNotification).mockResolvedValue({
+    data: null,
+    error: null,
+  } as never);
   vi.mocked(commandsHandler).mockResolvedValue(false);
   vi.mocked(processMediaThread).mockResolvedValue(undefined);
   vi.mocked(createMomentFromYoutubeLink).mockResolvedValue({
@@ -98,7 +107,10 @@ describe('onNewMention', () => {
   });
 
   it('does not save telegram_chat_id for unknown artist', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({ data: [], error: null } as never);
+    vi.mocked(selectArtists).mockResolvedValue({
+      data: [],
+      error: null,
+    } as never);
 
     await capturedHandler!(makeThread(), makeMessage());
 

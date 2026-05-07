@@ -39,16 +39,26 @@ const baseParams = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(ensureArtists).mockResolvedValue(undefined as never);
-  vi.mocked(selectCollections).mockResolvedValue({ data: null, error: null } as never);
-  vi.mocked(upsertCollections).mockResolvedValue([{ id: COLLECTION_ID }] as never);
-  vi.mocked(selectMoments).mockResolvedValue({ data: null, error: null } as never);
+  vi.mocked(selectCollections).mockResolvedValue({
+    data: null,
+    error: null,
+  } as never);
+  vi.mocked(upsertCollections).mockResolvedValue([
+    { id: COLLECTION_ID },
+  ] as never);
+  vi.mocked(selectMoments).mockResolvedValue({
+    data: null,
+    error: null,
+  } as never);
   vi.mocked(upsertMoments).mockResolvedValue([] as never);
 });
 
 describe('indexMoment', () => {
   it('ensures artist exists with normalized address', async () => {
     await indexMoment(baseParams);
-    expect(ensureArtists).toHaveBeenCalledWith([getAddress(ARTIST).toLowerCase()]);
+    expect(ensureArtists).toHaveBeenCalledWith([
+      getAddress(ARTIST).toLowerCase(),
+    ]);
   });
 
   it('creates a new collection when none exists', async () => {

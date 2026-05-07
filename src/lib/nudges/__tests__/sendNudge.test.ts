@@ -4,9 +4,12 @@ import sendNudge from '../sendNudge';
 vi.mock('@/lib/telegram/client', () => ({
   telegramChatBotClient: { sendMessage: vi.fn() },
 }));
-vi.mock('@/lib/supabase/account_notifications/upsertAccountNotification', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '@/lib/supabase/account_notifications/upsertAccountNotification',
+  () => ({
+    default: vi.fn(),
+  })
+);
 
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
@@ -19,8 +22,13 @@ const PARAMS = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(telegramChatBotClient.sendMessage).mockResolvedValue(undefined as never);
-  vi.mocked(upsertAccountNotification).mockResolvedValue({ data: null, error: null } as never);
+  vi.mocked(telegramChatBotClient.sendMessage).mockResolvedValue(
+    undefined as never
+  );
+  vi.mocked(upsertAccountNotification).mockResolvedValue({
+    data: null,
+    error: null,
+  } as never);
 });
 
 describe('sendNudge', () => {
@@ -36,7 +44,8 @@ describe('sendNudge', () => {
   it('uses singular "day" when daysSinceLastMoment is 1', async () => {
     await sendNudge({ ...PARAMS, daysSinceLastMoment: 1 });
 
-    const message = vi.mocked(telegramChatBotClient.sendMessage).mock.calls[0][1];
+    const message = vi.mocked(telegramChatBotClient.sendMessage).mock
+      .calls[0][1];
     expect(message).toContain('1 day');
     expect(message).not.toContain('1 days');
   });

@@ -1,12 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Address } from 'viem';
 
-vi.mock('@/lib/supabase/account_notifications/selectAccountNotification', () => ({
-  default: vi.fn(),
-}));
-vi.mock('@/lib/supabase/account_notifications/upsertAccountNotification', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '@/lib/supabase/account_notifications/selectAccountNotification',
+  () => ({
+    default: vi.fn(),
+  })
+);
+vi.mock(
+  '@/lib/supabase/account_notifications/upsertAccountNotification',
+  () => ({
+    default: vi.fn(),
+  })
+);
 
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
@@ -20,7 +26,10 @@ const makeThread = () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(upsertAccountNotification).mockResolvedValue({ data: null, error: null } as never);
+  vi.mocked(upsertAccountNotification).mockResolvedValue({
+    data: null,
+    error: null,
+  } as never);
 });
 
 describe('handleNotify', () => {

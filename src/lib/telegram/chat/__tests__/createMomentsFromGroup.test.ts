@@ -60,7 +60,9 @@ beforeEach(() => {
     buffer: Buffer.from(''),
     mimeType: 'image/jpeg',
   });
-  vi.mocked(processAttachmentUpload).mockResolvedValue(UPLOAD_RESULT_1 as never);
+  vi.mocked(processAttachmentUpload).mockResolvedValue(
+    UPLOAD_RESULT_1 as never
+  );
   vi.mocked(createMoments).mockResolvedValue([MOMENT_1]);
   vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
 });
