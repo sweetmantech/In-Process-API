@@ -644,6 +644,25 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_active_artists_stats: {
+        Args: {
+          p_artist?: string;
+          p_limit?: number;
+          p_page?: number;
+          p_period?: string;
+        };
+        Returns: {
+          address: string;
+          airdropped: number;
+          api_count: number;
+          moments_created: number;
+          sms_count: number;
+          telegram_count: number;
+          total_count: number;
+          username: string;
+          web_count: number;
+        }[];
+      };
       get_airdrop_transfers: {
         Args: {
           p_artist?: string;
