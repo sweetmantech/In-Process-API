@@ -7,7 +7,12 @@ import { AuthMethod } from '@/types/auth';
 const authenticateWithFarcasterToken = async (token: string) => {
   const secret = process.env.FARCASTER_JWT_SECRET;
   if (!secret) throw new Error('FARCASTER_JWT_SECRET is not configured');
-  const raw = verifyJwt(token, secret);
+  let raw: unknown;
+  try {
+    raw = verifyJwt(token, secret);
+  } catch {
+    throw new Error(AuthErrorMessages.INVALID_AUTH_TOKEN);
+  }
   const parsed = farcasterAuthSchema.safeParse(raw);
   if (!parsed.success) throw new Error(AuthErrorMessages.INVALID_AUTH_TOKEN);
   const artistAddress = await verifyFarcasterAuth(

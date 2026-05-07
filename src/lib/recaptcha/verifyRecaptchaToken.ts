@@ -1,4 +1,4 @@
-const RECAPTCHA_VERIFY_URL = 'https://google.com/recaptcha/api/siteverify';
+const RECAPTCHA_VERIFY_URL = 'https://www.google.com/recaptcha/api/siteverify';
 
 const verifyRecaptchaToken = async (token: string): Promise<boolean> => {
   const secret = process.env.RECAPTCHA_SECRET_KEY;

@@ -48,7 +48,7 @@ describe('verifyRecaptchaToken', () => {
     await verifyRecaptchaToken('my-token');
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://google.com/recaptcha/api/siteverify',
+      'https://www.google.com/recaptcha/api/siteverify',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

@@ -5,6 +5,7 @@ vi.mock('@/lib/privy/getAddressesByAuthToken', () => ({
 }));
 
 import { getAddressesByAuthToken } from '@/lib/privy/getAddressesByAuthToken';
+import { AuthErrorMessages } from '@/errors';
 import { AuthMethod } from '@/types/auth';
 import authenticateWithBearerToken from '@/lib/auth/authenticateWithBearerToken';
 
@@ -44,15 +45,15 @@ describe('authenticateWithBearerToken', () => {
     });
   });
 
-  it('returns empty string when both artistAddress and socialWallet are empty', async () => {
+  it('throws NO_SOCIAL_OR_ARTIST_WALLET when both artistAddress and socialWallet are empty', async () => {
     vi.mocked(getAddressesByAuthToken).mockResolvedValue({
       artistAddress: '',
       socialWallet: '',
     } as any);
 
-    const result = await authenticateWithBearerToken('token');
-
-    expect(result).toEqual({ artistAddress: '', authMethod: AuthMethod.Privy });
+    await expect(authenticateWithBearerToken('token')).rejects.toThrow(
+      AuthErrorMessages.NO_SOCIAL_OR_ARTIST_WALLET
+    );
   });
 
   it('throws when getAddressesByAuthToken throws', async () => {

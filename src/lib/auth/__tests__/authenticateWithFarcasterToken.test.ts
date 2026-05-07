@@ -51,13 +51,13 @@ describe('authenticateWithFarcasterToken', () => {
     );
   });
 
-  it('throws when verifyJwt throws', async () => {
+  it('throws INVALID_AUTH_TOKEN when verifyJwt throws', async () => {
     vi.mocked(verifyJwt).mockImplementation(() => {
       throw new Error('jwt malformed');
     });
 
     await expect(authenticateWithFarcasterToken('bad-token')).rejects.toThrow(
-      'jwt malformed'
+      AuthErrorMessages.INVALID_AUTH_TOKEN
     );
   });
 
