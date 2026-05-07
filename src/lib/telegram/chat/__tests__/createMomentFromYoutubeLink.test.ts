@@ -160,12 +160,7 @@ describe('createMomentFromYoutubeLink', () => {
   it('mints to an existing collection when existingCollectionAddress is provided', async () => {
     const collection = '0x0000000000000000000000000000000000000002' as Address;
 
-    await createMomentFromYoutubeLink(
-      YOUTUBE_URL,
-      ARTIST_ADDRESS,
-      undefined,
-      collection
-    );
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS, collection);
 
     const call = vi.mocked(createMoment).mock.calls[0][0];
     expect(call.contract).toEqual({ address: getAddress(collection) });

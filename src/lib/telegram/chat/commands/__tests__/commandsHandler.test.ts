@@ -78,7 +78,6 @@ describe('commandsHandler', () => {
 
       expect(handleStart).toHaveBeenCalledWith(
         thread,
-        ARTIST_ADDRESS,
         ARTIST.username,
         TG_USERNAME
       );

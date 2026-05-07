@@ -3,12 +3,12 @@ import { getAddress, type Address } from 'viem';
 import createMomentsFromGroup from '../createMomentsFromGroup';
 
 vi.mock('../fetchTelegramFile', () => ({ default: vi.fn() }));
-vi.mock('../uploadAndLogAttachment', () => ({ default: vi.fn() }));
+vi.mock('../processAttachmentUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/moment/createMoments', () => ({ default: vi.fn() }));
 vi.mock('../replyAfterSuccess', () => ({ default: vi.fn() }));
 
 import fetchTelegramFile from '../fetchTelegramFile';
-import uploadAndLogAttachment from '../uploadAndLogAttachment';
+import processAttachmentUpload from '../processAttachmentUpload';
 import createMoments from '@/lib/moment/createMoments';
 import replyAfterSuccess from '../replyAfterSuccess';
 
@@ -48,11 +48,10 @@ const makeStateAdapter = (assets: unknown[] = []) => ({
   delete: vi.fn().mockResolvedValue(undefined),
 });
 
-const CHANNEL_ID = 'chat-xyz';
 const makeThread = (stateAdapter = makeStateAdapter()) => ({
   startTyping: vi.fn().mockResolvedValue(undefined),
   _stateAdapter: stateAdapter,
-  channelId: CHANNEL_ID,
+  channelId: 'telegram:chat-xyz',
 });
 
 beforeEach(() => {
@@ -61,7 +60,7 @@ beforeEach(() => {
     buffer: Buffer.from(''),
     mimeType: 'image/jpeg',
   });
-  vi.mocked(uploadAndLogAttachment).mockResolvedValue(UPLOAD_RESULT_1 as never);
+  vi.mocked(processAttachmentUpload).mockResolvedValue(UPLOAD_RESULT_1 as never);
   vi.mocked(createMoments).mockResolvedValue([MOMENT_1]);
   vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
 });
@@ -72,12 +71,12 @@ describe('createMomentsFromGroup', () => {
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
 
-    expect(uploadAndLogAttachment).not.toHaveBeenCalled();
+    expect(processAttachmentUpload).not.toHaveBeenCalled();
     expect(createMoments).not.toHaveBeenCalled();
   });
 
   it('uploads each pending asset in parallel', async () => {
-    vi.mocked(uploadAndLogAttachment)
+    vi.mocked(processAttachmentUpload)
       .mockResolvedValueOnce(UPLOAD_RESULT_1 as never)
       .mockResolvedValueOnce(UPLOAD_RESULT_2 as never);
     vi.mocked(createMoments).mockResolvedValue([MOMENT_1, MOMENT_2]);
@@ -87,7 +86,7 @@ describe('createMomentsFromGroup', () => {
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
 
-    expect(uploadAndLogAttachment).toHaveBeenCalledTimes(2);
+    expect(processAttachmentUpload).toHaveBeenCalledTimes(2);
   });
 
   it('builds a fetchData that calls fetchTelegramFile with the correct fileId', async () => {
@@ -95,22 +94,21 @@ describe('createMomentsFromGroup', () => {
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
 
-    const attachment = vi.mocked(uploadAndLogAttachment).mock.calls[0][0];
+    const attachment = vi.mocked(processAttachmentUpload).mock.calls[0][0];
     await attachment.fetchData!();
     expect(fetchTelegramFile).toHaveBeenCalledWith(PENDING_IMAGE.fileId);
   });
 
-  it('passes thumbFileId to uploadAndLogAttachment', async () => {
+  it('passes thumbFileId to processAttachmentUpload', async () => {
     const thread = makeThread(makeStateAdapter([PENDING_VIDEO]));
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
 
-    expect(uploadAndLogAttachment).toHaveBeenCalledWith(
+    expect(processAttachmentUpload).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'video', mimeType: 'video/mp4' }),
       PENDING_VIDEO.fileId,
       PENDING_VIDEO.name,
       ARTIST_ADDRESS,
-      CHANNEL_ID,
       PENDING_VIDEO.thumbFileId
     );
   });
@@ -124,7 +122,7 @@ describe('createMomentsFromGroup', () => {
       [{ uri: UPLOAD_RESULT_1.uri, name: PENDING_IMAGE.name }],
       ARTIST_ADDRESS,
       'telegram',
-      { chatId: CHANNEL_ID }
+      {}
     );
   });
 
@@ -143,10 +141,7 @@ describe('createMomentsFromGroup', () => {
       [{ uri: UPLOAD_RESULT_1.uri, name: PENDING_IMAGE.name }],
       ARTIST_ADDRESS,
       'telegram',
-      {
-        chatId: CHANNEL_ID,
-        existingCollectionAddress: getAddress(collection),
-      }
+      { existingCollectionAddress: getAddress(collection) }
     );
     expect(stateAdapter.delete).toHaveBeenCalledWith(
       'selected_collection_address'
@@ -154,7 +149,7 @@ describe('createMomentsFromGroup', () => {
   });
 
   it('calls replyAfterSuccess for each minted moment', async () => {
-    vi.mocked(uploadAndLogAttachment)
+    vi.mocked(processAttachmentUpload)
       .mockResolvedValueOnce(UPLOAD_RESULT_1 as never)
       .mockResolvedValueOnce(UPLOAD_RESULT_2 as never);
     vi.mocked(createMoments).mockResolvedValue([MOMENT_1, MOMENT_2]);
