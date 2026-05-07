@@ -14,7 +14,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async () => ({
-        maximumSizeInBytes: 233 * 1024 * 1024,
+        maximumSizeInBytes: 222 * 1024 * 1024,
       }),
     });
     return NextResponse.json(jsonResponse);
