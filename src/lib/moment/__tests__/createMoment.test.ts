@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Address } from 'viem';
 
+vi.mock('viem', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('viem')>();
+  return {
+    ...actual,
+    encodeFunctionData: vi.fn().mockReturnValue('0xencoded'),
+  };
+});
 vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
   getOrCreateSmartWallet: vi.fn(),
 }));
@@ -17,7 +24,9 @@ vi.mock('../parseMomentTransaction', () => ({ default: vi.fn() }));
 vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({ default: vi.fn() }));
 vi.mock('../indexMoment', () => ({ default: vi.fn() }));
 vi.mock('@/lib/protocolSdk/create/factory-addresses', () => ({
-  getFactoryAddress: vi.fn().mockReturnValue('0xFactory'),
+  getFactoryAddress: vi
+    .fn()
+    .mockReturnValue('0x0000000000000000000000000000000000000002'),
 }));
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
@@ -62,7 +71,7 @@ const makeInput = () => ({
 });
 
 const PARAMETERS = {
-  address: '0xOtherContract' as Address,
+  address: '0x0000000000000000000000000000000000000001' as Address,
   abi: [],
   args: [],
 };
