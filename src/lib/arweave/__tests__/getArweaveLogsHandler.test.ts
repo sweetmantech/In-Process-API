@@ -88,7 +88,9 @@ describe('getArweaveLogsHandler', () => {
 
     await getArweaveLogsHandler({ period: 'day', limit: 20, page: 1 });
 
-    const expected = new Date(FIXED_NOW - 1 * 24 * 60 * 60 * 1000).toISOString();
+    const expected = new Date(
+      FIXED_NOW - 1 * 24 * 60 * 60 * 1000
+    ).toISOString();
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: undefined,
       from: expected,
@@ -102,7 +104,9 @@ describe('getArweaveLogsHandler', () => {
 
     await getArweaveLogsHandler({ period: 'week', limit: 20, page: 1 });
 
-    const expected = new Date(FIXED_NOW - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expected = new Date(
+      FIXED_NOW - 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: undefined,
       from: expected,
@@ -116,7 +120,9 @@ describe('getArweaveLogsHandler', () => {
 
     await getArweaveLogsHandler({ period: 'month', limit: 20, page: 1 });
 
-    const expected = new Date(FIXED_NOW - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const expected = new Date(
+      FIXED_NOW - 30 * 24 * 60 * 60 * 1000
+    ).toISOString();
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: undefined,
       from: expected,

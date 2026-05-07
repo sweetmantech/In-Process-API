@@ -21,9 +21,13 @@ describe('validateGetArweaveLogsQuery', () => {
   });
 
   it('sets artist to caller address for non-admin callers', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: NON_ADMIN } as any);
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: NON_ADMIN,
+    } as any);
 
-    const result = await validateGetArweaveLogsQuery(makeRequest({ limit: '10', page: '2' }));
+    const result = await validateGetArweaveLogsQuery(
+      makeRequest({ limit: '10', page: '2' })
+    );
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).artist).toBe(NON_ADMIN.toLowerCase());
@@ -43,7 +47,9 @@ describe('validateGetArweaveLogsQuery', () => {
   });
 
   it('applies schema defaults when query is empty', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: CALLER } as any);
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
 
     const result = await validateGetArweaveLogsQuery(makeRequest());
 
@@ -54,16 +60,22 @@ describe('validateGetArweaveLogsQuery', () => {
   });
 
   it('returns 400 for invalid query params', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: CALLER } as any);
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
 
-    const result = await validateGetArweaveLogsQuery(makeRequest({ limit: '101' }));
+    const result = await validateGetArweaveLogsQuery(
+      makeRequest({ limit: '101' })
+    );
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);
   });
 
   it('parses valid period values', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: CALLER } as any);
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
 
     for (const period of ['day', 'week', 'month', 'all']) {
       const result = await validateGetArweaveLogsQuery(makeRequest({ period }));
@@ -72,27 +84,39 @@ describe('validateGetArweaveLogsQuery', () => {
   });
 
   it('returns 400 for invalid period value', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: CALLER } as any);
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
 
-    const result = await validateGetArweaveLogsQuery(makeRequest({ period: '1d' }));
+    const result = await validateGetArweaveLogsQuery(
+      makeRequest({ period: '1d' })
+    );
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);
   });
 
   it('parses valid artist value', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: CALLER } as any);
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
 
-    const result = await validateGetArweaveLogsQuery(makeRequest({ artist: 'alice' }));
+    const result = await validateGetArweaveLogsQuery(
+      makeRequest({ artist: 'alice' })
+    );
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).artist).toBe('alice');
   });
 
   it('returns 400 for empty artist', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: CALLER } as any);
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
 
-    const result = await validateGetArweaveLogsQuery(makeRequest({ artist: '' }));
+    const result = await validateGetArweaveLogsQuery(
+      makeRequest({ artist: '' })
+    );
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);

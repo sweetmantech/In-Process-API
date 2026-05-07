@@ -19,7 +19,8 @@ const validateGetArweaveLogsQuery = async (req: NextRequest) => {
     );
   }
 
-  if (ADMIN_ADDRESSES.includes(artistAddress.toLowerCase())) return { ...result.data };
+  if (ADMIN_ADDRESSES.includes(artistAddress.toLowerCase()))
+    return { ...result.data };
 
   return { ...result.data, artist: artistAddress.toLowerCase() };
 };
