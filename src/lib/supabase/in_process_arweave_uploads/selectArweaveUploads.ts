@@ -1,11 +1,12 @@
 import { supabase } from '../client';
 
 const selectArweaveUploads = (params: {
-  artistAddress?: string;
+  artist?: string;
+  from?: string;
   limit: number;
   page: number;
 }) => {
-  const { artistAddress, limit, page } = params;
+  const { artist, from, limit, page } = params;
 
   let query = supabase
     .from('in_process_arweave_uploads')
@@ -15,12 +16,18 @@ const selectArweaveUploads = (params: {
     )
     .order('created_at', { ascending: false });
 
-  if (artistAddress) {
-    query = query.eq('artist_address', artistAddress);
+  if (artist) {
+    query = query.or(
+      `artist_address.eq.${artist.toLowerCase()},in_process_artists.username.ilike.${artist}`
+    );
+  } 
+
+  if (from) {
+    query = query.gte('created_at', from);
   }
 
-  const from = (page - 1) * limit;
-  query = query.range(from, from + limit - 1);
+  const offset = (page - 1) * limit;
+  query = query.range(offset, offset + limit - 1);
 
   return query;
 };
