@@ -27,6 +27,16 @@ const validateUpload = async (req: NextRequest) => {
 
   const { blob, type } = await getBlob(url);
 
+  if (authResult.isOfficialArtist) {
+    return {
+      artistAddress,
+      blob,
+      type,
+      uploadType: 'free' as const,
+      usdcAmountMicros: BigInt(0),
+    };
+  }
+
   const uploadTypeResult = await getUploadType(artistAddress, blob.size);
   if ('error' in uploadTypeResult) {
     return NextResponse.json(
