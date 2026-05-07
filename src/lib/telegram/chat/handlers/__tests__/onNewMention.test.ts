@@ -1,44 +1,48 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Address } from 'viem';
-import { registerOnNewMention } from '../onNewMention';
 
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
-  default: vi.fn().mockResolvedValue({ data: [], count: 0, error: null }),
-}));
-vi.mock(
-  '@/lib/supabase/account_notifications/selectAccountNotification',
-  () => ({
-    default: vi.fn(),
-  })
-);
 vi.mock(
   '@/lib/supabase/account_notifications/upsertAccountNotification',
   () => ({
     default: vi.fn(),
   })
 );
-vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
+vi.mock('@/lib/telegram/parseTelegramChatId', () => ({ default: vi.fn() }));
+vi.mock('../../commands/commandsHandler', () => ({ default: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
 vi.mock('../../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('../../replyAfterSuccess', () => ({ default: vi.fn() }));
+vi.mock('@/lib/link/youtubeParser', () => ({ default: vi.fn() }));
+vi.mock('../../getSelectedCollectionAddress', () => ({ default: vi.fn() }));
+vi.mock('../../clearSelectedCollectionAddress', () => ({ default: vi.fn() }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
-import { logMessage } from '@/lib/messages/logMessage';
+import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
+import commandsHandler from '../../commands/commandsHandler';
 import processMediaThread from '../../processMediaThread';
 import createMomentFromYoutubeLink from '../../createMomentFromYoutubeLink';
 import replyAfterSuccess from '../../replyAfterSuccess';
+import youtubeParser from '@/lib/link/youtubeParser';
+import getSelectedCollectionAddress from '../../getSelectedCollectionAddress';
+import { registerOnNewMention } from '../onNewMention';
+import type { TelegramChatBot } from '../../bot';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
-const ARTIST = {
-  address: ARTIST_ADDRESS,
-  username: 'alice',
-};
-const CHANNEL_ID = 'chat-telegram';
+const CHANNEL_ID = 'telegram:1352384640';
+const RAW_CHAT_ID = '1352384640';
+
+const ARTIST = { address: ARTIST_ADDRESS, username: 'alice' };
+
+const makeMessage = (overrides = {}) => ({
+  author: { userName: 'testuser' },
+  text: '',
+  attachments: [],
+  ...overrides,
+});
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
@@ -46,347 +50,97 @@ const makeThread = () => ({
   channelId: CHANNEL_ID,
   _stateAdapter: {
     get: vi.fn().mockResolvedValue(null),
-    set: vi.fn().mockResolvedValue(undefined),
     delete: vi.fn().mockResolvedValue(undefined),
   },
 });
 
-const makeMessage = (
-  overrides: {
-    text?: string;
-    attachments?: unknown[];
-    userName?: string | null;
-  } = {}
-) => ({
-  text: overrides.text ?? '',
-  attachments: overrides.attachments ?? [],
-  author: {
-    userName:
-      overrides.userName !== undefined ? overrides.userName : 'testuser',
-  },
-});
+let capturedHandler: ((thread: any, message: any) => Promise<void>) | undefined;
 
-const setup = () => {
-  let capturedHandler:
-    | ((thread: unknown, message: unknown) => Promise<void>)
-    | null = null;
-  const bot = {
-    onNewMention: vi.fn((handler) => {
-      capturedHandler = handler;
-    }),
-  };
-  registerOnNewMention(bot as never);
-  const invoke = (thread: unknown, message: unknown) => {
-    if (!capturedHandler) throw new Error('handler not registered');
-    return capturedHandler(thread, message);
-  };
-  return { bot, invoke };
-};
-
-const MOMENT_RESULT = {
-  contractAddress: '0xContract' as Address,
-  tokenId: '1',
-};
+const mockBot = {
+  onNewMention: vi.fn((fn) => {
+    capturedHandler = fn;
+  }),
+} as unknown as TelegramChatBot;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  capturedHandler = undefined;
+  vi.mocked(parseTelegramChatId).mockReturnValue(RAW_CHAT_ID);
   vi.mocked(selectArtists).mockResolvedValue({
     data: [ARTIST],
     error: null,
   } as never);
-  vi.mocked(selectAccountNotification).mockResolvedValue({
-    data: { notify_enabled: false, nudge_period: 1 },
-    error: null,
-  } as never);
   vi.mocked(upsertAccountNotification).mockResolvedValue({
+    data: null,
     error: null,
   } as never);
-  vi.mocked(logMessage).mockResolvedValue('msg-id' as never);
-  vi.mocked(createMomentFromYoutubeLink).mockResolvedValue(
-    MOMENT_RESULT as never
-  );
+  vi.mocked(commandsHandler).mockResolvedValue(false);
+  vi.mocked(processMediaThread).mockResolvedValue(undefined);
+  vi.mocked(createMomentFromYoutubeLink).mockResolvedValue({
+    contractAddress: '0xContract' as Address,
+    tokenId: '1',
+  });
   vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
+  vi.mocked(youtubeParser).mockReturnValue(null);
+  vi.mocked(getSelectedCollectionAddress).mockResolvedValue(null);
+
+  registerOnNewMention(mockBot);
 });
 
-describe('registerOnNewMention', () => {
-  it('registers a handler with bot.onNewMention', () => {
-    const { bot } = setup();
-    expect(bot.onNewMention).toHaveBeenCalledOnce();
+describe('onNewMention', () => {
+  it('returns early when telegramUsername is missing', async () => {
+    const message = makeMessage({ author: { userName: undefined } });
+    await capturedHandler!(makeThread(), message);
+
+    expect(selectArtists).not.toHaveBeenCalled();
   });
 
-  describe('when message has no author username', () => {
-    it('returns early without posting or querying', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
+  it('saves telegram_chat_id for known artist', async () => {
+    await capturedHandler!(makeThread(), makeMessage({ text: 'hello' }));
 
-      await invoke(thread, makeMessage({ userName: null }));
-
-      expect(thread.post).not.toHaveBeenCalled();
-      expect(selectArtists).not.toHaveBeenCalled();
-    });
+    expect(upsertAccountNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        artist_address: ARTIST_ADDRESS,
+        telegram_chat_id: RAW_CHAT_ID,
+      })
+    );
   });
 
-  describe('when the user is not a linked artist', () => {
-    beforeEach(() => {
-      vi.mocked(selectArtists).mockResolvedValue({
-        data: [],
-        error: null,
-      } as never);
-    });
+  it('does not save telegram_chat_id for unknown artist', async () => {
+    vi.mocked(selectArtists).mockResolvedValue({
+      data: [],
+      error: null,
+    } as never);
 
-    it('posts the welcome / onboarding message', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
+    await capturedHandler!(makeThread(), makeMessage());
 
-      await invoke(thread, makeMessage({ text: 'hello' }));
-
-      expect(thread.post).toHaveBeenCalledWith(
-        expect.stringContaining('inprocess.world/manage')
-      );
-    });
-
-    it('logs the welcome reply as assistant', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-
-      await invoke(thread, makeMessage({ text: 'hello' }));
-
-      expect(logMessage).toHaveBeenCalledTimes(1);
-      expect(logMessage).toHaveBeenCalledWith(
-        expect.any(Array),
-        'assistant',
-        CHANNEL_ID,
-        undefined,
-        'telegram'
-      );
-    });
-
-    it('does not call processMediaThread', async () => {
-      const { invoke } = setup();
-      await invoke(makeThread(), makeMessage({ text: 'hello' }));
-      expect(processMediaThread).not.toHaveBeenCalled();
-    });
+    expect(upsertAccountNotification).not.toHaveBeenCalled();
   });
 
-  describe('when a linked artist sends /start', () => {
-    it('posts a personalized welcome with their username', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
+  it('delegates to commandsHandler and returns when handled', async () => {
+    vi.mocked(commandsHandler).mockResolvedValue(true);
 
-      await invoke(thread, makeMessage({ text: '/start' }));
+    await capturedHandler!(makeThread(), makeMessage({ text: '/start' }));
 
-      expect(thread.post).toHaveBeenCalledWith(
-        expect.stringContaining('alice')
-      );
-    });
-
-    it('logs the start message as assistant', async () => {
-      const { invoke } = setup();
-
-      await invoke(makeThread(), makeMessage({ text: '/start' }));
-
-      expect(logMessage).toHaveBeenCalledWith(
-        expect.any(Array),
-        'assistant',
-        CHANNEL_ID,
-        ARTIST_ADDRESS,
-        'telegram'
-      );
-    });
-
-    it('does not call processMediaThread', async () => {
-      const { invoke } = setup();
-
-      await invoke(makeThread(), makeMessage({ text: '/start' }));
-
-      expect(processMediaThread).not.toHaveBeenCalled();
-    });
+    expect(processMediaThread).not.toHaveBeenCalled();
   });
 
-  describe('when a linked artist sends /remind', () => {
-    it('sets nudge_period to null (disables nudge) and posts confirmation', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
+  it('processes image attachment when present', async () => {
+    const attachment = { type: 'image', mimeType: 'image/jpeg' };
+    const message = makeMessage({ attachments: [attachment] });
 
-      await invoke(thread, makeMessage({ text: '/remind' }));
+    await capturedHandler!(makeThread(), message);
 
-      expect(upsertAccountNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          artist_address: ARTIST_ADDRESS,
-          nudge_period: null,
-        })
-      );
-      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('🔕'));
-    });
-
-    it('sets nudge_period to 3 (enables nudge) when currently disabled', async () => {
-      vi.mocked(selectAccountNotification).mockResolvedValue({
-        data: { notify_enabled: false, nudge_period: null },
-        error: null,
-      } as never);
-      const { invoke } = setup();
-      const thread = makeThread();
-
-      await invoke(thread, makeMessage({ text: '/remind' }));
-
-      expect(upsertAccountNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          artist_address: ARTIST_ADDRESS,
-          nudge_period: 3,
-        })
-      );
-      expect(thread.post).toHaveBeenCalledWith(
-        expect.objectContaining({ title: expect.stringContaining('🔔') })
-      );
-    });
-
-    it('logs the remind response as assistant', async () => {
-      const { invoke } = setup();
-
-      await invoke(makeThread(), makeMessage({ text: '/remind' }));
-
-      expect(logMessage).toHaveBeenCalledWith(
-        expect.any(Array),
-        'assistant',
-        CHANNEL_ID,
-        ARTIST_ADDRESS,
-        'telegram'
-      );
-    });
-
-    it('does not call processMediaThread', async () => {
-      const { invoke } = setup();
-
-      await invoke(makeThread(), makeMessage({ text: '/remind' }));
-
-      expect(processMediaThread).not.toHaveBeenCalled();
-    });
+    expect(processMediaThread).toHaveBeenCalled();
   });
 
-  describe('when a linked artist sends an image', () => {
-    it('delegates to processMediaThread', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-      const attachment = { type: 'image', size: 500 };
-      const message = makeMessage({ attachments: [attachment] });
+  it('posts fallback message for unrecognised text without attachment', async () => {
+    const thread = makeThread();
 
-      await invoke(thread, message);
+    await capturedHandler!(thread, makeMessage({ text: 'random text' }));
 
-      expect(processMediaThread).toHaveBeenCalledWith(
-        thread,
-        message,
-        attachment,
-        '',
-        ARTIST_ADDRESS
-      );
-    });
-  });
-
-  describe('when a linked artist sends a video', () => {
-    it('delegates to processMediaThread', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-      const attachment = { type: 'video', size: 2000 };
-      const message = makeMessage({ attachments: [attachment] });
-
-      await invoke(thread, message);
-
-      expect(processMediaThread).toHaveBeenCalledWith(
-        thread,
-        message,
-        attachment,
-        '',
-        ARTIST_ADDRESS
-      );
-    });
-  });
-
-  describe('when a linked artist sends text without media', () => {
-    it('posts a prompt to send a photo or video', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-
-      await invoke(thread, makeMessage({ text: 'just text, no media' }));
-
-      expect(thread.post).toHaveBeenCalledWith(
-        'Please send a photo or video with a caption.'
-      );
-      expect(processMediaThread).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('when a linked artist sends a YouTube link', () => {
-    const YOUTUBE_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-
-    it('calls createMomentFromYoutubeLink with the URL and artist address', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-
-      await invoke(thread, makeMessage({ text: YOUTUBE_URL }));
-
-      expect(createMomentFromYoutubeLink).toHaveBeenCalledWith(
-        YOUTUBE_URL,
-        ARTIST_ADDRESS,
-        CHANNEL_ID,
-        undefined
-      );
-    });
-
-    it('calls replyAfterSuccess with the created moment details', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-
-      await invoke(thread, makeMessage({ text: YOUTUBE_URL }));
-
-      expect(replyAfterSuccess).toHaveBeenCalledWith(
-        thread,
-        MOMENT_RESULT.contractAddress,
-        MOMENT_RESULT.tokenId,
-        ARTIST_ADDRESS
-      );
-    });
-
-    it('does not post the fallback prompt', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-
-      await invoke(thread, makeMessage({ text: YOUTUBE_URL }));
-
-      expect(thread.post).not.toHaveBeenCalledWith(
-        'Please send a photo or video with a caption.'
-      );
-    });
-
-    it('does not call processMediaThread', async () => {
-      const { invoke } = setup();
-
-      await invoke(makeThread(), makeMessage({ text: YOUTUBE_URL }));
-
-      expect(processMediaThread).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('when an error is thrown', () => {
-    it('posts an error message', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-      vi.mocked(selectArtists).mockRejectedValue(new Error('db failure'));
-
-      await invoke(thread, makeMessage());
-
-      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('❌'));
-    });
-
-    it('includes the error message in the post', async () => {
-      const { invoke } = setup();
-      const thread = makeThread();
-      vi.mocked(selectArtists).mockRejectedValue(new Error('db failure'));
-
-      await invoke(thread, makeMessage());
-
-      expect(thread.post).toHaveBeenCalledWith(
-        expect.stringContaining('db failure')
-      );
-    });
+    expect(thread.post).toHaveBeenCalledWith(
+      'Please send a photo or video with a caption.'
+    );
   });
 });

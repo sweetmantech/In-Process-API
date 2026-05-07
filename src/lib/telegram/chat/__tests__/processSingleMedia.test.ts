@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getAddress, type Address } from 'viem';
 import processSingleMedia from '../processSingleMedia';
 
-vi.mock('../uploadAndLogAttachment', () => ({ default: vi.fn() }));
+vi.mock('../processAttachmentUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/moment/createMoment', () => ({ createMoment: vi.fn() }));
 vi.mock('../replyAfterSuccess', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
@@ -12,7 +12,7 @@ vi.mock('@/lib/consts', () => ({
   IS_TESTNET: false,
 }));
 
-import uploadAndLogAttachment from '../uploadAndLogAttachment';
+import processAttachmentUpload from '../processAttachmentUpload';
 import { createMoment } from '@/lib/moment/createMoment';
 import replyAfterSuccess from '../replyAfterSuccess';
 
@@ -27,11 +27,10 @@ const MOMENT_RESULT = {
   tokenId: '1',
 };
 
-const CHANNEL_ID = 'chat-abc';
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
   startTyping: vi.fn().mockResolvedValue(undefined),
-  channelId: CHANNEL_ID,
+  channelId: 'telegram:chat-abc',
   _stateAdapter: {
     get: vi.fn().mockResolvedValue(null),
     set: vi.fn().mockResolvedValue(undefined),
@@ -42,7 +41,7 @@ const makeAttachment = () => ({ type: 'image', size: 500 });
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(uploadAndLogAttachment).mockResolvedValue(UPLOAD_RESULT as never);
+  vi.mocked(processAttachmentUpload).mockResolvedValue(UPLOAD_RESULT as never);
   vi.mocked(createMoment).mockResolvedValue(MOMENT_RESULT as never);
   vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
 });
@@ -76,12 +75,11 @@ describe('processSingleMedia', () => {
       'thumb-id'
     );
 
-    expect(uploadAndLogAttachment).toHaveBeenCalledWith(
+    expect(processAttachmentUpload).toHaveBeenCalledWith(
       attachment,
       'file-id',
       'My Title',
       ARTIST_ADDRESS,
-      CHANNEL_ID,
       'thumb-id'
     );
   });

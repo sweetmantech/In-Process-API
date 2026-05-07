@@ -1,86 +1,90 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { InboundMessagePayload } from 'telnyx/resources/shared';
+import { processMmsMedia } from '../processMmsMedia';
 
-vi.mock('@/lib/moment/getMomentSuccessMessage', () => ({
-  default: vi.fn(
-    (contractAddress: string, tokenId: string) =>
-      `Moment created, ready for editing at https://inprocess.world/sms/base:${contractAddress}/${tokenId}`
-  ),
+vi.mock('@/lib/phones/createMomentFromMedia', () => ({ default: vi.fn() }));
+vi.mock('@/lib/messages/sendVideoNotSupported', () => ({
+  sendVideoNotSupported: vi.fn(),
 }));
-
-vi.mock('@/lib/phones/createMomentFromMedia', () => ({
-  default: vi.fn(),
-}));
-
-vi.mock('@/lib/messages/processVideoMessage', () => ({
-  processVideoMessage: vi.fn(),
-}));
-
-vi.mock('@/lib/phones/sendSms', () => ({
-  sendSms: vi.fn(),
-}));
+vi.mock('@/lib/phones/sendSms', () => ({ sendSms: vi.fn() }));
+vi.mock('@/lib/moment/getMomentSuccessMessage', () => ({ default: vi.fn() }));
 
 import createMomentFromMedia from '@/lib/phones/createMomentFromMedia';
-import { processVideoMessage } from '@/lib/messages/processVideoMessage';
+import { sendVideoNotSupported } from '@/lib/messages/sendVideoNotSupported';
 import { sendSms } from '@/lib/phones/sendSms';
-import { processMmsMedia } from '@/lib/phones/processMmsMedia';
+import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 
-const PHONE = {
-  phone_number: '+15551234567',
-  artist: { address: '0xArtist' },
+const PHONE_NUMBER = '+15550001234';
+const ARTIST_ADDRESS = '0xArtist';
+const phone = {
+  phone_number: PHONE_NUMBER,
+  artist: { address: ARTIST_ADDRESS },
 };
-const CONTRACT = '0xContract';
-const TOKEN_ID = '42';
+
+const makeMedia = (
+  content_type: string
+): NonNullable<InboundMessagePayload['media']>[number] => ({
+  content_type,
+  url: 'https://example.com/file',
+  hash: null,
+  size: null,
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(createMomentFromMedia).mockResolvedValue({
-    contractAddress: CONTRACT,
-    tokenId: TOKEN_ID,
-  } as never);
+    contractAddress: '0xContract',
+    tokenId: '1',
+  });
+  vi.mocked(getMomentSuccessMessage).mockReturnValue('Success! Check it out.');
   vi.mocked(sendSms).mockResolvedValue(undefined as never);
-  vi.mocked(processVideoMessage).mockResolvedValue(undefined);
+  vi.mocked(sendVideoNotSupported).mockResolvedValue(undefined);
 });
 
 describe('processMmsMedia', () => {
-  it('sends an SMS with the sms editing URL after creating the moment', async () => {
-    const media = {
-      content_type: 'image/jpeg',
-      url: 'https://example.com/img.jpg',
-    } as never;
+  it('sends video-not-supported message for video content and returns early', async () => {
+    const result = await processMmsMedia(
+      phone,
+      makeMedia('video/mp4'),
+      undefined
+    );
 
-    await processMmsMedia(PHONE, media, undefined);
+    expect(sendVideoNotSupported).toHaveBeenCalledWith(
+      PHONE_NUMBER,
+      ARTIST_ADDRESS
+    );
+    expect(createMomentFromMedia).not.toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
 
+  it('creates a moment from image media', async () => {
+    const media = makeMedia('image/jpeg');
+    await processMmsMedia(phone, media, undefined);
+
+    expect(createMomentFromMedia).toHaveBeenCalledWith(
+      media,
+      undefined,
+      ARTIST_ADDRESS
+    );
+  });
+
+  it('sends success SMS after creating a moment', async () => {
+    await processMmsMedia(phone, makeMedia('image/jpeg'), undefined);
+
+    expect(getMomentSuccessMessage).toHaveBeenCalledWith('0xContract', '1');
     expect(sendSms).toHaveBeenCalledWith(
-      PHONE.phone_number,
-      `Moment created, ready for editing at https://inprocess.world/sms/base:${CONTRACT}/${TOKEN_ID}`
+      PHONE_NUMBER,
+      'Success! Check it out.'
     );
   });
 
   it('returns contractAddress and tokenId on success', async () => {
-    const media = {
-      content_type: 'image/jpeg',
-      url: 'https://example.com/img.jpg',
-    } as never;
-
-    const result = await processMmsMedia(PHONE, media, undefined);
-
-    expect(result).toEqual({ contractAddress: CONTRACT, tokenId: TOKEN_ID });
-  });
-
-  it('delegates to processVideoMessage and returns void for video content', async () => {
-    const media = {
-      content_type: 'video/mp4',
-      url: 'https://example.com/vid.mp4',
-    } as never;
-
-    const result = await processMmsMedia(PHONE, media, undefined);
-
-    expect(processVideoMessage).toHaveBeenCalledWith(
-      PHONE.phone_number,
-      PHONE.artist.address
+    const result = await processMmsMedia(
+      phone,
+      makeMedia('image/jpeg'),
+      undefined
     );
-    expect(createMomentFromMedia).not.toHaveBeenCalled();
-    expect(sendSms).not.toHaveBeenCalled();
-    expect(result).toBeUndefined();
+
+    expect(result).toEqual({ contractAddress: '0xContract', tokenId: '1' });
   });
 });

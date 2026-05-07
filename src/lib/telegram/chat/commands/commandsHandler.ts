@@ -23,12 +23,7 @@ const commandsHandler = async (
 
   switch (text) {
     case '/start':
-      await handleStart(
-        thread,
-        artistAddress,
-        artist.username,
-        telegramUsername
-      );
+      await handleStart(thread, artist.username, telegramUsername);
       return true;
     case '/remind':
       await handleRemind(thread, artistAddress);

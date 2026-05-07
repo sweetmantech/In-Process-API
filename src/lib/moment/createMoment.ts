@@ -11,7 +11,7 @@ import parseMomentTransaction from './parseMomentTransaction';
 import resolvePayoutRecipient from './resolvePayoutRecipient';
 import triggerMuxMigration from '../trigger.dev/triggerMuxMigration';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
-import indexMessageMoment from './indexMessageMoment';
+import indexMoment from './indexMoment';
 
 export type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
 
@@ -28,8 +28,7 @@ export interface CreateContractResult {
  * Handles splits configuration by creating split contract if needed.
  */
 export async function createMoment(
-  input: CreateMomentContractInput,
-  ctx?: { chatId?: string }
+  input: CreateMomentContractInput
 ): Promise<CreateContractResult> {
   const smartAccount = await getOrCreateSmartWallet({
     address: input.account as Address,
@@ -83,12 +82,11 @@ export async function createMoment(
     artistAddress: input.account as `0x${string}`,
   });
 
-  await indexMessageMoment({
+  await indexMoment({
     contractAddress,
     tokenId,
     artistAddress: input.account,
     channel: input.channel,
-    chatId: ctx?.chatId,
     contract: input.contract,
     token: input.token,
   });

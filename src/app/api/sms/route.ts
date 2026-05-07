@@ -3,24 +3,20 @@ import client from '@/lib/telnyx/client';
 import type { InboundMessageWebhookEvent } from 'telnyx/resources/webhooks';
 import { processMmsMedia } from '@/lib/phones/processMmsMedia';
 import selectPhone from '@/lib/supabase/in_process_artist_phones/selectPhone';
-import { logMessage } from '@/lib/messages/logMessage';
-import { processMessageFromNewbie } from '@/lib/messages/processMessageFromNewbie';
-import { processVerificationRequestMessage } from '@/lib/messages/processVerificationRequestMessage';
-import processVerificationMessage from '@/lib/messages/processVerificationMessage';
+import { sendNewbieWelcome } from '@/lib/messages/sendNewbieWelcome';
+import { sendVerificationRequest } from '@/lib/messages/sendVerificationRequest';
+import verifyAndNotifyPhone from '@/lib/messages/verifyAndNotifyPhone';
 import truncateAddress from '@/lib/truncateAddress';
 
 export async function POST(req: NextRequest) {
   try {
-    // Get the raw body as string for signature verification
     const body = await req.text();
 
-    // Convert Next.js headers to plain object for Telnyx SDK
     const headers: Record<string, string> = {};
     req.headers.forEach((value, key) => {
       headers[key] = value;
     });
 
-    // Verify webhook signature using Telnyx SDK
     let event: InboundMessageWebhookEvent;
     try {
       event = client.webhooks.unwrap<InboundMessageWebhookEvent>(body, {
@@ -34,7 +30,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    // Check if this is a message.received event
+
     if (event.data?.event_type === 'message.received') {
       const messageText = event.data.payload?.text?.toLowerCase().trim();
       const fromPhoneNumber = event.data.payload?.from?.phone_number;
@@ -43,34 +39,22 @@ export async function POST(req: NextRequest) {
       if (fromPhoneNumber) {
         const { data: phone } = await selectPhone(fromPhoneNumber);
         if (phone) {
-          await logMessage(
-            [
-              {
-                type: 'text',
-                text: messageText || '',
-              },
-            ],
-            'user',
-            undefined,
-            phone.artist_address
-          );
           if (phone.verified) {
             if (media && media?.length > 0)
               await processMmsMedia(phone, media[0], event.data.payload);
           } else {
             if (messageText === 'yes') {
-              await processVerificationMessage(
+              await verifyAndNotifyPhone(
                 phone.artist.username || truncateAddress(phone.artist_address),
                 fromPhoneNumber
               );
             } else
-              await processVerificationRequestMessage(
-                messageText || '',
-                fromPhoneNumber
+              await sendVerificationRequest(
+                fromPhoneNumber,
+                phone.artist_address
               );
           }
-        } else
-          await processMessageFromNewbie(messageText || '', fromPhoneNumber);
+        } else await sendNewbieWelcome(messageText || '', fromPhoneNumber);
       }
     }
 

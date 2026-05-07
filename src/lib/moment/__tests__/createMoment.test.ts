@@ -1,44 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
-  getOrCreateSmartWallet: vi.fn(),
-}));
-
-vi.mock('@/lib/splits/resolveSplitAddresses', () => ({
-  resolveSplitAddresses: vi.fn(),
-}));
-
-vi.mock('@/lib/splits/processSplits', () => ({
-  processSplits: vi.fn(),
-}));
-
-vi.mock('@/lib/splits/getSplitAdminAddresses', () => ({
-  getSplitAdminAddresses: vi.fn(),
-}));
-
-vi.mock('@/lib/zora/create1155', () => ({
-  create1155: vi.fn(),
-}));
-
-vi.mock('@/lib/coinbase/sendUserOperation', () => ({
-  sendUserOperation: vi.fn(),
-}));
-
-vi.mock('@/lib/moment/parseMomentTransaction', () => ({
-  default: vi.fn(),
-}));
-
-vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({
-  default: vi.fn(),
-}));
-
-vi.mock('@/lib/moment/indexMessageMoment', () => ({
-  default: vi.fn(),
-}));
-
-vi.mock('@/lib/protocolSdk/create/factory-addresses', () => ({
-  getFactoryAddress: vi.fn(),
-}));
+import type { Address } from 'viem';
 
 vi.mock('viem', async (importOriginal) => {
   const actual = await importOriginal<typeof import('viem')>();
@@ -47,157 +8,134 @@ vi.mock('viem', async (importOriginal) => {
     encodeFunctionData: vi.fn().mockReturnValue('0xencoded'),
   };
 });
+vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
+  getOrCreateSmartWallet: vi.fn(),
+}));
+vi.mock('@/lib/splits/resolveSplitAddresses', () => ({
+  resolveSplitAddresses: vi.fn(),
+}));
+vi.mock('../resolvePayoutRecipient', () => ({ default: vi.fn() }));
+vi.mock('../buildAdditionalSetupActions', () => ({ default: vi.fn() }));
+vi.mock('@/lib/zora/create1155', () => ({ create1155: vi.fn() }));
+vi.mock('@/lib/coinbase/sendUserOperation', () => ({
+  sendUserOperation: vi.fn(),
+}));
+vi.mock('../parseMomentTransaction', () => ({ default: vi.fn() }));
+vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({ default: vi.fn() }));
+vi.mock('../indexMoment', () => ({ default: vi.fn() }));
+vi.mock('@/lib/protocolSdk/create/factory-addresses', () => ({
+  getFactoryAddress: vi
+    .fn()
+    .mockReturnValue('0x0000000000000000000000000000000000000002'),
+}));
+vi.mock('@/lib/consts', () => ({
+  CHAIN_ID: 8453,
+  IS_TESTNET: false,
+}));
 
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
+import resolvePayoutRecipient from '../resolvePayoutRecipient';
+import buildAdditionalSetupActions from '../buildAdditionalSetupActions';
 import { create1155 } from '@/lib/zora/create1155';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import parseMomentTransaction from '@/lib/moment/parseMomentTransaction';
+import parseMomentTransaction from '../parseMomentTransaction';
 import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
-import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
-import indexMessageMoment from '@/lib/moment/indexMessageMoment';
-import {
-  createMoment,
-  type CreateMomentContractInput,
-} from '@/lib/moment/createMoment';
+import indexMoment from '../indexMoment';
+import { createMoment } from '../createMoment';
 
-const EXISTING_CONTRACT = '0x1111111111111111111111111111111111111111' as const;
-const FACTORY = '0x2222222222222222222222222222222222222222' as const;
-const ARTIST = '0x3333333333333333333333333333333333333333' as const;
-const RESULT_CONTRACT = '0x4444444444444444444444444444444444444444' as const;
-const TX_HASH =
-  '0xaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd' as const;
+const ARTIST = '0xArtist' as Address;
+const CONTRACT_ADDRESS = '0xContract' as Address;
+const TOKEN_ID = '1';
+const SMART_ACCOUNT = { address: '0xSmartWallet' as Address };
+const TX_HASH = '0xhash';
 
-const baseInput: CreateMomentContractInput = {
-  contract: { address: EXISTING_CONTRACT },
+const makeInput = () => ({
+  contract: { name: 'My Album', uri: 'ar://collection-meta' },
   token: {
-    tokenMetadataURI: 'ar://metadata-hash',
-    createReferral: '0x0000000000000000000000000000000000000000',
+    tokenMetadataURI: 'ar://token-meta',
+    createReferral: '0xReferral' as Address,
     salesConfig: {
-      type: 'fixedPrice',
-      pricePerToken: 0n,
-      saleStart: 0n,
-      saleEnd: 9999999999n,
+      type: 'ERC20Mint' as never,
+      pricePerToken: BigInt(0),
+      saleStart: BigInt(0),
+      saleEnd: BigInt(0),
+      currency: '0xUsdc' as Address,
     },
-    mintToCreatorCount: 0,
+    mintToCreatorCount: 1,
+    payoutRecipient: ARTIST,
   },
   account: ARTIST,
+  channel: 'web' as const,
+  splits: [],
+});
+
+const PARAMETERS = {
+  address: '0x0000000000000000000000000000000000000001' as Address,
+  abi: [],
+  args: [],
 };
 
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(getOrCreateSmartWallet).mockResolvedValue(SMART_ACCOUNT as never);
+  vi.mocked(resolveSplitAddresses).mockResolvedValue([]);
+  vi.mocked(resolvePayoutRecipient).mockResolvedValue(ARTIST);
+  vi.mocked(buildAdditionalSetupActions).mockResolvedValue(undefined);
+  vi.mocked(create1155).mockResolvedValue({ parameters: PARAMETERS } as never);
+  vi.mocked(sendUserOperation).mockResolvedValue({
+    logs: [],
+    transactionHash: TX_HASH,
+  } as never);
+  vi.mocked(parseMomentTransaction).mockReturnValue({
+    contractAddress: CONTRACT_ADDRESS,
+    tokenId: TOKEN_ID,
+  });
+  vi.mocked(triggerMuxMigration).mockResolvedValue(undefined);
+  vi.mocked(indexMoment).mockResolvedValue(undefined);
+});
+
 describe('createMoment', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
-      address: ARTIST,
-    } as any);
-
-    vi.mocked(resolveSplitAddresses).mockResolvedValue([]);
-
-    vi.mocked(getFactoryAddress).mockReturnValue(FACTORY);
-
-    vi.mocked(create1155).mockResolvedValue({
-      parameters: {
-        address: EXISTING_CONTRACT,
-        abi: [],
-        functionName: 'multicall',
-        args: [[]],
-      },
-    } as any);
-
-    vi.mocked(sendUserOperation).mockResolvedValue({
-      logs: [],
-      transactionHash: TX_HASH,
-    } as any);
-
-    vi.mocked(parseMomentTransaction).mockReturnValue({
-      contractAddress: RESULT_CONTRACT,
-      tokenId: '7',
-    } as any);
-
-    vi.mocked(triggerMuxMigration).mockResolvedValue(undefined);
-    vi.mocked(indexMessageMoment).mockResolvedValue(undefined);
-  });
-
   it('returns contractAddress, tokenId, hash, and chainId', async () => {
-    const result = await createMoment(baseInput);
+    const result = await createMoment(makeInput());
 
-    expect(result.contractAddress).toBe(RESULT_CONTRACT);
-    expect(result.tokenId).toBe('7');
-    expect(result.hash).toBe(TX_HASH);
-    expect(result.chainId).toBe(8453);
-  });
-
-  it('calls triggerMuxMigration with the correct args', async () => {
-    await createMoment(baseInput);
-
-    expect(triggerMuxMigration).toHaveBeenCalledWith({
-      uri: 'ar://metadata-hash',
-      collectionAddress: RESULT_CONTRACT,
-      tokenId: '7',
-      artistAddress: ARTIST,
+    expect(result).toEqual({
+      contractAddress: CONTRACT_ADDRESS,
+      tokenId: TOKEN_ID,
+      hash: TX_HASH,
+      chainId: 8453,
     });
   });
 
-  it('passes transaction logs to parseMomentTransaction', async () => {
-    const logs = [{ address: EXISTING_CONTRACT }] as any;
-    vi.mocked(sendUserOperation).mockResolvedValue({
-      logs,
-      transactionHash: TX_HASH,
-    } as any);
+  it('calls indexMoment with contractAddress, tokenId, artistAddress, and channel', async () => {
+    await createMoment(makeInput());
 
-    await createMoment(baseInput);
-
-    expect(parseMomentTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ logs })
+    expect(indexMoment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contractAddress: CONTRACT_ADDRESS,
+        tokenId: TOKEN_ID,
+        artistAddress: ARTIST,
+        channel: 'web',
+      })
     );
   });
 
-  it('propagates errors from sendUserOperation', async () => {
-    vi.mocked(sendUserOperation).mockRejectedValue(
-      new Error('Paymaster failed')
-    );
+  it('triggers mux migration with token URI and moment location', async () => {
+    await createMoment(makeInput());
 
-    await expect(createMoment(baseInput)).rejects.toThrow('Paymaster failed');
-  });
-
-  it('propagates errors from triggerMuxMigration', async () => {
-    vi.mocked(triggerMuxMigration).mockRejectedValue(
-      new Error('Trigger.dev unavailable')
-    );
-
-    await expect(createMoment(baseInput)).rejects.toThrow(
-      'Trigger.dev unavailable'
+    expect(triggerMuxMigration).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uri: 'ar://token-meta',
+        collectionAddress: CONTRACT_ADDRESS,
+        tokenId: TOKEN_ID,
+        artistAddress: ARTIST,
+      })
     );
   });
 
-  it('calls indexMessageMoment with indexed fields plus contract/token slices', async () => {
-    const input = { ...baseInput, channel: 'web' };
-    await createMoment(input);
+  it('gets or creates a smart wallet for the artist', async () => {
+    await createMoment(makeInput());
 
-    expect(indexMessageMoment).toHaveBeenCalledWith({
-      contractAddress: RESULT_CONTRACT,
-      tokenId: '7',
-      artistAddress: ARTIST,
-      channel: 'web',
-      chatId: undefined,
-      contract: baseInput.contract,
-      token: baseInput.token,
-    });
-  });
-
-  it('forwards ctx.chatId to indexMessageMoment', async () => {
-    const input = { ...baseInput, channel: 'telegram' };
-    await createMoment(input, { chatId: 'chat-42' });
-
-    expect(indexMessageMoment).toHaveBeenCalledWith({
-      contractAddress: RESULT_CONTRACT,
-      tokenId: '7',
-      artistAddress: ARTIST,
-      channel: 'telegram',
-      chatId: 'chat-42',
-      contract: baseInput.contract,
-      token: baseInput.token,
-    });
+    expect(getOrCreateSmartWallet).toHaveBeenCalledWith({ address: ARTIST });
   });
 });

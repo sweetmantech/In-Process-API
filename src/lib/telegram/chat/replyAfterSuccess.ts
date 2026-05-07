@@ -1,6 +1,7 @@
 import type { Thread } from 'chat';
 import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 import fetchArtistCollageBuffer from '@/lib/telegram/fetchArtistCollageBuffer';
+import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 
 const COLLAGE_DELAY_MS = 30_000;
 
@@ -21,7 +22,7 @@ const replyAfterSuccess = async (
     : null;
   if (collage) {
     const formData = new FormData();
-    formData.append('chat_id', thread.channelId);
+    formData.append('chat_id', parseTelegramChatId(thread.channelId));
     formData.append(
       'photo',
       new Blob([collage.buffer as ArrayBuffer], { type: 'image/png' }),

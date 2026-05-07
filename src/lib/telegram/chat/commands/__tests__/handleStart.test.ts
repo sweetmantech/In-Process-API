@@ -1,57 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Address } from 'viem';
-
-vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
-
-import { logMessage } from '@/lib/messages/logMessage';
 import handleStart from '../handleStart';
-
-const ARTIST_ADDRESS = '0xArtist' as Address;
-const ROOM_ID = 'telegram:42';
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
-  channelId: ROOM_ID,
+  channelId: 'telegram:1352384640',
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(logMessage).mockResolvedValue('msg-id' as never);
 });
 
 describe('handleStart', () => {
-  it('uses artistUsername in the greeting when it is set', async () => {
+  it('posts a welcome message using artistUsername when available', async () => {
     const thread = makeThread();
-    await handleStart(thread as never, ARTIST_ADDRESS, 'alice', 'tgalice');
-    expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('alice'));
+
+    await handleStart(thread as never, 'alice', 'tguser');
+
+    expect(thread.post).toHaveBeenCalledOnce();
+    const message: string = thread.post.mock.calls[0][0];
+    expect(message).toContain('alice');
   });
 
   it('falls back to telegramUsername when artistUsername is null', async () => {
     const thread = makeThread();
-    await handleStart(thread as never, ARTIST_ADDRESS, null, 'tgalice');
-    expect(thread.post).toHaveBeenCalledWith(
-      expect.stringContaining('tgalice')
-    );
-  });
 
-  it('logs the reply as an assistant telegram message', async () => {
-    const thread = makeThread();
-    await handleStart(thread as never, ARTIST_ADDRESS, 'alice', 'tgalice');
+    await handleStart(thread as never, null, 'tguser');
 
-    expect(logMessage).toHaveBeenCalledWith(
-      expect.any(Array),
-      'assistant',
-      ROOM_ID,
-      ARTIST_ADDRESS,
-      'telegram'
-    );
-  });
-
-  it('mentions In Process in the message', async () => {
-    const thread = makeThread();
-    await handleStart(thread as never, ARTIST_ADDRESS, 'alice', 'tgalice');
-    expect(thread.post).toHaveBeenCalledWith(
-      expect.stringContaining('In Process')
-    );
+    const message: string = thread.post.mock.calls[0][0];
+    expect(message).toContain('tguser');
   });
 });

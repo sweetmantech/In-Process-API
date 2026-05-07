@@ -3,7 +3,6 @@ import { Card, Actions, Button } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
-import { logMessage } from '@/lib/messages/logMessage';
 import type { Address } from 'viem';
 import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';
 
@@ -25,14 +24,6 @@ const handleRemind = async (
   const text = disabled
     ? "🔔 Nudges are now ON. I'll remind you if you haven't posted in 3 or more days.\nWould you like to change how many days I wait before nudging?"
     : '🔕 Nudges are now OFF. You can turn them back on anytime with /remind.';
-
-  await logMessage(
-    [{ type: 'text', text }],
-    'assistant',
-    thread.channelId,
-    artistAddress,
-    'telegram'
-  );
 
   if (disabled) {
     await thread.post(

@@ -13,111 +13,90 @@ vi.mock(
     default: vi.fn(),
   })
 );
-vi.mock('@/lib/messages/logMessage', () => ({ logMessage: vi.fn() }));
 
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
-import { logMessage } from '@/lib/messages/logMessage';
 import handleNotify from '../handleNotify';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
-const CHANNEL_ID = 'telegram:7';
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
-  channelId: CHANNEL_ID,
 });
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(selectAccountNotification).mockResolvedValue({
-    data: { notify_enabled: false, nudge_period: null },
-    error: null,
-  } as never);
   vi.mocked(upsertAccountNotification).mockResolvedValue({
+    data: null,
     error: null,
   } as never);
-  vi.mocked(logMessage).mockResolvedValue('msg-id' as never);
 });
 
 describe('handleNotify', () => {
-  describe('when notify_enabled is currently true', () => {
-    beforeEach(() => {
-      vi.mocked(selectAccountNotification).mockResolvedValue({
-        data: { notify_enabled: true, nudge_period: null },
-        error: null,
-      } as never);
-    });
+  it('enables notifications when currently disabled', async () => {
+    vi.mocked(selectAccountNotification).mockResolvedValue({
+      data: { notify_enabled: false },
+      error: null,
+    } as never);
 
-    it('updates notify_enabled to false', async () => {
-      await handleNotify(makeThread() as never, ARTIST_ADDRESS);
-      expect(upsertAccountNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          artist_address: ARTIST_ADDRESS,
-          notify_enabled: false,
-        })
-      );
-    });
-
-    it('posts the OFF confirmation with 🔕', async () => {
-      const thread = makeThread();
-      await handleNotify(thread as never, ARTIST_ADDRESS);
-      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('🔕'));
-    });
-
-    it('tells user how to re-enable with /notify', async () => {
-      const thread = makeThread();
-      await handleNotify(thread as never, ARTIST_ADDRESS);
-      expect(thread.post).toHaveBeenCalledWith(
-        expect.stringContaining('/notify')
-      );
-    });
-  });
-
-  describe('when notify_enabled is currently false', () => {
-    it('updates notify_enabled to true', async () => {
-      await handleNotify(makeThread() as never, ARTIST_ADDRESS);
-      expect(upsertAccountNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          artist_address: ARTIST_ADDRESS,
-          notify_enabled: true,
-        })
-      );
-    });
-
-    it('posts the ON confirmation with 🔔', async () => {
-      const thread = makeThread();
-      await handleNotify(thread as never, ARTIST_ADDRESS);
-      expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('🔔'));
-    });
-
-    it('mentions airdrop in the ON confirmation', async () => {
-      const thread = makeThread();
-      await handleNotify(thread as never, ARTIST_ADDRESS);
-      expect(thread.post).toHaveBeenCalledWith(
-        expect.stringContaining('airdrop')
-      );
-    });
-  });
-
-  it('logs the reply as an assistant telegram message', async () => {
     await handleNotify(makeThread() as never, ARTIST_ADDRESS);
-    expect(logMessage).toHaveBeenCalledWith(
-      expect.any(Array),
-      'assistant',
-      CHANNEL_ID,
-      ARTIST_ADDRESS,
-      'telegram'
+
+    expect(upsertAccountNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ notify_enabled: true })
     );
   });
 
-  it('throws when upsertAccountNotification returns an error', async () => {
+  it('disables notifications when currently enabled', async () => {
+    vi.mocked(selectAccountNotification).mockResolvedValue({
+      data: { notify_enabled: true },
+      error: null,
+    } as never);
+
+    await handleNotify(makeThread() as never, ARTIST_ADDRESS);
+
+    expect(upsertAccountNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ notify_enabled: false })
+    );
+  });
+
+  it('posts an "ON" message when enabling', async () => {
+    vi.mocked(selectAccountNotification).mockResolvedValue({
+      data: { notify_enabled: false },
+      error: null,
+    } as never);
+    const thread = makeThread();
+
+    await handleNotify(thread as never, ARTIST_ADDRESS);
+
+    const message: string = thread.post.mock.calls[0][0];
+    expect(message).toContain('ON');
+  });
+
+  it('posts an "OFF" message when disabling', async () => {
+    vi.mocked(selectAccountNotification).mockResolvedValue({
+      data: { notify_enabled: true },
+      error: null,
+    } as never);
+    const thread = makeThread();
+
+    await handleNotify(thread as never, ARTIST_ADDRESS);
+
+    const message: string = thread.post.mock.calls[0][0];
+    expect(message).toContain('OFF');
+  });
+
+  it('throws when upsert fails', async () => {
+    vi.mocked(selectAccountNotification).mockResolvedValue({
+      data: { notify_enabled: false },
+      error: null,
+    } as never);
     vi.mocked(upsertAccountNotification).mockResolvedValue({
-      error: new Error('db error'),
+      data: null,
+      error: new Error('DB error'),
     } as never);
 
     await expect(
       handleNotify(makeThread() as never, ARTIST_ADDRESS)
-    ).rejects.toThrow('db error');
+    ).rejects.toThrow('DB error');
   });
 });
