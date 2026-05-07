@@ -37,18 +37,24 @@ export type Database = {
       account_notifications: {
         Row: {
           artist_address: string;
+          last_nudge_sent_at: string | null;
           notify_enabled: boolean;
           nudge_period: number | null;
+          telegram_chat_id: string | null;
         };
         Insert: {
           artist_address: string;
+          last_nudge_sent_at?: string | null;
           notify_enabled?: boolean;
           nudge_period?: number | null;
+          telegram_chat_id?: string | null;
         };
         Update: {
           artist_address?: string;
+          last_nudge_sent_at?: string | null;
           notify_enabled?: boolean;
           nudge_period?: number | null;
+          telegram_chat_id?: string | null;
         };
         Relationships: [];
       };
@@ -523,6 +529,7 @@ export type Database = {
       };
       in_process_moments: {
         Row: {
+          channel: string | null;
           collection: string;
           created_at: string;
           id: string;
@@ -532,6 +539,7 @@ export type Database = {
           uri: string;
         };
         Insert: {
+          channel?: string | null;
           collection: string;
           created_at: string;
           id?: string;
@@ -541,6 +549,7 @@ export type Database = {
           uri: string;
         };
         Update: {
+          channel?: string | null;
           collection?: string;
           created_at?: string;
           id?: string;
