@@ -1,20 +1,32 @@
 import { NextResponse } from 'next/server';
-import { ADMIN_ADDRESSES } from '@/lib/consts';
 import selectArweaveUploads from '@/lib/supabase/in_process_arweave_uploads/selectArweaveUploads';
 
+const PERIOD_INTERVALS: Record<string, number> = {
+  day: 1,
+  week: 7,
+  month: 30,
+};
+
 const getArweaveLogsHandler = async ({
-  artistAddress,
+  artist,
+  period,
   limit,
   page,
 }: {
-  artistAddress: string;
+  artist?: string;
+  period?: 'day' | 'week' | 'month' | 'all';
   limit: number;
   page: number;
 }) => {
-  const isAdmin = ADMIN_ADDRESSES.includes(artistAddress.toLowerCase());
+
+  const days = period && period !== 'all' ? PERIOD_INTERVALS[period] : undefined;
+  const from = days
+    ? new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+    : undefined;
 
   const { data, count, error } = await selectArweaveUploads({
-    artistAddress: isAdmin ? undefined : artistAddress.toLowerCase(),
+    artist,
+    from,
     limit,
     page,
   });
