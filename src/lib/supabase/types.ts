@@ -56,7 +56,15 @@ export type Database = {
           nudge_period?: number | null;
           telegram_chat_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'account_notifications_artist_address_fkey';
+            columns: ['artist_address'];
+            isOneToOne: true;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['address'];
+          },
+        ];
       };
       in_process_admins: {
         Row: {
