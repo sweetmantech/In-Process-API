@@ -2,7 +2,7 @@ import type { Address } from 'viem';
 import type { Thread, Attachment } from 'chat';
 import type { TelegramThreadState } from './telegramThreadState';
 import fetchTelegramFile from './fetchTelegramFile';
-import uploadAndLogAttachment from './uploadAndLogAttachment';
+import processAttachmentUpload from './processAttachmentUpload';
 import createMoments from '@/lib/moment/createMoments';
 import replyAfterSuccess from './replyAfterSuccess';
 import type { PendingMediaGroupAsset } from '@/types/telegram';
@@ -35,12 +35,11 @@ const createMomentsFromGroup = async (
           fetchData: () =>
             fetchTelegramFile(asset.fileId).then((r) => r.buffer),
         };
-        return uploadAndLogAttachment(
+        return processAttachmentUpload(
           attachment,
           asset.fileId,
           asset.name,
           artistAddress,
-          thread.channelId,
           asset.thumbFileId
         );
       })
@@ -51,7 +50,6 @@ const createMomentsFromGroup = async (
       name: pending[i].name,
     }));
     const results = await createMoments(inputs, artistAddress, 'telegram', {
-      chatId: thread.channelId,
       ...(selectedCollection && {
         existingCollectionAddress: selectedCollection,
       }),

@@ -1,6 +1,6 @@
 import { maxUint64, parseUnits, type Address } from 'viem';
 import type { Thread, Attachment } from 'chat';
-import uploadAndLogAttachment from './uploadAndLogAttachment';
+import processAttachmentUpload from './processAttachmentUpload';
 import replyAfterSuccess from './replyAfterSuccess';
 import { createMoment } from '@/lib/moment/createMoment';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
@@ -25,38 +25,34 @@ const processSingleMedia = async (
   try {
     const selectedCollection = await getSelectedCollectionAddress(thread);
     typingInterval = setInterval(() => void thread.startTyping(), 4000);
-    const uploaded = await uploadAndLogAttachment(
+    const uploaded = await processAttachmentUpload(
       attachment,
       fileId,
       name,
       artistAddress,
-      thread.channelId,
       thumbFileId
     );
 
-    const { contractAddress, tokenId } = await createMoment(
-      {
-        contract: selectedCollection
-          ? { address: selectedCollection }
-          : { name, uri: uploaded.uri },
-        token: {
-          tokenMetadataURI: uploaded.uri,
-          createReferral: REFERRAL_RECIPIENT as Address,
-          salesConfig: {
-            type: MomentType.Erc20Mint,
-            pricePerToken: parseUnits('1', 6),
-            saleStart: BigInt(Math.floor(Date.now() / 1000)),
-            saleEnd: maxUint64,
-            currency: USDC_ADDRESS[CHAIN_ID],
-          },
-          mintToCreatorCount: 1,
-          payoutRecipient: artistAddress,
+    const { contractAddress, tokenId } = await createMoment({
+      contract: selectedCollection
+        ? { address: selectedCollection }
+        : { name, uri: uploaded.uri },
+      token: {
+        tokenMetadataURI: uploaded.uri,
+        createReferral: REFERRAL_RECIPIENT as Address,
+        salesConfig: {
+          type: MomentType.Erc20Mint,
+          pricePerToken: parseUnits('1', 6),
+          saleStart: BigInt(Math.floor(Date.now() / 1000)),
+          saleEnd: maxUint64,
+          currency: USDC_ADDRESS[CHAIN_ID],
         },
-        account: artistAddress,
-        channel: 'telegram',
+        mintToCreatorCount: 1,
+        payoutRecipient: artistAddress,
       },
-      { chatId: thread.channelId }
-    );
+      account: artistAddress,
+      channel: 'telegram',
+    });
 
     if (selectedCollection) {
       await clearSelectedCollectionAddress(thread);

@@ -7,19 +7,15 @@ import selectCollections from '@/lib/supabase/in_process_collections/selectColle
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
-import { logMessage } from '@/lib/messages/logMessage';
-import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
-import upsertMessageMoment from '@/lib/supabase/in_process_message_moment/upsertMessageMoment';
 import type { Database } from '@/lib/supabase/types';
 
 type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
 
-type IndexMessageMomentParams = {
+type IndexMomentParams = {
   contractAddress: Address;
   tokenId: string;
   artistAddress: string;
   channel?: CreateMomentContractInput['channel'];
-  chatId?: string;
   contract: CreateMomentContractInput['contract'];
   token: Pick<
     CreateMomentContractInput['token'],
@@ -27,15 +23,14 @@ type IndexMessageMomentParams = {
   >;
 };
 
-const indexMessageMoment = async ({
+const indexMoment = async ({
   contractAddress,
   tokenId,
   artistAddress,
   channel,
-  chatId,
   contract,
   token,
-}: IndexMessageMomentParams) => {
+}: IndexMomentParams) => {
   const artist = getAddress(artistAddress).toLowerCase();
   const normalizedAddress = getAddress(contractAddress).toLowerCase();
   await ensureArtists([artist]);
@@ -76,10 +71,9 @@ const indexMessageMoment = async ({
     limit: 1,
   });
 
-  let momentId = existingMoments?.[0]?.id;
-  if (!momentId) {
+  if (!existingMoments?.[0]?.id) {
     const placeholder = new Date(0).toISOString();
-    const moments = await upsertMoments([
+    await upsertMoments([
       {
         collection: collectionId,
         token_id: Number(tokenId),
@@ -87,27 +81,10 @@ const indexMessageMoment = async ({
         max_supply: token.maxSupply ?? 0,
         created_at: placeholder,
         updated_at: placeholder,
+        ...(channel && { channel }),
       },
     ]);
-    momentId = moments[0]?.id;
   }
-  if (!momentId) return;
-
-  const successMessage = getMomentSuccessMessage(contractAddress, tokenId);
-  const messageId = await logMessage(
-    [{ type: 'text', text: successMessage }],
-    'assistant',
-    chatId,
-    artist,
-    (channel ?? 'sms') as 'sms' | 'telegram' | 'web' | 'api'
-  );
-
-  if (!messageId) return;
-
-  await upsertMessageMoment({
-    message: messageId,
-    moment: momentId,
-  });
 };
 
-export default indexMessageMoment;
+export default indexMoment;

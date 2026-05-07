@@ -1,6 +1,6 @@
 import type { InboundMessagePayload } from 'telnyx/resources/shared';
 import createMomentFromMedia from '@/lib/phones/createMomentFromMedia';
-import { processVideoMessage } from '@/lib/messages/processVideoMessage';
+import { sendVideoNotSupported } from '@/lib/messages/sendVideoNotSupported';
 import { sendSms } from '@/lib/phones/sendSms';
 import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 
@@ -13,7 +13,7 @@ export const processMmsMedia = async (
   payload: InboundMessagePayload | undefined
 ): Promise<{ contractAddress: string; tokenId: string } | void> => {
   if (media.content_type?.includes('video')) {
-    await processVideoMessage(phone.phone_number, phone.artist.address);
+    await sendVideoNotSupported(phone.phone_number, phone.artist.address);
     return;
   }
   const { contractAddress, tokenId } = await createMomentFromMedia(

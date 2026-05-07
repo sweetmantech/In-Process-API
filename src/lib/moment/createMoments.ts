@@ -22,7 +22,7 @@ import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import parseMomentsTransaction from './parseMomentsTransaction';
 import parseSetupNewTokenEventsOnContract from './parseSetupNewTokenEventsOnContract';
 import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
-import indexMessageMoment from './indexMessageMoment';
+import indexMoment from './indexMoment';
 
 export interface MomentInput {
   uri: string;
@@ -33,7 +33,7 @@ const createMoments = async (
   inputs: MomentInput[],
   artistAddress: Address,
   channel?: 'sms' | 'telegram' | 'web' | 'api',
-  ctx?: { chatId?: string; existingCollectionAddress?: Address }
+  ctx?: { existingCollectionAddress?: Address }
 ): Promise<{ contractAddress: Address; tokenId: string }[]> => {
   if (inputs.length === 0) return [];
 
@@ -133,12 +133,11 @@ const createMoments = async (
           tokenId,
           artistAddress,
         }),
-        indexMessageMoment({
+        indexMoment({
           contractAddress,
           tokenId,
           artistAddress,
           channel,
-          chatId: ctx?.chatId,
           contract: contractSlice,
           token: {
             tokenMetadataURI: uri,

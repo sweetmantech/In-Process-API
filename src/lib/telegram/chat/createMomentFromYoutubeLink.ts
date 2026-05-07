@@ -8,7 +8,6 @@ import { MomentType } from '@/types/moment';
 const createMomentFromYoutubeLink = async (
   url: string,
   artistAddress: Address,
-  chatId?: string,
   existingCollectionAddress?: Address
 ) => {
   const detail = await getYoutubeDetail(url);
@@ -20,27 +19,24 @@ const createMomentFromYoutubeLink = async (
     ? { address: existingCollectionAddress }
     : { name: detail.title || 'Untitled Video', uri: metadataUri };
 
-  return createMoment(
-    {
-      contract,
-      token: {
-        tokenMetadataURI: metadataUri,
-        createReferral: REFERRAL_RECIPIENT as Address,
-        salesConfig: {
-          type: MomentType.Erc20Mint,
-          pricePerToken: parseUnits('1', 6),
-          saleStart: BigInt(Math.floor(Date.now() / 1000)),
-          saleEnd: maxUint64,
-          currency: USDC_ADDRESS[CHAIN_ID],
-        },
-        mintToCreatorCount: 1,
-        payoutRecipient: artistAddress,
+  return createMoment({
+    contract,
+    token: {
+      tokenMetadataURI: metadataUri,
+      createReferral: REFERRAL_RECIPIENT as Address,
+      salesConfig: {
+        type: MomentType.Erc20Mint,
+        pricePerToken: parseUnits('1', 6),
+        saleStart: BigInt(Math.floor(Date.now() / 1000)),
+        saleEnd: maxUint64,
+        currency: USDC_ADDRESS[CHAIN_ID],
       },
-      account: artistAddress,
-      channel: 'telegram',
+      mintToCreatorCount: 1,
+      payoutRecipient: artistAddress,
     },
-    { chatId }
-  );
+    account: artistAddress,
+    channel: 'telegram',
+  });
 };
 
 export default createMomentFromYoutubeLink;

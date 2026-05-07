@@ -2,7 +2,6 @@ import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
-import { logMessage } from '@/lib/messages/logMessage';
 import type { Address } from 'viem';
 
 const handleNotify = async (
@@ -24,13 +23,6 @@ const handleNotify = async (
     ? "🔔 Airdrop notifications are now ON. I'll let you know any time someone sends your wallet an airdrop."
     : '🔕 Airdrop notifications are now OFF. You can turn them back on anytime with /notify.';
   await thread.post(text);
-  await logMessage(
-    [{ type: 'text', text }],
-    'assistant',
-    thread.channelId,
-    artistAddress,
-    'telegram'
-  );
 };
 
 export default handleNotify;

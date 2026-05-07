@@ -1,5 +1,5 @@
 import { telegramChatBotClient } from '@/lib/telegram/client';
-import { logMessage } from '@/lib/messages/logMessage';
+import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 
 const sendNudge = async ({
   chatId,
@@ -12,13 +12,10 @@ const sendNudge = async ({
 }) => {
   const text = `Hi! It's been ${daysSinceLastMoment} day${daysSinceLastMoment === 1 ? '' : 's'} since you last posted. You've probably been cooking - is there anything you can post on In Process?`;
   await telegramChatBotClient.sendMessage(chatId, text);
-  await logMessage(
-    [{ type: 'text', text }],
-    'assistant',
-    chatId,
-    artistAddress,
-    'telegram'
-  );
+  await upsertAccountNotification({
+    artist_address: artistAddress,
+    last_nudge_sent_at: new Date().toISOString(),
+  });
 };
 
 export default sendNudge;
