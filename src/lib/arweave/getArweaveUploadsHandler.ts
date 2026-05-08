@@ -7,7 +7,7 @@ const PERIOD_INTERVALS: Record<string, number> = {
   month: 30,
 };
 
-const getArweaveLogsHandler = async ({
+const getArweaveUploadsHandler = async ({
   artist,
   period,
   limit,
@@ -32,14 +32,14 @@ const getArweaveLogsHandler = async ({
   });
 
   if (error) {
-    console.error('Failed to fetch arweave logs', error);
+    console.error('Failed to fetch arweave uploads', error);
     return NextResponse.json(
-      { message: 'Failed to fetch arweave logs' },
+      { message: 'Failed to fetch arweave uploads' },
       { status: 500 }
     );
   }
 
-  return NextResponse.json({ logs: data, count });
+  return NextResponse.json({ uploads: data, count });
 };
 
-export default getArweaveLogsHandler;
+export default getArweaveUploadsHandler;

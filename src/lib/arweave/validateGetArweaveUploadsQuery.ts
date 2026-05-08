@@ -3,7 +3,7 @@ import { authMiddleware } from '@/authMiddleware';
 import arweaveLogsQuerySchema from '@/lib/schema/arweaveLogsQuerySchema';
 import { ADMIN_ADDRESSES } from '../consts';
 
-const validateGetArweaveLogsQuery = async (req: NextRequest) => {
+const validateGetArweaveUploadsQuery = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
   if (authResult instanceof NextResponse) return authResult;
   const { artistAddress } = authResult;
@@ -25,4 +25,4 @@ const validateGetArweaveLogsQuery = async (req: NextRequest) => {
   return { ...result.data, artist: artistAddress.toLowerCase() };
 };
 
-export default validateGetArweaveLogsQuery;
+export default validateGetArweaveUploadsQuery;

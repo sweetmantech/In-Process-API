@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import validateGetArweaveLogsQuery from '@/lib/arweave/validateGetArweaveLogsQuery';
-import getArweaveLogsHandler from '@/lib/arweave/getArweaveLogsHandler';
+import validateGetArweaveUploadsQuery from '@/lib/arweave/validateGetArweaveUploadsQuery';
+import getArweaveUploadsHandler from '@/lib/arweave/getArweaveUploadsHandler';
 
 export async function GET(req: NextRequest) {
   try {
-    const validated = await validateGetArweaveLogsQuery(req);
+    const validated = await validateGetArweaveUploadsQuery(req);
     if (validated instanceof NextResponse) return validated;
-    return getArweaveLogsHandler(validated);
+    return getArweaveUploadsHandler(validated);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Failed';
     return NextResponse.json({ message }, { status: 500 });
