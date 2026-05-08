@@ -12,6 +12,7 @@ import replyAfterSuccess from '../replyAfterSuccess';
 import youtubeParser from '@/lib/link/youtubeParser';
 import clearSelectedCollectionAddress from '../clearSelectedCollectionAddress';
 import getSelectedCollectionAddress from '../getSelectedCollectionAddress';
+import postMomentPending from '../postMomentPending';
 
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
@@ -64,9 +65,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       const youtubeUrl = text.match(YOUTUBE_URL_REGEX)?.[0];
       if (youtubeUrl && youtubeParser(youtubeUrl)) {
         const selectedCollection = await getSelectedCollectionAddress(thread);
-        await thread.post(
-          '⏳ In Process will post your moment. Please wait a few seconds...'
-        );
+        await postMomentPending(thread);
         await thread.startTyping();
         const { contractAddress, tokenId } = await createMomentFromYoutubeLink(
           youtubeUrl,

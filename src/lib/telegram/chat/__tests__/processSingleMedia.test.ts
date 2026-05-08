@@ -59,7 +59,7 @@ describe('processSingleMedia', () => {
     );
 
     expect(thread.post).toHaveBeenCalledWith(
-      '⏳ In Process will post your moment. Please wait a few seconds...'
+      'Posting your moment to In Process, this may take a minute...'
     );
   });
 
