@@ -8,6 +8,7 @@ import { MomentType } from '@/types/moment';
 import type { TelegramThreadState } from './telegramThreadState';
 import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
 import getSelectedCollectionAddress from './getSelectedCollectionAddress';
+import postMomentPending from './postMomentPending';
 
 const processSingleMedia = async (
   thread: Thread<TelegramThreadState>,
@@ -17,9 +18,7 @@ const processSingleMedia = async (
   artistAddress: Address,
   thumbFileId?: string
 ): Promise<void> => {
-  await thread.post(
-    '⏳ In Process will post your moment. Please wait a few seconds...'
-  );
+  await postMomentPending(thread);
   await thread.startTyping();
   let typingInterval: ReturnType<typeof setInterval> | undefined;
   try {

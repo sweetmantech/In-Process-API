@@ -4,6 +4,7 @@ import type { Thread, Attachment } from 'chat';
 import type { TelegramThreadState } from './telegramThreadState';
 import createMomentsFromGroup from './createMomentsFromGroup';
 import getStateAdapter from './stateAdapter';
+import postMomentPending from './postMomentPending';
 
 import type { PendingMediaGroupAsset } from '@/types/telegram';
 
@@ -27,11 +28,7 @@ const processGroupMedia = async (
     true,
     60_000
   );
-  if (isFirst) {
-    await thread.post(
-      '⏳ In Process will post your moment. Please wait a few seconds...'
-    );
-  }
+  if (isFirst) await postMomentPending(thread);
 
   await stateAdapter.appendToList(
     `media_group_assets:${mediaGroupId}`,
