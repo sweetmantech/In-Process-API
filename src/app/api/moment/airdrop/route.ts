@@ -1,31 +1,14 @@
-import { NextRequest } from 'next/server';
-import { airdropMomentSchema } from '@/lib/schema/airdropMomentSchema';
-import { airdropMoment } from '@/lib/moment/airdropMoment';
-import { authMiddleware } from '@/authMiddleware';
-import { Address } from 'viem';
-import { validate } from '@/lib/schema/validate';
+import { NextRequest, NextResponse } from 'next/server';
+import validateAirdropMoment from '@/lib/moment/validateAirdropMoment';
+import airdropMomentHandler from '@/lib/moment/airdropMomentHandler';
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
-    if (authResult instanceof Response) {
-      return authResult;
-    }
-    const { artistAddress } = authResult;
-    const body = await req.json();
-    const validationResult = validate(airdropMomentSchema, body);
-    if (!validationResult.success) {
-      return validationResult.response;
-    }
-    const data = validationResult.data;
-    const result = await airdropMoment({
-      ...data,
-      artistAddress: artistAddress as Address,
-    });
-    return Response.json(result);
+    const validated = await validateAirdropMoment(req);
+    if (validated instanceof NextResponse) return validated;
+    return airdropMomentHandler(validated);
   } catch (e: any) {
-    console.log(e);
-    const message = e?.message ?? 'failed to create moment';
+    const message = e?.message ?? 'Airdrop failed.';
     return Response.json({ message }, { status: 500 });
   }
 }

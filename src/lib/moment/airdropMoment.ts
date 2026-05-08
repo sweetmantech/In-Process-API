@@ -16,21 +16,15 @@ export interface AirdropResult {
   chainId: number;
 }
 
-/**
- * Airdrop a In Process 1155 token  using a smart account via Coinbase CDP.
- * Accepts the full API input shape for airdrop a Moment.
- */
 export async function airdropMoment({
   recipients,
   moment,
   artistAddress,
 }: AirdropMomentInput): Promise<AirdropResult> {
-  // Get or create a smart account (contract wallet)
   const smartAccount = await getOrCreateSmartWallet({
     address: artistAddress,
   });
 
-  // Check admin permission of artist wallet and smart wallet
   const smartWalletPermissionBit = await getPermission(
     moment.collectionAddress,
     smartAccount.address
@@ -52,23 +46,16 @@ export async function airdropMoment({
     encodeFunctionData({
       abi: zoraCreator1155ImplABI,
       functionName: 'adminMint',
-      args: [
-        recipient.recipientAddress as Address,
-        BigInt(recipient.tokenId),
-        BigInt(1),
-        '0x',
-      ],
+      args: [recipient, BigInt(moment.tokenId), BigInt(1), '0x'],
     })
   );
 
-  // Encode the function call data
   const airdropCall = encodeFunctionData({
     abi: zoraCreator1155ImplABI,
     functionName: 'multicall',
     args: [calls],
   });
 
-  // Send the transaction and wait for receipt using the helper
   const transaction = await sendUserOperation({
     smartAccount,
     network: IS_TESTNET ? 'base-sepolia' : 'base',
