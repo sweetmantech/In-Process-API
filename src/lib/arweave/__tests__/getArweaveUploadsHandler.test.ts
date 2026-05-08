@@ -8,7 +8,7 @@ vi.mock(
 );
 
 import selectArweaveUploads from '@/lib/supabase/in_process_arweave_uploads/selectArweaveUploads';
-import getArweaveLogsHandler from '@/lib/arweave/getArweaveLogsHandler';
+import getArweaveUploadsHandler from '@/lib/arweave/getArweaveUploadsHandler';
 
 const FIXED_NOW = new Date('2026-05-08T12:00:00.000Z').getTime();
 
@@ -19,7 +19,7 @@ const mockSuccess = () =>
     error: null,
   } as any);
 
-describe('getArweaveLogsHandler', () => {
+describe('getArweaveUploadsHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -37,16 +37,16 @@ describe('getArweaveLogsHandler', () => {
       error: null,
     } as any);
 
-    const res = await getArweaveLogsHandler({ limit: 10, page: 2 });
+    const res = await getArweaveUploadsHandler({ limit: 10, page: 2 });
     const body = await res.json();
 
-    expect(body).toEqual({ logs: [{ id: 1 }, { id: 2 }], count: 2 });
+    expect(body).toEqual({ uploads: [{ id: 1 }, { id: 2 }], count: 2 });
   });
 
   it('passes artist to selectArweaveUploads', async () => {
     mockSuccess();
 
-    await getArweaveLogsHandler({ artist: '0xaabbcc', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({ artist: '0xaabbcc', limit: 20, page: 1 });
 
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: '0xaabbcc',
@@ -59,7 +59,7 @@ describe('getArweaveLogsHandler', () => {
   it('passes no artist when not specified', async () => {
     mockSuccess();
 
-    await getArweaveLogsHandler({ limit: 20, page: 1 });
+    await getArweaveUploadsHandler({ limit: 20, page: 1 });
 
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: undefined,
@@ -76,17 +76,17 @@ describe('getArweaveLogsHandler', () => {
       error: { message: 'db failed' },
     } as any);
 
-    const res = await getArweaveLogsHandler({ limit: 20, page: 1 });
+    const res = await getArweaveUploadsHandler({ limit: 20, page: 1 });
     const body = await res.json();
 
     expect(res.status).toBe(500);
-    expect(body).toEqual({ message: 'Failed to fetch arweave logs' });
+    expect(body).toEqual({ message: 'Failed to fetch arweave uploads' });
   });
 
   it('passes from timestamp for period=day', async () => {
     mockSuccess();
 
-    await getArweaveLogsHandler({ period: 'day', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({ period: 'day', limit: 20, page: 1 });
 
     const expected = new Date(
       FIXED_NOW - 1 * 24 * 60 * 60 * 1000
@@ -102,7 +102,7 @@ describe('getArweaveLogsHandler', () => {
   it('passes from timestamp for period=week', async () => {
     mockSuccess();
 
-    await getArweaveLogsHandler({ period: 'week', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({ period: 'week', limit: 20, page: 1 });
 
     const expected = new Date(
       FIXED_NOW - 7 * 24 * 60 * 60 * 1000
@@ -118,7 +118,7 @@ describe('getArweaveLogsHandler', () => {
   it('passes from timestamp for period=month', async () => {
     mockSuccess();
 
-    await getArweaveLogsHandler({ period: 'month', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({ period: 'month', limit: 20, page: 1 });
 
     const expected = new Date(
       FIXED_NOW - 30 * 24 * 60 * 60 * 1000
@@ -134,7 +134,7 @@ describe('getArweaveLogsHandler', () => {
   it('passes from=undefined for period=all', async () => {
     mockSuccess();
 
-    await getArweaveLogsHandler({ period: 'all', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({ period: 'all', limit: 20, page: 1 });
 
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: undefined,
@@ -147,7 +147,7 @@ describe('getArweaveLogsHandler', () => {
   it('passes artist filter through as-is', async () => {
     mockSuccess();
 
-    await getArweaveLogsHandler({ artist: 'Alice', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({ artist: 'Alice', limit: 20, page: 1 });
 
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: 'Alice',

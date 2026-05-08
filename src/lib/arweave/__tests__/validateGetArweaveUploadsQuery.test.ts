@@ -4,18 +4,18 @@ import { NextRequest, NextResponse } from 'next/server';
 vi.mock('@/authMiddleware', () => ({ authMiddleware: vi.fn() }));
 
 import { authMiddleware } from '@/authMiddleware';
-import validateGetArweaveLogsQuery from '@/lib/arweave/validateGetArweaveLogsQuery';
+import validateGetArweaveUploadsQuery from '@/lib/arweave/validateGetArweaveUploadsQuery';
 
 const CALLER = '0xaf1452d289e22fbd0dea9d5097353c72a90fac33';
 const NON_ADMIN = '0x1111111111111111111111111111111111111111';
 
 const makeRequest = (params: Record<string, string> = {}) => {
-  const url = new URL('http://localhost/api/arweave/logs');
+  const url = new URL('http://localhost/api/uploads');
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   return new NextRequest(url);
 };
 
-describe('validateGetArweaveLogsQuery', () => {
+describe('validateGetArweaveUploadsQuery', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -25,7 +25,7 @@ describe('validateGetArweaveLogsQuery', () => {
       artistAddress: NON_ADMIN,
     } as any);
 
-    const result = await validateGetArweaveLogsQuery(
+    const result = await validateGetArweaveUploadsQuery(
       makeRequest({ limit: '10', page: '2' })
     );
 
@@ -40,7 +40,7 @@ describe('validateGetArweaveLogsQuery', () => {
       NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     );
 
-    const result = await validateGetArweaveLogsQuery(makeRequest());
+    const result = await validateGetArweaveUploadsQuery(makeRequest());
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(401);
@@ -51,7 +51,7 @@ describe('validateGetArweaveLogsQuery', () => {
       artistAddress: CALLER,
     } as any);
 
-    const result = await validateGetArweaveLogsQuery(makeRequest());
+    const result = await validateGetArweaveUploadsQuery(makeRequest());
 
     expect((result as any).limit).toBe(20);
     expect((result as any).page).toBe(1);
@@ -64,7 +64,7 @@ describe('validateGetArweaveLogsQuery', () => {
       artistAddress: CALLER,
     } as any);
 
-    const result = await validateGetArweaveLogsQuery(
+    const result = await validateGetArweaveUploadsQuery(
       makeRequest({ limit: '101' })
     );
 
@@ -78,7 +78,9 @@ describe('validateGetArweaveLogsQuery', () => {
     } as any);
 
     for (const period of ['day', 'week', 'month', 'all']) {
-      const result = await validateGetArweaveLogsQuery(makeRequest({ period }));
+      const result = await validateGetArweaveUploadsQuery(
+        makeRequest({ period })
+      );
       expect((result as any).period).toBe(period);
     }
   });
@@ -88,7 +90,7 @@ describe('validateGetArweaveLogsQuery', () => {
       artistAddress: CALLER,
     } as any);
 
-    const result = await validateGetArweaveLogsQuery(
+    const result = await validateGetArweaveUploadsQuery(
       makeRequest({ period: '1d' })
     );
 
@@ -101,7 +103,7 @@ describe('validateGetArweaveLogsQuery', () => {
       artistAddress: CALLER,
     } as any);
 
-    const result = await validateGetArweaveLogsQuery(
+    const result = await validateGetArweaveUploadsQuery(
       makeRequest({ artist: 'alice' })
     );
 
@@ -114,7 +116,7 @@ describe('validateGetArweaveLogsQuery', () => {
       artistAddress: CALLER,
     } as any);
 
-    const result = await validateGetArweaveLogsQuery(
+    const result = await validateGetArweaveUploadsQuery(
       makeRequest({ artist: '' })
     );
 
