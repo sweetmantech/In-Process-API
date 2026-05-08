@@ -27,7 +27,7 @@ const validateUpload = async (req: NextRequest) => {
 
   const { blob, type } = await getBlob(url);
 
-  if (authResult.isOfficialArtist) {
+  if (authResult.isWebRequest) {
     return {
       artistAddress,
       blob,

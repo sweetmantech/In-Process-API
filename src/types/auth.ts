@@ -6,5 +6,5 @@ export enum AuthMethod {
 export interface AuthResult {
   artistAddress: string;
   authMethod: AuthMethod;
-  isOfficialArtist?: boolean;
+  isWebRequest?: boolean;
 }

@@ -25,11 +25,11 @@ export async function authMiddleware(
   if (resolved instanceof NextResponse) return resolved;
 
   const recaptchaToken = req.headers.get('x-recaptcha-token');
-  const isOfficialArtist = recaptchaToken
+  const isWebRequest = recaptchaToken
     ? await verifyRecaptchaToken(recaptchaToken)
     : false;
 
-  console.log('[authMiddleware]', { ...resolved, isOfficialArtist });
+  console.log('[authMiddleware]', { ...resolved, isWebRequest });
 
-  return { ...resolved, isOfficialArtist };
+  return { ...resolved, isWebRequest };
 }
