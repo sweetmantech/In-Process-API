@@ -15,53 +15,54 @@ export interface MigrateMuxToArweavePayload {
   uri: string;
 }
 
+async function migrateMuxToArweave(p: MigrateMuxToArweavePayload) {
+  'use workflow';
+
+  const { moment, artistAddress, uri } = p;
+
+  const metadata = await fetchMetadataStep(uri);
+
+  if (!metadata.content?.uri?.includes('mux.com')) {
+    return { success: true, skipped: true, tokenId: moment.tokenId };
+  }
+
+  const playbackUrl =
+    typeof metadata.animation_url === 'string' &&
+    metadata.animation_url.includes('stream.mux.com')
+      ? metadata.animation_url
+      : undefined;
+
+  const videoFile = await downloadVideoStep(metadata.content.uri);
+  const transcodedFile = await transcodeStep(videoFile);
+  const uploadResult = await uploadVideoStep(transcodedFile, artistAddress);
+  const metadataUri = await uploadMetadataStep(
+    metadata,
+    uploadResult.arweave_uri
+  );
+
+  await sleep('10 minutes');
+
+  await updateOnChainStep({
+    moment,
+    metadataUri,
+    metadataName: metadata.name,
+    artistAddress,
+  });
+
+  if (playbackUrl) {
+    await deleteMuxAssetStep(playbackUrl);
+  }
+
+  return {
+    success: true,
+    tokenId: moment.tokenId,
+    arweaveUri: uploadResult.arweave_uri,
+    metadataUri,
+  };
+}
+
 export default (payload: MigrateMuxToArweavePayload): void => {
-  start(
-    async function migrateMuxToArweave(p: MigrateMuxToArweavePayload) {
-      'use workflow';
-
-      const { moment, artistAddress, uri } = p;
-
-      const metadata = await fetchMetadataStep(uri);
-
-      if (!metadata.content?.uri?.includes('mux.com')) {
-        return { success: true, skipped: true, tokenId: moment.tokenId };
-      }
-
-      const playbackUrl =
-        typeof metadata.animation_url === 'string' &&
-        metadata.animation_url.includes('stream.mux.com')
-          ? metadata.animation_url
-          : undefined;
-
-      const videoFile = await downloadVideoStep(metadata.content.uri);
-      const transcodedFile = await transcodeStep(videoFile);
-      const uploadResult = await uploadVideoStep(transcodedFile, artistAddress);
-      const metadataUri = await uploadMetadataStep(
-        metadata,
-        uploadResult.arweave_uri
-      );
-
-      await sleep('10 minutes');
-
-      await updateOnChainStep({
-        moment,
-        metadataUri,
-        metadataName: metadata.name,
-        artistAddress,
-      });
-
-      if (playbackUrl) {
-        await deleteMuxAssetStep(playbackUrl);
-      }
-
-      return {
-        success: true,
-        tokenId: moment.tokenId,
-        arweaveUri: uploadResult.arweave_uri,
-        metadataUri,
-      };
-    },
-    [payload]
-  ).catch((e) => console.error('migrate workflow start failed', e));
+  start(migrateMuxToArweave, [payload]).catch((e) =>
+    console.error('migrate workflow start failed', e)
+  );
 };
