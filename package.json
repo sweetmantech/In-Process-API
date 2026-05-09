@@ -20,6 +20,7 @@
   "dependencies": {
     "@0xsplits/splits-sdk": "^6.4.1",
     "@ar.io/wayfinder-core": "^1.9.1",
+    "@opentelemetry/resources": "^2.0.0",
     "@ardrive/turbo-sdk": "^1.41.0",
     "@chat-adapter/state-memory": "^4.20.2",
     "@chat-adapter/telegram": "^4.20.2",
