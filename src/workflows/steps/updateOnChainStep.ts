@@ -7,12 +7,12 @@ export default async function updateOnChainStep(params: {
   metadataUri: string;
   metadataName: string;
   artistAddress: Address;
-}): Promise<void> {
+}): Promise<{ hash: string }> {
   'use step';
   const { moment, metadataUri, metadataName, artistAddress } = params;
 
   if (moment.tokenId === '0') {
-    await updateCollectionURI({
+    return await updateCollectionURI({
       collection: {
         address: moment.collectionAddress,
         chainId: moment.chainId,
@@ -21,8 +21,7 @@ export default async function updateOnChainStep(params: {
       newCollectionName: metadataName,
       artistAddress,
     });
-    return;
   }
 
-  await updateMomentURI({ moment, newUri: metadataUri, artistAddress });
+  return await updateMomentURI({ moment, newUri: metadataUri, artistAddress });
 }

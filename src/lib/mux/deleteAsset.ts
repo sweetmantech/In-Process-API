@@ -1,4 +1,4 @@
-import mux from '.';
+import mux from '@/lib/mux';
 
 /**
  * Deletes a MUX asset by asset ID

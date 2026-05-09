@@ -30,7 +30,10 @@ async function migrateMuxToArweave(p: MigrateMuxToArweavePayload) {
       ? metadata.animation_url
       : undefined;
 
-  const uploadResult = await downloadAndTranscodeStep(metadata.content.uri, artistAddress);
+  const uploadResult = await downloadAndTranscodeStep(
+    metadata.content.uri,
+    artistAddress
+  );
   const metadataUri = await uploadMetadataStep(
     metadata,
     uploadResult.arweave_uri

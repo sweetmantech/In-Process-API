@@ -4,10 +4,24 @@ import { tmpdir } from 'os';
 import { probeVideo } from './probeVideo';
 import { transcodeToH264 } from './transcodeToH264';
 
-export async function transcodeIfH265(videoFile: File): Promise<File> {
+export interface TranscodeResult {
+  file: File;
+  codec: string | null;
+  needsReencode: boolean;
+  reason: string;
+  transcodeTimeSeconds?: string;
+  originalSizeMB: string;
+  transcodedSizeMB?: string;
+}
+
+export async function transcodeIfH265(
+  videoFile: File
+): Promise<TranscodeResult> {
   const id = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
   const inputPath = join(tmpdir(), `transcode-input-${id}.mp4`);
   const outputPath = join(tmpdir(), `transcode-output-${id}.mp4`);
+
+  const originalSizeMB = (videoFile.size / (1024 * 1024)).toFixed(2);
 
   try {
     const buffer = Buffer.from(await videoFile.arrayBuffer());
@@ -15,24 +29,21 @@ export async function transcodeIfH265(videoFile: File): Promise<File> {
 
     const probe = await probeVideo(inputPath);
 
-    console.log('Video probe result', {
-      fileName: videoFile.name,
-      codec: probe.codec,
-      needsReencode: probe.needsReencode,
-      reason: probe.reason,
-    });
-
-    if (!probe.needsReencode) return videoFile;
-
-    console.log('Transcoding to H.264', {
-      fileName: videoFile.name,
-      reason: probe.reason,
-      fileSizeMB: (videoFile.size / (1024 * 1024)).toFixed(2),
-    });
+    if (!probe.needsReencode) {
+      return {
+        file: videoFile,
+        codec: probe.codec,
+        needsReencode: false,
+        reason: probe.reason,
+        originalSizeMB,
+      };
+    }
 
     const transcodeStart = Date.now();
     await transcodeToH264(inputPath, outputPath);
-    const transcodeSeconds = ((Date.now() - transcodeStart) / 1000).toFixed(2);
+    const transcodeTimeSeconds = ((Date.now() - transcodeStart) / 1000).toFixed(
+      2
+    );
 
     const transcodedBuffer = await fs.readFile(outputPath);
     const transcodedName = videoFile.name.replace(/\.[^.]+$/, '.mp4');
@@ -40,14 +51,15 @@ export async function transcodeIfH265(videoFile: File): Promise<File> {
       type: 'video/mp4',
     });
 
-    console.log('Transcode completed', {
-      fileName: videoFile.name,
-      originalSizeMB: (videoFile.size / (1024 * 1024)).toFixed(2),
+    return {
+      file: transcodedFile,
+      codec: probe.codec,
+      needsReencode: true,
+      reason: probe.reason,
+      transcodeTimeSeconds,
+      originalSizeMB,
       transcodedSizeMB: (transcodedFile.size / (1024 * 1024)).toFixed(2),
-      transcodeTimeSeconds: transcodeSeconds,
-    });
-
-    return transcodedFile;
+    };
   } finally {
     await fs.unlink(inputPath).catch(() => {});
     await fs.unlink(outputPath).catch(() => {});

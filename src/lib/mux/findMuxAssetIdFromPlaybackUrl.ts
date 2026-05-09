@@ -1,4 +1,4 @@
-import mux from './index';
+import mux from '@/lib/mux';
 
 export const findMuxAssetIdFromPlaybackUrl = async (
   playbackUrl: string
