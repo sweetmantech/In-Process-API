@@ -15,7 +15,6 @@ import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import { TokenMetadataJson } from '@/lib/protocolSdk/ipfs/types';
 import { SITE_ORIGINAL_URL } from '@/lib/consts';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 const archivoFont = fetch(
