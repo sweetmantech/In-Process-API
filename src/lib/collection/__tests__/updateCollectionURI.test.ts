@@ -9,14 +9,10 @@ vi.mock('@/lib/coinbase/sendUserOperation', () => ({
 vi.mock('@/lib/viem/getUpdateCollectionURICall', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({
-  default: vi.fn(),
-}));
 
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateCollectionURICall from '@/lib/viem/getUpdateCollectionURICall';
-import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
 import { updateCollectionURI } from '@/lib/collection/updateCollectionURI';
 
 const ARTIST_ADDRESS =
@@ -45,7 +41,6 @@ beforeEach(() => {
     transactionHash: TX_HASH,
   } as any);
   vi.mocked(getUpdateCollectionURICall).mockReturnValue(MOCK_CALL as any);
-  vi.mocked(triggerMuxMigration).mockResolvedValue(undefined as any);
 });
 
 describe('updateCollectionURI', () => {
@@ -81,15 +76,6 @@ describe('updateCollectionURI', () => {
     await updateCollectionURI(baseInput);
     const calls = vi.mocked(sendUserOperation).mock.calls[0][0].calls;
     expect(calls).toEqual([MOCK_CALL]);
-  });
-
-  it('triggers mux migration after transaction', async () => {
-    await updateCollectionURI(baseInput);
-    expect(triggerMuxMigration).toHaveBeenCalledWith({
-      uri: NEW_URI,
-      collectionAddress: COLLECTION_ADDRESS,
-      artistAddress: ARTIST_ADDRESS,
-    });
   });
 
   it('throws when sendUserOperation fails', async () => {

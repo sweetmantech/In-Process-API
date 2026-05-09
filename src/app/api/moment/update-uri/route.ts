@@ -1,32 +1,13 @@
-import { NextRequest } from 'next/server';
-import { updateMomentURI } from '@/lib/moment/updateMomentURI';
-import { authMiddleware } from '@/authMiddleware';
-import { updateMomentURISchema } from '@/lib/schema/updateMomentURISchema';
-import { Address } from 'viem';
-import { validate } from '@/lib/schema/validate';
+import { NextRequest, NextResponse } from 'next/server';
+import validateUpdateMomentURI from '@/lib/moment/validateUpdateMomentURI';
+import updateMomentURIHandler from '@/lib/moment/updateMomentURIHandler';
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
-    if (authResult instanceof Response) {
-      return authResult;
-    }
-    const { artistAddress } = authResult;
-
-    const body = await req.json();
-    const validationResult = validate(updateMomentURISchema, body);
-    if (!validationResult.success) {
-      return validationResult.response;
-    }
-    const data = validationResult.data;
-    const result = await updateMomentURI({
-      moment: data.moment,
-      newUri: data.newUri,
-      artistAddress: artistAddress as Address,
-    });
-    return Response.json(result);
+    const validated = await validateUpdateMomentURI(req);
+    if (validated instanceof NextResponse) return validated;
+    return updateMomentURIHandler(validated);
   } catch (e: any) {
-    console.log(e);
     const message = e?.message ?? 'failed to update moment URI';
     return Response.json({ message }, { status: 500 });
   }

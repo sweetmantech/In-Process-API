@@ -16,11 +16,13 @@ Goal: eliminate the separate repo and Trigger.dev dependency by running the same
 ## Architecture
 
 ### Before
+
 ```
 API → tasks.trigger('migrate-mux-to-arweave') → Trigger.dev Cloud → In-Process-Tasks
 ```
 
 ### After
+
 ```
 API → start(migrateMuxToArweaveWorkflow) → Vercel Workflows (within API)
 ```
@@ -48,6 +50,7 @@ pnpm add -D @types/fluent-ffmpeg
 ```
 
 `next.config.ts`:
+
 ```typescript
 import { withWorkflow } from 'workflow/next';
 export default withWorkflow(nextConfig);
@@ -69,40 +72,40 @@ then run `pnpm rebuild ffmpeg-static` to download the binary.
 
 ### Files to add to API (currently only in In-Process-Tasks)
 
-| Source (Tasks) | Target (API) | Notes |
-|---|---|---|
-| `src/video/probeVideo.ts` | `src/lib/video/probeVideo.ts` | Add `ffmpeg.setFfmpegPath` + `ffmpeg.setFfprobePath` via `@ffmpeg-installer` |
-| `src/video/transcodeToH264.ts` | `src/lib/video/transcodeToH264.ts` | Same ffmpeg path setup |
-| `src/video/transcodeIfH265.ts` | `src/lib/video/transcodeIfH265.ts` | Replace `logger` → `console.log` |
-| `src/mux/downloadVideo.ts` | `src/lib/mux/downloadVideo.ts` | Replace `retry.fetch` → native fetch inside a step |
-| `src/mux/findMuxAssetIdFromPlaybackUrl.ts` | `src/lib/mux/findMuxAssetIdFromPlaybackUrl.ts` | Replace `logger` → `console.log` |
-| `src/viem/getUri.ts` | `src/lib/viem/getUri.ts` | Pure port, no Trigger.dev deps |
-| `src/moment/updateMomentMetadata.ts` | `src/lib/moment/updateMomentMetadata.ts` | Replace `logger` → `console.log` |
+| Source (Tasks)                             | Target (API)                                   | Notes                                                                        |
+| ------------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| `src/video/probeVideo.ts`                  | `src/lib/video/probeVideo.ts`                  | Add `ffmpeg.setFfmpegPath` + `ffmpeg.setFfprobePath` via `@ffmpeg-installer` |
+| `src/video/transcodeToH264.ts`             | `src/lib/video/transcodeToH264.ts`             | Same ffmpeg path setup                                                       |
+| `src/video/transcodeIfH265.ts`             | `src/lib/video/transcodeIfH265.ts`             | Replace `logger` → `console.log`                                             |
+| `src/mux/downloadVideo.ts`                 | `src/lib/mux/downloadVideo.ts`                 | Replace `retry.fetch` → native fetch inside a step                           |
+| `src/mux/findMuxAssetIdFromPlaybackUrl.ts` | `src/lib/mux/findMuxAssetIdFromPlaybackUrl.ts` | Replace `logger` → `console.log`                                             |
+| `src/viem/getUri.ts`                       | `src/lib/viem/getUri.ts`                       | Pure port, no Trigger.dev deps                                               |
+| `src/moment/updateMomentMetadata.ts`       | `src/lib/moment/updateMomentMetadata.ts`       | Replace `logger` → `console.log`                                             |
 
 ### Files already in API (verify they match Tasks versions)
 
-| API file | Notes |
-|---|---|
-| `src/lib/arweave/uploadToArweave.ts` | Tasks version has `retry.onThrow` — API version is missing retry logic. Restore it. |
-| `src/lib/arweave/uploadJson.ts` | Matches |
-| `src/lib/arweave/logArweaveUpload.ts` | API version uses `next/server`'s `after()` — fine to keep |
-| `src/lib/arweave/turboClient.ts` | Matches |
-| `src/lib/arweave/patchFetch.ts` | Matches |
-| `src/lib/coinbase/getOrCreateSmartWallet.ts` | Matches |
-| `src/lib/coinbase/sendUserOperation.ts` | Matches |
-| `src/lib/viem/getUpdateTokenURICall.ts` | Matches |
-| `src/lib/mux/deleteAsset.ts` | Equivalent of Tasks' `deleteMuxAsset.ts` |
+| API file                                     | Notes                                                                               |
+| -------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `src/lib/arweave/uploadToArweave.ts`         | Tasks version has `retry.onThrow` — API version is missing retry logic. Restore it. |
+| `src/lib/arweave/uploadJson.ts`              | Matches                                                                             |
+| `src/lib/arweave/logArweaveUpload.ts`        | API version uses `next/server`'s `after()` — fine to keep                           |
+| `src/lib/arweave/turboClient.ts`             | Matches                                                                             |
+| `src/lib/arweave/patchFetch.ts`              | Matches                                                                             |
+| `src/lib/coinbase/getOrCreateSmartWallet.ts` | Matches                                                                             |
+| `src/lib/coinbase/sendUserOperation.ts`      | Matches                                                                             |
+| `src/lib/viem/getUpdateTokenURICall.ts`      | Matches                                                                             |
+| `src/lib/mux/deleteAsset.ts`                 | Equivalent of Tasks' `deleteMuxAsset.ts`                                            |
 
 ### Trigger.dev primitive replacements
 
-| Trigger.dev | Replacement |
-|---|---|
-| `logger.log/error/warn` | `console.log/error/warn` |
-| `retry.onThrow(fn, opts)` | `'use step'` function — auto-retries on any thrown error |
-| `retry.fetch(url, opts)` | Native `fetch` inside a `'use step'` function |
-| `wait.for({ minutes: 10 })` | `await sleep('10 minutes')` |
-| `schemaTask({ id, schema, run })` | Workflow function + step functions + API route |
-| `FatalError` (no-retry) | `throw new FatalError(...)` from `workflow` |
+| Trigger.dev                       | Replacement                                              |
+| --------------------------------- | -------------------------------------------------------- |
+| `logger.log/error/warn`           | `console.log/error/warn`                                 |
+| `retry.onThrow(fn, opts)`         | `'use step'` function — auto-retries on any thrown error |
+| `retry.fetch(url, opts)`          | Native `fetch` inside a `'use step'` function            |
+| `wait.for({ minutes: 10 })`       | `await sleep('10 minutes')`                              |
+| `schemaTask({ id, schema, run })` | Workflow function + step functions + API route           |
+| `FatalError` (no-retry)           | `throw new FatalError(...)` from `workflow`              |
 
 ---
 
@@ -123,16 +126,19 @@ export async function migrateMuxToArweaveWorkflow(payload: {
 }) {
   'use workflow';
 
-  const tokenUri       = await getTokenUriStep(payload);
-  const metadata       = await fetchMetadataStep(tokenUri);
+  const tokenUri = await getTokenUriStep(payload);
+  const metadata = await fetchMetadataStep(tokenUri);
 
   if (!metadata.content?.uri?.includes('mux.com'))
     throw new FatalError('Not a MUX token — skip retry');
 
-  const videoFile      = await downloadVideoStep(metadata.content.uri);
+  const videoFile = await downloadVideoStep(metadata.content.uri);
   const transcodedFile = await transcodeStep(videoFile);
-  const uploadResult   = await uploadToArweaveStep(transcodedFile, payload.artistAddress);
-  const metadataUri    = await uploadMetadataStep({ metadata, uploadResult });
+  const uploadResult = await uploadToArweaveStep(
+    transcodedFile,
+    payload.artistAddress
+  );
+  const metadataUri = await uploadMetadataStep({ metadata, uploadResult });
 
   await sleep('10 minutes'); // Arweave block propagation — zero compute cost
 
@@ -205,7 +211,7 @@ Schema: reuse or adapt `migrateMuxSchema` from Tasks' `src/schemas/migrateMuxSch
    - `src/lib/moment/__tests__/createMoment.test.ts`
    - `src/lib/moment/__tests__/updateMomentURI.test.ts`
    - `src/lib/collection/__tests__/updateCollectionURI.test.ts`
-   
+
    Mock `start` from `workflow/api` instead of `tasks.trigger`.
 
 2. Remove `@trigger.dev/sdk` from `package.json` (verify no other usages first).
@@ -220,25 +226,25 @@ Schema: reuse or adapt `migrateMuxSchema` from Tasks' `src/schemas/migrateMuxSch
 
 ## Key Risks
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| FFmpeg binaries (~50MB) push bundle over Vercel's 250MB limit | Build fails | Validate in Phase 1 before writing any other code |
-| Step payload > 50MB for large videos | Runtime error | Pass temp file paths between steps, not File objects |
-| Long transcode time hits Vercel Function timeout | Job killed mid-run | Verify Vercel Workflows max duration config; Fluid Compute should support it |
-| `workflow` SDK is new/preview — unexpected gaps | Blocked mid-migration | Keep Trigger.dev wired in parallel until Vercel Workflow path is proven in prod |
+| Risk                                                          | Impact                | Mitigation                                                                      |
+| ------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------- |
+| FFmpeg binaries (~50MB) push bundle over Vercel's 250MB limit | Build fails           | Validate in Phase 1 before writing any other code                               |
+| Step payload > 50MB for large videos                          | Runtime error         | Pass temp file paths between steps, not File objects                            |
+| Long transcode time hits Vercel Function timeout              | Job killed mid-run    | Verify Vercel Workflows max duration config; Fluid Compute should support it    |
+| `workflow` SDK is new/preview — unexpected gaps               | Blocked mid-migration | Keep Trigger.dev wired in parallel until Vercel Workflow path is proven in prod |
 
 ---
 
 ## Execution Order
 
-| Phase | Work | Estimated Time |
-|---|---|---|
-| 1 | Install deps, update next.config.ts, verify build | 1 hr |
-| 2 | Port utility files, replace Trigger.dev primitives | 1 day |
-| 3 | Write the workflow + step functions, test locally | 1 day |
-| 4 | Swap triggerMuxMigration body, update tests | 2 hr |
-| 5 | Add direct API endpoint | 1 hr |
-| 6 | Cleanup, env var removal, archive Tasks repo | 1 hr |
+| Phase | Work                                               | Estimated Time |
+| ----- | -------------------------------------------------- | -------------- |
+| 1     | Install deps, update next.config.ts, verify build  | 1 hr           |
+| 2     | Port utility files, replace Trigger.dev primitives | 1 day          |
+| 3     | Write the workflow + step functions, test locally  | 1 day          |
+| 4     | Swap triggerMuxMigration body, update tests        | 2 hr           |
+| 5     | Add direct API endpoint                            | 1 hr           |
+| 6     | Cleanup, env var removal, archive Tasks repo       | 1 hr           |
 
 **Total: ~3–4 days**
 
