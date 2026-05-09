@@ -2,6 +2,12 @@ import type { NextConfig } from 'next';
 import { withWorkflow } from 'workflow/next';
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: [
+    '@opentelemetry/resources',
+    '@opentelemetry/context-zone',
+    '@opentelemetry/exporter-trace-otlp-http',
+    '@ar.io/wayfinder-core',
+  ],
   async headers() {
     return [
       {
