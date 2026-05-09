@@ -2,9 +2,7 @@ import { sleep } from 'workflow';
 import { start } from 'workflow/api';
 import { Address } from 'viem';
 import fetchMetadataStep from './steps/fetchMetadataStep';
-import downloadVideoStep from './steps/downloadVideoStep';
-import transcodeStep from './steps/transcodeStep';
-import uploadVideoStep from './steps/uploadVideoStep';
+import downloadAndTranscodeStep from './steps/downloadAndTranscodeStep';
 import uploadMetadataStep from './steps/uploadMetadataStep';
 import updateOnChainStep from './steps/updateOnChainStep';
 import deleteMuxAssetStep from './steps/deleteMuxAssetStep';
@@ -32,9 +30,7 @@ async function migrateMuxToArweave(p: MigrateMuxToArweavePayload) {
       ? metadata.animation_url
       : undefined;
 
-  const videoFile = await downloadVideoStep(metadata.content.uri);
-  const transcodedFile = await transcodeStep(videoFile);
-  const uploadResult = await uploadVideoStep(transcodedFile, artistAddress);
+  const uploadResult = await downloadAndTranscodeStep(metadata.content.uri, artistAddress);
   const metadataUri = await uploadMetadataStep(
     metadata,
     uploadResult.arweave_uri
