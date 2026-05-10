@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     if (validated instanceof NextResponse) return validated;
     return getMuxAssetHandler(validated.uploadId);
   } catch (e: any) {
-    const message = e?.message ?? 'failed to get upload info';
+    const message = e?.message ?? 'Failed to retrieve asset';
     return Response.json({ message }, { status: 500 });
   }
 }

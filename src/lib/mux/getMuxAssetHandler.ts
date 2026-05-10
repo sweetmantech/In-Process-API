@@ -7,16 +7,18 @@ const getMuxAssetHandler = async (uploadId: string): Promise<NextResponse> => {
   if (!upload.asset_id) {
     return NextResponse.json({
       status: 'processing',
-      message: 'Upload complete, asset is being created',
+      message: 'Asset creation in progress',
     });
   }
 
   const asset = await mux.video.assets.retrieve(upload.asset_id);
 
-  if (asset.master?.status && asset.master.status !== 'ready') {
+  const renditionsStatus = asset.static_renditions?.status;
+
+  if (!renditionsStatus || renditionsStatus !== 'ready') {
     return NextResponse.json({
-      status: asset.master.status,
-      message: 'Asset is being processed',
+      status: renditionsStatus ?? 'preparing',
+      message: 'Video processing in progress',
       assetId: upload.asset_id,
     });
   }
@@ -31,7 +33,7 @@ const getMuxAssetHandler = async (uploadId: string): Promise<NextResponse> => {
     downloadUrl: playbackId
       ? `https://stream.mux.com/${playbackId}/highest.mp4`
       : null,
-    status: asset.master?.status,
+    status: renditionsStatus,
   });
 };
 

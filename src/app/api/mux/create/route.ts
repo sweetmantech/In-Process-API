@@ -1,38 +1,14 @@
-import { NextRequest } from 'next/server';
-import mux from '@/lib/mux';
-import { v4 as uuidv4 } from 'uuid';
-import { authMiddleware } from '@/authMiddleware';
-import cleanTemporaryAssets from '@/lib/mux/cleanTemporaryAssets';
+import { NextRequest, NextResponse } from 'next/server';
+import validateCreateMuxUpload from '@/lib/mux/validateCreateMuxUpload';
+import createMuxUploadHandler from '@/lib/mux/createMuxUploadHandler';
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
-    if (authResult instanceof Response) {
-      return authResult;
-    }
-
-    await cleanTemporaryAssets();
-
-    const id = uuidv4();
-    const upload = await mux.video.uploads.create({
-      cors_origin: '*',
-
-      new_asset_settings: {
-        passthrough: id,
-        playback_policy: ['public'],
-        video_quality: 'basic',
-        static_renditions: [{ resolution: 'highest' }],
-        master_access: 'temporary',
-      },
-    });
-
-    return Response.json({
-      uploadURL: upload.url,
-      uploadId: upload.id,
-    });
+    const validated = await validateCreateMuxUpload(req);
+    if (validated instanceof NextResponse) return validated;
+    return createMuxUploadHandler();
   } catch (e: any) {
-    console.log(e);
-    const message = e?.message ?? 'failed to create upload intent';
+    const message = e?.message ?? 'Failed to create upload';
     return Response.json({ message }, { status: 500 });
   }
 }
