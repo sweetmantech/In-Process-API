@@ -27,7 +27,7 @@ afterEach(() => {
 const readyAsset = {
   status: 'ready',
   playback_ids: [{ id: 'pb-id' }],
-  master: { status: 'ready', url: 'https://stream.mux.com/pb-id/master.mp4' },
+  static_renditions: { status: 'ready' },
 };
 
 describe('pollMuxAsset', () => {
@@ -40,7 +40,7 @@ describe('pollMuxAsset', () => {
     const result = await promise;
 
     expect(result.playbackUrl).toBe('https://stream.mux.com/pb-id.m3u8');
-    expect(result.downloadUrl).toBe('https://stream.mux.com/pb-id/master.mp4');
+    expect(result.downloadUrl).toBe('https://stream.mux.com/pb-id/highest.mp4');
   });
 
   it('retries until asset_id appears', async () => {
@@ -57,11 +57,11 @@ describe('pollMuxAsset', () => {
     expect(result.playbackUrl).toBe('https://stream.mux.com/pb-id.m3u8');
   });
 
-  it('retries until asset status becomes ready', async () => {
+  it('retries until renditions become ready', async () => {
     const processingAsset = {
       status: 'preparing',
       playback_ids: [{ id: 'pb-id' }],
-      master: { status: 'preparing' },
+      static_renditions: { status: 'preparing' },
     };
     mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
     mockAsset
@@ -74,6 +74,23 @@ describe('pollMuxAsset', () => {
 
     expect(mockAsset).toHaveBeenCalledTimes(2);
     expect(result.playbackUrl).toBe('https://stream.mux.com/pb-id.m3u8');
+  });
+
+  it('resolves when highest.mp4 file is ready even without status field', async () => {
+    mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
+    mockAsset.mockResolvedValue({
+      status: 'ready',
+      playback_ids: [{ id: 'pb-id' }],
+      static_renditions: {
+        files: [{ name: 'highest.mp4', status: 'ready' }],
+      },
+    } as any);
+
+    const promise = pollMuxAsset('upload-id');
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result.downloadUrl).toBe('https://stream.mux.com/pb-id/highest.mp4');
   });
 
   it('throws after max retries are exhausted', async () => {
