@@ -41,14 +41,6 @@ describe('deleteFromHereNow', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('does nothing when HERENOW_API_KEY is not set', async () => {
-    vi.stubEnv('HERENOW_API_KEY', '');
-
-    await deleteFromHereNow('https://my-slug.here.now/file.png');
-
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
   it('does not throw when fetch fails', async () => {
     fetchMock.mockRejectedValue(new Error('network error'));
 

@@ -21,16 +21,6 @@ describe('finalizeHandler', () => {
     fetchMock.mockImplementation(() => makeOkFetch({ siteUrl: SITE_URL }));
   });
 
-  it('returns 500 when HERENOW_API_KEY is not set', async () => {
-    vi.stubEnv('HERENOW_API_KEY', '');
-
-    const res = await finalizeHandler('abc123', 'v1');
-    const body = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(body.message).toBe('HERENOW_API_KEY not configured');
-  });
-
   it('calls here.now finalize API with correct slug and versionId', async () => {
     await finalizeHandler('abc123', 'v1');
 

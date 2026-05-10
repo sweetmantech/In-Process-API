@@ -5,18 +5,10 @@ const finalizeHandler = async (
   versionId: string,
   filePath?: string
 ): Promise<NextResponse> => {
-  const apiKey = process.env.HERENOW_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { message: 'HERENOW_API_KEY not configured' },
-      { status: 500 }
-    );
-  }
-
   const res = await fetch(`https://here.now/api/v1/publish/${slug}/finalize`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${process.env.HERENOW_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ versionId }),

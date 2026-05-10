@@ -6,7 +6,7 @@ const deleteFromHereNow = async (url: string): Promise<void> => {
 
   const slug = extractSlug(url);
   const apiKey = process.env.HERENOW_API_KEY;
-  if (!slug || !apiKey) return;
+  if (!slug) return;
 
   await fetch(`https://here.now/api/v1/publish/${slug}`, {
     method: 'DELETE',

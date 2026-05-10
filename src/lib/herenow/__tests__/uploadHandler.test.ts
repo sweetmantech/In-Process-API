@@ -32,16 +32,6 @@ describe('uploadHandler', () => {
     fetchMock.mockImplementation(() => makeOkFetch(HERENOW_RESPONSE));
   });
 
-  it('returns 500 when HERENOW_API_KEY is not set', async () => {
-    vi.stubEnv('HERENOW_API_KEY', '');
-
-    const res = await uploadHandler('file.png', 1024, 'image/png', 'abc');
-    const body = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(body.message).toBe('HERENOW_API_KEY not configured');
-  });
-
   it('calls here.now publish API with correct payload', async () => {
     await uploadHandler('file.png', 1024, 'image/png', 'deadbeef');
 
