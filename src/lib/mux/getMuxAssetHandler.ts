@@ -27,11 +27,10 @@ const getMuxAssetHandler = async (uploadId: string): Promise<NextResponse> => {
     playbackUrl: playbackId
       ? `https://stream.mux.com/${playbackId}.m3u8`
       : null,
-    h264Url: playbackId
+    assetId: upload.asset_id,
+    downloadUrl: playbackId
       ? `https://stream.mux.com/${playbackId}/highest.mp4`
       : null,
-    assetId: upload.asset_id,
-    downloadUrl: asset.master?.url,
     status: asset.master?.status,
   });
 };
