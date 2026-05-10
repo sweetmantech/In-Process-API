@@ -85,4 +85,37 @@ describe('getMuxAssetHandler', () => {
     expect(body.playbackUrl).toBeNull();
     expect(body.downloadUrl).toBeNull();
   });
+
+  it('returns ready when status is absent but highest.mp4 file is ready', async () => {
+    mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
+    mockAsset.mockResolvedValue({
+      static_renditions: {
+        files: [{ name: 'highest.mp4', status: 'ready' }],
+      },
+      playback_ids: [{ id: 'pb-abc' }],
+    } as any);
+
+    const res = await getMuxAssetHandler('upload-id');
+    const body = await res.json();
+
+    expect(body.status).toBe('ready');
+    expect(body.playbackUrl).toBe('https://stream.mux.com/pb-abc.m3u8');
+    expect(body.downloadUrl).toBe('https://stream.mux.com/pb-abc/highest.mp4');
+  });
+
+  it('returns preparing when status is absent and highest.mp4 is not ready', async () => {
+    mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
+    mockAsset.mockResolvedValue({
+      static_renditions: {
+        files: [{ name: 'highest.mp4', status: 'preparing' }],
+      },
+      playback_ids: [{ id: 'pb-abc' }],
+    } as any);
+
+    const res = await getMuxAssetHandler('upload-id');
+    const body = await res.json();
+
+    expect(body.status).toBe('preparing');
+    expect(body.message).toBe('Video processing in progress');
+  });
 });
