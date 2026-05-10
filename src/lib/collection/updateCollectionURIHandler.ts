@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { updateCollectionURISchema } from '@/lib/schema/updateCollectionURISchema';
 import { updateCollectionURI } from '@/lib/collection/updateCollectionURI';
+import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 
 type UpdateCollectionURIHandlerInput = z.infer<
   typeof updateCollectionURISchema
@@ -22,6 +23,17 @@ const updateCollectionURIHandler = async ({
     newCollectionName,
     artistAddress: artistAddress as Address,
   });
+
+  migrateMuxToArweave({
+    artistAddress: artistAddress as Address,
+    moment: {
+      collectionAddress: collection.address,
+      tokenId: '0',
+      chainId: collection.chainId,
+    },
+    uri: newUri,
+  });
+
   return NextResponse.json(result);
 };
 

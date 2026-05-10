@@ -9,7 +9,7 @@ import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import parseMomentTransaction from './parseMomentTransaction';
 import resolvePayoutRecipient from './resolvePayoutRecipient';
-import triggerMuxMigration from '../trigger.dev/triggerMuxMigration';
+import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import indexMoment from './indexMoment';
 
@@ -75,11 +75,10 @@ export async function createMoment(
     existingContractAddress: input.contract.address,
   });
 
-  await triggerMuxMigration({
+  migrateMuxToArweave({
+    artistAddress: input.account as Address,
+    moment: { collectionAddress: contractAddress, tokenId, chainId: CHAIN_ID },
     uri: input.token.tokenMetadataURI,
-    collectionAddress: contractAddress,
-    tokenId,
-    artistAddress: input.account as `0x${string}`,
   });
 
   await indexMoment({

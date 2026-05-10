@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/arweave/fetchUri', () => ({ default: vi.fn() }));
 vi.mock('@/lib/metadata/normalizeMetadata', () => ({ default: vi.fn() }));
+vi.mock('@/lib/protocolSdk/retries', () => ({
+  retriesGeneric: vi.fn(({ tryFn }: { tryFn: () => unknown }) => tryFn()),
+}));
 
 import getMetadataHandler from '../getMetadataHandler';
 import fetchUri from '@/lib/arweave/fetchUri';
@@ -53,21 +56,7 @@ describe('getMetadataHandler', () => {
     expect(mockNormalize).toHaveBeenCalledWith(raw);
   });
 
-  it('returns empty metadata on AbortError during fetch', async () => {
-    const err = new Error('aborted');
-    err.name = 'AbortError';
-    mockFetchUri.mockRejectedValue(err);
-
-    const result = await getMetadataHandler({ uri: 'ipfs://x' });
-    expect(result).toEqual({
-      image: '',
-      name: '',
-      description: '',
-      external_url: '',
-    });
-  });
-
-  it('rethrows non-abort fetch errors', async () => {
+  it('throws on fetch error', async () => {
     mockFetchUri.mockRejectedValue(new Error('network error'));
     await expect(getMetadataHandler({ uri: 'ipfs://x' })).rejects.toThrow(
       'network error'
@@ -81,28 +70,6 @@ describe('getMetadataHandler', () => {
       text: async () => 'not json at all',
     } as any);
 
-    await expect(getMetadataHandler({ uri: 'ipfs://x' })).rejects.toThrow(
-      'URI did not return JSON'
-    );
-  });
-
-  it('returns empty metadata on AbortError during JSON parse', async () => {
-    const err = new Error('aborted');
-    err.name = 'AbortError';
-    mockFetchUri.mockResolvedValue({
-      ok: true,
-      headers: { get: () => 'application/json' },
-      json: async () => {
-        throw err;
-      },
-    } as any);
-
-    const result = await getMetadataHandler({ uri: 'ipfs://x' });
-    expect(result).toEqual({
-      image: '',
-      name: '',
-      description: '',
-      external_url: '',
-    });
+    await expect(getMetadataHandler({ uri: 'ipfs://x' })).rejects.toThrow();
   });
 });

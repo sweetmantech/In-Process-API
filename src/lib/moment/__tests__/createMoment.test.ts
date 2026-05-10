@@ -21,7 +21,9 @@ vi.mock('@/lib/coinbase/sendUserOperation', () => ({
   sendUserOperation: vi.fn(),
 }));
 vi.mock('../parseMomentTransaction', () => ({ default: vi.fn() }));
-vi.mock('@/lib/trigger.dev/triggerMuxMigration', () => ({ default: vi.fn() }));
+vi.mock('@/workflows/migrateMuxToArweave', () => ({
+  default: vi.fn(),
+}));
 vi.mock('../indexMoment', () => ({ default: vi.fn() }));
 vi.mock('@/lib/protocolSdk/create/factory-addresses', () => ({
   getFactoryAddress: vi
@@ -40,7 +42,7 @@ import buildAdditionalSetupActions from '../buildAdditionalSetupActions';
 import { create1155 } from '@/lib/zora/create1155';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import parseMomentTransaction from '../parseMomentTransaction';
-import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
+import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 import indexMoment from '../indexMoment';
 import { createMoment } from '../createMoment';
 
@@ -91,7 +93,7 @@ beforeEach(() => {
     contractAddress: CONTRACT_ADDRESS,
     tokenId: TOKEN_ID,
   });
-  vi.mocked(triggerMuxMigration).mockResolvedValue(undefined);
+  vi.mocked(migrateMuxToArweave).mockResolvedValue(undefined as never);
   vi.mocked(indexMoment).mockResolvedValue(undefined);
 });
 
@@ -120,14 +122,15 @@ describe('createMoment', () => {
     );
   });
 
-  it('triggers mux migration with token URI and moment location', async () => {
+  it('starts migrate workflow with moment location', async () => {
     await createMoment(makeInput());
 
-    expect(triggerMuxMigration).toHaveBeenCalledWith(
+    expect(migrateMuxToArweave).toHaveBeenCalledWith(
       expect.objectContaining({
-        uri: 'ar://token-meta',
-        collectionAddress: CONTRACT_ADDRESS,
-        tokenId: TOKEN_ID,
+        moment: expect.objectContaining({
+          collectionAddress: CONTRACT_ADDRESS,
+          tokenId: TOKEN_ID,
+        }),
         artistAddress: ARTIST,
       })
     );

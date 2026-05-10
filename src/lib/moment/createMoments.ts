@@ -21,7 +21,7 @@ import resolvePayoutRecipient from './resolvePayoutRecipient';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import parseMomentsTransaction from './parseMomentsTransaction';
 import parseSetupNewTokenEventsOnContract from './parseSetupNewTokenEventsOnContract';
-import triggerMuxMigration from '@/lib/trigger.dev/triggerMuxMigration';
+import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 import indexMoment from './indexMoment';
 
 export interface MomentInput {
@@ -127,11 +127,14 @@ const createMoments = async (
       }
 
       return Promise.all([
-        triggerMuxMigration({
-          uri,
-          collectionAddress: contractAddress,
-          tokenId,
+        migrateMuxToArweave({
           artistAddress,
+          moment: {
+            collectionAddress: contractAddress,
+            tokenId,
+            chainId: CHAIN_ID,
+          },
+          uri,
         }),
         indexMoment({
           contractAddress,

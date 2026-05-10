@@ -27,9 +27,16 @@
     "@coinbase/coinbase-sdk": "^0.25.0",
     "@mux/mux-node": "^12.8.1",
     "@mux/upchunk": "^3.5.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/context-zone": "^2.7.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.206.0",
+    "@opentelemetry/resources": "^2.0.0",
+    "@opentelemetry/sdk-trace-base": "^2.7.1",
+    "@opentelemetry/sdk-trace-node": "^2.7.1",
+    "@opentelemetry/sdk-trace-web": "^2.7.1",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
     "@privy-io/node": "^0.8.0",
     "@supabase/supabase-js": "^2.93.1",
-    "@trigger.dev/sdk": "^4.3.3",
     "@types/node-telegram-bot-api": "^0.64.13",
     "@vercel/blob": "^2.3.3",
     "@vercel/og": "^0.8.6",
@@ -47,9 +54,11 @@
     "telnyx": "^5.11.0",
     "uuid": "^13.0.0",
     "viem": "^2.45.0",
+    "workflow": "^4.2.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/fluent-ffmpeg": "^2.1.28",
     "@types/node": "^25.0.10",
     "@types/react": "19.2.9",
     "@types/semver": "^7.7.1",
@@ -61,5 +70,14 @@
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@swc/core",
+      "cbor-extract",
+      "esbuild",
+      "ffmpeg-static"
+    ]
   }
 }
