@@ -71,6 +71,18 @@ describe('uploadHandler', () => {
     });
   });
 
+  it('returns 500 when uploads array is empty', async () => {
+    fetchMock.mockImplementation(() =>
+      makeOkFetch({ slug: 'abc123', upload: { versionId: 'v1', uploads: [] } })
+    );
+
+    const res = await uploadHandler('file.png', 1024, 'image/png', 'deadbeef');
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body.message).toBe('No upload URL returned');
+  });
+
   it('returns 500 with here.now error message when publish fails', async () => {
     fetchMock.mockImplementation(() =>
       makeFailFetch({ message: 'quota exceeded' })

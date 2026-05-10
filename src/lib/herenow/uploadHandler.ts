@@ -35,6 +35,15 @@ const uploadHandler = async (
   };
 
   const upload = data.upload.uploads[0];
+  if (
+    !Array.isArray(data.upload?.uploads) ||
+    data.upload.uploads.length === 0
+  ) {
+    return NextResponse.json(
+      { message: 'No upload URL returned' },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({
     uploadUrl: upload.url,
