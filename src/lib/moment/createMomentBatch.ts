@@ -1,141 +1,98 @@
-import { Address, encodeFunctionData, getAddress, Hash } from 'viem';
+import { zoraCreator1155ImplABI } from '@zoralabs/protocol-deployments';
+import { Address, encodeFunctionData, Hash } from 'viem';
 import { z } from 'zod';
 import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
+import { constructCreate1155TokenCalls } from '@/lib/protocolSdk/create/token-setup';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
-import { create1155 } from '@/lib/zora/create1155';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
-import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
+import { normalizeSplitRecipients } from '@/lib/splits/normalizeSplitRecipients';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import indexMoment from './indexMoment';
 import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
-import parseSetupNewTokenEventsOnContract from './parseSetupNewTokenEventsOnContract';
-import resolvePayoutRecipient from './resolvePayoutRecipient';
-import { createMoment } from './createMoment';
+import { processSplits } from '../splits/processSplits';
+import getContractSetup from '../viem/getContractSetup';
+import createTokenParam from './createTokenParam';
+import getCreatedTokenIds from './getCreatedTokenIds';
 
 export type CreateMomentBatchInput = z.infer<typeof createMomentBatchSchema>;
 
 export interface CreateMomentBatchResult {
   contractAddress: Address;
   hash: Hash;
-  tokenId: string;
   chainId: number;
+  tokenIds: string[];
 }
 
 const createMomentBatch = async (
   input: CreateMomentBatchInput
-): Promise<CreateMomentBatchResult[]> => {
-  if (input.tokens.length === 0) return [];
-
-  if (!input.contract.address) {
-    const [firstToken, ...remainingTokens] = input.tokens;
-    const firstResult = await createMoment({
-      contract: input.contract,
-      token: firstToken,
-      account: input.account,
-      splits: input.splits,
-      channel: input.channel,
-    });
-
-    if (remainingTokens.length === 0) return [firstResult];
-
-    const remainingResults = await createMomentBatch({
-      ...input,
-      contract: { address: firstResult.contractAddress },
-      tokens: remainingTokens,
-    });
-
-    return [firstResult, ...remainingResults];
-  }
-
-  const contractAddress = getAddress(input.contract.address);
+): Promise<CreateMomentBatchResult> => {
+  const contractAddress = input.contract.address;
   const smartAccount = await getOrCreateSmartWallet({
     address: input.account as Address,
   });
-  const resolvedSplits = await resolveSplitAddresses(input.splits || []);
+  const { nextTokenId, contractVersion, name } =
+    await getContractSetup(contractAddress);
+
+  const normalizedSplits = await normalizeSplitRecipients(input.splits || []);
+  const { splitAddress } = await processSplits(normalizedSplits, smartAccount);
   const additionalSetupActions = await buildAdditionalSetupActions({
-    resolvedSplits,
+    splits: normalizedSplits,
     smartAccountAddress: smartAccount.address,
     hasExistingContract: true,
   });
 
-  const allParameters = await Promise.all(
-    input.tokens.map(async (token) => {
-      const payoutRecipient = await resolvePayoutRecipient({
-        resolvedSplits,
-        smartAccount,
-        defaultPayoutRecipient: token.payoutRecipient,
-      });
+  const setupActions = input.tokens.flatMap((token, index) => {
+    const tokenId = nextTokenId + BigInt(index);
+    const payoutRecipient = splitAddress ?? token.payoutRecipient;
+    const { setupActions: tokenSetupActions } = constructCreate1155TokenCalls({
+      chainId: CHAIN_ID,
+      ownerAddress: input.account as Address,
+      contractVersion,
+      nextTokenId: tokenId,
+      contractName: name,
+      ...createTokenParam(token, payoutRecipient),
+    });
 
-      return create1155({
-        contract: { address: contractAddress },
-        token: { ...token, ...(payoutRecipient && { payoutRecipient }) },
-        account: input.account,
-        splits: input.splits,
-        channel: input.channel,
-        ...(additionalSetupActions && { additionalSetupActions }),
-      });
-    })
-  );
+    return [
+      ...(additionalSetupActions?.({ tokenId }) ?? []),
+      ...tokenSetupActions,
+    ];
+  });
 
-  const calls = allParameters.map(({ parameters }) => ({
-    to: parameters.address,
-    data: encodeFunctionData({
-      abi: parameters.abi,
-      functionName: 'multicall',
-      args: parameters.args,
-    }),
-  }));
+  const functionCallData = encodeFunctionData({
+    abi: zoraCreator1155ImplABI,
+    functionName: 'multicall',
+    args: [setupActions],
+  });
 
   const transaction = await sendUserOperation({
     smartAccount,
     network: IS_TESTNET ? 'base-sepolia' : 'base',
-    calls,
+    calls: [{ to: contractAddress, data: functionCallData }],
   });
 
-  const remainingParsedResults = parseSetupNewTokenEventsOnContract(
-    transaction.logs,
-    contractAddress
-  );
-
-  if (remainingParsedResults.length < input.tokens.length) {
-    throw new Error('Not all batch tokens were found in transaction logs');
-  }
-
-  const results = input.tokens.map((token) => {
-    const resultIndex = remainingParsedResults.findIndex(
-      (result) => result.uri === token.tokenMetadataURI
-    );
-    if (resultIndex === -1) {
-      throw new Error(
-        `SetupNewToken event not found for URI ${token.tokenMetadataURI}`
-      );
-    }
-
-    const [result] = remainingParsedResults.splice(resultIndex, 1);
-    return {
-      contractAddress: result.contractAddress,
-      tokenId: result.tokenId,
-      hash: transaction.transactionHash as Hash,
-      chainId: CHAIN_ID,
-    };
+  const tokenIds = getCreatedTokenIds({
+    logs: transaction.logs,
+    contractAddress,
+    tokens: input.tokens,
   });
 
   await Promise.all(
-    results.map((result, index) =>
+    tokenIds.map((tokenId, index) =>
       Promise.all([
         migrateMuxToArweave({
           artistAddress: input.account as Address,
           moment: {
-            collectionAddress: result.contractAddress,
-            tokenId: result.tokenId,
+            collectionAddress: contractAddress,
+            tokenId,
             chainId: CHAIN_ID,
           },
           uri: input.tokens[index].tokenMetadataURI,
         }),
         indexMoment({
-          contractAddress: result.contractAddress,
-          tokenId: result.tokenId,
+          contractAddress,
+          tokenId,
           artistAddress: input.account,
           channel: input.channel,
           contract: { address: contractAddress },
@@ -145,7 +102,12 @@ const createMomentBatch = async (
     )
   );
 
-  return results;
+  return {
+    contractAddress,
+    hash: transaction.transactionHash as Hash,
+    chainId: CHAIN_ID,
+    tokenIds,
+  };
 };
 
 export default createMomentBatch;

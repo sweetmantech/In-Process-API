@@ -6,11 +6,9 @@ import { Address, getAddress, Log, parseEventLogs } from 'viem';
 
 const parseMomentTransaction = ({
   logs,
-  isNewContract,
   existingContractAddress,
 }: {
   logs: Log[];
-  isNewContract: boolean;
   existingContractAddress?: string;
 }): { contractAddress: Address; tokenId: string } => {
   const collectionLogs = parseEventLogs({
@@ -24,7 +22,9 @@ const parseMomentTransaction = ({
   }
 
   let contractAddress: Address;
-  if (isNewContract) {
+  if (existingContractAddress) {
+    contractAddress = getAddress(existingContractAddress);
+  } else {
     const factoryLogs = parseEventLogs({
       abi: zoraCreator1155FactoryImplABI,
       logs,
@@ -35,13 +35,6 @@ const parseMomentTransaction = ({
     }
     contractAddress = (factoryLogs[0].args as { newContract: Address })
       .newContract;
-  } else {
-    if (!existingContractAddress) {
-      throw new Error(
-        'Expected contract.address when adding token to existing contract'
-      );
-    }
-    contractAddress = getAddress(existingContractAddress);
   }
 
   return {

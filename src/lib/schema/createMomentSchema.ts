@@ -101,7 +101,9 @@ export const createMomentSchema = baseCreateMomentSchema.superRefine(
 
 export const createMomentBatchSchema = z
   .object({
-    contract: contractSchema,
+    contract: z.object({
+      address: addressSchema,
+    }),
     tokens: z.array(tokenSchema).min(1, 'At least one token is required'),
     account: addressSchema,
     splits: z.array(splitSchema).optional(),

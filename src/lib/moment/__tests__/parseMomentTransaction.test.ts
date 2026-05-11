@@ -19,54 +19,34 @@ describe('parseMomentTransaction', () => {
     vi.clearAllMocks();
   });
 
-  describe('new contract', () => {
+  describe('when existingContractAddress is provided', () => {
     beforeEach(() => {
-      mockParseEventLogs
-        .mockReturnValueOnce([{ args: { tokenId: 5n } }] as any) // SetupNewToken
-        .mockReturnValueOnce([{ args: { newContract: NEW_CONTRACT } }] as any); // SetupNewContract
+      mockParseEventLogs.mockReturnValueOnce([
+        { args: { tokenId: 3n } },
+      ] as any); // SetupNewToken
     });
 
     it('extracts tokenId as string from SetupNewToken event', () => {
       const { tokenId } = parseMomentTransaction({
         logs: LOGS,
-        isNewContract: true,
-      });
-
-      expect(tokenId).toBe('5');
-    });
-
-    it('extracts contractAddress from SetupNewContract event', () => {
-      const { contractAddress } = parseMomentTransaction({
-        logs: LOGS,
-        isNewContract: true,
-      });
-
-      expect(contractAddress).toBe(NEW_CONTRACT);
-    });
-  });
-
-  describe('existing contract', () => {
-    beforeEach(() => {
-      mockParseEventLogs.mockReturnValueOnce([
-        { args: { tokenId: 3n } },
-      ] as any);
-    });
-
-    it('extracts tokenId and uses the provided contract address', () => {
-      const { tokenId, contractAddress } = parseMomentTransaction({
-        logs: LOGS,
-        isNewContract: false,
         existingContractAddress: CONTRACT,
       });
 
       expect(tokenId).toBe('3');
-      expect(contractAddress.toLowerCase()).toBe(CONTRACT.toLowerCase());
     });
 
-    it('parses only one event log when not a new contract', () => {
+    it('uses the existing contract address', () => {
+      const { contractAddress } = parseMomentTransaction({
+        logs: LOGS,
+        existingContractAddress: CONTRACT,
+      });
+
+      expect(contractAddress).toBe(CONTRACT);
+    });
+
+    it('only parses SetupNewToken logs', () => {
       parseMomentTransaction({
         logs: LOGS,
-        isNewContract: false,
         existingContractAddress: CONTRACT,
       });
 
@@ -74,14 +54,30 @@ describe('parseMomentTransaction', () => {
     });
   });
 
-  it('throws when isNewContract is false and no existingContractAddress', () => {
-    mockParseEventLogs.mockReturnValueOnce([{ args: { tokenId: 1n } }] as any);
+  describe('when existingContractAddress is omitted', () => {
+    beforeEach(() => {
+      mockParseEventLogs
+        .mockReturnValueOnce([{ args: { tokenId: 5n } }] as any) // SetupNewToken
+        .mockReturnValueOnce([{ args: { newContract: NEW_CONTRACT } }] as any); // SetupNewContract
+    });
 
-    expect(() =>
-      parseMomentTransaction({ logs: LOGS, isNewContract: false })
-    ).toThrow(
-      'Expected contract.address when adding token to existing contract'
-    );
+    it('extracts tokenId as string from SetupNewToken event', () => {
+      const { tokenId } = parseMomentTransaction({ logs: LOGS });
+
+      expect(tokenId).toBe('5');
+    });
+
+    it('extracts contractAddress from SetupNewContract event', () => {
+      const { contractAddress } = parseMomentTransaction({ logs: LOGS });
+
+      expect(contractAddress).toBe(NEW_CONTRACT);
+    });
+
+    it('calls parseEventLogs twice (token setup then factory)', () => {
+      parseMomentTransaction({ logs: LOGS });
+
+      expect(mockParseEventLogs).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('throws when SetupNewToken event is absent from logs', () => {
@@ -90,19 +86,20 @@ describe('parseMomentTransaction', () => {
     expect(() =>
       parseMomentTransaction({
         logs: LOGS,
-        isNewContract: false,
         existingContractAddress: CONTRACT,
       })
     ).toThrow('SetupNewToken event not found in transaction logs');
   });
 
-  it('throws when SetupNewContract event is absent from logs for new contract', () => {
+  it('throws when SetupNewContract event is absent for a new contract', () => {
     mockParseEventLogs
       .mockReturnValueOnce([{ args: { tokenId: 1n } }] as any) // SetupNewToken present
       .mockReturnValueOnce([] as any); // SetupNewContract absent
 
     expect(() =>
-      parseMomentTransaction({ logs: LOGS, isNewContract: true })
+      parseMomentTransaction({
+        logs: LOGS,
+      })
     ).toThrow('SetupNewContract event not found in transaction logs');
   });
 });

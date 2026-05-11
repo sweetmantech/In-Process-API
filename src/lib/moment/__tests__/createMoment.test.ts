@@ -11,10 +11,12 @@ vi.mock('viem', async (importOriginal) => {
 vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
   getOrCreateSmartWallet: vi.fn(),
 }));
-vi.mock('@/lib/splits/resolveSplitAddresses', () => ({
-  resolveSplitAddresses: vi.fn(),
+vi.mock('@/lib/splits/normalizeSplitRecipients', () => ({
+  normalizeSplitRecipients: vi.fn(),
 }));
-vi.mock('../resolvePayoutRecipient', () => ({ default: vi.fn() }));
+vi.mock('@/lib/splits/processSplits', () => ({
+  processSplits: vi.fn(),
+}));
 vi.mock('../buildAdditionalSetupActions', () => ({ default: vi.fn() }));
 vi.mock('@/lib/zora/create1155', () => ({ create1155: vi.fn() }));
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
@@ -36,8 +38,8 @@ vi.mock('@/lib/consts', () => ({
 }));
 
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
-import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
-import resolvePayoutRecipient from '../resolvePayoutRecipient';
+import { normalizeSplitRecipients } from '@/lib/splits/normalizeSplitRecipients';
+import { processSplits } from '@/lib/splits/processSplits';
 import buildAdditionalSetupActions from '../buildAdditionalSetupActions';
 import { create1155 } from '@/lib/zora/create1155';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
@@ -81,8 +83,8 @@ const PARAMETERS = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getOrCreateSmartWallet).mockResolvedValue(SMART_ACCOUNT as never);
-  vi.mocked(resolveSplitAddresses).mockResolvedValue([]);
-  vi.mocked(resolvePayoutRecipient).mockResolvedValue(ARTIST);
+  vi.mocked(normalizeSplitRecipients).mockResolvedValue([]);
+  vi.mocked(processSplits).mockResolvedValue({ splitAddress: null });
   vi.mocked(buildAdditionalSetupActions).mockResolvedValue(undefined);
   vi.mocked(create1155).mockResolvedValue({ parameters: PARAMETERS } as never);
   vi.mocked(sendUserOperation).mockResolvedValue({

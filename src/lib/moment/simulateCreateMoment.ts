@@ -1,16 +1,15 @@
-import { Address, encodeFunctionData, getAddress } from 'viem';
+import { Address, encodeFunctionData } from 'viem';
 import { z } from 'zod';
-import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
+import { IS_TESTNET } from '@/lib/consts';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
 import { create1155 } from '@/lib/zora/create1155';
 import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
-import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
-import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
-import resolvePayoutRecipient from './resolvePayoutRecipient';
+import { normalizeSplitRecipients } from '@/lib/splits/normalizeSplitRecipients';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import { publicClient } from '@/lib/viem/publicClient';
 import { prepareUserOperation } from '@/lib/coinbase/prepareUserOperation';
 import parseSimulateContractError from './parseSimulateContractError';
+import { processSplits } from '../splits/processSplits';
 
 export type SimulateCreateMomentInput = z.infer<typeof createMomentSchema>;
 
@@ -32,37 +31,29 @@ export async function simulateCreateMoment(
     address: input.account as Address,
   });
 
-  const resolvedSplits = await resolveSplitAddresses(input.splits || []);
-
-  const payoutRecipient = await resolvePayoutRecipient({
-    resolvedSplits,
-    smartAccount,
-    defaultPayoutRecipient: input.token.payoutRecipient,
-  });
+  const splits = await normalizeSplitRecipients(input.splits || []);
+  const { splitAddress } = await processSplits(splits, smartAccount);
 
   const additionalSetupActions = await buildAdditionalSetupActions({
-    resolvedSplits,
+    splits,
     smartAccountAddress: smartAccount.address,
     hasExistingContract: !!input.contract.address,
   });
 
   const { parameters } = await create1155({
     ...input,
-    token: { ...input.token, ...(payoutRecipient && { payoutRecipient }) },
+    token: {
+      ...input.token,
+      payoutRecipient: splitAddress ?? input.token.payoutRecipient,
+    },
     ...(additionalSetupActions && { additionalSetupActions }),
   });
 
-  const isNewContractByAddress =
-    getAddress(parameters.address) === getAddress(getFactoryAddress(CHAIN_ID));
-
-  const functionName = isNewContractByAddress ? 'createContract' : 'multicall';
-
-  // Step 1: simulateContract — contract-level validation (no gas spent)
   try {
     await publicClient.simulateContract({
       address: parameters.address,
       abi: parameters.abi,
-      functionName,
+      functionName: input.contract.address ? 'multicall' : 'createContract',
       args: parameters.args,
       account: smartAccount.address,
     });
@@ -72,7 +63,7 @@ export async function simulateCreateMoment(
 
   const functionCallData = encodeFunctionData({
     abi: parameters.abi,
-    functionName,
+    functionName: input.contract.address ? 'multicall' : 'createContract',
     args: parameters.args,
   });
 

@@ -13,12 +13,9 @@ import {
 } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
-import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
 import { create1155 } from '@/lib/zora/create1155';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import resolvePayoutRecipient from './resolvePayoutRecipient';
-import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import parseMomentsTransaction from './parseMomentsTransaction';
 import parseSetupNewTokenEventsOnContract from './parseSetupNewTokenEventsOnContract';
 import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
@@ -41,17 +38,6 @@ const createMoments = async (
   const useExisting = !!existingCollection;
 
   const smartAccount = await getOrCreateSmartWallet({ address: artistAddress });
-  const resolvedSplits = await resolveSplitAddresses([]);
-  const payoutRecipient = await resolvePayoutRecipient({
-    resolvedSplits,
-    smartAccount,
-    defaultPayoutRecipient: artistAddress,
-  });
-  const additionalSetupActions = await buildAdditionalSetupActions({
-    resolvedSplits,
-    smartAccountAddress: smartAccount.address,
-    hasExistingContract: useExisting,
-  });
 
   const allParameters = await Promise.all(
     inputs.map(({ uri, name }) => {
@@ -72,11 +58,10 @@ const createMoments = async (
             currency: USDC_ADDRESS[CHAIN_ID],
           },
           mintToCreatorCount: 1,
-          payoutRecipient: payoutRecipient ?? artistAddress,
+          payoutRecipient: artistAddress,
         },
         account: artistAddress,
         channel,
-        ...(additionalSetupActions && { additionalSetupActions }),
       });
     })
   );

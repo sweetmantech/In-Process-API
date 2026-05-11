@@ -4,7 +4,7 @@ import createMomentBatch, {
 
 const createMomentBatchHandler = async (input: CreateMomentBatchInput) => {
   const result = await createMomentBatch(input);
-  return Response.json({ moments: result });
+  return Response.json(result);
 };
 
 export default createMomentBatchHandler;

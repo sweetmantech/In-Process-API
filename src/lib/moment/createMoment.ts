@@ -1,17 +1,16 @@
-import { Address, encodeFunctionData, Hash, getAddress } from 'viem';
+import { Address, encodeFunctionData, Hash } from 'viem';
 import { z } from 'zod';
 import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
 import { create1155 } from '@/lib/zora/create1155';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
-import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
-import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
+import { normalizeSplitRecipients } from '@/lib/splits/normalizeSplitRecipients';
 import parseMomentTransaction from './parseMomentTransaction';
-import resolvePayoutRecipient from './resolvePayoutRecipient';
 import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
 import indexMoment from './indexMoment';
+import { processSplits } from '../splits/processSplits';
 
 export type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
 
@@ -34,32 +33,27 @@ export async function createMoment(
     address: input.account as Address,
   });
 
-  const resolvedSplits = await resolveSplitAddresses(input.splits || []);
-
-  const payoutRecipient = await resolvePayoutRecipient({
-    resolvedSplits,
-    smartAccount,
-    defaultPayoutRecipient: input.token.payoutRecipient,
-  });
+  const splits = await normalizeSplitRecipients(input.splits || []);
+  const { splitAddress } = await processSplits(splits, smartAccount);
 
   const additionalSetupActions = await buildAdditionalSetupActions({
-    resolvedSplits,
+    splits,
     smartAccountAddress: smartAccount.address,
     hasExistingContract: !!input.contract.address,
   });
 
   const { parameters } = await create1155({
     ...input,
-    token: { ...input.token, ...(payoutRecipient && { payoutRecipient }) },
+    token: {
+      ...input.token,
+      payoutRecipient: splitAddress ?? input.token.payoutRecipient,
+    },
     ...(additionalSetupActions && { additionalSetupActions }),
   });
 
-  const isNewContractByAddress =
-    getAddress(parameters.address) === getAddress(getFactoryAddress(CHAIN_ID));
-
   const functionCallData = encodeFunctionData({
     abi: parameters.abi,
-    functionName: isNewContractByAddress ? 'createContract' : 'multicall',
+    functionName: input.contract.address ? 'multicall' : 'createContract',
     args: parameters.args,
   });
 
@@ -71,7 +65,6 @@ export async function createMoment(
 
   const { contractAddress, tokenId } = parseMomentTransaction({
     logs: transaction.logs,
-    isNewContract: isNewContractByAddress,
     existingContractAddress: input.contract.address,
   });
 

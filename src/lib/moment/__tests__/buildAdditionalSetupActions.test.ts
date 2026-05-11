@@ -37,7 +37,7 @@ describe('buildAdditionalSetupActions', () => {
 
   it('returns undefined when no splits and has existing contract', async () => {
     const result = await buildAdditionalSetupActions({
-      resolvedSplits: [],
+      splits: [],
       smartAccountAddress: SMART_ACCOUNT,
       hasExistingContract: true,
     });
@@ -47,7 +47,7 @@ describe('buildAdditionalSetupActions', () => {
 
   it('returns a function when splits exist with existing contract', async () => {
     const result = await buildAdditionalSetupActions({
-      resolvedSplits: [split1, split2],
+      splits: [split1, split2],
       smartAccountAddress: SMART_ACCOUNT,
       hasExistingContract: true,
     });
@@ -57,7 +57,7 @@ describe('buildAdditionalSetupActions', () => {
 
   it('returns a function when no splits but no existing contract', async () => {
     const result = await buildAdditionalSetupActions({
-      resolvedSplits: [],
+      splits: [],
       smartAccountAddress: SMART_ACCOUNT,
       hasExistingContract: false,
     });
@@ -67,7 +67,7 @@ describe('buildAdditionalSetupActions', () => {
 
   it('does not call getSplitAdminAddresses when no splits', async () => {
     await buildAdditionalSetupActions({
-      resolvedSplits: [],
+      splits: [],
       smartAccountAddress: SMART_ACCOUNT,
       hasExistingContract: false,
     });
@@ -77,7 +77,7 @@ describe('buildAdditionalSetupActions', () => {
 
   it('calls getSplitAdminAddresses with the resolved splits', async () => {
     await buildAdditionalSetupActions({
-      resolvedSplits: [split1, split2],
+      splits: [split1, split2],
       smartAccountAddress: SMART_ACCOUNT,
       hasExistingContract: true,
     });
@@ -88,7 +88,7 @@ describe('buildAdditionalSetupActions', () => {
   describe('returned setup actions function', () => {
     it('adds collection-level permission for smart account at tokenId 0', async () => {
       const setupActions = await buildAdditionalSetupActions({
-        resolvedSplits: [split1],
+        splits: [split1],
         smartAccountAddress: SMART_ACCOUNT,
         hasExistingContract: true,
       });
@@ -100,7 +100,7 @@ describe('buildAdditionalSetupActions', () => {
 
     it('adds token-level permission for each split address and smart wallet', async () => {
       const setupActions = await buildAdditionalSetupActions({
-        resolvedSplits: [split1],
+        splits: [split1],
         smartAccountAddress: SMART_ACCOUNT,
         hasExistingContract: true,
       });
@@ -118,7 +118,7 @@ describe('buildAdditionalSetupActions', () => {
         .mockReturnValueOnce('0xsplit_wallet' as any);
 
       const setupActions = await buildAdditionalSetupActions({
-        resolvedSplits: [split1],
+        splits: [split1],
         smartAccountAddress: SMART_ACCOUNT,
         hasExistingContract: true,
       });
@@ -136,7 +136,7 @@ describe('buildAdditionalSetupActions', () => {
       vi.mocked(addPermissionCall).mockReturnValueOnce('0xcollection' as any);
 
       const setupActions = await buildAdditionalSetupActions({
-        resolvedSplits: [],
+        splits: [],
         smartAccountAddress: SMART_ACCOUNT,
         hasExistingContract: false,
       });
