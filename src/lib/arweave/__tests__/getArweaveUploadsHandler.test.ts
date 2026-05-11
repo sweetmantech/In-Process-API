@@ -15,7 +15,6 @@ const FIXED_NOW = new Date('2026-05-08T12:00:00.000Z').getTime();
 const mockSuccess = () =>
   vi.mocked(selectArweaveUploads).mockResolvedValue({
     data: [],
-    count: 0,
     error: null,
   } as any);
 
@@ -32,8 +31,22 @@ describe('getArweaveUploadsHandler', () => {
 
   it('returns logs and count on success', async () => {
     vi.mocked(selectArweaveUploads).mockResolvedValue({
-      data: [{ id: 1 }, { id: 2 }],
-      count: 2,
+      data: [
+        {
+          id: 1,
+          artist_username: 'alice',
+          artist_address: '0x1',
+          total_count: 2,
+          total_usdc_cost: 5.0,
+        },
+        {
+          id: 2,
+          artist_username: 'alice',
+          artist_address: '0x1',
+          total_count: 2,
+          total_usdc_cost: 5.0,
+        },
+      ],
       error: null,
     } as any);
 
@@ -45,7 +58,14 @@ describe('getArweaveUploadsHandler', () => {
     });
     const body = await res.json();
 
-    expect(body).toEqual({ uploads: [{ id: 1 }, { id: 2 }], count: 2 });
+    expect(body).toEqual({
+      uploads: [
+        { id: 1, artist: { username: 'alice', address: '0x1' } },
+        { id: 2, artist: { username: 'alice', address: '0x1' } },
+      ],
+      count: 2,
+      total_usdc_cost: 5,
+    });
   });
 
   it('passes artist to selectArweaveUploads', async () => {
@@ -92,7 +112,6 @@ describe('getArweaveUploadsHandler', () => {
   it('returns 500 when selectArweaveUploads fails', async () => {
     vi.mocked(selectArweaveUploads).mockResolvedValue({
       data: null,
-      count: null,
       error: { message: 'db failed' },
     } as any);
 
