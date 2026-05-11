@@ -28,7 +28,7 @@ const getArweaveUploadsHandler = async ({
     ? new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
     : undefined;
 
-  const { data, count, error } = await selectArweaveUploads({
+  const result = await selectArweaveUploads({
     artist,
     from,
     limit,
@@ -37,15 +37,31 @@ const getArweaveUploadsHandler = async ({
     sortOrder: sort_order,
   });
 
-  if (error) {
-    console.error('Failed to fetch arweave uploads', error);
+  if (result.error) {
+    console.error('Failed to fetch arweave uploads', result.error);
     return NextResponse.json(
       { message: 'Failed to fetch arweave uploads' },
       { status: 500 }
     );
   }
 
-  return NextResponse.json({ uploads: data, count });
+  const rows = (result.data ?? []) as any[];
+  const count = Number(rows[0]?.total_count ?? 0);
+  const total_usdc_cost = Number(rows[0]?.total_usdc_cost ?? 0);
+  const uploads = rows.map(
+    ({
+      artist_username,
+      artist_address,
+      total_count: _c,
+      total_usdc_cost: _t,
+      ...row
+    }) => ({
+      ...row,
+      artist: { username: artist_username, address: artist_address },
+    })
+  );
+
+  return NextResponse.json({ uploads, count, total_usdc_cost });
 };
 
 export default getArweaveUploadsHandler;

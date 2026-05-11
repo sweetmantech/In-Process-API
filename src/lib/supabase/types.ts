@@ -694,6 +694,29 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_arweave_uploads: {
+        Args: {
+          p_artist?: string;
+          p_from?: string;
+          p_limit?: number;
+          p_page?: number;
+          p_sort_by?: string;
+          p_sort_order?: string;
+        };
+        Returns: {
+          artist_address: string;
+          artist_username: string;
+          arweave_uri: string;
+          content_type: string;
+          created_at: string;
+          file_size_bytes: number;
+          id: string;
+          total_count: number;
+          total_usdc_cost: number;
+          usdc_cost: number;
+          winc_cost: string;
+        }[];
+      };
       get_collection_timeline: {
         Args: {
           p_artist?: string;
