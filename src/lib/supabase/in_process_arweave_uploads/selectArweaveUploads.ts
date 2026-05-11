@@ -1,12 +1,20 @@
 import { supabase } from '../client';
 
+const SORT_COLUMN: Record<'size' | 'usdc_cost' | 'created_at', string> = {
+  size: 'file_size_bytes',
+  usdc_cost: 'usdc_cost',
+  created_at: 'created_at',
+};
+
 const selectArweaveUploads = (params: {
   artist?: string;
   from?: string;
   limit: number;
   page: number;
+  sortBy: 'size' | 'usdc_cost' | 'created_at';
+  sortOrder: 'asc' | 'desc';
 }) => {
-  const { artist, from, limit, page } = params;
+  const { artist, from, limit, page, sortBy, sortOrder } = params;
 
   let query = supabase
     .from('in_process_arweave_uploads')
@@ -14,7 +22,7 @@ const selectArweaveUploads = (params: {
       'id, arweave_uri, winc_cost, usdc_cost, file_size_bytes, content_type, created_at, artist:in_process_artists!inner(username, address)',
       { count: 'estimated' }
     )
-    .order('created_at', { ascending: false });
+    .order(SORT_COLUMN[sortBy], { ascending: sortOrder === 'asc' });
 
   if (artist) {
     if (/^0x[0-9a-fA-F]{40}$/.test(artist)) {
