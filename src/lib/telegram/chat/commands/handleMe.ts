@@ -12,7 +12,6 @@ const handleMe = async (
   const { data, error } = await selectSocialWallets({ artistAddress });
   if (error) throw error;
 
-  console.log('data', data);
   for (const { social_wallet } of data ?? []) {
     const email = await getEmailByWalletAddress(social_wallet);
     if (email) {
@@ -25,7 +24,6 @@ const handleMe = async (
   const { data: rows, error: err } = await getArtistAddresses([artistAddress]);
   if (err) throw err;
 
-  console.log('rows', rows);
   if (rows && rows.length > 0) {
     const email = await getEmailByWalletAddress(artistAddress);
     if (email) {
