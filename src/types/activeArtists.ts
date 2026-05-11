@@ -1,15 +1,27 @@
+export type ActiveArtistsSortBy =
+  | 'created_count'
+  | 'airdropped_count'
+  | 'telegram_count'
+  | 'web_count'
+  | 'api_count'
+  | 'sms_count';
+
+export type ActiveArtistsSortOrder = 'asc' | 'desc';
+
 export interface ActiveArtistsStatsParams {
   period?: 'day' | 'week' | 'month' | 'all';
   limit?: number;
   page?: number;
   artist?: string;
+  sort_by?: ActiveArtistsSortBy;
+  sort_order?: ActiveArtistsSortOrder;
 }
 
 export interface ActiveArtistStats {
   address: string;
   username: string;
-  moments_created: number;
-  airdropped: number;
+  created_count: number;
+  airdropped_count: number;
   telegram_count: number;
   web_count: number;
   api_count: number;

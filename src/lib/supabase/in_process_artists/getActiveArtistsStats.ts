@@ -9,6 +9,8 @@ const getActiveArtistsStats = async ({
   limit = 20,
   page = 1,
   artist,
+  sort_by = 'created_count',
+  sort_order = 'desc',
 }: ActiveArtistsStatsParams): Promise<{
   data: ActiveArtistStats[] | null;
   totalCount: number;
@@ -19,6 +21,8 @@ const getActiveArtistsStats = async ({
     p_limit: limit,
     p_page: page,
     p_artist: artist ?? undefined,
+    p_sort_by: sort_by,
+    p_sort_order: sort_order,
   });
 
   if (error) {
