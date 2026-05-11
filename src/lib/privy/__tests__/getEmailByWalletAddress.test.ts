@@ -53,6 +53,16 @@ describe('getEmailByWalletAddress', () => {
     expect(result).toBeNull();
   });
 
+  it('returns null when privy throws', async () => {
+    vi.mocked(privyClient.users).mockReturnValue({
+      getByWalletAddress: vi.fn().mockRejectedValue(new Error('not found')),
+    } as any);
+
+    const result = await getEmailByWalletAddress('0xunknown');
+
+    expect(result).toBeNull();
+  });
+
   it('passes the address to privy getByWalletAddress', async () => {
     const mockGetByWalletAddress = vi.fn().mockResolvedValue({
       linked_accounts: [{ type: 'email', address: 'user@example.com' }],
