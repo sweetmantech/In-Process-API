@@ -57,6 +57,8 @@ describe('validateGetArweaveUploadsQuery', () => {
     expect((result as any).page).toBe(1);
     expect((result as any).period).toBeUndefined();
     expect((result as any).artist).toBeUndefined();
+    expect((result as any).sort_by).toBe('created_at');
+    expect((result as any).sort_order).toBe('desc');
   });
 
   it('returns 400 for invalid query params', async () => {
@@ -109,6 +111,46 @@ describe('validateGetArweaveUploadsQuery', () => {
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).artist).toBe('alice');
+  });
+
+  it('parses valid sort_by and sort_order', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
+
+    const result = await validateGetArweaveUploadsQuery(
+      makeRequest({ sort_by: 'usdc_cost', sort_order: 'asc' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).sort_by).toBe('usdc_cost');
+    expect((result as any).sort_order).toBe('asc');
+  });
+
+  it('returns 400 for invalid sort_by', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
+
+    const result = await validateGetArweaveUploadsQuery(
+      makeRequest({ sort_by: 'filename' })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
+  });
+
+  it('returns 400 for invalid sort_order', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
+
+    const result = await validateGetArweaveUploadsQuery(
+      makeRequest({ sort_order: 'newest' })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
   });
 
   it('returns 400 for empty artist', async () => {

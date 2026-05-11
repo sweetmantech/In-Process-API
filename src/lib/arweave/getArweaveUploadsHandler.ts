@@ -12,11 +12,15 @@ const getArweaveUploadsHandler = async ({
   period,
   limit,
   page,
+  sort_by,
+  sort_order,
 }: {
   artist?: string;
   period?: 'day' | 'week' | 'month' | 'all';
   limit: number;
   page: number;
+  sort_by: 'size' | 'usdc_cost' | 'created_at';
+  sort_order: 'asc' | 'desc';
 }) => {
   const days =
     period && period !== 'all' ? PERIOD_INTERVALS[period] : undefined;
@@ -29,6 +33,8 @@ const getArweaveUploadsHandler = async ({
     from,
     limit,
     page,
+    sortBy: sort_by,
+    sortOrder: sort_order,
   });
 
   if (error) {

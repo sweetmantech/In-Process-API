@@ -37,7 +37,12 @@ describe('getArweaveUploadsHandler', () => {
       error: null,
     } as any);
 
-    const res = await getArweaveUploadsHandler({ limit: 10, page: 2 });
+    const res = await getArweaveUploadsHandler({
+      limit: 10,
+      page: 2,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
     const body = await res.json();
 
     expect(body).toEqual({ uploads: [{ id: 1 }, { id: 2 }], count: 2 });
@@ -46,26 +51,41 @@ describe('getArweaveUploadsHandler', () => {
   it('passes artist to selectArweaveUploads', async () => {
     mockSuccess();
 
-    await getArweaveUploadsHandler({ artist: '0xaabbcc', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({
+      artist: '0xaabbcc',
+      limit: 20,
+      page: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
 
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: '0xaabbcc',
       from: undefined,
       limit: 20,
       page: 1,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
     });
   });
 
   it('passes no artist when not specified', async () => {
     mockSuccess();
 
-    await getArweaveUploadsHandler({ limit: 20, page: 1 });
+    await getArweaveUploadsHandler({
+      limit: 20,
+      page: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
 
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: undefined,
       from: undefined,
       limit: 20,
       page: 1,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
     });
   });
 
@@ -76,7 +96,12 @@ describe('getArweaveUploadsHandler', () => {
       error: { message: 'db failed' },
     } as any);
 
-    const res = await getArweaveUploadsHandler({ limit: 20, page: 1 });
+    const res = await getArweaveUploadsHandler({
+      limit: 20,
+      page: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
     const body = await res.json();
 
     expect(res.status).toBe(500);
@@ -86,7 +111,13 @@ describe('getArweaveUploadsHandler', () => {
   it('passes from timestamp for period=day', async () => {
     mockSuccess();
 
-    await getArweaveUploadsHandler({ period: 'day', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({
+      period: 'day',
+      limit: 20,
+      page: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
 
     const expected = new Date(
       FIXED_NOW - 1 * 24 * 60 * 60 * 1000
@@ -96,13 +127,21 @@ describe('getArweaveUploadsHandler', () => {
       from: expected,
       limit: 20,
       page: 1,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
     });
   });
 
   it('passes from timestamp for period=week', async () => {
     mockSuccess();
 
-    await getArweaveUploadsHandler({ period: 'week', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({
+      period: 'week',
+      limit: 20,
+      page: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
 
     const expected = new Date(
       FIXED_NOW - 7 * 24 * 60 * 60 * 1000
@@ -112,13 +151,21 @@ describe('getArweaveUploadsHandler', () => {
       from: expected,
       limit: 20,
       page: 1,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
     });
   });
 
   it('passes from timestamp for period=month', async () => {
     mockSuccess();
 
-    await getArweaveUploadsHandler({ period: 'month', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({
+      period: 'month',
+      limit: 20,
+      page: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
 
     const expected = new Date(
       FIXED_NOW - 30 * 24 * 60 * 60 * 1000
@@ -128,32 +175,70 @@ describe('getArweaveUploadsHandler', () => {
       from: expected,
       limit: 20,
       page: 1,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
     });
   });
 
   it('passes from=undefined for period=all', async () => {
     mockSuccess();
 
-    await getArweaveUploadsHandler({ period: 'all', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({
+      period: 'all',
+      limit: 20,
+      page: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
 
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: undefined,
       from: undefined,
       limit: 20,
       page: 1,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
     });
   });
 
   it('passes artist filter through as-is', async () => {
     mockSuccess();
 
-    await getArweaveUploadsHandler({ artist: 'Alice', limit: 20, page: 1 });
+    await getArweaveUploadsHandler({
+      artist: 'Alice',
+      limit: 20,
+      page: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    });
 
     expect(selectArweaveUploads).toHaveBeenCalledWith({
       artist: 'Alice',
       from: undefined,
       limit: 20,
       page: 1,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
+    });
+  });
+
+  it('passes sort_by and sort_order to selectArweaveUploads', async () => {
+    mockSuccess();
+
+    await getArweaveUploadsHandler({
+      limit: 20,
+      page: 1,
+      sort_by: 'size',
+      sort_order: 'asc',
+    });
+
+    expect(selectArweaveUploads).toHaveBeenCalledWith({
+      artist: undefined,
+      from: undefined,
+      limit: 20,
+      page: 1,
+      sortBy: 'size',
+      sortOrder: 'asc',
     });
   });
 });
