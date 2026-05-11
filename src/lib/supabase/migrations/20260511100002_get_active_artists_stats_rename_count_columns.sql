@@ -70,11 +70,15 @@ BEGIN
     airdrop_counts AS (
       SELECT
         am.artist_address,
-        COUNT(*) AS airdropped_count
-      FROM public.in_process_transfers t
-      INNER JOIN artist_moments am ON am.id = t.moment
-      WHERE t.value IS NULL
-        AND t.recipient != am.artist_address
+        SUM(airdrop_count.cnt)::BIGINT AS airdropped_count
+      FROM artist_moments am
+      CROSS JOIN LATERAL (
+        SELECT COUNT(*) AS cnt
+        FROM public.in_process_transfers t
+        WHERE t.moment = am.id
+          AND t.value IS NULL
+          AND t.recipient != am.artist_address
+      ) airdrop_count
       GROUP BY am.artist_address
     ),
     stats AS (
@@ -184,12 +188,16 @@ BEGIN
     airdrop_counts AS (
       SELECT
         am.artist_address,
-        COUNT(*) AS airdropped_count
-      FROM public.in_process_transfers t
-      INNER JOIN artist_moments am ON am.id = t.moment
+        SUM(airdrop_count.cnt)::BIGINT AS airdropped_count
+      FROM artist_moments am
       INNER JOIN paged p ON p.address = am.artist_address
-      WHERE t.value IS NULL
-        AND t.recipient != am.artist_address
+      CROSS JOIN LATERAL (
+        SELECT COUNT(*) AS cnt
+        FROM public.in_process_transfers t
+        WHERE t.moment = am.id
+          AND t.value IS NULL
+          AND t.recipient != am.artist_address
+      ) airdrop_count
       GROUP BY am.artist_address
     )
     SELECT
