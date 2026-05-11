@@ -6,17 +6,20 @@ vi.mock('./handleStart', () => ({ default: vi.fn() }));
 vi.mock('./handleRemind', () => ({ default: vi.fn() }));
 vi.mock('./handleNotify', () => ({ default: vi.fn() }));
 vi.mock('./handleCollections', () => ({ default: vi.fn() }));
+vi.mock('./handleMe', () => ({ default: vi.fn() }));
 vi.mock('../handleWelcome', () => ({ default: vi.fn() }));
 vi.mock('../handleStart', () => ({ default: vi.fn() }));
 vi.mock('../handleRemind', () => ({ default: vi.fn() }));
 vi.mock('../handleNotify', () => ({ default: vi.fn() }));
 vi.mock('../handleCollections', () => ({ default: vi.fn() }));
+vi.mock('../handleMe', () => ({ default: vi.fn() }));
 
 import handleWelcome from '../handleWelcome';
 import handleStart from '../handleStart';
 import handleRemind from '../handleRemind';
 import handleNotify from '../handleNotify';
 import handleCollections from '../handleCollections';
+import handleMe from '../handleMe';
 import commandsHandler from '../commandsHandler';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
@@ -40,6 +43,7 @@ beforeEach(() => {
   vi.mocked(handleRemind).mockResolvedValue(undefined);
   vi.mocked(handleNotify).mockResolvedValue(undefined);
   vi.mocked(handleCollections).mockResolvedValue(undefined);
+  vi.mocked(handleMe).mockResolvedValue(undefined);
 });
 
 describe('commandsHandler', () => {
@@ -57,12 +61,13 @@ describe('commandsHandler', () => {
       expect(result).toBe(true);
     });
 
-    it('does not call handleStart, handleRemind, handleNotify, or handleCollections', async () => {
+    it('does not call handleStart, handleRemind, handleNotify, handleCollections, or handleMe', async () => {
       await commandsHandler('/start', makeThread() as never, TG_USERNAME, null);
       expect(handleStart).not.toHaveBeenCalled();
       expect(handleRemind).not.toHaveBeenCalled();
       expect(handleNotify).not.toHaveBeenCalled();
       expect(handleCollections).not.toHaveBeenCalled();
+      expect(handleMe).not.toHaveBeenCalled();
     });
   });
 
@@ -123,6 +128,19 @@ describe('commandsHandler', () => {
       expect(result).toBe(true);
     });
 
+    it('calls handleMe and returns true for /me', async () => {
+      const thread = makeThread();
+      const result = await commandsHandler(
+        '/me',
+        thread as never,
+        TG_USERNAME,
+        ARTIST as never
+      );
+
+      expect(handleMe).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
+      expect(result).toBe(true);
+    });
+
     it('returns false for unrecognised text without calling any command handler', async () => {
       const result = await commandsHandler(
         'just some text',
@@ -136,6 +154,7 @@ describe('commandsHandler', () => {
       expect(handleRemind).not.toHaveBeenCalled();
       expect(handleNotify).not.toHaveBeenCalled();
       expect(handleCollections).not.toHaveBeenCalled();
+      expect(handleMe).not.toHaveBeenCalled();
       expect(handleWelcome).not.toHaveBeenCalled();
     });
   });
