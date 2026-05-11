@@ -12,6 +12,8 @@ const BASE_PARAMS = {
   limit: 20,
   page: 1,
   artist: undefined as string | undefined,
+  sort_by: 'created_count' as const,
+  sort_order: 'desc' as const,
 };
 
 describe('getActiveArtistsHandler', () => {
@@ -25,8 +27,8 @@ describe('getActiveArtistsHandler', () => {
         {
           address: '0xartist',
           username: 'alice',
-          moments_created: 10,
-          airdropped: 5,
+          created_count: 10,
+          airdropped_count: 5,
           telegram_count: 2,
           web_count: 4,
           api_count: 3,
@@ -60,6 +62,8 @@ describe('getActiveArtistsHandler', () => {
       limit: 10,
       page: 3,
       artist: 'alice',
+      sort_by: 'telegram_count',
+      sort_order: 'asc',
     });
 
     expect(getActiveArtistsStats).toHaveBeenCalledWith({
@@ -67,6 +71,8 @@ describe('getActiveArtistsHandler', () => {
       limit: 10,
       page: 3,
       artist: 'alice',
+      sort_by: 'telegram_count',
+      sort_order: 'asc',
     });
   });
 

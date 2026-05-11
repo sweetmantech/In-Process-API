@@ -650,12 +650,14 @@ export type Database = {
           p_limit?: number;
           p_page?: number;
           p_period?: string;
+          p_sort_by?: string;
+          p_sort_order?: string;
         };
         Returns: {
           address: string;
-          airdropped: number;
+          airdropped_count: number;
           api_count: number;
-          moments_created: number;
+          created_count: number;
           sms_count: number;
           telegram_count: number;
           total_count: number;

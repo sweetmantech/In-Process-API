@@ -5,6 +5,18 @@ const activeArtistsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
   period: z.enum(['day', 'week', 'month', 'all']).optional().default('all'),
   artist: z.string().min(1).optional(),
+  sort_by: z
+    .enum([
+      'created_count',
+      'airdropped_count',
+      'telegram_count',
+      'web_count',
+      'api_count',
+      'sms_count',
+    ])
+    .optional()
+    .default('created_count'),
+  sort_order: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export default activeArtistsQuerySchema;
