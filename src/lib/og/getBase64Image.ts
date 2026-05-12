@@ -3,13 +3,13 @@ import fetchUri from '../arweave/fetchUri';
 
 const MAX_SIZE = 200;
 
-const getCollageImageData = async (
+const getBase64Image = async (
   imageUrl: string | undefined
 ): Promise<string | null> => {
   try {
     if (!imageUrl) return null;
 
-    const response = await fetchUri(imageUrl, { cache: 'no-store' });
+    const response = await fetchUri(imageUrl);
     if (!response.ok) return null;
 
     const data = await response.arrayBuffer();
@@ -25,4 +25,4 @@ const getCollageImageData = async (
   }
 };
 
-export default getCollageImageData;
+export default getBase64Image;

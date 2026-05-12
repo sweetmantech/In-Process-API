@@ -4,7 +4,8 @@ import processSingleMedia from '../processSingleMedia';
 
 vi.mock('../processAttachmentUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/moment/createMomentBatch', () => ({ default: vi.fn() }));
-vi.mock('../replyAfterSuccess', () => ({ default: vi.fn() }));
+vi.mock('../sendReadyMessage', () => ({ default: vi.fn() }));
+vi.mock('../sendArtistCollage', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
   REFERRAL_RECIPIENT: '0x1111111111111111111111111111111111111111',
@@ -16,7 +17,8 @@ vi.mock('@/lib/consts', () => ({
 
 import processAttachmentUpload from '../processAttachmentUpload';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
-import replyAfterSuccess from '../replyAfterSuccess';
+import sendReadyMessage from '../sendReadyMessage';
+import sendArtistCollage from '../sendArtistCollage';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const UPLOAD_RESULT = {
@@ -50,7 +52,8 @@ beforeEach(() => {
     hash: '0x3333333333333333333333333333333333333333333333333333333333333333' as const,
     chainId: 8453,
   } as never);
-  vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
+  vi.mocked(sendReadyMessage).mockResolvedValue(undefined);
+  vi.mocked(sendArtistCollage).mockResolvedValue(undefined);
 });
 
 describe('processSingleMedia', () => {
@@ -108,7 +111,7 @@ describe('processSingleMedia', () => {
     expect(call.channel).toBe('telegram');
   });
 
-  it('calls replyAfterSuccess with the new moment details', async () => {
+  it('calls sendReadyMessage with the new moment details', async () => {
     const thread = makeThread();
 
     await processSingleMedia(
@@ -119,12 +122,12 @@ describe('processSingleMedia', () => {
       ARTIST_ADDRESS
     );
 
-    expect(replyAfterSuccess).toHaveBeenCalledWith(
+    expect(sendReadyMessage).toHaveBeenCalledWith(
       thread,
       MOMENT_RESULT.contractAddress.toString(),
-      MOMENT_RESULT.tokenId,
-      ARTIST_ADDRESS
+      MOMENT_RESULT.tokenId
     );
+    expect(sendArtistCollage).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
   });
 
   it('mints to a stored collection and clears the selection on success', async () => {

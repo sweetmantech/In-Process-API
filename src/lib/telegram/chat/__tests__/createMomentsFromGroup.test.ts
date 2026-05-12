@@ -7,12 +7,14 @@ import { MomentType } from '@/types/moment';
 vi.mock('../fetchTelegramFile', () => ({ default: vi.fn() }));
 vi.mock('../processAttachmentUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/moment/createMomentBatch', () => ({ default: vi.fn() }));
-vi.mock('../replyAfterSuccess', () => ({ default: vi.fn() }));
+vi.mock('../sendReadyMessage', () => ({ default: vi.fn() }));
+vi.mock('../sendArtistCollage', () => ({ default: vi.fn() }));
 
 import fetchTelegramFile from '../fetchTelegramFile';
 import processAttachmentUpload from '../processAttachmentUpload';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
-import replyAfterSuccess from '../replyAfterSuccess';
+import sendReadyMessage from '../sendReadyMessage';
+import sendArtistCollage from '../sendArtistCollage';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 
@@ -73,7 +75,8 @@ beforeEach(() => {
     chainId: CHAIN_ID,
     tokenIds: [MOMENT_1.tokenId],
   });
-  vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
+  vi.mocked(sendReadyMessage).mockResolvedValue(undefined);
+  vi.mocked(sendArtistCollage).mockResolvedValue(undefined);
 });
 
 describe('createMomentsFromGroup', () => {
@@ -96,7 +99,7 @@ describe('createMomentsFromGroup', () => {
       chainId: CHAIN_ID,
       tokenIds: [MOMENT_1.tokenId, MOMENT_2.tokenId],
     });
-    vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
+    vi.mocked(sendReadyMessage).mockResolvedValue(undefined);
 
     const thread = makeThread(makeStateAdapter([PENDING_IMAGE, PENDING_VIDEO]));
 
@@ -193,7 +196,7 @@ describe('createMomentsFromGroup', () => {
     );
   });
 
-  it('calls replyAfterSuccess for each minted moment', async () => {
+  it('calls sendReadyMessage for each minted moment', async () => {
     vi.mocked(processAttachmentUpload)
       .mockResolvedValueOnce(UPLOAD_RESULT_1 as never)
       .mockResolvedValueOnce(UPLOAD_RESULT_2 as never);
@@ -208,20 +211,16 @@ describe('createMomentsFromGroup', () => {
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
 
-    expect(replyAfterSuccess).toHaveBeenCalledTimes(2);
-    expect(replyAfterSuccess).toHaveBeenCalledWith(
+    expect(sendReadyMessage).toHaveBeenCalledTimes(2);
+    expect(sendReadyMessage).toHaveBeenCalledWith(
       thread,
       MOMENT_1.contractAddress.toString(),
-      MOMENT_1.tokenId,
-      ARTIST_ADDRESS,
-      false
+      MOMENT_1.tokenId
     );
-    expect(replyAfterSuccess).toHaveBeenCalledWith(
+    expect(sendReadyMessage).toHaveBeenCalledWith(
       thread,
       MOMENT_1.contractAddress.toString(),
-      MOMENT_2.tokenId,
-      ARTIST_ADDRESS,
-      true
+      MOMENT_2.tokenId
     );
   });
 });
