@@ -69,6 +69,8 @@ describe('indexMoment', () => {
           creator: getAddress(ARTIST).toLowerCase(),
           protocol: 'in_process',
           chain_id: 8453,
+          uri: '',
+          name: '',
         }),
       ])
     );
