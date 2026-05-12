@@ -1,17 +1,17 @@
-import { Address, encodeFunctionData } from 'viem';
-import { z } from 'zod';
-import { IS_TESTNET } from '@/lib/consts';
-import { createMomentSchema } from '@/lib/schema/createMomentSchema';
-import { create1155 } from '@/lib/zora/create1155';
+import type { Address } from 'viem';
+import {
+  createMomentBatchSchema,
+  type CreateMomentContractInput,
+} from '@/lib/schema/createMomentSchema';
+import type { CreateMomentBatchInput } from '@/lib/moment/createMomentBatch';
 import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
-import { normalizeSplitRecipients } from '@/lib/splits/normalizeSplitRecipients';
-import buildAdditionalSetupActions from './buildAdditionalSetupActions';
+import createBatchSetupActions from './createBatchSetupActions';
+import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { publicClient } from '@/lib/viem/publicClient';
 import { prepareUserOperation } from '@/lib/coinbase/prepareUserOperation';
-import parseSimulateContractError from './parseSimulateContractError';
-import { processSplits } from '../splits/processSplits';
+import { parseSimulateCallError } from './parseSimulateContractError';
 
-export type SimulateCreateMomentInput = z.infer<typeof createMomentSchema>;
+export type SimulateCreateMomentInput = CreateMomentContractInput;
 
 export interface SimulateCreateMomentResult {
   contractSimulation: { success: boolean };
@@ -19,61 +19,42 @@ export interface SimulateCreateMomentResult {
 }
 
 /**
- * Simulates a moment creation without submitting an onchain transaction.
- * - Step 1: simulateContract (viem) — validates contract-level logic
- * - Step 2: prepareUserOperation (CDP) — validates at AA/paymaster level
- * Throws if either step would fail.
+ * Simulates batch moment creation (same calldata path as createMomentBatch) without broadcasting.
+ * - Step 1: eth_call via publicClient.call — contract-level validation
+ * - Step 2: prepareUserOperation (CDP) — AA/paymaster-level validation
  */
-export async function simulateCreateMoment(
-  input: SimulateCreateMomentInput
+export async function simulateCreateMomentBatch(
+  input: CreateMomentBatchInput
 ): Promise<SimulateCreateMomentResult> {
   const smartAccount = await getOrCreateSmartWallet({
     address: input.account as Address,
   });
 
-  const splits = await normalizeSplitRecipients(input.splits || []);
-  const { splitAddress } = await processSplits(splits, smartAccount);
-
-  const additionalSetupActions = await buildAdditionalSetupActions({
-    splits,
-    smartAccountAddress: smartAccount.address,
-    hasExistingContract: !!input.contract.address,
+  const { tokenSetupActions, fundsRecipient } = await createBatchSetupActions({
+    input,
+    smartAccount,
   });
 
-  const { parameters } = await create1155({
-    ...input,
-    token: {
-      ...input.token,
-      payoutRecipient: splitAddress ?? input.token.payoutRecipient,
-    },
-    ...(additionalSetupActions && { additionalSetupActions }),
+  const { to: callTo, data: functionCallData } = createMomentBatchCall({
+    input,
+    tokenSetupActions,
+    fundsRecipient,
   });
 
   try {
-    await publicClient.simulateContract({
-      address: parameters.address,
-      abi: parameters.abi,
-      functionName: input.contract.address ? 'multicall' : 'createContract',
-      args: parameters.args,
+    await publicClient.call({
       account: smartAccount.address,
+      to: callTo,
+      data: functionCallData,
     });
   } catch (e) {
-    throw new Error(parseSimulateContractError(e));
+    throw new Error(parseSimulateCallError(e));
   }
 
-  const functionCallData = encodeFunctionData({
-    abi: parameters.abi,
-    functionName: input.contract.address ? 'multicall' : 'createContract',
-    args: parameters.args,
-  });
-
-  // Step 2: prepareUserOperation — AA/paymaster-level validation (no broadcast)
   const prepared = await prepareUserOperation({
     smartAccount,
-    network: IS_TESTNET ? 'base-sepolia' : 'base',
-    calls: [
-      { to: parameters.address, data: functionCallData, value: BigInt(0) },
-    ],
+    network: input.chainId === 84532 ? 'base-sepolia' : 'base',
+    calls: [{ to: callTo, data: functionCallData, value: BigInt(0) }],
   });
 
   return {
@@ -83,4 +64,20 @@ export async function simulateCreateMoment(
       status: prepared.status,
     },
   };
+}
+
+/**
+ * Single-token create body → validated batch input → {@link simulateCreateMomentBatch}.
+ */
+export async function simulateCreateMoment(
+  input: CreateMomentContractInput
+): Promise<SimulateCreateMomentResult> {
+  const batchInput = createMomentBatchSchema.parse({
+    contract: input.contract,
+    tokens: [input.token],
+    account: input.account,
+    splits: input.splits,
+    channel: input.channel,
+  });
+  return simulateCreateMomentBatch(batchInput);
 }

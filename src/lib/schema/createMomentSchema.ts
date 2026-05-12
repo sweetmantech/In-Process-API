@@ -1,6 +1,8 @@
+import type { Address, Hash } from 'viem';
 import { z } from 'zod';
 import addressSchema from './addressSchema';
 import bigIntString from './bigIntSchema';
+import chainIdSchema from './chainIdSchema';
 import { validateSplitAddress } from '@/lib/splits/validateSplitAddress';
 import { calculateTotalPercentage } from '@/lib/splits/calculateTotalPercentage';
 
@@ -101,13 +103,12 @@ export const createMomentSchema = baseCreateMomentSchema.superRefine(
 
 export const createMomentBatchSchema = z
   .object({
-    contract: z.object({
-      address: addressSchema,
-    }),
+    contract: contractSchema,
     tokens: z.array(tokenSchema).min(1, 'At least one token is required'),
     account: addressSchema,
     splits: z.array(splitSchema).optional(),
     channel: z.enum(['sms', 'telegram', 'web', 'api']).optional(),
+    chainId: chainIdSchema,
   })
   .superRefine((data, ctx) => {
     if (!data.splits || data.splits.length === 0) {
@@ -203,3 +204,16 @@ export const createWritingMomentSchema = z
       });
     }
   });
+
+export type CreateWritingMomentInput = z.infer<
+  typeof createWritingMomentSchema
+>;
+
+export type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
+
+export interface CreateContractResult {
+  contractAddress: Address;
+  hash: Hash;
+  tokenId: string;
+  chainId: number;
+}

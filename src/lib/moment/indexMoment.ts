@@ -20,6 +20,7 @@ export type IndexMomentParams = {
     CreateMomentContractInput['token'],
     'tokenMetadataURI' | 'maxSupply'
   >;
+  chainId?: number;
 };
 
 const indexMoment = async ({
@@ -28,13 +29,15 @@ const indexMoment = async ({
   artistAddress,
   channel,
   token,
+  chainId,
 }: IndexMomentParams) => {
+  const resolvedChainId = chainId ?? CHAIN_ID;
   const artist = getAddress(artistAddress).toLowerCase();
   const normalizedAddress = getAddress(contractAddress).toLowerCase();
   await ensureArtists([artist]);
 
   const { data: existingCollections } = await selectCollections({
-    collections: [{ address: normalizedAddress, chainId: CHAIN_ID }],
+    collections: [{ address: normalizedAddress, chainId: resolvedChainId }],
     limit: 1,
   });
 
@@ -44,7 +47,7 @@ const indexMoment = async ({
     const collections = await upsertCollections([
       {
         address: normalizedAddress,
-        chain_id: CHAIN_ID,
+        chain_id: resolvedChainId,
         creator: artist,
         protocol: 'in_process',
         created_at: placeholder,
@@ -60,10 +63,10 @@ const indexMoment = async ({
       {
         collectionAddress: normalizedAddress as Address,
         tokenId,
-        chainId: CHAIN_ID,
+        chainId: resolvedChainId,
       },
     ],
-    chainId: CHAIN_ID,
+    chainId: resolvedChainId,
     limit: 1,
   });
 

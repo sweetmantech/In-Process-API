@@ -1,5 +1,20 @@
 import { ContractFunctionExecutionError } from 'viem';
 
+export function parseSimulateCallError(e: unknown): string {
+  let cur: unknown = e;
+  for (let i = 0; i < 10; i++) {
+    if (cur instanceof ContractFunctionExecutionError) {
+      return parseSimulateContractError(cur);
+    }
+    if (cur && typeof cur === 'object' && 'cause' in cur) {
+      cur = (cur as { cause: unknown }).cause;
+      continue;
+    }
+    break;
+  }
+  return (e as Error)?.message ?? 'Contract call simulation failed';
+}
+
 const ROLE_NAMES: Record<number, string> = {
   2: 'ADMIN',
   4: 'MINTER',

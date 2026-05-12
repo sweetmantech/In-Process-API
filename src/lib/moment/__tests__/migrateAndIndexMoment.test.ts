@@ -52,6 +52,7 @@ describe('migrateAndIndexMoment', () => {
       artistAddress: ARTIST,
       channel: 'web',
       token: baseParams.token,
+      chainId: 8453,
     });
   });
 

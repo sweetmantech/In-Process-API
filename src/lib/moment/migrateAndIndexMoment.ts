@@ -6,19 +6,21 @@ import indexMoment, { type IndexMomentParams } from './indexMoment';
 export type MigrateAndIndexMomentParams = Omit<
   IndexMomentParams,
   'artistAddress'
-> & { artistAddress: Address };
+> & { artistAddress: Address; chainId?: number };
 
 export default async function migrateAndIndexMoment(
   params: MigrateAndIndexMomentParams
 ): Promise<void> {
-  const { artistAddress, contractAddress, tokenId, channel, token } = params;
+  const { artistAddress, contractAddress, tokenId, channel, token, chainId } =
+    params;
+  const resolvedChainId = chainId ?? CHAIN_ID;
 
   migrateMuxToArweave({
     artistAddress,
     moment: {
       collectionAddress: contractAddress,
       tokenId,
-      chainId: CHAIN_ID,
+      chainId: resolvedChainId,
     },
     uri: token.tokenMetadataURI,
   });
@@ -29,5 +31,6 @@ export default async function migrateAndIndexMoment(
     artistAddress,
     channel,
     token,
+    chainId: resolvedChainId,
   });
 }

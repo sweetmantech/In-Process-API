@@ -1,20 +1,12 @@
-import { NextRequest } from 'next/server';
-import { createMomentSchema } from '@/lib/schema/createMomentSchema';
-import { createMoment } from '@/lib/moment/createMoment';
-import { validate } from '@/lib/schema/validate';
-import getChannelFromReqHeader from '@/lib/moment/getChannelFromReqHeader';
+import { NextRequest, NextResponse } from 'next/server';
+import createMomentHandler from '@/lib/moment/createMomentHandler';
+import validateCreateMoment from '@/lib/moment/validateCreateMoment';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const validationResult = validate(createMomentSchema, body);
-    if (!validationResult.success) {
-      return validationResult.response;
-    }
-    const data = validationResult.data;
-    const channel = data.channel ?? getChannelFromReqHeader(req);
-    const result = await createMoment({ ...data, channel });
-    return Response.json(result);
+    const validated = await validateCreateMoment(req);
+    if (validated instanceof NextResponse) return validated;
+    return createMomentHandler(validated);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to create moment';

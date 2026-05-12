@@ -77,7 +77,7 @@ Follow the Single Responsibility Principle:
 
 #### KISS: Decide context values as close to the core function as possible
 
-When a wrapper function always operates in a fixed context (e.g., `createMomentFromMedia` is always SMS, `createMomentFromTelegramAttachment` is always Telegram), hardcode that context value directly at the `createMoment` call site — do **not** thread it as a parameter up the call stack. Adding a parameter only makes sense when the caller genuinely controls the value.
+When a wrapper function always operates in a fixed context (e.g., `createMomentFromMedia` is always SMS, `createMomentFromTelegramAttachment` is always Telegram), hardcode that context value directly at the mint call site (e.g. `createMomentBatch` with `channel: 'telegram'`) — do **not** thread it as a parameter up the call stack. Adding a parameter only makes sense when the caller genuinely controls the value.
 
 #### Server-internal context via a separate `ctx` parameter
 
@@ -85,16 +85,19 @@ When a value **is** caller-varying per request but is **not** something a public
 
 ```typescript
 // Public input stays clean — zod schema is unchanged
-export async function createMoment(
+// Pass server-only fields alongside validated input (not in the schema), e.g.:
+async function handler(
   input: CreateMomentContractInput,
   ctx?: { chatId?: string }
-): Promise<CreateContractResult> { ... }
+) {
+  // ...
+}
 
 // Telegram webhook path populates ctx
-await createMoment(input, { chatId: thread.channelId });
+await handler(input, { chatId: thread.channelId });
 
 // Web / API / SMS paths simply omit ctx → chatId is undefined
-await createMoment(input);
+await handler(input);
 ```
 
 Rationale:
@@ -191,17 +194,9 @@ Internally `logMessage` only forwards `chat_id` to `insertMessage` when `chatId`
 
 `chat_id` is a plain nullable `text` column on `in_process_messages` (no FK). It stores the external chat/channel identifier (e.g. Telegram `chat_id`) directly on the message row. No separate room table row is required before inserting a message — callers pass `chatId` (sourced from `thread.channelId` in the Telegram path) and `logMessage` writes it as `chat_id`.
 
-#### Success-message funnel: `processMessageMoment`
+#### Success messaging (Telegram)
 
-Every "Moment created, ready for editing at …" message — regardless of channel — is logged by exactly one function:
-
-```
-createMoment  (single)  ──┐
-                          ├──→ processMessageMoment ──→ logMessage
-createMoments (group)   ──┘
-```
-
-Therefore `processMessageMoment` is the single correct place to plumb a `chatId` down to the message row. Both `createMoment` and `createMoments` accept an optional `ctx?: { chatId?: string }` (see "Server-internal context via a separate `ctx` parameter") and simply forward `ctx?.chatId` into `processMessageMoment`. Telegram wrappers (`processSingleMedia`, `createMomentsFromGroup`, `createMomentFromYoutubeLink`) populate it from `thread.channelId`; web/api/sms callers omit it.
+Telegram mint flows (`processSingleMedia`, `createMomentsFromGroup`, `createMomentFromYoutubeLink`) notify the user via `replyAfterSuccess` (per token). Group albums mint multiple tokens in one chain operation using `createMomentsFromGroup` → `createMomentBatch`, then call `replyAfterSuccess` once per `tokenId`. Use `logMessage` with `chatId` where conversational history should record the exchange (see `logMessage` above).
 
 ### Database
 

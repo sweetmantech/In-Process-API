@@ -1,7 +1,9 @@
 import { maxUint64, parseUnits, type Address } from 'viem';
 import getYoutubeDetail from '@/lib/link/getYoutubeDetail';
 import uploadYtDetails from '@/lib/link/uploadYtDetails';
-import { createMoment } from '@/lib/moment/createMoment';
+import type { CreateContractResult } from '@/lib/schema/createMomentSchema';
+import createMomentBatch from '@/lib/moment/createMomentBatch';
+import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
 
@@ -9,7 +11,7 @@ const createMomentFromYoutubeLink = async (
   url: string,
   artistAddress: Address,
   existingCollectionAddress?: Address
-) => {
+): Promise<CreateContractResult> => {
   const detail = await getYoutubeDetail(url);
   if (!detail) throw new Error('Failed to fetch YouTube details');
 
@@ -19,24 +21,36 @@ const createMomentFromYoutubeLink = async (
     ? { address: existingCollectionAddress }
     : { name: detail.title || 'Untitled Video', uri: metadataUri };
 
-  return createMoment({
+  const batchInput = createMomentBatchSchema.parse({
     contract,
-    token: {
-      tokenMetadataURI: metadataUri,
-      createReferral: REFERRAL_RECIPIENT as Address,
-      salesConfig: {
-        type: MomentType.Erc20Mint,
-        pricePerToken: parseUnits('1', 6),
-        saleStart: BigInt(Math.floor(Date.now() / 1000)),
-        saleEnd: maxUint64,
-        currency: USDC_ADDRESS[CHAIN_ID],
+    tokens: [
+      {
+        tokenMetadataURI: metadataUri,
+        createReferral: REFERRAL_RECIPIENT,
+        salesConfig: {
+          type: MomentType.Erc20Mint,
+          pricePerToken: parseUnits('1', 6).toString(),
+          saleStart: Math.floor(Date.now() / 1000),
+          saleEnd: maxUint64.toString(),
+          currency: USDC_ADDRESS[CHAIN_ID],
+        },
+        mintToCreatorCount: 1,
+        payoutRecipient: artistAddress,
       },
-      mintToCreatorCount: 1,
-      payoutRecipient: artistAddress,
-    },
+    ],
     account: artistAddress,
     channel: 'telegram',
   });
+
+  const { contractAddress, tokenIds, hash, chainId } =
+    await createMomentBatch(batchInput);
+
+  return {
+    contractAddress,
+    tokenId: tokenIds[0]!,
+    hash,
+    chainId,
+  };
 };
 
 export default createMomentFromYoutubeLink;
