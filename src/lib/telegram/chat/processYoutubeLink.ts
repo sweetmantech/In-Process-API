@@ -1,12 +1,12 @@
 import type { Address } from 'viem';
 import type { Thread } from 'chat';
-import type { TelegramThreadState } from './telegramThreadState';
-import createMomentFromYoutubeLink from './createMomentFromYoutubeLink';
-import sendReadyMessage from './sendReadyMessage';
-import sendArtistCollage from './sendArtistCollage';
-import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
-import getSelectedCollectionAddress from './getSelectedCollectionAddress';
-import postMomentPending from './postMomentPending';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
+import createMomentFromYoutubeLink from '@/lib/telegram/chat/createMomentFromYoutubeLink';
+import sendReadyMessage from '@/lib/telegram/chat/sendReadyMessage';
+import sendArtistCollage from '@/lib/telegram/chat/sendArtistCollage';
+import clearSelectedCollectionAddress from '@/lib/telegram/chat/clearSelectedCollectionAddress';
+import getSelectedCollectionAddress from '@/lib/telegram/chat/getSelectedCollectionAddress';
+import postMomentPending from '@/lib/telegram/chat/postMomentPending';
 
 const processYoutubeLink = async (
   thread: Thread<TelegramThreadState>,

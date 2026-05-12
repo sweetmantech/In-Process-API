@@ -174,29 +174,9 @@ import type { InboundMessagePayload } from 'telnyx/resources/shared';
 type Media = NonNullable<InboundMessagePayload['media']>[number];
 ```
 
-### Message Logging & Room Registry
+### Telegram success messaging
 
-All inbound/outbound conversational messages (SMS, Telegram, web chat, API) are persisted to `in_process_messages` via the single entry point `@/lib/messages/logMessage`. Its signature intentionally puts the room identifier right after `role` because it is the primary routing field alongside it:
-
-```typescript
-logMessage(
-  parts: MessagePart[],
-  role: 'user' | 'assistant',
-  chatId?: string,                                          // external chat/channel ID
-  artistAddress?: string,
-  client: 'sms' | 'telegram' | 'web' | 'api' = 'sms'
-)
-```
-
-Internally `logMessage` only forwards `chat_id` to `insertMessage` when `chatId` is truthy (spread-if), so callers that don't need it are unchanged.
-
-#### `in_process_messages.chat_id` — the external chat identifier
-
-`chat_id` is a plain nullable `text` column on `in_process_messages` (no FK). It stores the external chat/channel identifier (e.g. Telegram `chat_id`) directly on the message row. No separate room table row is required before inserting a message — callers pass `chatId` (sourced from `thread.channelId` in the Telegram path) and `logMessage` writes it as `chat_id`.
-
-#### Success messaging (Telegram)
-
-Telegram mint flows (`processSingleMedia`, `createMomentsFromGroup`, `createMomentFromYoutubeLink`) notify the user via `replyAfterSuccess` (per token). Group albums mint multiple tokens in one chain operation using `createMomentsFromGroup` → `createMomentBatch`, then call `replyAfterSuccess` once per `tokenId`. Use `logMessage` with `chatId` where conversational history should record the exchange (see `logMessage` above).
+Telegram mint flows (`processSingleMedia`, `createMomentsFromGroup`, `createMomentFromYoutubeLink`) notify the user via `replyAfterSuccess` (per token). Group albums mint multiple tokens in one chain operation using `createMomentsFromGroup` → `createMomentBatch`, then call `replyAfterSuccess` once per `tokenId`.
 
 ### Database
 
