@@ -31,6 +31,7 @@ describe('validateGetArweaveUploadsQuery', () => {
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).artist).toBe(NON_ADMIN.toLowerCase());
+    expect((result as any).listMode).toBe('detail');
     expect((result as any).limit).toBe(10);
     expect((result as any).page).toBe(2);
   });
@@ -59,6 +60,7 @@ describe('validateGetArweaveUploadsQuery', () => {
     expect((result as any).artist).toBeUndefined();
     expect((result as any).sort_by).toBe('usdc_cost');
     expect((result as any).sort_order).toBe('desc');
+    expect((result as any).listMode).toBe('aggregate');
   });
 
   it('returns 400 for invalid query params', async () => {
@@ -111,6 +113,7 @@ describe('validateGetArweaveUploadsQuery', () => {
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).artist).toBe('alice');
+    expect((result as any).listMode).toBe('detail');
   });
 
   it('parses valid sort_by and sort_order', async () => {
@@ -132,7 +135,7 @@ describe('validateGetArweaveUploadsQuery', () => {
       artistAddress: CALLER,
     } as any);
 
-    for (const sort_by of ['filename', 'username', 'address']) {
+    for (const sort_by of ['filename', 'username', 'address', 'created_at']) {
       const result = await validateGetArweaveUploadsQuery(
         makeRequest({ sort_by })
       );

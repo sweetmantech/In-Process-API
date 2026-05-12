@@ -1,14 +1,15 @@
 import { supabase } from '../client';
 
 const selectArweaveUploads = (params: {
+  rpc: 'get_arweave_uploads' | 'get_artist_arweave_uploads';
   artist?: string;
   from?: string;
   limit: number;
   page: number;
-  sortBy: 'usdc_cost' | 'winc_cost';
+  sortBy: 'usdc_cost' | 'winc_cost' | 'size';
   sortOrder: 'asc' | 'desc';
 }) =>
-  supabase.rpc('get_arweave_uploads', {
+  supabase.rpc(params.rpc, {
     p_artist: params.artist,
     p_from: params.from,
     p_limit: params.limit,

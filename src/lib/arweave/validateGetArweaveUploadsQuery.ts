@@ -19,10 +19,22 @@ const validateGetArweaveUploadsQuery = async (req: NextRequest) => {
     );
   }
 
-  if (ADMIN_ADDRESSES.includes(artistAddress.toLowerCase()))
-    return { ...result.data };
+  const isAdmin = ADMIN_ADDRESSES.includes(artistAddress.toLowerCase());
+  const parsed = result.data;
 
-  return { ...result.data, artist: artistAddress.toLowerCase() };
+  if (!isAdmin) {
+    return {
+      ...parsed,
+      artist: artistAddress.toLowerCase(),
+      listMode: 'detail' as const,
+    };
+  }
+
+  if (parsed.artist !== undefined) {
+    return { ...parsed, listMode: 'detail' as const };
+  }
+
+  return { ...parsed, listMode: 'aggregate' as const };
 };
 
 export default validateGetArweaveUploadsQuery;
