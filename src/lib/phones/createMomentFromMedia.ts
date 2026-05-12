@@ -1,7 +1,8 @@
 import type { InboundMessagePayload } from 'telnyx/resources/shared';
-import { maxUint64, parseUnits, Address } from 'viem';
+import { maxUint64, parseUnits } from 'viem';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
-import { createMoment } from '@/lib/moment/createMoment';
+import createMomentBatch from '@/lib/moment/createMomentBatch';
+import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { MomentType } from '@/types/moment';
 import uploadMetadata from './uploadMetadata';
 
@@ -11,33 +12,30 @@ const createMomentFromMedia = async (
   artistAddress: string
 ) => {
   const { uri, name } = await uploadMetadata(media, payload, artistAddress);
-  const momentCreateParameters = {
-    contract: {
-      name,
-      uri,
-    },
-    token: {
-      tokenMetadataURI: uri,
-      createReferral: REFERRAL_RECIPIENT as Address,
-      salesConfig: {
-        type: MomentType.Erc20Mint,
-        pricePerToken: parseUnits('1', 6),
-        saleStart: BigInt(Number(new Date().getTime() / 1000).toFixed(0)),
-        saleEnd: maxUint64,
-        currency: USDC_ADDRESS[CHAIN_ID],
+  const batchInput = createMomentBatchSchema.parse({
+    contract: { name, uri },
+    tokens: [
+      {
+        tokenMetadataURI: uri,
+        createReferral: REFERRAL_RECIPIENT,
+        salesConfig: {
+          type: MomentType.Erc20Mint,
+          pricePerToken: parseUnits('1', 6).toString(),
+          saleStart: Math.floor(Date.now() / 1000),
+          saleEnd: maxUint64.toString(),
+          currency: USDC_ADDRESS[CHAIN_ID],
+        },
+        mintToCreatorCount: 1,
+        payoutRecipient: artistAddress,
       },
-      mintToCreatorCount: 1,
-      payoutRecipient: artistAddress as Address,
-    },
-    account: artistAddress as Address,
-    channel: 'sms' as const,
-  };
-  const { contractAddress, tokenId } = await createMoment(
-    momentCreateParameters
-  );
+    ],
+    account: artistAddress,
+    channel: 'sms',
+  });
+  const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
   return {
     contractAddress,
-    tokenId,
+    tokenId: tokenIds[0]!,
   };
 };
 

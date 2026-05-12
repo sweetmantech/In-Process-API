@@ -1,20 +1,15 @@
-import { NextRequest } from 'next/server';
-import { createMomentSchema } from '@/lib/schema/createMomentSchema';
-import { simulateCreateMoment } from '@/lib/moment/simulateCreateMoment';
-import { validate } from '@/lib/schema/validate';
+import { NextRequest, NextResponse } from 'next/server';
+import simulateCreateMomentHandler from '@/lib/moment/simulateCreateMomentHandler';
+import validateCreateMoment from '@/lib/moment/validateCreateMoment';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const validationResult = validate(createMomentSchema, body);
-    if (!validationResult.success) {
-      return validationResult.response;
-    }
-    const result = await simulateCreateMoment(validationResult.data);
-    return Response.json(result);
+    const validated = await validateCreateMoment(req);
+    if (validated instanceof NextResponse) return validated;
+    return simulateCreateMomentHandler(validated);
   } catch (e: any) {
-    console.log(e);
-    const message = e?.message ?? 'failed to simulate create moment';
+    console.error(e);
+    const message = e?.message ?? 'Unable to simulate moment creation.';
     return Response.json({ message }, { status: 500 });
   }
 }

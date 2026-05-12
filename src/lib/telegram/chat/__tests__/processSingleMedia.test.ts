@@ -3,20 +3,22 @@ import { getAddress, type Address } from 'viem';
 import processSingleMedia from '../processSingleMedia';
 
 vi.mock('../processAttachmentUpload', () => ({ default: vi.fn() }));
-vi.mock('@/lib/moment/createMoment', () => ({ createMoment: vi.fn() }));
+vi.mock('@/lib/moment/createMomentBatch', () => ({ default: vi.fn() }));
 vi.mock('../replyAfterSuccess', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
-  REFERRAL_RECIPIENT: '0xReferral',
-  USDC_ADDRESS: { 8453: '0xUsdc' },
+  REFERRAL_RECIPIENT: '0x1111111111111111111111111111111111111111',
+  USDC_ADDRESS: {
+    8453: '0x2222222222222222222222222222222222222222',
+  },
   IS_TESTNET: false,
 }));
 
 import processAttachmentUpload from '../processAttachmentUpload';
-import { createMoment } from '@/lib/moment/createMoment';
+import createMomentBatch from '@/lib/moment/createMomentBatch';
 import replyAfterSuccess from '../replyAfterSuccess';
 
-const ARTIST_ADDRESS = '0x1234' as Address;
+const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const UPLOAD_RESULT = {
   uri: 'ar://meta',
   mimeType: 'image/jpeg',
@@ -42,7 +44,12 @@ const makeAttachment = () => ({ type: 'image', size: 500 });
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(processAttachmentUpload).mockResolvedValue(UPLOAD_RESULT as never);
-  vi.mocked(createMoment).mockResolvedValue(MOMENT_RESULT as never);
+  vi.mocked(createMomentBatch).mockResolvedValue({
+    contractAddress: MOMENT_RESULT.contractAddress,
+    tokenIds: [MOMENT_RESULT.tokenId],
+    hash: '0x3333333333333333333333333333333333333333333333333333333333333333' as const,
+    chainId: 8453,
+  } as never);
   vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
 });
 
@@ -93,11 +100,11 @@ describe('processSingleMedia', () => {
       ARTIST_ADDRESS
     );
 
-    const call = vi.mocked(createMoment).mock.calls[0][0];
+    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
     expect(call.contract.uri).toBe(UPLOAD_RESULT.uri);
-    expect(call.token.tokenMetadataURI).toBe(UPLOAD_RESULT.uri);
+    expect(call.tokens[0].tokenMetadataURI).toBe(UPLOAD_RESULT.uri);
     expect(call.contract.name).toBe('My Title');
-    expect(call.account).toBe(ARTIST_ADDRESS);
+    expect(call.account).toBe(getAddress(ARTIST_ADDRESS));
     expect(call.channel).toBe('telegram');
   });
 
@@ -133,8 +140,10 @@ describe('processSingleMedia', () => {
       ARTIST_ADDRESS
     );
 
-    const call = vi.mocked(createMoment).mock.calls[0][0];
-    expect(call.contract).toEqual({ address: getAddress(existing) });
+    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
+    expect(call.contract).toEqual({
+      address: getAddress(existing).toLowerCase() as Address,
+    });
     expect(thread._stateAdapter.delete).toHaveBeenCalledWith(
       'selected_collection_address'
     );

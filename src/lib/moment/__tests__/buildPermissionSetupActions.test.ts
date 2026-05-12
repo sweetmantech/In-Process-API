@@ -10,7 +10,7 @@ vi.mock('@/lib/zora/addPermissionCall', () => ({
 
 import { getSplitAdminAddresses } from '@/lib/splits/getSplitAdminAddresses';
 import { addPermissionCall } from '@/lib/zora/addPermissionCall';
-import buildAdditionalSetupActions from '@/lib/moment/buildAdditionalSetupActions';
+import buildPermissionSetupActions from '@/lib/moment/buildPermissionSetupActions';
 
 const SMART_ACCOUNT = '0x1111111111111111111111111111111111111111' as const;
 const SPLIT_ADDR = '0x2222222222222222222222222222222222222222' as const;
@@ -25,7 +25,7 @@ const split2 = {
   percentAllocation: 50,
 };
 
-describe('buildAdditionalSetupActions', () => {
+describe('buildPermissionSetupActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getSplitAdminAddresses).mockResolvedValue({
@@ -35,77 +35,61 @@ describe('buildAdditionalSetupActions', () => {
     vi.mocked(addPermissionCall).mockReturnValue('0xpermission' as any);
   });
 
-  it('returns undefined when no splits and has existing contract', async () => {
-    const result = await buildAdditionalSetupActions({
-      resolvedSplits: [],
+  it('returns a function when splits exist', async () => {
+    const result = await buildPermissionSetupActions({
+      splits: [split1, split2],
       smartAccountAddress: SMART_ACCOUNT,
-      hasExistingContract: true,
-    });
-
-    expect(result).toBeUndefined();
-  });
-
-  it('returns a function when splits exist with existing contract', async () => {
-    const result = await buildAdditionalSetupActions({
-      resolvedSplits: [split1, split2],
-      smartAccountAddress: SMART_ACCOUNT,
-      hasExistingContract: true,
     });
 
     expect(result).toBeTypeOf('function');
   });
 
-  it('returns a function when no splits but no existing contract', async () => {
-    const result = await buildAdditionalSetupActions({
-      resolvedSplits: [],
+  it('returns a function when no splits', async () => {
+    const result = await buildPermissionSetupActions({
+      splits: [],
       smartAccountAddress: SMART_ACCOUNT,
-      hasExistingContract: false,
     });
 
     expect(result).toBeTypeOf('function');
   });
 
   it('does not call getSplitAdminAddresses when no splits', async () => {
-    await buildAdditionalSetupActions({
-      resolvedSplits: [],
+    await buildPermissionSetupActions({
+      splits: [],
       smartAccountAddress: SMART_ACCOUNT,
-      hasExistingContract: false,
     });
 
     expect(getSplitAdminAddresses).not.toHaveBeenCalled();
   });
 
   it('calls getSplitAdminAddresses with the resolved splits', async () => {
-    await buildAdditionalSetupActions({
-      resolvedSplits: [split1, split2],
+    await buildPermissionSetupActions({
+      splits: [split1, split2],
       smartAccountAddress: SMART_ACCOUNT,
-      hasExistingContract: true,
     });
 
     expect(getSplitAdminAddresses).toHaveBeenCalledWith([split1, split2]);
   });
 
-  describe('returned setup actions function', () => {
+  describe('returned permission setup function', () => {
     it('adds collection-level permission for smart account at tokenId 0', async () => {
-      const setupActions = await buildAdditionalSetupActions({
-        resolvedSplits: [split1],
+      const permissionSetup = await buildPermissionSetupActions({
+        splits: [split1],
         smartAccountAddress: SMART_ACCOUNT,
-        hasExistingContract: true,
       });
 
-      setupActions!({ tokenId: 3n });
+      permissionSetup({ tokenId: 3n });
 
       expect(addPermissionCall).toHaveBeenCalledWith(SMART_ACCOUNT, 0n);
     });
 
     it('adds token-level permission for each split address and smart wallet', async () => {
-      const setupActions = await buildAdditionalSetupActions({
-        resolvedSplits: [split1],
+      const permissionSetup = await buildPermissionSetupActions({
+        splits: [split1],
         smartAccountAddress: SMART_ACCOUNT,
-        hasExistingContract: true,
       });
 
-      setupActions!({ tokenId: 5n });
+      permissionSetup({ tokenId: 5n });
 
       expect(addPermissionCall).toHaveBeenCalledWith(SPLIT_ADDR, 5n);
       expect(addPermissionCall).toHaveBeenCalledWith(SPLIT_WALLET, 5n);
@@ -117,13 +101,12 @@ describe('buildAdditionalSetupActions', () => {
         .mockReturnValueOnce('0xsplit_addr' as any)
         .mockReturnValueOnce('0xsplit_wallet' as any);
 
-      const setupActions = await buildAdditionalSetupActions({
-        resolvedSplits: [split1],
+      const permissionSetup = await buildPermissionSetupActions({
+        splits: [split1],
         smartAccountAddress: SMART_ACCOUNT,
-        hasExistingContract: true,
       });
 
-      const actions = setupActions!({ tokenId: 1n });
+      const actions = permissionSetup({ tokenId: 1n });
 
       expect(actions).toEqual([
         '0xcollection',
@@ -135,13 +118,12 @@ describe('buildAdditionalSetupActions', () => {
     it('produces only smart account permission when no splits', async () => {
       vi.mocked(addPermissionCall).mockReturnValueOnce('0xcollection' as any);
 
-      const setupActions = await buildAdditionalSetupActions({
-        resolvedSplits: [],
+      const permissionSetup = await buildPermissionSetupActions({
+        splits: [],
         smartAccountAddress: SMART_ACCOUNT,
-        hasExistingContract: false,
       });
 
-      const actions = setupActions!({ tokenId: 2n });
+      const actions = permissionSetup({ tokenId: 2n });
 
       expect(actions).toEqual(['0xcollection']);
       expect(addPermissionCall).toHaveBeenCalledTimes(1);

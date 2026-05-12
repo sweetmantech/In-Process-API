@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { ContractFunctionExecutionError } from 'viem';
-import parseSimulateContractError from '@/lib/moment/parseSimulateContractError';
+import parseSimulateContractError, {
+  parseSimulateCallError,
+} from '@/lib/moment/parseSimulateContractError';
 
 const USER = '0x58736a1AC6c970de7ECe12eB8A44b02e4b63EC54';
 
@@ -21,6 +23,19 @@ function makeContractError({
   err.cause = { data: { errorName, args } };
   return err;
 }
+
+describe('parseSimulateCallError', () => {
+  it('unwraps ContractFunctionExecutionError from nested cause', () => {
+    const inner = makeContractError({
+      errorName: 'Unauthorized',
+    });
+    const outer = new Error('outer');
+    (outer as Error & { cause: unknown }).cause = inner;
+    expect(parseSimulateCallError(outer)).toBe(
+      'Contract simulation failed: Unauthorized()'
+    );
+  });
+});
 
 describe('parseSimulateContractError', () => {
   describe('non-ContractFunctionExecutionError', () => {

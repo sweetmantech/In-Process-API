@@ -15,7 +15,7 @@ import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import { makeContractParameters } from '@/lib/protocolSdk/utils';
 import { processSplits } from '@/lib/splits/processSplits';
-import { resolveSplitAddresses } from '@/lib/splits/resolveSplitAddresses';
+import { normalizeSplitRecipients } from '@/lib/splits/normalizeSplitRecipients';
 import { addPermissionCall } from '../zora/addPermissionCall';
 
 export type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
@@ -38,7 +38,7 @@ export async function createCollection(
   });
 
   const accountAddress = input.account;
-  const resolvedSplits = await resolveSplitAddresses(input.splits || []);
+  const resolvedSplits = await normalizeSplitRecipients(input.splits || []);
 
   let royaltyRecipient = accountAddress;
   if (resolvedSplits && resolvedSplits.length >= 2) {

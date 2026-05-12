@@ -3,21 +3,16 @@ import { SplitRecipient } from '@0xsplits/splits-sdk';
 import { addPermissionCall } from '@/lib/zora/addPermissionCall';
 import { getSplitAdminAddresses } from '@/lib/splits/getSplitAdminAddresses';
 
-const buildAdditionalSetupActions = async ({
-  resolvedSplits,
+const buildPermissionSetupActions = async ({
+  splits,
   smartAccountAddress,
-  hasExistingContract,
 }: {
-  resolvedSplits: SplitRecipient[];
+  splits: SplitRecipient[];
   smartAccountAddress: Address;
-  hasExistingContract: boolean;
-}): Promise<((args: { tokenId: bigint }) => Hex[]) | undefined> => {
-  if (resolvedSplits.length === 0 && hasExistingContract) return undefined;
-
+}): Promise<(args: { tokenId: bigint }) => Hex[]> => {
   const otherAddresses: Address[] = [];
-  if (resolvedSplits.length > 0) {
-    const { addresses, smartWallets } =
-      await getSplitAdminAddresses(resolvedSplits);
+  if (splits.length > 0) {
+    const { addresses, smartWallets } = await getSplitAdminAddresses(splits);
     otherAddresses.push(...addresses, ...smartWallets);
   }
 
@@ -31,4 +26,4 @@ const buildAdditionalSetupActions = async ({
   };
 };
 
-export default buildAdditionalSetupActions;
+export default buildPermissionSetupActions;

@@ -1,18 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getAddress, type Address } from 'viem';
+import { getAddress, maxUint64, parseUnits, type Address } from 'viem';
 import createMomentsFromGroup from '../createMomentsFromGroup';
+import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
+import { MomentType } from '@/types/moment';
 
 vi.mock('../fetchTelegramFile', () => ({ default: vi.fn() }));
 vi.mock('../processAttachmentUpload', () => ({ default: vi.fn() }));
-vi.mock('@/lib/moment/createMoments', () => ({ default: vi.fn() }));
+vi.mock('@/lib/moment/createMomentBatch', () => ({ default: vi.fn() }));
 vi.mock('../replyAfterSuccess', () => ({ default: vi.fn() }));
 
 import fetchTelegramFile from '../fetchTelegramFile';
 import processAttachmentUpload from '../processAttachmentUpload';
-import createMoments from '@/lib/moment/createMoments';
+import createMomentBatch from '@/lib/moment/createMomentBatch';
 import replyAfterSuccess from '../replyAfterSuccess';
 
-const ARTIST_ADDRESS = '0x1234' as Address;
+const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 
 const PENDING_IMAGE = {
   fileId: 'file-1',
@@ -41,6 +43,8 @@ const UPLOAD_RESULT_2 = {
 };
 const MOMENT_1 = { contractAddress: '0xC1' as Address, tokenId: '1' };
 const MOMENT_2 = { contractAddress: '0xC2' as Address, tokenId: '2' };
+const BATCH_HASH =
+  '0x1111111111111111111111111111111111111111111111111111111111111111' as const;
 
 const makeStateAdapter = (assets: unknown[] = []) => ({
   getList: vi.fn().mockResolvedValue(assets),
@@ -63,7 +67,12 @@ beforeEach(() => {
   vi.mocked(processAttachmentUpload).mockResolvedValue(
     UPLOAD_RESULT_1 as never
   );
-  vi.mocked(createMoments).mockResolvedValue([MOMENT_1]);
+  vi.mocked(createMomentBatch).mockResolvedValue({
+    contractAddress: MOMENT_1.contractAddress,
+    hash: BATCH_HASH,
+    chainId: CHAIN_ID,
+    tokenIds: [MOMENT_1.tokenId],
+  });
   vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
 });
 
@@ -74,14 +83,19 @@ describe('createMomentsFromGroup', () => {
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
 
     expect(processAttachmentUpload).not.toHaveBeenCalled();
-    expect(createMoments).not.toHaveBeenCalled();
+    expect(createMomentBatch).not.toHaveBeenCalled();
   });
 
   it('uploads each pending asset in parallel', async () => {
     vi.mocked(processAttachmentUpload)
       .mockResolvedValueOnce(UPLOAD_RESULT_1 as never)
       .mockResolvedValueOnce(UPLOAD_RESULT_2 as never);
-    vi.mocked(createMoments).mockResolvedValue([MOMENT_1, MOMENT_2]);
+    vi.mocked(createMomentBatch).mockResolvedValue({
+      contractAddress: MOMENT_1.contractAddress,
+      hash: BATCH_HASH,
+      chainId: CHAIN_ID,
+      tokenIds: [MOMENT_1.tokenId, MOMENT_2.tokenId],
+    });
     vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
 
     const thread = makeThread(makeStateAdapter([PENDING_IMAGE, PENDING_VIDEO]));
@@ -115,16 +129,42 @@ describe('createMomentsFromGroup', () => {
     );
   });
 
-  it('calls createMoments with uri and name from uploaded results', async () => {
+  it('calls createMomentBatch with tokens and a new-collection contract from the first asset', async () => {
     const thread = makeThread(makeStateAdapter([PENDING_IMAGE]));
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
 
-    expect(createMoments).toHaveBeenCalledWith(
-      [{ uri: UPLOAD_RESULT_1.uri, name: PENDING_IMAGE.name }],
-      ARTIST_ADDRESS,
-      'telegram',
-      {}
+    expect(createMomentBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contract: {
+          name: PENDING_IMAGE.name,
+          uri: UPLOAD_RESULT_1.uri,
+        },
+        tokens: [
+          {
+            tokenMetadataURI: UPLOAD_RESULT_1.uri,
+            createReferral: getAddress(
+              REFERRAL_RECIPIENT
+            ).toLowerCase() as Address,
+            salesConfig: {
+              type: MomentType.Erc20Mint,
+              pricePerToken: parseUnits('1', 6),
+              saleStart: expect.any(BigInt),
+              saleEnd: maxUint64,
+              currency: getAddress(
+                USDC_ADDRESS[CHAIN_ID]
+              ).toLowerCase() as Address,
+            },
+            mintToCreatorCount: 1,
+            payoutRecipient: getAddress(
+              ARTIST_ADDRESS
+            ).toLowerCase() as Address,
+          },
+        ],
+        account: getAddress(ARTIST_ADDRESS).toLowerCase() as Address,
+        channel: 'telegram',
+        chainId: CHAIN_ID,
+      })
     );
   });
 
@@ -139,11 +179,14 @@ describe('createMomentsFromGroup', () => {
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
 
-    expect(createMoments).toHaveBeenCalledWith(
-      [{ uri: UPLOAD_RESULT_1.uri, name: PENDING_IMAGE.name }],
-      ARTIST_ADDRESS,
-      'telegram',
-      { existingCollectionAddress: getAddress(collection) }
+    expect(createMomentBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contract: { address: getAddress(collection) },
+        tokens: expect.any(Array),
+        account: ARTIST_ADDRESS,
+        channel: 'telegram',
+        chainId: CHAIN_ID,
+      })
     );
     expect(stateAdapter.delete).toHaveBeenCalledWith(
       'selected_collection_address'
@@ -154,7 +197,12 @@ describe('createMomentsFromGroup', () => {
     vi.mocked(processAttachmentUpload)
       .mockResolvedValueOnce(UPLOAD_RESULT_1 as never)
       .mockResolvedValueOnce(UPLOAD_RESULT_2 as never);
-    vi.mocked(createMoments).mockResolvedValue([MOMENT_1, MOMENT_2]);
+    vi.mocked(createMomentBatch).mockResolvedValue({
+      contractAddress: MOMENT_1.contractAddress,
+      hash: BATCH_HASH,
+      chainId: CHAIN_ID,
+      tokenIds: [MOMENT_1.tokenId, MOMENT_2.tokenId],
+    });
 
     const thread = makeThread(makeStateAdapter([PENDING_IMAGE, PENDING_VIDEO]));
 
@@ -170,7 +218,7 @@ describe('createMomentsFromGroup', () => {
     );
     expect(replyAfterSuccess).toHaveBeenCalledWith(
       thread,
-      MOMENT_2.contractAddress.toString(),
+      MOMENT_1.contractAddress.toString(),
       MOMENT_2.tokenId,
       ARTIST_ADDRESS,
       true

@@ -2,7 +2,8 @@ import { maxUint64, parseUnits, type Address } from 'viem';
 import type { Thread, Attachment } from 'chat';
 import processAttachmentUpload from './processAttachmentUpload';
 import replyAfterSuccess from './replyAfterSuccess';
-import { createMoment } from '@/lib/moment/createMoment';
+import createMomentBatch from '@/lib/moment/createMomentBatch';
+import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
 import type { TelegramThreadState } from './telegramThreadState';
@@ -32,26 +33,33 @@ const processSingleMedia = async (
       thumbFileId
     );
 
-    const { contractAddress, tokenId } = await createMoment({
-      contract: selectedCollection
-        ? { address: selectedCollection }
-        : { name, uri: uploaded.uri },
-      token: {
-        tokenMetadataURI: uploaded.uri,
-        createReferral: REFERRAL_RECIPIENT as Address,
-        salesConfig: {
-          type: MomentType.Erc20Mint,
-          pricePerToken: parseUnits('1', 6),
-          saleStart: BigInt(Math.floor(Date.now() / 1000)),
-          saleEnd: maxUint64,
-          currency: USDC_ADDRESS[CHAIN_ID],
+    const contract = selectedCollection
+      ? { address: selectedCollection }
+      : { name, uri: uploaded.uri };
+
+    const batchInput = createMomentBatchSchema.parse({
+      contract,
+      tokens: [
+        {
+          tokenMetadataURI: uploaded.uri,
+          createReferral: REFERRAL_RECIPIENT,
+          salesConfig: {
+            type: MomentType.Erc20Mint,
+            pricePerToken: parseUnits('1', 6).toString(),
+            saleStart: Math.floor(Date.now() / 1000),
+            saleEnd: maxUint64.toString(),
+            currency: USDC_ADDRESS[CHAIN_ID],
+          },
+          mintToCreatorCount: 1,
+          payoutRecipient: artistAddress,
         },
-        mintToCreatorCount: 1,
-        payoutRecipient: artistAddress,
-      },
+      ],
       account: artistAddress,
       channel: 'telegram',
     });
+
+    const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
+    const tokenId = tokenIds[0]!;
 
     if (selectedCollection) {
       await clearSelectedCollectionAddress(thread);

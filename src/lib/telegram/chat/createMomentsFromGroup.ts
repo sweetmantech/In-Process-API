@@ -3,12 +3,13 @@ import type { Thread, Attachment } from 'chat';
 import type { TelegramThreadState } from './telegramThreadState';
 import fetchTelegramFile from './fetchTelegramFile';
 import processAttachmentUpload from './processAttachmentUpload';
-import createMoments from '@/lib/moment/createMoments';
+import createMomentBatch from '@/lib/moment/createMomentBatch';
 import replyAfterSuccess from './replyAfterSuccess';
 import type { PendingMediaGroupAsset } from '@/types/telegram';
 import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
 import getSelectedCollectionAddress from './getSelectedCollectionAddress';
 import getStateAdapter from './stateAdapter';
+import buildCreateBatchInput from './buildCreateBatchInput';
 
 const createMomentsFromGroup = async (
   thread: Thread<TelegramThreadState>,
@@ -45,26 +46,25 @@ const createMomentsFromGroup = async (
       })
     );
 
-    const inputs = uploaded.map((u, i) => ({
-      uri: u.uri,
-      name: pending[i].name,
-    }));
-    const results = await createMoments(inputs, artistAddress, 'telegram', {
-      ...(selectedCollection && {
-        existingCollectionAddress: selectedCollection,
-      }),
-    });
+    const batchInput = buildCreateBatchInput(
+      pending,
+      uploaded,
+      selectedCollection,
+      artistAddress
+    );
+
+    const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
     if (selectedCollection) {
       await clearSelectedCollectionAddress(thread);
     }
     await Promise.all(
-      results.map(({ contractAddress, tokenId }, i) =>
+      tokenIds.map((tokenId, i) =>
         replyAfterSuccess(
           thread,
           contractAddress.toString(),
           tokenId,
           artistAddress,
-          i === results.length - 1
+          i === tokenIds.length - 1
         )
       )
     );

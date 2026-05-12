@@ -6,20 +6,22 @@ vi.mock('@/lib/link/getYoutubeDetail', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/logArweaveUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/uploadJson', () => ({ uploadJson: vi.fn() }));
-vi.mock('@/lib/moment/createMoment', () => ({ createMoment: vi.fn() }));
+vi.mock('@/lib/moment/createMomentBatch', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
-  REFERRAL_RECIPIENT: '0xReferral',
-  USDC_ADDRESS: { 8453: '0xUsdc' },
+  REFERRAL_RECIPIENT: '0x1111111111111111111111111111111111111111',
+  USDC_ADDRESS: {
+    8453: '0x2222222222222222222222222222222222222222',
+  },
   IS_TESTNET: false,
 }));
 
 import getYoutubeDetail from '@/lib/link/getYoutubeDetail';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import { uploadJson } from '@/lib/arweave/uploadJson';
-import { createMoment } from '@/lib/moment/createMoment';
+import createMomentBatch from '@/lib/moment/createMomentBatch';
 
-const ARTIST_ADDRESS = '0xArtist' as Address;
+const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const YOUTUBE_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 const THUMBNAIL_URL = 'https://img.youtube.com/vi/dQw4w9WgXcQ/default.jpg';
 
@@ -35,6 +37,8 @@ const DETAIL = {
 const MOMENT_RESULT = {
   contractAddress: '0xContract' as Address,
   tokenId: '1',
+  hash: '0x1111111111111111111111111111111111111111111111111111111111111111' as const,
+  chainId: 8453,
 };
 
 const makeFetchResponse = (contentType: string | null = 'image/jpeg') => ({
@@ -54,7 +58,12 @@ beforeEach(() => {
     arweave_uri: 'ar://metadata-hash',
     winc_cost: '100',
   });
-  vi.mocked(createMoment).mockResolvedValue(MOMENT_RESULT as never);
+  vi.mocked(createMomentBatch).mockResolvedValue({
+    contractAddress: MOMENT_RESULT.contractAddress,
+    tokenIds: [MOMENT_RESULT.tokenId],
+    hash: MOMENT_RESULT.hash,
+    chainId: MOMENT_RESULT.chainId,
+  } as never);
 });
 
 describe('createMomentFromYoutubeLink', () => {
@@ -129,14 +138,16 @@ describe('createMomentFromYoutubeLink', () => {
     });
   });
 
-  it('calls createMoment with metadataUri, title, and artistAddress', async () => {
+  it('calls createMomentBatch with metadataUri, title, and artistAddress', async () => {
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
 
-    const call = vi.mocked(createMoment).mock.calls[0][0];
+    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
     expect(call.contract.uri).toBe('ar://metadata-hash');
     expect(call.contract.name).toBe(DETAIL.title);
-    expect(call.account).toBe(ARTIST_ADDRESS);
+    expect(call.account).toBe(getAddress(ARTIST_ADDRESS));
     expect(call.channel).toBe('telegram');
+    expect(call.tokens).toHaveLength(1);
+    expect(call.tokens[0].tokenMetadataURI).toBe('ar://metadata-hash');
   });
 
   it('falls back to "Untitled Video" when detail.title is empty', async () => {
@@ -144,11 +155,11 @@ describe('createMomentFromYoutubeLink', () => {
 
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
 
-    const call = vi.mocked(createMoment).mock.calls[0][0];
+    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
     expect(call.contract.name).toBe('Untitled Video');
   });
 
-  it('returns contractAddress and tokenId', async () => {
+  it('returns contractAddress, tokenId, hash, and chainId', async () => {
     const result = await createMomentFromYoutubeLink(
       YOUTUBE_URL,
       ARTIST_ADDRESS
@@ -162,8 +173,8 @@ describe('createMomentFromYoutubeLink', () => {
 
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS, collection);
 
-    const call = vi.mocked(createMoment).mock.calls[0][0];
+    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
     expect(call.contract).toEqual({ address: getAddress(collection) });
-    expect(call.token.tokenMetadataURI).toBe('ar://metadata-hash');
+    expect(call.tokens[0].tokenMetadataURI).toBe('ar://metadata-hash');
   });
 });

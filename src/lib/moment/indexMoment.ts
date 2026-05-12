@@ -11,16 +11,16 @@ import type { Database } from '@/lib/supabase/types';
 
 type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
 
-type IndexMomentParams = {
+export type IndexMomentParams = {
   contractAddress: Address;
   tokenId: string;
   artistAddress: string;
   channel?: CreateMomentContractInput['channel'];
-  contract: CreateMomentContractInput['contract'];
   token: Pick<
     CreateMomentContractInput['token'],
     'tokenMetadataURI' | 'maxSupply'
   >;
+  chainId?: number;
 };
 
 const indexMoment = async ({
@@ -28,15 +28,16 @@ const indexMoment = async ({
   tokenId,
   artistAddress,
   channel,
-  contract,
   token,
+  chainId,
 }: IndexMomentParams) => {
+  const resolvedChainId = chainId ?? CHAIN_ID;
   const artist = getAddress(artistAddress).toLowerCase();
   const normalizedAddress = getAddress(contractAddress).toLowerCase();
   await ensureArtists([artist]);
 
   const { data: existingCollections } = await selectCollections({
-    collections: [{ address: normalizedAddress, chainId: CHAIN_ID }],
+    collections: [{ address: normalizedAddress, chainId: resolvedChainId }],
     limit: 1,
   });
 
@@ -46,13 +47,11 @@ const indexMoment = async ({
     const collections = await upsertCollections([
       {
         address: normalizedAddress,
-        chain_id: CHAIN_ID,
+        chain_id: resolvedChainId,
         creator: artist,
         protocol: 'in_process',
         created_at: placeholder,
         updated_at: placeholder,
-        ...(contract.name && { name: contract.name }),
-        ...(contract.uri && { uri: contract.uri }),
       } as Database['public']['Tables']['in_process_collections']['Insert'],
     ]);
     collectionId = collections[0]?.id ?? '';
@@ -64,10 +63,10 @@ const indexMoment = async ({
       {
         collectionAddress: normalizedAddress as Address,
         tokenId,
-        chainId: CHAIN_ID,
+        chainId: resolvedChainId,
       },
     ],
-    chainId: CHAIN_ID,
+    chainId: resolvedChainId,
     limit: 1,
   });
 
