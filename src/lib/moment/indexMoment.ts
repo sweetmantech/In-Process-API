@@ -7,7 +7,6 @@ import selectCollections from '@/lib/supabase/in_process_collections/selectColle
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
-import type { Database } from '@/lib/supabase/types';
 
 type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
 
@@ -52,7 +51,9 @@ const indexMoment = async ({
         protocol: 'in_process',
         created_at: placeholder,
         updated_at: placeholder,
-      } as Database['public']['Tables']['in_process_collections']['Insert'],
+        uri: '',
+        name: '',
+      },
     ]);
     collectionId = collections[0]?.id ?? '';
   }

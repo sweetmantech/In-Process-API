@@ -67,9 +67,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       await thread.post('Please send a photo or video with a caption.');
     } catch (error) {
       console.error('[telegram-dm] onDirectMessage error:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Something went wrong.';
-      await thread.post(`❌ ${errorMessage}`);
+      await thread.post(`❌ something went wrong: ${error}`);
     }
   });
 }
