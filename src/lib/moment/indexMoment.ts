@@ -11,12 +11,11 @@ import type { Database } from '@/lib/supabase/types';
 
 type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
 
-type IndexMomentParams = {
+export type IndexMomentParams = {
   contractAddress: Address;
   tokenId: string;
   artistAddress: string;
   channel?: CreateMomentContractInput['channel'];
-  contract: CreateMomentContractInput['contract'];
   token: Pick<
     CreateMomentContractInput['token'],
     'tokenMetadataURI' | 'maxSupply'
@@ -28,7 +27,6 @@ const indexMoment = async ({
   tokenId,
   artistAddress,
   channel,
-  contract,
   token,
 }: IndexMomentParams) => {
   const artist = getAddress(artistAddress).toLowerCase();
@@ -51,8 +49,6 @@ const indexMoment = async ({
         protocol: 'in_process',
         created_at: placeholder,
         updated_at: placeholder,
-        ...(contract.name && { name: contract.name }),
-        ...(contract.uri && { uri: contract.uri }),
       } as Database['public']['Tables']['in_process_collections']['Insert'],
     ]);
     collectionId = collections[0]?.id ?? '';

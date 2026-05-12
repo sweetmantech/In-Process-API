@@ -8,8 +8,7 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { normalizeSplitRecipients } from '@/lib/splits/normalizeSplitRecipients';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
-import indexMoment from './indexMoment';
-import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
+import migrateAndIndexMoment from './migrateAndIndexMoment';
 import { processSplits } from '../splits/processSplits';
 import getContractSetup from '../viem/getContractSetup';
 import createTokenParam from './createTokenParam';
@@ -80,25 +79,13 @@ const createMomentBatch = async (
 
   await Promise.all(
     tokenIds.map((tokenId, index) =>
-      Promise.all([
-        migrateMuxToArweave({
-          artistAddress: input.account as Address,
-          moment: {
-            collectionAddress: contractAddress,
-            tokenId,
-            chainId: CHAIN_ID,
-          },
-          uri: input.tokens[index].tokenMetadataURI,
-        }),
-        indexMoment({
-          contractAddress,
-          tokenId,
-          artistAddress: input.account,
-          channel: input.channel,
-          contract: { address: contractAddress },
-          token: input.tokens[index],
-        }),
-      ])
+      migrateAndIndexMoment({
+        artistAddress: input.account as Address,
+        contractAddress,
+        tokenId,
+        channel: input.channel,
+        token: input.tokens[index],
+      })
     )
   );
 

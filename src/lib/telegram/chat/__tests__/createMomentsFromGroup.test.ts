@@ -12,7 +12,7 @@ import processAttachmentUpload from '../processAttachmentUpload';
 import createMoments from '@/lib/moment/createMoments';
 import replyAfterSuccess from '../replyAfterSuccess';
 
-const ARTIST_ADDRESS = '0x1234' as Address;
+const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 
 const PENDING_IMAGE = {
   fileId: 'file-1',

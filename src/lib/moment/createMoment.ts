@@ -7,9 +7,8 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
 import { normalizeSplitRecipients } from '@/lib/splits/normalizeSplitRecipients';
 import parseMomentTransaction from './parseMomentTransaction';
-import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 import buildAdditionalSetupActions from './buildAdditionalSetupActions';
-import indexMoment from './indexMoment';
+import migrateAndIndexMoment from './migrateAndIndexMoment';
 import { processSplits } from '../splits/processSplits';
 
 export type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
@@ -68,18 +67,11 @@ export async function createMoment(
     existingContractAddress: input.contract.address,
   });
 
-  migrateMuxToArweave({
+  await migrateAndIndexMoment({
     artistAddress: input.account as Address,
-    moment: { collectionAddress: contractAddress, tokenId, chainId: CHAIN_ID },
-    uri: input.token.tokenMetadataURI,
-  });
-
-  await indexMoment({
     contractAddress,
     tokenId,
-    artistAddress: input.account,
     channel: input.channel,
-    contract: input.contract,
     token: input.token,
   });
 

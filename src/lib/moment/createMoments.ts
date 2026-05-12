@@ -18,8 +18,7 @@ import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import parseMomentsTransaction from './parseMomentsTransaction';
 import parseSetupNewTokenEventsOnContract from './parseSetupNewTokenEventsOnContract';
-import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
-import indexMoment from './indexMoment';
+import migrateAndIndexMoment from './migrateAndIndexMoment';
 
 export interface MomentInput {
   uri: string;
@@ -97,42 +96,15 @@ const createMoments = async (
   });
 
   await Promise.all(
-    matched.map(({ contractAddress, tokenId, uri }) => {
-      let contractSlice: { address: Address } | { name: string; uri: string };
-      if (useExisting) {
-        contractSlice = { address: existingCollection! };
-      } else {
-        const row = inputs.find((i) => i.uri === uri);
-        if (!row) {
-          throw new Error(
-            'createMoments: matched result uri missing from inputs'
-          );
-        }
-        contractSlice = { name: row.name, uri: row.uri };
-      }
-
-      return Promise.all([
-        migrateMuxToArweave({
-          artistAddress,
-          moment: {
-            collectionAddress: contractAddress,
-            tokenId,
-            chainId: CHAIN_ID,
-          },
-          uri,
-        }),
-        indexMoment({
-          contractAddress,
-          tokenId,
-          artistAddress,
-          channel,
-          contract: contractSlice,
-          token: {
-            tokenMetadataURI: uri,
-          },
-        }),
-      ]);
-    })
+    matched.map(({ contractAddress, tokenId, uri }) =>
+      migrateAndIndexMoment({
+        artistAddress,
+        contractAddress,
+        tokenId,
+        channel,
+        token: { tokenMetadataURI: uri },
+      })
+    )
   );
 
   return matched.map(({ contractAddress, tokenId }) => ({

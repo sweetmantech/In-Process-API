@@ -32,7 +32,6 @@ const baseParams = {
   contractAddress: CONTRACT,
   tokenId: TOKEN_ID,
   artistAddress: ARTIST,
-  contract: { name: 'My Collection', uri: 'ar://meta' },
   token: { tokenMetadataURI: 'ar://token-meta', maxSupply: 100 },
 };
 
