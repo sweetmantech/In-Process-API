@@ -29,5 +29,6 @@ export const convertWritingToContractSchema = (
     },
     account: writingData.account,
     splits: writingData.splits,
+    chainId: writingData.chainId,
   };
 };

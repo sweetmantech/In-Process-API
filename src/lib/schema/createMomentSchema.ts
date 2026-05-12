@@ -58,6 +58,7 @@ const baseCreateMomentSchema = z.object({
   account: addressSchema,
   splits: z.array(splitSchema).optional(),
   channel: z.enum(['sms', 'telegram', 'web', 'api']).optional(),
+  chainId: chainIdSchema,
 });
 
 // Unified schema that accepts the unified contract format
@@ -166,6 +167,7 @@ export const createWritingMomentSchema = z
     token: writingTokenSchema,
     account: addressSchema,
     splits: z.array(splitSchema).optional(),
+    chainId: chainIdSchema,
   })
   .superRefine((data, ctx) => {
     if (!data.splits || data.splits.length === 0) {

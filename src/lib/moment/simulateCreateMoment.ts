@@ -78,6 +78,7 @@ export async function simulateCreateMoment(
     account: input.account,
     splits: input.splits,
     channel: input.channel,
+    chainId: input.chainId,
   });
   return simulateCreateMomentBatch(batchInput);
 }

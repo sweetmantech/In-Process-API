@@ -22,6 +22,7 @@ const createWritingMomentHandler = async (data: CreateWritingMomentInput) => {
     account: convertedData.account,
     splits: convertedData.splits,
     channel: convertedData.channel,
+    chainId: convertedData.chainId,
   });
   const result = await createMomentBatch(batchInput);
   return Response.json({

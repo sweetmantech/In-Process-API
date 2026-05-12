@@ -11,6 +11,7 @@ const createMomentHandler = async (input: CreateMomentContractInput) => {
     account: input.account,
     splits: input.splits,
     channel: input.channel,
+    chainId: input.chainId,
   });
   const result = await createMomentBatch(batchInput);
   return Response.json({
