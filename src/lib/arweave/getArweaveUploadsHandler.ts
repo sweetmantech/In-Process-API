@@ -7,6 +7,12 @@ const PERIOD_INTERVALS: Record<string, number> = {
   month: 30,
 };
 
+const formatUsdc = (v: unknown) => {
+  const n = typeof v === 'string' ? Number(v) : Number(v);
+  if (!Number.isFinite(n)) return '0.000000';
+  return n.toFixed(6);
+};
+
 const getArweaveUploadsHandler = async ({
   artist,
   period,
@@ -19,7 +25,7 @@ const getArweaveUploadsHandler = async ({
   period?: 'day' | 'week' | 'month' | 'all';
   limit: number;
   page: number;
-  sort_by: 'size' | 'usdc_cost' | 'created_at';
+  sort_by: 'usdc_cost' | 'winc_cost';
   sort_order: 'asc' | 'desc';
 }) => {
   const days =
@@ -45,18 +51,21 @@ const getArweaveUploadsHandler = async ({
     );
   }
 
-  const rows = (result.data ?? []) as any[];
+  const rows = (result.data ?? []) as {
+    winc_cost: string;
+    usdc_cost: number | string;
+    artist_username: string;
+    artist_address: string;
+    total_count: number | string;
+    total_usdc_cost: number | string;
+  }[];
   const count = Number(rows[0]?.total_count ?? 0);
-  const total_usdc_cost = Number(rows[0]?.total_usdc_cost ?? 0);
+  const total_usdc_raw = rows[0]?.total_usdc_cost ?? 0;
+  const total_usdc_cost = Number(total_usdc_raw);
   const uploads = rows.map(
-    ({
-      artist_username,
-      artist_address,
-      total_count: _c,
-      total_usdc_cost: _t,
-      ...row
-    }) => ({
-      ...row,
+    ({ artist_username, artist_address, winc_cost, usdc_cost }) => ({
+      winc_cost: String(winc_cost),
+      usdc_cost: formatUsdc(usdc_cost),
       artist: { username: artist_username, address: artist_address },
     })
   );
