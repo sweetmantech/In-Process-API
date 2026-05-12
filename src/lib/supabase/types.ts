@@ -706,11 +706,6 @@ export type Database = {
         Returns: {
           artist_address: string;
           artist_username: string;
-          arweave_uri: string;
-          content_type: string;
-          created_at: string;
-          file_size_bytes: number;
-          id: string;
           total_count: number;
           total_usdc_cost: number;
           usdc_cost: number;

@@ -29,22 +29,24 @@ describe('getArweaveUploadsHandler', () => {
     vi.useRealTimers();
   });
 
-  it('returns logs and count on success', async () => {
+  it('returns per-artist aggregates and count on success', async () => {
     vi.mocked(selectArweaveUploads).mockResolvedValue({
       data: [
         {
-          id: 1,
+          winc_cost: '100',
+          usdc_cost: 1.5,
           artist_username: 'alice',
           artist_address: '0x1',
           total_count: 2,
-          total_usdc_cost: 5.0,
+          total_usdc_cost: 4.25,
         },
         {
-          id: 2,
-          artist_username: 'alice',
-          artist_address: '0x1',
+          winc_cost: '200',
+          usdc_cost: 2.75,
+          artist_username: 'bob',
+          artist_address: '0x2',
           total_count: 2,
-          total_usdc_cost: 5.0,
+          total_usdc_cost: 4.25,
         },
       ],
       error: null,
@@ -53,18 +55,26 @@ describe('getArweaveUploadsHandler', () => {
     const res = await getArweaveUploadsHandler({
       limit: 10,
       page: 2,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
     const body = await res.json();
 
     expect(body).toEqual({
       uploads: [
-        { id: 1, artist: { username: 'alice', address: '0x1' } },
-        { id: 2, artist: { username: 'alice', address: '0x1' } },
+        {
+          winc_cost: '100',
+          usdc_cost: '1.500000',
+          artist: { username: 'alice', address: '0x1' },
+        },
+        {
+          winc_cost: '200',
+          usdc_cost: '2.750000',
+          artist: { username: 'bob', address: '0x2' },
+        },
       ],
       count: 2,
-      total_usdc_cost: 5,
+      total_usdc_cost: 4.25,
     });
   });
 
@@ -75,7 +85,7 @@ describe('getArweaveUploadsHandler', () => {
       artist: '0xaabbcc',
       limit: 20,
       page: 1,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
 
@@ -84,7 +94,7 @@ describe('getArweaveUploadsHandler', () => {
       from: undefined,
       limit: 20,
       page: 1,
-      sortBy: 'created_at',
+      sortBy: 'usdc_cost',
       sortOrder: 'desc',
     });
   });
@@ -95,7 +105,7 @@ describe('getArweaveUploadsHandler', () => {
     await getArweaveUploadsHandler({
       limit: 20,
       page: 1,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
 
@@ -104,7 +114,7 @@ describe('getArweaveUploadsHandler', () => {
       from: undefined,
       limit: 20,
       page: 1,
-      sortBy: 'created_at',
+      sortBy: 'usdc_cost',
       sortOrder: 'desc',
     });
   });
@@ -118,7 +128,7 @@ describe('getArweaveUploadsHandler', () => {
     const res = await getArweaveUploadsHandler({
       limit: 20,
       page: 1,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
     const body = await res.json();
@@ -134,7 +144,7 @@ describe('getArweaveUploadsHandler', () => {
       period: 'day',
       limit: 20,
       page: 1,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
 
@@ -146,7 +156,7 @@ describe('getArweaveUploadsHandler', () => {
       from: expected,
       limit: 20,
       page: 1,
-      sortBy: 'created_at',
+      sortBy: 'usdc_cost',
       sortOrder: 'desc',
     });
   });
@@ -158,7 +168,7 @@ describe('getArweaveUploadsHandler', () => {
       period: 'week',
       limit: 20,
       page: 1,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
 
@@ -170,7 +180,7 @@ describe('getArweaveUploadsHandler', () => {
       from: expected,
       limit: 20,
       page: 1,
-      sortBy: 'created_at',
+      sortBy: 'usdc_cost',
       sortOrder: 'desc',
     });
   });
@@ -182,7 +192,7 @@ describe('getArweaveUploadsHandler', () => {
       period: 'month',
       limit: 20,
       page: 1,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
 
@@ -194,7 +204,7 @@ describe('getArweaveUploadsHandler', () => {
       from: expected,
       limit: 20,
       page: 1,
-      sortBy: 'created_at',
+      sortBy: 'usdc_cost',
       sortOrder: 'desc',
     });
   });
@@ -206,7 +216,7 @@ describe('getArweaveUploadsHandler', () => {
       period: 'all',
       limit: 20,
       page: 1,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
 
@@ -215,7 +225,7 @@ describe('getArweaveUploadsHandler', () => {
       from: undefined,
       limit: 20,
       page: 1,
-      sortBy: 'created_at',
+      sortBy: 'usdc_cost',
       sortOrder: 'desc',
     });
   });
@@ -227,7 +237,7 @@ describe('getArweaveUploadsHandler', () => {
       artist: 'Alice',
       limit: 20,
       page: 1,
-      sort_by: 'created_at',
+      sort_by: 'usdc_cost',
       sort_order: 'desc',
     });
 
@@ -236,7 +246,7 @@ describe('getArweaveUploadsHandler', () => {
       from: undefined,
       limit: 20,
       page: 1,
-      sortBy: 'created_at',
+      sortBy: 'usdc_cost',
       sortOrder: 'desc',
     });
   });
@@ -247,7 +257,7 @@ describe('getArweaveUploadsHandler', () => {
     await getArweaveUploadsHandler({
       limit: 20,
       page: 1,
-      sort_by: 'size',
+      sort_by: 'winc_cost',
       sort_order: 'asc',
     });
 
@@ -256,7 +266,7 @@ describe('getArweaveUploadsHandler', () => {
       from: undefined,
       limit: 20,
       page: 1,
-      sortBy: 'size',
+      sortBy: 'winc_cost',
       sortOrder: 'asc',
     });
   });
