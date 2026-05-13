@@ -4,7 +4,7 @@ import getArweaveUploadsHandler from '@/lib/arweave/getArweaveUploadsHandler';
 
 export async function GET(req: NextRequest) {
   try {
-    const validated = await validateGetArweaveUploadsQuery(req);
+    const validated = validateGetArweaveUploadsQuery(req);
     if (validated instanceof NextResponse) return validated;
     return getArweaveUploadsHandler(validated);
   } catch (e: unknown) {

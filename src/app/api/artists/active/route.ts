@@ -4,7 +4,7 @@ import getActiveArtistsHandler from '@/lib/artists/getActiveArtistsHandler';
 
 export async function GET(req: NextRequest) {
   try {
-    const validated = await validateActiveArtistsQuery(req);
+    const validated = validateActiveArtistsQuery(req);
     if (validated instanceof NextResponse) return validated;
     return getActiveArtistsHandler(validated);
   } catch (e: unknown) {

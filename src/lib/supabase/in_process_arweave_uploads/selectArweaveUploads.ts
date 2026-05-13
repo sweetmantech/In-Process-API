@@ -6,7 +6,7 @@ const selectArweaveUploads = (params: {
   from?: string;
   limit: number;
   page: number;
-  sortBy: 'usdc_cost' | 'winc_cost' | 'size';
+  sortBy: 'usdc_cost' | 'winc_cost' | 'size' | 'created_at';
   sortOrder: 'asc' | 'desc';
 }) =>
   supabase.rpc(params.rpc, {

@@ -11,7 +11,7 @@ const arweaveLogsQuerySchema = z.object({
     .transform((v) => v === 'true'),
   artist: z.string().min(1).optional(),
   sort_by: z
-    .enum(['usdc_cost', 'winc_cost', 'size'])
+    .enum(['usdc_cost', 'winc_cost', 'size', 'created_at'])
     .optional()
     .default('usdc_cost'),
   sort_order: z.enum(['asc', 'desc']).optional().default('desc'),
