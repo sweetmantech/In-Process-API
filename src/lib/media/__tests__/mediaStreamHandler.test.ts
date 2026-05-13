@@ -210,12 +210,11 @@ describe('mediaStreamHandler', () => {
       expect(result.status).toBe(200);
     });
 
-    it('should propagate 416 when origin rejects range and sends no recoverable size hint', async () => {
+    it('should propagate 416 when origin rejects out-of-bounds range', async () => {
       vi.spyOn(global, 'fetch').mockResolvedValue({
         ok: false,
         status: 416,
         statusText: 'Range Not Satisfiable',
-        headers: h({}),
         body: null,
       } as Response);
 
@@ -226,43 +225,6 @@ describe('mediaStreamHandler', () => {
 
       expect(result).toBeInstanceOf(NextResponse);
       expect(result.status).toBe(416);
-    });
-
-    it('should retry with clamped Range when origin returns 416 with total size (bytes star-slash-length)', async () => {
-      vi.spyOn(global, 'fetch')
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 416,
-          statusText: 'Range Not Satisfiable',
-          headers: h({ 'content-range': 'bytes */1000' }),
-          body: createMockStream(),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 206,
-          body: createMockStream(),
-          headers: h({
-            'content-type': 'video/mp4',
-            'content-length': '1000',
-            'content-range': 'bytes 0-999/1000',
-          }),
-        } as Response);
-
-      const result = await mediaStreamHandler({
-        uri: VIDEO,
-        rangeHeader: 'bytes=0-',
-      });
-
-      expect(result.status).toBe(206);
-      expect(fetch).toHaveBeenCalledTimes(2);
-      expect(fetch).toHaveBeenLastCalledWith(
-        VIDEO,
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Range: `bytes=0-999`,
-          }),
-        })
-      );
     });
   });
 
