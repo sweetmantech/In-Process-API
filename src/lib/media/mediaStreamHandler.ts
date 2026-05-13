@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import fetchUri from '@/lib/arweave/fetchUri';
 import buildUpstreamRangeHeader from './buildUpstreamRangeHeader';
 import parseHttpContentRange from './parseHttpContentRange';
+import parseTotalFromUnsatisfiedRange from './parseTotalFromUnsatisfiedRange';
 
 export type MediaStreamHandlerInput = {
   uri: string;
@@ -21,7 +22,30 @@ const mediaStreamHandler = async ({
     upstreamHeaders['Range'] = rangeRequestValue;
   }
 
-  const response = await fetchUri(uri, { headers: upstreamHeaders });
+  let response = await fetchUri(uri, { headers: upstreamHeaders });
+
+  if (response.status === 416 && rangeRequestValue && upstreamHeaders.Range) {
+    const totalLen = parseTotalFromUnsatisfiedRange(
+      response.headers.get('content-range')
+    );
+    const rm = rangeRequestValue.match(/^bytes=(\d+)-(\d+)$/);
+    if (
+      totalLen !== null &&
+      totalLen > 0 &&
+      rm &&
+      !Number.isNaN(parseInt(rm[1], 10)) &&
+      !Number.isNaN(parseInt(rm[2], 10))
+    ) {
+      const start = parseInt(rm[1], 10);
+      const cappedEnd = parseInt(rm[2], 10);
+      if (start < totalLen) {
+        const newEnd = Math.min(cappedEnd, totalLen - 1);
+        void response.body?.cancel()?.catch(() => undefined);
+        upstreamHeaders.Range = `bytes=${start}-${newEnd}`;
+        response = await fetchUri(uri, { headers: upstreamHeaders });
+      }
+    }
+  }
 
   if (!response.ok && response.status !== 206) {
     return NextResponse.json(
