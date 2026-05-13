@@ -1,15 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
-vi.mock('@/authMiddleware', () => ({
-  authMiddleware: vi.fn(),
-}));
-
-vi.mock('@/lib/consts', () => ({
-  ADMIN_ADDRESSES: ['0xadmin0000000000000000000000000000000000'],
-}));
-
-import { authMiddleware } from '@/authMiddleware';
 import validateActiveArtistsQuery from '@/lib/artists/validateActiveArtistsQuery';
 
 const makeRequest = (params: Record<string, string> = {}) => {
@@ -19,15 +10,8 @@ const makeRequest = (params: Record<string, string> = {}) => {
 };
 
 describe('validateActiveArtistsQuery', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: '0xadmin0000000000000000000000000000000000',
-    } as any);
-  });
-
-  it('returns validated defaults for admin caller', async () => {
-    const result = await validateActiveArtistsQuery(makeRequest());
+  it('returns validated defaults when query is empty', () => {
+    const result = validateActiveArtistsQuery(makeRequest());
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).limit).toBe(20);
@@ -36,8 +20,8 @@ describe('validateActiveArtistsQuery', () => {
     expect((result as any).artist).toBeUndefined();
   });
 
-  it('parses explicit query params', async () => {
-    const result = await validateActiveArtistsQuery(
+  it('parses explicit query params', () => {
+    const result = validateActiveArtistsQuery(
       makeRequest({
         limit: '10',
         page: '2',
@@ -55,33 +39,8 @@ describe('validateActiveArtistsQuery', () => {
     });
   });
 
-  it('returns auth response when authMiddleware fails', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue(
-      NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-    );
-
-    const result = await validateActiveArtistsQuery(makeRequest());
-
-    expect(result).toBeInstanceOf(NextResponse);
-    expect((result as NextResponse).status).toBe(401);
-  });
-
-  it('returns 403 for non-admin caller', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: '0x0000000000000000000000000000000000000001',
-    } as any);
-
-    const result = await validateActiveArtistsQuery(makeRequest());
-
-    expect(result).toBeInstanceOf(NextResponse);
-    expect((result as NextResponse).status).toBe(403);
-    expect(await (result as NextResponse).json()).toEqual({
-      message: 'Forbidden',
-    });
-  });
-
-  it('returns 400 for invalid query params', async () => {
-    const result = await validateActiveArtistsQuery(
+  it('returns 400 for invalid query params', () => {
+    const result = validateActiveArtistsQuery(
       makeRequest({ limit: '101', period: 'year' })
     );
 

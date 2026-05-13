@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authMiddleware } from '@/authMiddleware';
 import arweaveLogsQuerySchema from '@/lib/schema/arweaveLogsQuerySchema';
 
-const validateGetArweaveUploadsQuery = async (req: NextRequest) => {
-  const authResult = await authMiddleware(req);
-  if (authResult instanceof NextResponse) return authResult;
-
+const validateGetArweaveUploadsQuery = (req: NextRequest) => {
   const result = arweaveLogsQuerySchema.safeParse(
     Object.fromEntries(req.nextUrl.searchParams.entries())
   );
