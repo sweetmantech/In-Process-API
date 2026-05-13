@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
-import type { ArweaveLogsQueryInput } from '@/lib/schema/arweaveLogsQuerySchema';
+import arweaveLogsQuerySchema from '@/lib/schema/arweaveLogsQuerySchema';
 import selectArweaveUploads from '@/lib/supabase/in_process_arweave_uploads/selectArweaveUploads';
-
-type GetArweaveUploadsHandlerInput = ArweaveLogsQueryInput & {
-  listMode: 'aggregate' | 'detail';
-};
+import { z } from 'zod';
 
 type ArweaveRpcRow = Record<string, unknown> & {
   total_count?: number | string;
@@ -18,9 +15,10 @@ const PERIOD_INTERVALS: Record<string, number> = {
 };
 
 const getArweaveUploadsHandler = async (
-  input: GetArweaveUploadsHandlerInput
+  input: z.infer<typeof arweaveLogsQuerySchema>
 ) => {
-  const { listMode, artist, period, limit, page, sort_by, sort_order } = input;
+  const { aggregation, artist, period, limit, page, sort_by, sort_order } =
+    input;
   const days =
     period && period !== 'all' ? PERIOD_INTERVALS[period] : undefined;
   const from = days
@@ -28,10 +26,7 @@ const getArweaveUploadsHandler = async (
     : undefined;
 
   const result = await selectArweaveUploads({
-    rpc:
-      listMode === 'detail'
-        ? 'get_artist_arweave_uploads'
-        : 'get_arweave_uploads',
+    rpc: aggregation ? 'get_arweave_uploads' : 'get_artist_arweave_uploads',
     artist,
     from,
     limit,
@@ -57,9 +52,7 @@ const getArweaveUploadsHandler = async (
   );
 
   return NextResponse.json(
-    listMode === 'aggregate'
-      ? { uploads, count, total_usdc_cost }
-      : { uploads, count }
+    aggregation ? { uploads, count, total_usdc_cost } : { uploads, count }
   );
 };
 

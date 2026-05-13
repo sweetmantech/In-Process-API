@@ -20,7 +20,7 @@ describe('validateGetArweaveUploadsQuery', () => {
     vi.clearAllMocks();
   });
 
-  it('sets artist to caller address for non-admin callers', async () => {
+  it('parses limit and page with default aggregation true', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
       artistAddress: NON_ADMIN,
     } as any);
@@ -30,8 +30,8 @@ describe('validateGetArweaveUploadsQuery', () => {
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect((result as any).artist).toBe(NON_ADMIN.toLowerCase());
-    expect((result as any).listMode).toBe('detail');
+    expect((result as any).artist).toBeUndefined();
+    expect((result as any).aggregation).toBe(true);
     expect((result as any).limit).toBe(10);
     expect((result as any).page).toBe(2);
   });
@@ -60,7 +60,7 @@ describe('validateGetArweaveUploadsQuery', () => {
     expect((result as any).artist).toBeUndefined();
     expect((result as any).sort_by).toBe('usdc_cost');
     expect((result as any).sort_order).toBe('desc');
-    expect((result as any).listMode).toBe('aggregate');
+    expect((result as any).aggregation).toBe(true);
   });
 
   it('returns 400 for invalid query params', async () => {
@@ -102,7 +102,7 @@ describe('validateGetArweaveUploadsQuery', () => {
     expect((result as NextResponse).status).toBe(400);
   });
 
-  it('parses valid artist value', async () => {
+  it('parses artist with default aggregation true', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
       artistAddress: CALLER,
     } as any);
@@ -113,7 +113,61 @@ describe('validateGetArweaveUploadsQuery', () => {
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).artist).toBe('alice');
-    expect((result as any).listMode).toBe('detail');
+    expect((result as any).aggregation).toBe(true);
+  });
+
+  it('parses aggregation=false for per-upload shape', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
+
+    const result = await validateGetArweaveUploadsQuery(
+      makeRequest({ artist: 'alice', aggregation: 'false' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).artist).toBe('alice');
+    expect((result as any).aggregation).toBe(false);
+  });
+
+  it('parses aggregation=false without artist', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
+
+    const result = await validateGetArweaveUploadsQuery(
+      makeRequest({ aggregation: 'false' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).artist).toBeUndefined();
+    expect((result as any).aggregation).toBe(false);
+  });
+
+  it('parses aggregation=true explicitly', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
+
+    const result = await validateGetArweaveUploadsQuery(
+      makeRequest({ aggregation: 'true' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).aggregation).toBe(true);
+  });
+
+  it('returns 400 for invalid aggregation value', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: CALLER,
+    } as any);
+
+    const result = await validateGetArweaveUploadsQuery(
+      makeRequest({ aggregation: 'maybe' })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(400);
   });
 
   it('parses valid sort_by and sort_order', async () => {
