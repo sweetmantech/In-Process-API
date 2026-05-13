@@ -56,7 +56,7 @@ describe('getArweaveUploadsHandler', () => {
     } as any);
 
     const res = await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       limit: 10,
       page: 2,
       sort_by: 'usdc_cost',
@@ -95,7 +95,7 @@ describe('getArweaveUploadsHandler', () => {
     });
   });
 
-  it('detail mode returns upload rows without total_usdc_cost', async () => {
+  it('aggregation false returns upload rows without total_usdc_cost', async () => {
     vi.mocked(selectArweaveUploads).mockResolvedValue({
       data: [
         {
@@ -113,7 +113,7 @@ describe('getArweaveUploadsHandler', () => {
     } as any);
 
     const res = await getArweaveUploadsHandler({
-      listMode: 'detail',
+      aggregation: false,
       artist: '0xabc',
       limit: 20,
       page: 1,
@@ -147,11 +147,11 @@ describe('getArweaveUploadsHandler', () => {
     });
   });
 
-  it('passes artist to get_artist_arweave_uploads in detail mode', async () => {
+  it('passes artist to get_artist_arweave_uploads when aggregation false', async () => {
     mockAggregateSuccess();
 
     await getArweaveUploadsHandler({
-      listMode: 'detail',
+      aggregation: false,
       artist: '0xaabbcc',
       limit: 20,
       page: 1,
@@ -170,11 +170,11 @@ describe('getArweaveUploadsHandler', () => {
     });
   });
 
-  it('passes no artist when aggregate and not specified', async () => {
+  it('passes no artist when aggregation true and not specified', async () => {
     mockAggregateSuccess();
 
     await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       limit: 20,
       page: 1,
       sort_by: 'usdc_cost',
@@ -199,7 +199,7 @@ describe('getArweaveUploadsHandler', () => {
     } as any);
 
     const res = await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       limit: 20,
       page: 1,
       sort_by: 'usdc_cost',
@@ -218,7 +218,7 @@ describe('getArweaveUploadsHandler', () => {
     } as any);
 
     const res = await getArweaveUploadsHandler({
-      listMode: 'detail',
+      aggregation: false,
       artist: '0x1',
       limit: 20,
       page: 1,
@@ -235,7 +235,7 @@ describe('getArweaveUploadsHandler', () => {
     mockAggregateSuccess();
 
     await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       period: 'day',
       limit: 20,
       page: 1,
@@ -261,7 +261,7 @@ describe('getArweaveUploadsHandler', () => {
     mockAggregateSuccess();
 
     await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       period: 'week',
       limit: 20,
       page: 1,
@@ -287,7 +287,7 @@ describe('getArweaveUploadsHandler', () => {
     mockAggregateSuccess();
 
     await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       period: 'month',
       limit: 20,
       page: 1,
@@ -313,7 +313,7 @@ describe('getArweaveUploadsHandler', () => {
     mockAggregateSuccess();
 
     await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       period: 'all',
       limit: 20,
       page: 1,
@@ -336,7 +336,7 @@ describe('getArweaveUploadsHandler', () => {
     mockAggregateSuccess();
 
     await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       limit: 20,
       page: 1,
       sort_by: 'size',
@@ -358,7 +358,7 @@ describe('getArweaveUploadsHandler', () => {
     mockAggregateSuccess();
 
     await getArweaveUploadsHandler({
-      listMode: 'aggregate',
+      aggregation: true,
       limit: 20,
       page: 1,
       sort_by: 'winc_cost',
