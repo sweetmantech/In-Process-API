@@ -4,12 +4,13 @@ const readFromArweave = async (
   arUri: string,
   init?: RequestInit
 ): Promise<Response> => {
+  const txId = arUri.replace(/^ar:\/\//, '');
   try {
-    const response = await wayfinderClient.request(arUri, init);
-    if (response.ok) return response;
-    throw new Error(`Gateway returned ${response.status}`);
+    return fetch(`https://gateway.irys.xyz/mutable/${txId}`, init);
+    // const response = await wayfinderClient.request(arUri, init);
+    // if (response.ok) return response;
+    // throw new Error(`Gateway returned ${response.status}`);
   } catch {
-    const txId = arUri.replace(/^ar:\/\//, '');
     return fetch(`https://gateway.irys.xyz/mutable/${txId}`, init);
   }
 };
