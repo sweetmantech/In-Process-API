@@ -117,8 +117,18 @@ describe('validateGetArweaveUploadsQuery', () => {
     expect((result as any).sort_order).toBe('asc');
   });
 
+  it('parses sort_by created_at', () => {
+    const result = validateGetArweaveUploadsQuery(
+      makeRequest({ sort_by: 'created_at', sort_order: 'asc' })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).sort_by).toBe('created_at');
+    expect((result as any).sort_order).toBe('asc');
+  });
+
   it('returns 400 for invalid sort_by', () => {
-    for (const sort_by of ['filename', 'username', 'address', 'created_at']) {
+    for (const sort_by of ['filename', 'username', 'address']) {
       const result = validateGetArweaveUploadsQuery(makeRequest({ sort_by }));
       expect(result).toBeInstanceOf(NextResponse);
       expect((result as NextResponse).status).toBe(400);
