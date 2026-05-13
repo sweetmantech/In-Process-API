@@ -13,21 +13,16 @@ vi.mock(
 vi.mock('@/lib/telegram/parseTelegramChatId', () => ({ default: vi.fn() }));
 vi.mock('../../commands/commandsHandler', () => ({ default: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
-vi.mock('../../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
-vi.mock('../../replyAfterSuccess', () => ({ default: vi.fn() }));
+vi.mock('../../processYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('@/lib/link/youtubeParser', () => ({ default: vi.fn() }));
-vi.mock('../../getSelectedCollectionAddress', () => ({ default: vi.fn() }));
-vi.mock('../../clearSelectedCollectionAddress', () => ({ default: vi.fn() }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import commandsHandler from '../../commands/commandsHandler';
 import processMediaThread from '../../processMediaThread';
-import createMomentFromYoutubeLink from '../../createMomentFromYoutubeLink';
-import replyAfterSuccess from '../../replyAfterSuccess';
+import processYoutubeLink from '../../processYoutubeLink';
 import youtubeParser from '@/lib/link/youtubeParser';
-import getSelectedCollectionAddress from '../../getSelectedCollectionAddress';
 import { registerOnNewMention } from '../onNewMention';
 import type { TelegramChatBot } from '../../bot';
 
@@ -76,13 +71,8 @@ beforeEach(() => {
   } as never);
   vi.mocked(commandsHandler).mockResolvedValue(false);
   vi.mocked(processMediaThread).mockResolvedValue(undefined);
-  vi.mocked(createMomentFromYoutubeLink).mockResolvedValue({
-    contractAddress: '0xContract' as Address,
-    tokenId: '1',
-  });
-  vi.mocked(replyAfterSuccess).mockResolvedValue(undefined);
+  vi.mocked(processYoutubeLink).mockResolvedValue(undefined);
   vi.mocked(youtubeParser).mockReturnValue(null);
-  vi.mocked(getSelectedCollectionAddress).mockResolvedValue(null);
 
   registerOnNewMention(mockBot);
 });
@@ -142,5 +132,15 @@ describe('onNewMention', () => {
     expect(thread.post).toHaveBeenCalledWith(
       'Please send a photo or video with a caption.'
     );
+  });
+
+  it('delegates a valid YouTube URL to processYoutubeLink', async () => {
+    vi.mocked(youtubeParser).mockReturnValue('dQw4w9WgXcQ');
+    const thread = makeThread();
+    const yt = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+
+    await capturedHandler!(thread, makeMessage({ text: `listen ${yt}` }));
+
+    expect(processYoutubeLink).toHaveBeenCalledWith(thread, yt, ARTIST_ADDRESS);
   });
 });

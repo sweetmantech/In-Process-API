@@ -1,4 +1,4 @@
-import getCollageImageData from './getCollageImageData';
+import getBase64Image from './getBase64Image';
 
 export interface CollageImageEntry {
   url: string;
@@ -12,7 +12,7 @@ const collectCollageImages = async (
 
   const results = await Promise.all(
     inputs.map(async ({ imageUrl, createdAt }, i) => {
-      const url = await getCollageImageData(imageUrl);
+      const url = await getBase64Image(imageUrl);
       return url !== null ? { index: i, url, createdAt } : null;
     })
   );

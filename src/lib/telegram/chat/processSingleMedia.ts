@@ -1,7 +1,8 @@
 import { maxUint64, parseUnits, type Address } from 'viem';
 import type { Thread, Attachment } from 'chat';
 import processAttachmentUpload from './processAttachmentUpload';
-import replyAfterSuccess from './replyAfterSuccess';
+import sendReadyMessage from './sendReadyMessage';
+import sendArtistCollage from './sendArtistCollage';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
@@ -65,12 +66,8 @@ const processSingleMedia = async (
       await clearSelectedCollectionAddress(thread);
     }
 
-    await replyAfterSuccess(
-      thread,
-      contractAddress.toString(),
-      tokenId,
-      artistAddress
-    );
+    await sendReadyMessage(thread, contractAddress.toString(), tokenId);
+    await sendArtistCollage(thread, artistAddress);
   } finally {
     if (typingInterval !== undefined) {
       clearInterval(typingInterval);

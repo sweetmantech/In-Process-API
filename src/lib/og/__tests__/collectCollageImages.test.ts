@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import collectCollageImages from '@/lib/og/collectCollageImages';
 
-vi.mock('@/lib/og/getCollageImageData');
-import getCollageImageData from '@/lib/og/getCollageImageData';
+vi.mock('@/lib/og/getBase64Image');
+import getBase64Image from '@/lib/og/getBase64Image';
 
 const input = (imageUrl: string, createdAt: string) => ({
   imageUrl,
@@ -21,7 +21,7 @@ describe('collectCollageImages', () => {
   });
 
   it('returns entries with url and createdAt', async () => {
-    vi.mocked(getCollageImageData).mockResolvedValue(dataUrl(0));
+    vi.mocked(getBase64Image).mockResolvedValue(dataUrl(0));
 
     const result = await collectCollageImages([
       input('ar://abc', '2024-01-15T00:00:00Z'),
@@ -32,8 +32,8 @@ describe('collectCollageImages', () => {
     ]);
   });
 
-  it('skips inputs where getCollageImageData returns null', async () => {
-    vi.mocked(getCollageImageData)
+  it('skips inputs where getBase64Image returns null', async () => {
+    vi.mocked(getBase64Image)
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(dataUrl(1));
 
@@ -49,9 +49,7 @@ describe('collectCollageImages', () => {
 
   it('sorts results oldest-first (highest index = oldest in newest-first input)', async () => {
     // inputs are newest-first: index 0 = newest, index 2 = oldest
-    vi.mocked(getCollageImageData).mockImplementation(
-      async (url) => url as string
-    );
+    vi.mocked(getBase64Image).mockImplementation(async (url) => url as string);
 
     const inputs = [
       input('newest', '2024-03-01T00:00:00Z'),

@@ -4,7 +4,8 @@ import type { TelegramThreadState } from './telegramThreadState';
 import fetchTelegramFile from './fetchTelegramFile';
 import processAttachmentUpload from './processAttachmentUpload';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
-import replyAfterSuccess from './replyAfterSuccess';
+import sendReadyMessage from './sendReadyMessage';
+import sendArtistCollage from './sendArtistCollage';
 import type { PendingMediaGroupAsset } from '@/types/telegram';
 import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
 import getSelectedCollectionAddress from './getSelectedCollectionAddress';
@@ -58,16 +59,11 @@ const createMomentsFromGroup = async (
       await clearSelectedCollectionAddress(thread);
     }
     await Promise.all(
-      tokenIds.map((tokenId, i) =>
-        replyAfterSuccess(
-          thread,
-          contractAddress.toString(),
-          tokenId,
-          artistAddress,
-          i === tokenIds.length - 1
-        )
+      tokenIds.map((tokenId) =>
+        sendReadyMessage(thread, contractAddress.toString(), tokenId)
       )
     );
+    await sendArtistCollage(thread, artistAddress);
   } finally {
     clearInterval(typingInterval);
   }

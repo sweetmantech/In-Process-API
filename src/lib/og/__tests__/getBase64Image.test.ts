@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import getCollageImageData from '@/lib/og/getCollageImageData';
+import getBase64Image from '@/lib/og/getBase64Image';
 
 vi.mock('@/lib/arweave/fetchUri');
 vi.mock('sharp', () => {
@@ -24,9 +24,9 @@ const mockFetchOk = () => {
   } as unknown as Response);
 };
 
-describe('getCollageImageData', () => {
+describe('getBase64Image', () => {
   it('returns null when imageUrl is undefined', async () => {
-    const result = await getCollageImageData(undefined);
+    const result = await getBase64Image(undefined);
     expect(result).toBeNull();
     expect(fetchUri).not.toHaveBeenCalled();
   });
@@ -34,29 +34,29 @@ describe('getCollageImageData', () => {
   it('returns null when fetch response is not ok', async () => {
     vi.mocked(fetchUri).mockResolvedValue({ ok: false } as Response);
 
-    const result = await getCollageImageData('ar://abc123');
+    const result = await getBase64Image('ar://abc123');
     expect(result).toBeNull();
   });
 
-  it('returns base64 jpeg data URL on success', async () => {
+  it('returns a JPEG data URL on success', async () => {
     mockFetchOk();
 
-    const result = await getCollageImageData('ar://abc123');
+    const result = await getBase64Image('ar://abc123');
     expect(result).toMatch(/^data:image\/jpeg;base64,/);
   });
 
   it('returns null when an unexpected error is thrown', async () => {
     vi.mocked(fetchUri).mockRejectedValue(new Error('network error'));
 
-    const result = await getCollageImageData('ar://abc123');
+    const result = await getBase64Image('ar://abc123');
     expect(result).toBeNull();
   });
 
-  it('passes the url to fetchUri with cache no-store', async () => {
+  it('passes the url to fetchUri', async () => {
     mockFetchOk();
 
-    await getCollageImageData('ar://abc123');
+    await getBase64Image('ar://abc123');
 
-    expect(fetchUri).toHaveBeenCalledWith('ar://abc123', { cache: 'no-store' });
+    expect(fetchUri).toHaveBeenCalledWith('ar://abc123');
   });
 });
