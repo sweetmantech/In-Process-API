@@ -7,6 +7,7 @@ import getEthBalance from '@/lib/balance/getEthBalance';
 import getAllowance from '@/lib/viem/getAllowance';
 import getApproveCall from '@/lib/viem/getApproveCall';
 import { MomentType } from '@/types/moment';
+import getTortoisePlatformFee from '@/lib/viem/getTortoisePlatformFee';
 
 /**
  * Validates balance and checks allowance for moment collection.
@@ -21,17 +22,24 @@ export async function validateBalanceAndAllowance(
   const isErc20Mint = saleConfig.type === MomentType.Erc20Mint;
 
   if (isErc20Mint) {
-    const balance = await getUsdcBalance(address);
+    const [balance, platformFeeRaw] = await Promise.all([
+      getUsdcBalance(address),
+      getTortoisePlatformFee(),
+    ]);
+
     const pricePerToken = formatUnits(BigInt(saleConfig.pricePerToken), 6);
     const totalPrice = Number(pricePerToken) * amount;
-    if (totalPrice > Number(balance)) throw Error('Insufficient balance.');
+    const totalFee = Number(formatUnits(platformFeeRaw, 6)) * amount;
+    const totalRequired = totalPrice + totalFee;
+
+    if (totalRequired > Number(balance)) throw Error('Insufficient balance.');
 
     const allowance: string = await getAllowance(
       address,
       erc20MinterAddresses[CHAIN_ID]
     );
-    if (Number(allowance) < totalPrice) {
-      approveCall.push(getApproveCall(totalPrice));
+    if (Number(allowance) < totalRequired) {
+      approveCall.push(getApproveCall(totalRequired));
     }
   } else {
     const ethBalanceWei: bigint = await getEthBalance(address);

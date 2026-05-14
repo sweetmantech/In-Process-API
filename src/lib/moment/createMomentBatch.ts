@@ -21,7 +21,6 @@ export interface CreateMomentBatchResult {
 const createMomentBatch = async (
   input: CreateMomentBatchInput
 ): Promise<CreateMomentBatchResult> => {
-  console.log('createMomentBatch input', input);
   const smartAccount = await getOrCreateSmartWallet({
     address: input.account as Address,
   });
@@ -52,18 +51,18 @@ const createMomentBatch = async (
     tokens: input.tokens,
   });
 
-  // await Promise.all(
-  //   tokenIds.map((tokenId, index) =>
-  //     migrateAndIndexMoment({
-  //       artistAddress: input.account as Address,
-  //       contractAddress,
-  //       tokenId,
-  //       channel: input.channel,
-  //       token: input.tokens[index],
-  //       chainId: input.chainId,
-  //     })
-  //   )
-  // );
+  await Promise.all(
+    tokenIds.map((tokenId, index) =>
+      migrateAndIndexMoment({
+        artistAddress: input.account as Address,
+        contractAddress,
+        tokenId,
+        channel: input.channel,
+        token: input.tokens[index],
+        chainId: input.chainId,
+      })
+    )
+  );
 
   return {
     contractAddress,

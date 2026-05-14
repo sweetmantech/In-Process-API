@@ -8,6 +8,7 @@ const CONTRACTS = {
   TortoiseShell: '0x5220C7656B1556E2FfAfcb8663033409a4cAAaeE',
   TortoiseV1: '0x0713940762CC2abB896A5722ce4e725da46dbb56',
   TortoiseMinter: '0x2a805A41A599BbBf8610D8926cfc2c43c7940d9f',
+  Collection: '0x8cbef072a8dd7de15c53e45653ac79917594a9c6',
 } as const;
 const TOKEN_PREVIEW_IMAGE =
   'https://f5bojvhqsjmobhlkvve2uyhj63dy5zkfnodpmematzhltwef4bsa.turbo-gateway.com/L0Lk1PCSWOCdaq1JqmDp9seO5UVrhvYRgJ5OudiF4GQ';
@@ -15,8 +16,7 @@ const BASESCAN_TX = (hash: string) => `https://sepolia.basescan.org/tx/${hash}`;
 
 const CREATE_DEFAULTS = {
   contract: {
-    name: 'Tortoise Minter Testing',
-    uri: 'ar://NcnJ06VcRcaBekXbwUxRQn-A5QT4QWHS3G2HPCfMijI',
+    address: CONTRACTS.Collection,
   },
   token: {
     tokenMetadataURI: 'ar://NcnJ06VcRcaBekXbwUxRQn-A5QT4QWHS3G2HPCfMijI',
@@ -140,7 +140,9 @@ export default function TortoiseMinterPrototype() {
   const [createResult, setCreateResult] = useState<CreateResult | null>(null);
   const [createError, setCreateError] = useState('');
 
-  const [collectionAddress, setCollectionAddress] = useState('');
+  const [collectionAddress, setCollectionAddress] = useState<string>(
+    CONTRACTS.Collection
+  );
   const [tokenId, setTokenId] = useState('1');
   const [amount, setAmount] = useState('1');
   const [apiKey, setApiKey] = useState('');
@@ -238,8 +240,7 @@ export default function TortoiseMinterPrototype() {
   };
 
   const defaults: [string, string][] = [
-    ['Contract name', CREATE_DEFAULTS.contract.name],
-    ['Contract URI', CREATE_DEFAULTS.contract.uri],
+    ['Collection address', CREATE_DEFAULTS.contract.address],
     ['Token metadata URI', CREATE_DEFAULTS.token.tokenMetadataURI],
     ['Create referral', CREATE_DEFAULTS.token.createReferral],
     ['Payout recipient', creatorAddress || '(same as account)'],
@@ -253,308 +254,316 @@ export default function TortoiseMinterPrototype() {
   ];
 
   return (
-    <main
-      style={{
-        fontFamily: 'monospace',
-        height: '100vh',
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        overflow: 'hidden',
-        background: '#fff',
-      }}
-    >
-      {/* ── Col 1: Image + Deployed Addresses ── */}
-      <div
-        style={{
-          borderRight: '1px solid #eee',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={TOKEN_PREVIEW_IMAGE}
-          alt="Token preview"
+    <html lang="en">
+      <body>
+        <main
           style={{
-            width: '100%',
-            height: 200,
-            objectFit: 'cover',
-            objectPosition: 'left',
-            display: 'block',
-            flexShrink: 0,
+            fontFamily: 'monospace',
+            height: '100vh',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            overflow: 'hidden',
+            background: '#fff',
           }}
-        />
-        <div style={{ padding: '14px 16px', overflow: 'auto', flex: 1 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
-            TortoiseMinter Prototype
+        >
+          {/* ── Col 1: Image + Deployed Addresses ── */}
+          <div
+            style={{
+              borderRight: '1px solid #eee',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={TOKEN_PREVIEW_IMAGE}
+              alt="Token preview"
+              style={{
+                width: '100%',
+                height: 200,
+                objectFit: 'cover',
+                objectPosition: 'left',
+                display: 'block',
+                flexShrink: 0,
+              }}
+            />
+            <div style={{ padding: '14px 16px', overflow: 'auto', flex: 1 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
+                TortoiseMinter Prototype
+              </div>
+              <div style={{ color: '#aaa', fontSize: 10, marginBottom: 12 }}>
+                Base Sepolia · Chain {CHAIN_ID}
+              </div>
+              {(Object.entries(CONTRACTS) as [string, string][]).map(
+                ([name, addr]) => (
+                  <div key={name} style={{ marginBottom: 12 }}>
+                    <div
+                      style={{
+                        color: '#777',
+                        fontWeight: 700,
+                        fontSize: 10,
+                        marginBottom: 2,
+                      }}
+                    >
+                      {name}
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 2,
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: '#444',
+                          wordBreak: 'break-all',
+                          fontSize: 10,
+                        }}
+                      >
+                        {addr}
+                      </div>
+                      <CopyButton text={addr} />
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+            {/* end inner padding div */}
           </div>
-          <div style={{ color: '#aaa', fontSize: 10, marginBottom: 12 }}>
-            Base Sepolia · Chain {CHAIN_ID}
-          </div>
-          {(Object.entries(CONTRACTS) as [string, string][]).map(
-            ([name, addr]) => (
-              <div key={name} style={{ marginBottom: 12 }}>
+          {/* end Col 1 */}
+
+          {/* ── Col 2: Tabs + Defaults + Form ── */}
+          <div
+            style={{
+              padding: '14px 16px',
+              overflow: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            <div style={{ display: 'flex', gap: 12, marginBottom: 4 }}>
+              <button
+                style={tabBtn(tab === 'create')}
+                onClick={() => setTab('create')}
+              >
+                Create
+              </button>
+              <button
+                style={tabBtn(tab === 'collect')}
+                onClick={() => setTab('collect')}
+              >
+                Collect
+              </button>
+            </div>
+
+            {tab === 'create' && (
+              <>
+                {/* Defaults */}
                 <div
                   style={{
-                    color: '#777',
-                    fontWeight: 700,
-                    fontSize: 10,
-                    marginBottom: 2,
+                    background: '#fafafa',
+                    border: '1px solid #eee',
+                    borderRadius: 5,
+                    padding: '8px 10px',
                   }}
-                >
-                  {name}
-                </div>
-                <div
-                  style={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}
                 >
                   <div
                     style={{
-                      color: '#444',
-                      wordBreak: 'break-all',
+                      fontWeight: 700,
+                      fontSize: 10,
+                      color: '#555',
+                      marginBottom: 4,
+                    }}
+                  >
+                    Defaults
+                  </div>
+                  <table
+                    style={{
+                      borderCollapse: 'collapse',
+                      width: '100%',
                       fontSize: 10,
                     }}
                   >
-                    {addr}
-                  </div>
-                  <CopyButton text={addr} />
+                    <tbody>
+                      {defaults.map(([k, v]) => (
+                        <tr key={k}>
+                          <td
+                            style={{
+                              color: '#aaa',
+                              paddingRight: 8,
+                              whiteSpace: 'nowrap',
+                              verticalAlign: 'top',
+                              paddingBottom: 3,
+                            }}
+                          >
+                            {k}
+                          </td>
+                          <td
+                            style={{
+                              wordBreak: 'break-all',
+                              color: '#444',
+                              paddingBottom: 3,
+                            }}
+                          >
+                            {v}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-            )
-          )}
-        </div>
-        {/* end inner padding div */}
-      </div>
-      {/* end Col 1 */}
 
-      {/* ── Col 2: Tabs + Defaults + Form ── */}
-      <div
-        style={{
-          padding: '14px 16px',
-          overflow: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-        }}
-      >
-        <div style={{ display: 'flex', gap: 12, marginBottom: 4 }}>
-          <button
-            style={tabBtn(tab === 'create')}
-            onClick={() => setTab('create')}
-          >
-            Create
-          </button>
-          <button
-            style={tabBtn(tab === 'collect')}
-            onClick={() => setTab('collect')}
-          >
-            Collect
-          </button>
-        </div>
-
-        {tab === 'create' && (
-          <>
-            {/* Defaults */}
-            <div
-              style={{
-                background: '#fafafa',
-                border: '1px solid #eee',
-                borderRadius: 5,
-                padding: '8px 10px',
-              }}
-            >
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 10,
-                  color: '#555',
-                  marginBottom: 4,
-                }}
-              >
-                Defaults
-              </div>
-              <table
-                style={{
-                  borderCollapse: 'collapse',
-                  width: '100%',
-                  fontSize: 10,
-                }}
-              >
-                <tbody>
-                  {defaults.map(([k, v]) => (
-                    <tr key={k}>
-                      <td
-                        style={{
-                          color: '#aaa',
-                          paddingRight: 8,
-                          whiteSpace: 'nowrap',
-                          verticalAlign: 'top',
-                          paddingBottom: 3,
-                        }}
-                      >
-                        {k}
-                      </td>
-                      <td
-                        style={{
-                          wordBreak: 'break-all',
-                          color: '#444',
-                          paddingBottom: 3,
-                        }}
-                      >
-                        {v}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Form */}
-            <div>
-              <Field
-                label="Price per Token (USDC)"
-                value={priceUsdc}
-                onChange={setPriceUsdc}
-                placeholder="1"
-              />
-              <Field
-                label="Mint to Creator (quantity)"
-                value={mintToCreatorCount}
-                onChange={setMintToCreatorCount}
-                placeholder="1"
-              />
-              <Field
-                label="Account / Payout Recipient"
-                value={creatorAddress}
-                onChange={setCreatorAddress}
-                placeholder="0x..."
-              />
-              <button
-                style={submitBtn}
-                onClick={handleCreate}
-                disabled={creating}
-              >
-                {creating ? 'Creating...' : 'Create'}
-              </button>
-              {createError && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    padding: 8,
-                    background: '#fff3f3',
-                    border: '1px solid #f5c6c6',
-                    borderRadius: 4,
-                    color: '#c0392b',
-                    fontSize: 11,
-                  }}
-                >
-                  {createError}
-                </div>
-              )}
-              {createResult && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    padding: 8,
-                    background: '#f6fff6',
-                    border: '1px solid #b2dfb2',
-                    borderRadius: 4,
-                    fontSize: 11,
-                    lineHeight: 1.8,
-                  }}
-                >
-                  <div>
-                    <b>Contract</b>
-                    <br />
-                    {createResult.contractAddress}
-                  </div>
-                  <div>
-                    <b>Token ID</b>
-                    <br />
-                    {createResult.tokenId}
-                  </div>
-                  <div>
-                    <b>Tx</b>
-                    <br />
-                    <TxLink hash={createResult.hash} />
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {tab === 'collect' && (
-          <div>
-            <Field
-              label="Collection Address"
-              value={collectionAddress}
-              onChange={setCollectionAddress}
-              placeholder="0x..."
-            />
-            <Field
-              label="Token ID"
-              value={tokenId}
-              onChange={setTokenId}
-              placeholder="1"
-            />
-            <Field
-              label="Amount"
-              value={amount}
-              onChange={setAmount}
-              placeholder="1"
-            />
-            <Field
-              label="API Key"
-              value={apiKey}
-              onChange={setApiKey}
-              placeholder="your-api-key"
-              type="password"
-            />
-            <button
-              style={submitBtn}
-              onClick={handleCollect}
-              disabled={collecting}
-            >
-              {collecting ? 'Collecting...' : 'Collect'}
-            </button>
-            {collectError && (
-              <div
-                style={{
-                  marginTop: 8,
-                  padding: 8,
-                  background: '#fff3f3',
-                  border: '1px solid #f5c6c6',
-                  borderRadius: 4,
-                  color: '#c0392b',
-                  fontSize: 11,
-                }}
-              >
-                {collectError}
-              </div>
-            )}
-            {collectResult && (
-              <div
-                style={{
-                  marginTop: 8,
-                  padding: 8,
-                  background: '#f6fff6',
-                  border: '1px solid #b2dfb2',
-                  borderRadius: 4,
-                  fontSize: 11,
-                  lineHeight: 1.8,
-                }}
-              >
+                {/* Form */}
                 <div>
-                  <b>Tx</b>
-                  <br />
-                  <TxLink hash={collectResult.hash} />
+                  <Field
+                    label="Price per Token (USDC)"
+                    value={priceUsdc}
+                    onChange={setPriceUsdc}
+                    placeholder="1"
+                  />
+                  <Field
+                    label="Mint to Creator (quantity)"
+                    value={mintToCreatorCount}
+                    onChange={setMintToCreatorCount}
+                    placeholder="1"
+                  />
+                  <Field
+                    label="Account / Payout Recipient"
+                    value={creatorAddress}
+                    onChange={setCreatorAddress}
+                    placeholder="0x..."
+                  />
+                  <button
+                    style={submitBtn}
+                    onClick={handleCreate}
+                    disabled={creating}
+                  >
+                    {creating ? 'Creating...' : 'Create'}
+                  </button>
+                  {createError && (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        padding: 8,
+                        background: '#fff3f3',
+                        border: '1px solid #f5c6c6',
+                        borderRadius: 4,
+                        color: '#c0392b',
+                        fontSize: 11,
+                      }}
+                    >
+                      {createError}
+                    </div>
+                  )}
+                  {createResult && (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        padding: 8,
+                        background: '#f6fff6',
+                        border: '1px solid #b2dfb2',
+                        borderRadius: 4,
+                        fontSize: 11,
+                        lineHeight: 1.8,
+                      }}
+                    >
+                      <div>
+                        <b>Contract</b>
+                        <br />
+                        {createResult.contractAddress}
+                      </div>
+                      <div>
+                        <b>Token ID</b>
+                        <br />
+                        {createResult.tokenId}
+                      </div>
+                      <div>
+                        <b>Tx</b>
+                        <br />
+                        <TxLink hash={createResult.hash} />
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </>
+            )}
+
+            {tab === 'collect' && (
+              <div>
+                <Field
+                  label="Collection Address"
+                  value={collectionAddress}
+                  onChange={setCollectionAddress}
+                  placeholder="0x..."
+                />
+                <Field
+                  label="Token ID"
+                  value={tokenId}
+                  onChange={setTokenId}
+                  placeholder="1"
+                />
+                <Field
+                  label="Amount"
+                  value={amount}
+                  onChange={setAmount}
+                  placeholder="1"
+                />
+                <Field
+                  label="API Key"
+                  value={apiKey}
+                  onChange={setApiKey}
+                  placeholder="your-api-key"
+                  type="password"
+                />
+                <button
+                  style={submitBtn}
+                  onClick={handleCollect}
+                  disabled={collecting}
+                >
+                  {collecting ? 'Collecting...' : 'Collect'}
+                </button>
+                {collectError && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      padding: 8,
+                      background: '#fff3f3',
+                      border: '1px solid #f5c6c6',
+                      borderRadius: 4,
+                      color: '#c0392b',
+                      fontSize: 11,
+                    }}
+                  >
+                    {collectError}
+                  </div>
+                )}
+                {collectResult && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      padding: 8,
+                      background: '#f6fff6',
+                      border: '1px solid #b2dfb2',
+                      borderRadius: 4,
+                      fontSize: 11,
+                      lineHeight: 1.8,
+                    }}
+                  >
+                    <div>
+                      <b>Tx</b>
+                      <br />
+                      <TxLink hash={collectResult.hash} />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
-    </main>
+        </main>
+      </body>
+    </html>
   );
 }
