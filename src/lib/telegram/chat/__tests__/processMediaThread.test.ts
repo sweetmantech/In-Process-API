@@ -81,7 +81,7 @@ describe('processMediaThread', () => {
       );
     });
 
-    it('uses an untitled fallback title when text is empty', async () => {
+    it('passes an empty title when text is empty', async () => {
       const thread = makeThread();
 
       await processMediaThread(
@@ -93,7 +93,7 @@ describe('processMediaThread', () => {
       );
 
       const [, , , title] = vi.mocked(processSingleMedia).mock.calls[0];
-      expect(title).toMatch(/^untitled-\d+$/);
+      expect(title).toBe('');
     });
   });
 
