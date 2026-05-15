@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const validated = validateGetSmartWalletQuery(req);
     if (validated instanceof NextResponse) return validated;
-    return getSmartWalletHandler(validated.artist_wallet);
+    return await getSmartWalletHandler(validated.artist_wallet);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to get smart wallet.';
