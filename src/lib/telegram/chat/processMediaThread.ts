@@ -19,7 +19,7 @@ const processMediaThread = async (
   }
 
   const { fileId, thumbFileId } = extractTelegramFileIds(message);
-  const title = text || `untitled-${Date.now()}`;
+  const title = text || '';
   const raw = message.raw as { media_group_id?: string; date?: number };
   const mediaGroupId = raw.media_group_id;
 
