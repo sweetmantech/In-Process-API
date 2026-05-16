@@ -103,18 +103,15 @@ describe('getMuxAssetHandler', () => {
     expect(body.downloadUrl).toBe('https://stream.mux.com/pb-abc/highest.mp4');
   });
 
-  it('returns errored status when master is errored', async () => {
+  it('throws when asset status is errored', async () => {
     mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
     mockAsset.mockResolvedValue({
-      master: { status: 'errored' },
       status: 'errored',
       playback_ids: [{ id: 'pb-abc' }],
     } as any);
 
-    const res = await getMuxAssetHandler('upload-id');
-    const body = await res.json();
-
-    expect(body.status).toBe('errored');
-    expect(body.message).toBe('Asset is being processed');
+    await expect(getMuxAssetHandler('upload-id')).rejects.toThrow(
+      'Mux asset processing failed'
+    );
   });
 });

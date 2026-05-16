@@ -14,12 +14,16 @@ const getMuxAssetHandler = async (uploadId: string): Promise<NextResponse> => {
   const asset = await mux.video.assets.retrieve(upload.asset_id);
 
   // If master is not ready, return status for polling
-  if (asset.master?.status && asset.master?.status !== 'ready') {
+  if (asset.status === 'preparing') {
     return NextResponse.json({
-      status: asset.master?.status,
+      status: asset.status,
       message: 'Asset is being processed',
       assetId: upload.asset_id,
     });
+  }
+
+  if (asset.status === 'errored') {
+    throw new Error('Mux asset processing failed');
   }
 
   const playbackId = asset.playback_ids?.[0]?.id ?? null;
