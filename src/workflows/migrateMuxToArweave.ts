@@ -6,6 +6,7 @@ import downloadAndUploadStep from './steps/downloadAndUploadStep';
 import uploadMetadataStep from './steps/uploadMetadataStep';
 import updateOnChainStep from './steps/updateOnChainStep';
 import deleteMuxAssetStep from './steps/deleteMuxAssetStep';
+import waitMuxMp4ReadyStep from './steps/waitMuxMp4ReadyStep';
 
 export interface MigrateMuxToArweavePayload {
   artistAddress: Address;
@@ -43,6 +44,8 @@ async function migrateMuxToArweave(p: MigrateMuxToArweavePayload) {
       message: 'No Mux playback URL in animation_url',
     };
   }
+
+  await waitMuxMp4ReadyStep(playbackUrl);
 
   const uploadResult = await downloadAndUploadStep(
     metadata.content.uri,

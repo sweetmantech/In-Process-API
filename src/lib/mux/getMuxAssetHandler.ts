@@ -13,19 +13,17 @@ const getMuxAssetHandler = async (uploadId: string): Promise<NextResponse> => {
 
   const asset = await mux.video.assets.retrieve(upload.asset_id);
 
-  const files = asset.static_renditions?.files ?? [];
-  const renditionsStatus =
-    asset.static_renditions?.status ??
-    (files.some((f) => f.name === 'highest.mp4' && f.status === 'ready')
-      ? 'ready'
-      : undefined);
-
-  if (!renditionsStatus || renditionsStatus !== 'ready') {
+  // If master is not ready, return status for polling
+  if (asset.status === 'preparing') {
     return NextResponse.json({
-      status: renditionsStatus ?? 'preparing',
-      message: 'Video processing in progress',
+      status: asset.status,
+      message: 'Asset is being processed',
       assetId: upload.asset_id,
     });
+  }
+
+  if (asset.status === 'errored') {
+    throw new Error('Mux asset processing failed');
   }
 
   const playbackId = asset.playback_ids?.[0]?.id ?? null;
@@ -38,7 +36,7 @@ const getMuxAssetHandler = async (uploadId: string): Promise<NextResponse> => {
     downloadUrl: playbackId
       ? `https://stream.mux.com/${playbackId}/highest.mp4`
       : null,
-    status: renditionsStatus,
+    status: asset.status,
   });
 };
 
