@@ -31,10 +31,11 @@ describe('getMuxAssetHandler', () => {
     expect(body.assetId).toBeUndefined();
   });
 
-  it('returns preparing status when renditions are not ready', async () => {
+  it('returns master status when master is not ready', async () => {
     mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
     mockAsset.mockResolvedValue({
-      static_renditions: { status: 'preparing' },
+      master: { status: 'preparing' },
+      status: 'preparing',
       playback_ids: [{ id: 'pb-id' }],
     } as any);
 
@@ -42,13 +43,13 @@ describe('getMuxAssetHandler', () => {
     const body = await res.json();
 
     expect(body.status).toBe('preparing');
-    expect(body.message).toBe('Video processing in progress');
+    expect(body.message).toBe('Asset is being processed');
     expect(body.assetId).toBe('asset-id');
   });
 
-  it('returns preparing when static_renditions is undefined', async () => {
+  it('returns asset.status when master is undefined', async () => {
     mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
-    mockAsset.mockResolvedValue({ static_renditions: undefined } as any);
+    mockAsset.mockResolvedValue({ status: 'preparing' } as any);
 
     const res = await getMuxAssetHandler('upload-id');
     const body = await res.json();
@@ -56,10 +57,10 @@ describe('getMuxAssetHandler', () => {
     expect(body.status).toBe('preparing');
   });
 
-  it('returns playbackUrl and downloadUrl when renditions are ready', async () => {
+  it('returns playbackUrl and downloadUrl when asset is ready', async () => {
     mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
     mockAsset.mockResolvedValue({
-      static_renditions: { status: 'ready' },
+      status: 'ready',
       playback_ids: [{ id: 'pb-abc' }],
     } as any);
 
@@ -72,10 +73,10 @@ describe('getMuxAssetHandler', () => {
     expect(body.assetId).toBe('asset-id');
   });
 
-  it('returns null URLs when no playback_ids even if renditions ready', async () => {
+  it('returns null URLs when no playback_ids', async () => {
     mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
     mockAsset.mockResolvedValue({
-      static_renditions: { status: 'ready' },
+      status: 'ready',
       playback_ids: [],
     } as any);
 
@@ -86,12 +87,11 @@ describe('getMuxAssetHandler', () => {
     expect(body.downloadUrl).toBeNull();
   });
 
-  it('returns ready when status is absent but highest.mp4 file is ready', async () => {
+  it('returns asset.status when master is ready', async () => {
     mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
     mockAsset.mockResolvedValue({
-      static_renditions: {
-        files: [{ name: 'highest.mp4', status: 'ready' }],
-      },
+      master: { status: 'ready' },
+      status: 'ready',
       playback_ids: [{ id: 'pb-abc' }],
     } as any);
 
@@ -103,19 +103,18 @@ describe('getMuxAssetHandler', () => {
     expect(body.downloadUrl).toBe('https://stream.mux.com/pb-abc/highest.mp4');
   });
 
-  it('returns preparing when status is absent and highest.mp4 is not ready', async () => {
+  it('returns errored status when master is errored', async () => {
     mockUpload.mockResolvedValue({ asset_id: 'asset-id' } as any);
     mockAsset.mockResolvedValue({
-      static_renditions: {
-        files: [{ name: 'highest.mp4', status: 'preparing' }],
-      },
+      master: { status: 'errored' },
+      status: 'errored',
       playback_ids: [{ id: 'pb-abc' }],
     } as any);
 
     const res = await getMuxAssetHandler('upload-id');
     const body = await res.json();
 
-    expect(body.status).toBe('preparing');
-    expect(body.message).toBe('Video processing in progress');
+    expect(body.status).toBe('errored');
+    expect(body.message).toBe('Asset is being processed');
   });
 });
