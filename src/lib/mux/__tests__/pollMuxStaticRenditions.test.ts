@@ -97,4 +97,25 @@ describe('pollMuxStaticRenditions', () => {
     expect(mockAsset).toHaveBeenCalledTimes(2);
     expect(result.playbackUrl).toBe('https://stream.mux.com/pb-id.m3u8');
   });
+
+  it('waits 20 seconds between polls', async () => {
+    const processingAsset = {
+      static_renditions: { status: 'preparing' },
+      playback_ids: [{ id: 'pb-id' }],
+    };
+    mockAsset
+      .mockResolvedValueOnce(processingAsset as any)
+      .mockResolvedValue(readyAsset as any);
+
+    const promise = pollMuxStaticRenditions('asset-id');
+
+    await vi.advanceTimersByTimeAsync(19_999);
+    expect(mockAsset).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(mockAsset).toHaveBeenCalledTimes(2);
+  });
 });

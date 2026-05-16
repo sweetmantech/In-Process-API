@@ -1,6 +1,6 @@
 import mux from '@/lib/mux';
 
-const POLL_INTERVAL_MS = 10_000;
+const POLL_INTERVAL_MS = 20_000;
 
 export interface MuxRenditionsResult {
   playbackUrl: string;
