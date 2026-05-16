@@ -45,7 +45,11 @@ async function migrateMuxToArweave(p: MigrateMuxToArweavePayload) {
     };
   }
 
-  await waitMuxMp4ReadyStep(playbackUrl);
+  while (1) {
+    const result = await waitMuxMp4ReadyStep(playbackUrl);
+    if (result) break;
+    await sleep('20 seconds');
+  }
 
   const uploadResult = await downloadAndUploadStep(
     metadata.content.uri,
