@@ -1,6 +1,6 @@
 import createMuxUpload from './createMuxUpload';
 import getMuxAssetId from './getMuxAssetId';
-import pollMuxStaticRenditions from './pollMuxStaticRenditions';
+import getMuxStaticRenditions from './getMuxStaticRenditions';
 
 export interface MuxUploadResult {
   playbackUrl: string;
@@ -22,7 +22,12 @@ const uploadVideoToMux = async (
     throw new Error(`Failed to upload video to Mux: ${res.statusText}`);
 
   const assetId = await getMuxAssetId(uploadId);
-  return pollMuxStaticRenditions(assetId);
+
+  while (true) {
+    const result = await getMuxStaticRenditions(assetId);
+    if (result) return result;
+    await new Promise((resolve) => setTimeout(resolve, 20_000));
+  }
 };
 
 export default uploadVideoToMux;

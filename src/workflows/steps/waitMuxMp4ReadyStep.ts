@@ -1,5 +1,6 @@
 import { findMuxAssetIdFromPlaybackUrl } from '@/lib/mux/findMuxAssetIdFromPlaybackUrl';
-import pollMuxStaticRenditions from '@/lib/mux/pollMuxStaticRenditions';
+import getMuxStaticRenditions from '@/lib/mux/getMuxStaticRenditions';
+import { sleep } from 'workflow';
 
 export default async function waitMuxMp4ReadyStep(
   playbackUrl: string
@@ -10,5 +11,9 @@ export default async function waitMuxMp4ReadyStep(
   if (!assetId)
     throw new Error('Could not resolve Mux asset ID from playback URL');
 
-  await pollMuxStaticRenditions(assetId);
+  while (true) {
+    const result = await getMuxStaticRenditions(assetId);
+    if (result) return;
+    await sleep('20 seconds');
+  }
 }
