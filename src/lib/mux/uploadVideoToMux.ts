@@ -1,3 +1,4 @@
+import { retriesGeneric } from '@/lib/protocolSdk/retries';
 import createMuxUpload from './createMuxUpload';
 import getMuxAssetId from './getMuxAssetId';
 import getMuxStaticRenditions from './getMuxStaticRenditions';
@@ -23,11 +24,15 @@ const uploadVideoToMux = async (
 
   const assetId = await getMuxAssetId(uploadId);
 
-  while (true) {
-    const result = await getMuxStaticRenditions(assetId);
-    if (result) return result;
-    await new Promise((resolve) => setTimeout(resolve, 20_000));
-  }
+  return retriesGeneric({
+    tryFn: async () => {
+      const result = await getMuxStaticRenditions(assetId);
+      if (!result) throw new Error('Mux static renditions not ready');
+      return result;
+    },
+    maxTries: 60,
+    linearBackoffMS: 20_000,
+  });
 };
 
 export default uploadVideoToMux;
