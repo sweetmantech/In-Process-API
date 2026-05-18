@@ -29,9 +29,9 @@ const makeDbMoment = (protocol: string) => ({
 
 const mockSaleConfig = {
   pricePerToken: '1000',
-  saleStart: '0',
-  saleEnd: '0',
-  maxTokensPerAddress: '0',
+  saleStart: 0,
+  saleEnd: 0,
+  maxTokensPerAddress: 0,
   fundsRecipient: COLLECTION,
   type: MomentType.FixedPriceMint,
 };
