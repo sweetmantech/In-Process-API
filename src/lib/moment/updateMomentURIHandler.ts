@@ -13,16 +13,22 @@ const updateMomentURIHandler = async ({
   artistAddress,
   moment,
   newUri,
+  newCollectionAddress,
 }: UpdateMomentURIHandlerInput): Promise<NextResponse> => {
   const result = await updateMomentURI({
     moment,
     newUri,
+    newCollectionAddress,
     artistAddress: artistAddress as Address,
   });
 
   migrateMuxToArweave({
     artistAddress: artistAddress as Address,
-    moment,
+    moment: {
+      collectionAddress: result.contractAddress,
+      tokenId: result.tokenId,
+      chainId: result.chainId,
+    },
     uri: newUri,
   });
 

@@ -143,12 +143,24 @@ export type MomentAdvancedInfo = {
 export interface UpdateMomentURIInput {
   moment: Moment;
   newUri: string;
+  newCollectionAddress?: Address;
   artistAddress: Address;
 }
 
 export interface UpdateMomentURIResult {
   hash: Hash;
   chainId: number;
+  contractAddress: Address;
+  tokenId: string;
+}
+
+export interface UpdateCollectionCallInput {
+  moment: Moment;
+  contract: {
+    uri: string;
+    address: Address;
+  };
+  artistAddress: Address;
 }
 
 export interface MigrateMomentsApiInput {
