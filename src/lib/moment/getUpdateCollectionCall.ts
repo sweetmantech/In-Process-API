@@ -70,7 +70,7 @@ const getUpdateCollectionCall = async ({
   const { arweave_uri: resetUri } = await uploadJson({
     name: '',
     description: '',
-    external_url: `${SITE_ORIGINAL_URL}/manage/base:${contract.address}/${firstTokenId}`,
+    external_url: `${SITE_ORIGINAL_URL}/collect/base:${contract.address}/${firstTokenId}`,
     image: '',
     animation_url: null,
     content: { mime: '', uri: '' },
