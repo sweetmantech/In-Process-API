@@ -13,7 +13,11 @@ const getTokenSetupActions = async ({
   splitAddress: Address | undefined;
   permissionSetupActions: (args: { tokenId: bigint }) => Hex[];
 }): Promise<{ tokenSetupActions: Hex[]; firstTokenId: bigint }> => {
-  const { nextTokenId, contractVersion, collectionName } = await getContractSetup({ chainId: input.chainId, contract: input.contract });
+  const { nextTokenId, contractVersion, collectionName } =
+    await getContractSetup({
+      chainId: input.chainId,
+      contract: input.contract,
+    });
 
   const tokenSetupActions = input.tokens.flatMap((token, index) => {
     const tokenId = nextTokenId + BigInt(index);

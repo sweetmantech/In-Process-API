@@ -29,15 +29,26 @@ const TX_HASH =
 
 const NEW_COLLECTION = '0x3333333333333333333333333333333333333333' as const;
 const moment = { collectionAddress: COLLECTION, tokenId: '3', chainId: 8453 };
-const baseInput = { moment, newUri: 'ar://new-metadata-hash', artistAddress: ARTIST };
+const baseInput = {
+  moment,
+  newUri: 'ar://new-metadata-hash',
+  artistAddress: ARTIST,
+};
 
 describe('updateMomentURI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(getOrCreateSmartWallet).mockResolvedValue({ address: ARTIST } as any);
-    vi.mocked(getUpdateTokenURICall).mockReturnValue({ to: COLLECTION, data: '0xcalldata' } as any);
-    vi.mocked(sendUserOperation).mockResolvedValue({ transactionHash: TX_HASH } as any);
+    vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
+      address: ARTIST,
+    } as any);
+    vi.mocked(getUpdateTokenURICall).mockReturnValue({
+      to: COLLECTION,
+      data: '0xcalldata',
+    } as any);
+    vi.mocked(sendUserOperation).mockResolvedValue({
+      transactionHash: TX_HASH,
+    } as any);
   });
 
   it('returns hash, chainId, contractAddress, tokenId', async () => {
@@ -60,9 +71,13 @@ describe('updateMomentURI', () => {
   });
 
   it('propagates errors from sendUserOperation', async () => {
-    vi.mocked(sendUserOperation).mockRejectedValue(new Error('Paymaster failed'));
+    vi.mocked(sendUserOperation).mockRejectedValue(
+      new Error('Paymaster failed')
+    );
 
-    await expect(updateMomentURI(baseInput)).rejects.toThrow('Paymaster failed');
+    await expect(updateMomentURI(baseInput)).rejects.toThrow(
+      'Paymaster failed'
+    );
   });
 
   describe('when newCollectionAddress is provided', () => {
@@ -73,18 +88,27 @@ describe('updateMomentURI', () => {
         contractAddress: NEW_COLLECTION,
         tokenId: '1',
       } as any);
-      vi.mocked(getUpdateTokenURICall).mockReturnValue({ to: COLLECTION, data: '0xredirectcalldata' } as any);
+      vi.mocked(getUpdateTokenURICall).mockReturnValue({
+        to: COLLECTION,
+        data: '0xredirectcalldata',
+      } as any);
     });
 
     it('returns new contractAddress and tokenId', async () => {
-      const result = await updateMomentURI({ ...baseInput, newCollectionAddress: NEW_COLLECTION });
+      const result = await updateMomentURI({
+        ...baseInput,
+        newCollectionAddress: NEW_COLLECTION,
+      });
 
       expect(result.contractAddress).toBe(NEW_COLLECTION);
       expect(result.tokenId).toBe('1');
     });
 
     it('sends create call followed by update call', async () => {
-      await updateMomentURI({ ...baseInput, newCollectionAddress: NEW_COLLECTION });
+      await updateMomentURI({
+        ...baseInput,
+        newCollectionAddress: NEW_COLLECTION,
+      });
 
       expect(sendUserOperation).toHaveBeenCalledWith(
         expect.objectContaining({

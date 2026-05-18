@@ -12,14 +12,11 @@ export async function updateMomentURI({
   newCollectionAddress,
   artistAddress,
 }: UpdateMomentURIInput): Promise<UpdateMomentURIResult> {
-  console.log('[updateMomentURI] input', { moment, newUri, newCollectionAddress, artistAddress });
-
   const smartAccount = await getOrCreateSmartWallet({ address: artistAddress });
-  console.log('[updateMomentURI] smartAccount', smartAccount.address);
 
   const network = moment.chainId === baseSepolia.id ? 'base-sepolia' : 'base';
 
-  let updateUri = newUri;
+  let resetUri = newUri;
   let contractAddress: Address = moment.collectionAddress as Address;
   let tokenId = moment.tokenId;
   const extraCalls: { to: Address; data: `0x${string}` }[] = [];
@@ -30,23 +27,22 @@ export async function updateMomentURI({
       contract: { uri: newUri, address: newCollectionAddress },
       artistAddress,
     });
-    console.log('[updateMomentURI] getUpdateCollectionCall result', result);
 
     extraCalls.push(result.call);
-    updateUri = result.redirectUri;
+    resetUri = result.resetUri;
     contractAddress = result.contractAddress;
     tokenId = result.tokenId;
   }
 
-  console.log('[updateMomentURI] calls', [...extraCalls, { to: moment.collectionAddress, data: '...' }]);
-
-  const { to: updateTo, data: updateData } = getUpdateTokenURICall(moment, updateUri);
+  const { to: updateTo, data: updateData } = getUpdateTokenURICall(
+    moment,
+    resetUri
+  );
   const transaction = await sendUserOperation({
     smartAccount,
     network,
     calls: [...extraCalls, { to: updateTo, data: updateData }],
   });
-  console.log('[updateMomentURI] transaction', transaction.transactionHash);
 
   return {
     hash: transaction.transactionHash as Hash,

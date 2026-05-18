@@ -1,5 +1,9 @@
 import { Address } from 'viem';
-import { REFERRAL_RECIPIENT, SITE_ORIGINAL_URL, USDC_ADDRESS } from '@/lib/consts';
+import {
+  REFERRAL_RECIPIENT,
+  SITE_ORIGINAL_URL,
+  USDC_ADDRESS,
+} from '@/lib/consts';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { uploadJson } from '@/lib/arweave/uploadJson';
 import { MomentType, UpdateCollectionCallInput } from '@/types/moment';
@@ -17,16 +21,22 @@ const getUpdateCollectionCall = async ({
 }: UpdateCollectionCallInput) => {
   const [saleConfig, { data: collections }] = await Promise.all([
     getOnChainSaleConfig(moment),
-    selectCollections({ collections: [{ address: contract.address, chainId: moment.chainId }] }),
+    selectCollections({
+      collections: [{ address: contract.address, chainId: moment.chainId }],
+    }),
   ]);
 
   const collectionId = collections?.[0]?.id;
   const admins = collectionId
-    ? await selectAdmins({ moments: [{ collectionId, token_id: Number(moment.tokenId) }] })
+    ? await selectAdmins({
+        moments: [{ collectionId, token_id: Number(moment.tokenId) }],
+      })
     : [];
 
   const permissionSetupActions = ({ tokenId }: { tokenId: bigint }) =>
-    admins.map((admin) => addPermissionCall(admin.artist_address as Address, tokenId));
+    admins.map((admin) =>
+      addPermissionCall(admin.artist_address as Address, tokenId)
+    );
 
   const batchInput = createMomentBatchSchema.parse({
     contract: { address: contract.address },
@@ -37,8 +47,8 @@ const getUpdateCollectionCall = async ({
         salesConfig: {
           type: saleConfig.type,
           pricePerToken: saleConfig.pricePerToken,
-          saleStart: saleConfig.saleStart.toString(),
-          saleEnd: saleConfig.saleEnd.toString(),
+          saleStart: saleConfig.saleStart,
+          saleEnd: saleConfig.saleEnd,
           ...(saleConfig.type === MomentType.Erc20Mint && {
             currency: USDC_ADDRESS[moment.chainId],
           }),
@@ -57,7 +67,7 @@ const getUpdateCollectionCall = async ({
     permissionSetupActions,
   });
 
-  const { arweave_uri: redirectUri } = await uploadJson({
+  const { arweave_uri: resetUri } = await uploadJson({
     name: '',
     description: '',
     external_url: `${SITE_ORIGINAL_URL}/manage/base:${contract.address}/${firstTokenId}`,
@@ -74,7 +84,7 @@ const getUpdateCollectionCall = async ({
 
   return {
     call: { to, data },
-    redirectUri,
+    resetUri,
     contractAddress: contract.address,
     tokenId: firstTokenId.toString(),
   };

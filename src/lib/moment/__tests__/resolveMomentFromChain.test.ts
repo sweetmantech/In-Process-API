@@ -43,9 +43,9 @@ const moment = { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 };
 
 const mockSaleConfig = {
   pricePerToken: '1000',
-  saleStart: 0,
-  saleEnd: 0,
-  maxTokensPerAddress: 0,
+  saleStart: '0',
+  saleEnd: '0',
+  maxTokensPerAddress: '0',
   fundsRecipient: COLLECTION,
   type: MomentType.FixedPriceMint,
 };
