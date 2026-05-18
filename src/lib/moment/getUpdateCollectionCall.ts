@@ -8,7 +8,7 @@ import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { uploadJson } from '@/lib/arweave/uploadJson';
 import { MomentType, UpdateCollectionCallInput } from '@/types/moment';
 import { addPermissionCall } from '@/lib/zora/addPermissionCall';
-import getOnChainSaleConfig from './getOnChainSaleConfig';
+import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
 import getTokenSetupActions from './getTokenSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
@@ -19,8 +19,8 @@ const getUpdateCollectionCall = async ({
   contract,
   artistAddress,
 }: UpdateCollectionCallInput) => {
-  const [saleConfig, { data: collections }] = await Promise.all([
-    getOnChainSaleConfig(moment),
+  const [{ saleConfig }, { data: collections }] = await Promise.all([
+    getInProcessMomentInfo(moment),
     selectCollections({
       collections: [{ address: contract.address, chainId: moment.chainId }],
     }),
