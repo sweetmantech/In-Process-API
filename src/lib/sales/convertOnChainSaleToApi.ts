@@ -5,9 +5,9 @@ export const convertOnChainSaleToApi = (
   sale: OnChainSaleConfig
 ): MomentSaleConfig => ({
   pricePerToken: sale.pricePerToken.toString(),
-  saleStart: sale.saleStart.toString(),
-  saleEnd: sale.saleEnd.toString(),
-  maxTokensPerAddress: sale.maxTokensPerAddress.toString(),
+  saleStart: Number(sale.saleStart),
+  saleEnd: Number(sale.saleEnd),
+  maxTokensPerAddress: Number(sale.maxTokensPerAddress),
   fundsRecipient: sale.fundsRecipient,
   type: sale.type,
 });

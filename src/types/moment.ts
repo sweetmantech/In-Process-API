@@ -116,10 +116,9 @@ export interface GetCollectionTimelineResponse {
 
 export type MomentSaleConfig = {
   pricePerToken: string;
-  /** Unix seconds or other uint sale fields as decimal string (avoids float rounding past MAX_SAFE_INTEGER). */
-  saleStart: string;
-  saleEnd: string;
-  maxTokensPerAddress: string;
+  saleStart: number;
+  saleEnd: number;
+  maxTokensPerAddress: number;
   fundsRecipient: Address;
   type: MomentType;
 };
