@@ -33,6 +33,7 @@ BEGIN
   total AS (SELECT COUNT(*)::int AS cnt FROM filtered),
   paged AS (
     SELECT * FROM filtered
+    ORDER BY created_at DESC
     LIMIT capped_limit OFFSET offset_val
   )
   SELECT

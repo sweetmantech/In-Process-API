@@ -27,12 +27,16 @@ const selectCollections = async ({
   chainId?: number;
   limit?: number;
   page?: number;
-} = {}) => {
-  const { data, error } = await supabase.rpc<RpcResult>(
+} = {}): Promise<{
+  data: Collection[] | null;
+  count: number | null;
+  error: { message: string } | null;
+}> => {
+  const { data: rawData, error } = await supabase.rpc(
     'get_artist_collections',
     {
-      p_artist: artist?.toLowerCase() ?? null,
-      p_chainid: chainId ?? null,
+      p_artist: artist?.toLowerCase(),
+      p_chainid: chainId,
       p_limit: limit,
       p_page: page,
     }
@@ -40,9 +44,10 @@ const selectCollections = async ({
 
   if (error) return { data: null, count: null, error };
 
+  const result = rawData as unknown as RpcResult;
   return {
-    data: data?.collections ?? [],
-    count: data?.total_count ?? 0,
+    data: result.collections ?? [],
+    count: result.total_count ?? 0,
     error: null,
   };
 };
