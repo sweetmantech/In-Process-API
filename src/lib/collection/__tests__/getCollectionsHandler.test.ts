@@ -35,18 +35,18 @@ describe('getCollectionsHandler', () => {
     await getCollectionsHandler({ ...baseInput, artist: '0xartist' });
 
     expect(selectCollections).toHaveBeenCalledWith({
-      artists: ['0xartist'],
+      artist: '0xartist',
       limit: 10,
       page: 1,
       chainId: 8453,
     });
   });
 
-  it('passes undefined artists when artist is not provided', async () => {
+  it('passes undefined artist when artist is not provided', async () => {
     await getCollectionsHandler(baseInput);
 
     expect(selectCollections).toHaveBeenCalledWith(
-      expect.objectContaining({ artists: undefined })
+      expect.objectContaining({ artist: undefined })
     );
   });
 
