@@ -27,7 +27,12 @@ const getSmartWalletAddress = async (address: Address) => {
 
     return smartAccount.address.toLowerCase() as Address;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'object'
+          ? JSON.stringify(error)
+          : String(error);
     throw new Error(
       `Failed to get or create smart wallet for address ${lowercasedAddress}: ${errorMessage}`
     );
