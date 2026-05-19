@@ -6,7 +6,10 @@ const selectCollectionIds = async (
   if (!collections.length) return { data: [], error: null };
 
   const orConditions = collections
-    .map((c) => `and(address.eq.${c.address.toLowerCase()},chain_id.eq.${c.chainId})`)
+    .map(
+      (c) =>
+        `and(address.eq.${c.address.toLowerCase()},chain_id.eq.${c.chainId})`
+    )
     .join(',');
 
   return supabase

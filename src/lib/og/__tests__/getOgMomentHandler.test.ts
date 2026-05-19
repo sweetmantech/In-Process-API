@@ -194,7 +194,10 @@ describe('getOgMomentHandler', () => {
   });
 
   it('throws when tokenId is 0 and collection is missing', async () => {
-    mockSelectCollection.mockResolvedValue({ data: null, error: null } as never);
+    mockSelectCollection.mockResolvedValue({
+      data: null,
+      error: null,
+    } as never);
 
     await expect(
       getOgMomentHandler({
