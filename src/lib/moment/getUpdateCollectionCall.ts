@@ -13,16 +13,21 @@ import getTokenSetupActions from './getTokenSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
+import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 
 const getUpdateCollectionCall = async ({
   moment,
   contract,
   artistAddress,
 }: UpdateCollectionCallInput) => {
-  const [{ saleConfig }, { data: collection }] = await Promise.all([
-    getInProcessMomentInfo(moment),
-    selectCollection({ address: contract.address, chainId: moment.chainId }),
-  ]);
+  const [{ saleConfig }, { data: collection }, { data: dbMoments }] =
+    await Promise.all([
+      getInProcessMomentInfo(moment),
+      selectCollection({ address: contract.address, chainId: moment.chainId }),
+      selectMoments({ moments: [moment] }),
+    ]);
+
+  const dbMoment = dbMoments?.[0];
 
   const collectionId = collection?.id;
   const admins = collectionId
@@ -45,7 +50,12 @@ const getUpdateCollectionCall = async ({
         salesConfig: {
           type: saleConfig.type,
           pricePerToken: saleConfig.pricePerToken,
-          saleStart: saleConfig.saleStart,
+          saleStart:
+            saleConfig.saleStart === BigInt(0) && dbMoment?.created_at
+              ? BigInt(
+                  Math.floor(new Date(dbMoment.created_at).getTime() / 1000)
+                )
+              : saleConfig.saleStart,
           saleEnd: saleConfig.saleEnd,
           ...(saleConfig.type === MomentType.Erc20Mint && {
             currency: USDC_ADDRESS[moment.chainId],
