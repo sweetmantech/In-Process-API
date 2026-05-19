@@ -3,7 +3,7 @@ import type { z } from 'zod';
 import { CHAIN_ID } from '@/lib/consts';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
 import { ensureArtists } from '@/lib/artists/ensureArtists';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
@@ -35,13 +35,13 @@ const indexMoment = async ({
   const normalizedAddress = getAddress(contractAddress).toLowerCase();
   await ensureArtists([artist]);
 
-  const { data: existingCollections } = await selectCollections({
-    collections: [{ address: normalizedAddress, chainId: resolvedChainId }],
-    limit: 1,
+  const { data: existingCollection } = await selectCollection({
+    address: normalizedAddress,
+    chainId: resolvedChainId,
   });
 
-  let collectionId = existingCollections?.[0]?.id ?? '';
-  if (!existingCollections?.[0]?.id) {
+  let collectionId = existingCollection?.id ?? '';
+  if (!existingCollection?.id) {
     const placeholder = new Date(0).toISOString();
     const collections = await upsertCollections([
       {

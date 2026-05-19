@@ -19,10 +19,10 @@ const getCollectionsHandler = async ({
     count: collectionsCount,
     error,
   } = await selectCollections({
-    artists: artist ? [artist] : undefined,
+    artist,
+    chainId: chain_id,
     limit,
     page,
-    chainId: chain_id,
   });
 
   if (error) {

@@ -13,7 +13,7 @@ vi.mock('next/og', () => ({
   },
 }));
 
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+vi.mock('@/lib/supabase/in_process_collections/selectCollection', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/moment/resolveMomentInfo', () => ({
@@ -36,7 +36,7 @@ vi.mock('@/lib/og/getMomentPreview', () => ({
 }));
 
 import { ImageResponse } from 'next/og';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
@@ -48,7 +48,7 @@ import { OG_HEIGHT, OG_WIDTH } from '@/lib/og/consts';
 
 const COLLECTION = '0x0000000000000000000000000000000000000001' as const;
 
-const mockSelectCollections = vi.mocked(selectCollections);
+const mockSelectCollection = vi.mocked(selectCollection);
 const mockResolveMomentInfo = vi.mocked(resolveMomentInfo);
 const mockFetchTokenMetadata = vi.mocked(fetchTokenMetadata);
 const mockNormalizeMetadata = vi.mocked(normalizeMetadata);
@@ -66,8 +66,9 @@ beforeEach(() => {
 
 describe('getOgMomentHandler', () => {
   it('returns ImageResponse sized for OG moment card', async () => {
-    mockSelectCollections.mockResolvedValue({
-      data: [{ protocol: 'in_process', uri: 'col-uri' }],
+    mockSelectCollection.mockResolvedValue({
+      data: { protocol: 'in_process', uri: 'col-uri' },
+      error: null,
     } as never);
     mockResolveMomentInfo.mockResolvedValue({ uri: 'moment-uri' } as never);
     mockFetchTokenMetadata.mockResolvedValue({ name: 'm' } as never);
@@ -101,8 +102,9 @@ describe('getOgMomentHandler', () => {
   });
 
   it('uses writing branch for text/plain content', async () => {
-    mockSelectCollections.mockResolvedValue({
-      data: [{ protocol: 'in_process', uri: 'col-uri' }],
+    mockSelectCollection.mockResolvedValue({
+      data: { protocol: 'in_process', uri: 'col-uri' },
+      error: null,
     } as never);
     mockResolveMomentInfo.mockResolvedValue({ uri: 'meta-uri' } as never);
     mockFetchTokenMetadata.mockResolvedValue({} as never);
@@ -127,8 +129,9 @@ describe('getOgMomentHandler', () => {
   });
 
   it('uses collection uri for tokenId 0 without resolveMomentInfo', async () => {
-    mockSelectCollections.mockResolvedValue({
-      data: [{ protocol: 'in_process', uri: 'edition-meta-uri' }],
+    mockSelectCollection.mockResolvedValue({
+      data: { protocol: 'in_process', uri: 'edition-meta-uri' },
+      error: null,
     } as never);
     mockFetchTokenMetadata.mockResolvedValue({} as never);
     mockNormalizeMetadata.mockResolvedValue({
@@ -157,8 +160,9 @@ describe('getOgMomentHandler', () => {
   });
 
   it('rewrites ar:// image to Irys gateway when collection is catalog', async () => {
-    mockSelectCollections.mockResolvedValue({
-      data: [{ protocol: 'catalog', uri: 'col-uri' }],
+    mockSelectCollection.mockResolvedValue({
+      data: { protocol: 'catalog', uri: 'col-uri' },
+      error: null,
     } as never);
     mockResolveMomentInfo.mockResolvedValue({ uri: 'moment-uri' } as never);
     mockFetchTokenMetadata.mockResolvedValue({} as never);
@@ -190,7 +194,7 @@ describe('getOgMomentHandler', () => {
   });
 
   it('throws when tokenId is 0 and collection is missing', async () => {
-    mockSelectCollections.mockResolvedValue({ data: [] } as never);
+    mockSelectCollection.mockResolvedValue({ data: null, error: null } as never);
 
     await expect(
       getOgMomentHandler({

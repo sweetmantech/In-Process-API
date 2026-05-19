@@ -37,7 +37,7 @@ describe('handleCollections', () => {
     await handleCollections(thread as never, ARTIST_ADDRESS);
 
     expect(selectCollections).toHaveBeenCalledWith({
-      artists: [ARTIST_ADDRESS],
+      artist: ARTIST_ADDRESS,
       limit: 20,
       chainId: CHAIN_ID,
       page: 1,

@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+vi.mock('@/lib/supabase/in_process_collections/selectCollectionIds', () => ({
   default: vi.fn(),
 }));
 
 import { getCollectionIdMap } from '../getCollectionIdMap';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectCollectionIds from '@/lib/supabase/in_process_collections/selectCollectionIds';
 
-const mockSelectCollections = vi.mocked(selectCollections);
+const mockSelectCollectionIds = vi.mocked(selectCollectionIds);
 
 describe('getCollectionIdMap', () => {
   beforeEach(() => vi.clearAllMocks());
@@ -15,11 +15,11 @@ describe('getCollectionIdMap', () => {
   it('returns empty map for empty pairs', async () => {
     const result = await getCollectionIdMap([]);
     expect(result.size).toBe(0);
-    expect(mockSelectCollections).not.toHaveBeenCalled();
+    expect(mockSelectCollectionIds).not.toHaveBeenCalled();
   });
 
   it('returns map keyed by lowercase address:chainId', async () => {
-    mockSelectCollections.mockResolvedValue({
+    mockSelectCollectionIds.mockResolvedValue({
       data: [{ id: 'col-uuid', address: '0xABC', chain_id: 8453 }],
       error: null,
     } as any);
@@ -29,7 +29,7 @@ describe('getCollectionIdMap', () => {
   });
 
   it('ignores collections not in the requested pairs', async () => {
-    mockSelectCollections.mockResolvedValue({
+    mockSelectCollectionIds.mockResolvedValue({
       data: [
         { id: 'col-1', address: '0xaaa', chain_id: 8453 },
         { id: 'col-2', address: '0xbbb', chain_id: 8453 },
@@ -43,7 +43,7 @@ describe('getCollectionIdMap', () => {
   });
 
   it('throws when selectCollections returns an error', async () => {
-    mockSelectCollections.mockResolvedValue({
+    mockSelectCollectionIds.mockResolvedValue({
       data: null,
       error: new Error('db error'),
     } as any);
@@ -53,11 +53,11 @@ describe('getCollectionIdMap', () => {
     );
   });
 
-  it('passes the correct query to selectCollections', async () => {
-    mockSelectCollections.mockResolvedValue({ data: [], error: null } as any);
+  it('passes the correct query to selectCollectionIds', async () => {
+    mockSelectCollectionIds.mockResolvedValue({ data: [], error: null } as any);
     await getCollectionIdMap([['0xABC', 8453]]);
-    expect(mockSelectCollections).toHaveBeenCalledWith({
-      collections: [{ address: '0xABC', chainId: 8453 }],
-    });
+    expect(mockSelectCollectionIds).toHaveBeenCalledWith([
+      { address: '0xABC', chainId: 8453 },
+    ]);
   });
 });

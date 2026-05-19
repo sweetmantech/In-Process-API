@@ -5,7 +5,7 @@ vi.mock('@/lib/consts', () => ({
   IS_TESTNET: false,
 }));
 
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+vi.mock('@/lib/supabase/in_process_collections/selectCollection', () => ({
   default: vi.fn(),
 }));
 
@@ -33,7 +33,7 @@ vi.mock('@/lib/viem/getZoraMediaInfo', () => ({
   default: vi.fn(),
 }));
 
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
 import getMetadata from '@/lib/moment/getMetadata';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
@@ -91,8 +91,8 @@ const normalizedMetadata = {
 describe('getMomentHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [mockCollection],
+    vi.mocked(selectCollection).mockResolvedValue({
+      data: mockCollection,
       error: null,
     } as any);
     vi.mocked(resolveMomentInfo).mockResolvedValue(mockResolved as any);
@@ -119,10 +119,11 @@ describe('getMomentHandler', () => {
     });
   });
 
-  it('queries selectCollections with the moment address and chainId', async () => {
+  it('queries selectCollection with the moment address and chainId', async () => {
     await getMomentHandler(moment);
-    expect(selectCollections).toHaveBeenCalledWith({
-      collections: [{ address: COLLECTION, chainId: 8453 }],
+    expect(selectCollection).toHaveBeenCalledWith({
+      address: COLLECTION,
+      chainId: 8453,
     });
   });
 
@@ -158,9 +159,9 @@ describe('getMomentHandler', () => {
     });
   });
 
-  it('falls back to null collection when selectCollections returns empty', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [],
+  it('falls back to null collection when selectCollection returns null', async () => {
+    vi.mocked(selectCollection).mockResolvedValue({
+      data: null,
       error: null,
     } as any);
 
@@ -221,8 +222,8 @@ describe('getMomentHandler', () => {
     const ON_CHAIN_OWNER = '0x000000000000000000000000000000000000bbbb';
 
     beforeEach(() => {
-      vi.mocked(selectCollections).mockResolvedValue({
-        data: [{ ...mockCollection, protocol: 'zora_media' }],
+      vi.mocked(selectCollection).mockResolvedValue({
+        data: { ...mockCollection, protocol: 'zora_media' },
         error: null,
       } as any);
       vi.mocked(resolveMomentInfo).mockResolvedValue({

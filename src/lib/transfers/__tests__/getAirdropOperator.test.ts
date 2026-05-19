@@ -4,7 +4,7 @@ import { FACTORY_ADDRESSES } from '@/lib/protocolSdk/create/factory-addresses';
 import { getPublicClient } from '@/lib/viem/publicClient';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import isCoinbaseSmartWallet from '@/lib/smartwallets/isCoinbaseSmartWallet';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
 import type { Transfers_t } from '@/types/envio';
 import getAirdropOperator from '../getAirdropOperator';
 
@@ -79,14 +79,14 @@ vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
 vi.mock('@/lib/smartwallets/isCoinbaseSmartWallet', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+vi.mock('@/lib/supabase/in_process_collections/selectCollection', () => ({
   default: vi.fn(),
 }));
 
 const mockGetPublicClient = vi.mocked(getPublicClient);
 const mockSelectArtists = vi.mocked(selectArtists);
 const mockIsCb = vi.mocked(isCoinbaseSmartWallet);
-const mockSelectCollections = vi.mocked(selectCollections);
+const mockSelectCollection = vi.mocked(selectCollection);
 
 describe('getAirdropOperator', () => {
   beforeEach(() => {
@@ -182,26 +182,24 @@ describe('getAirdropOperator', () => {
     const creatorAddr = getAddress(
       '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as `0x${string}`
     );
-    mockSelectCollections.mockResolvedValue({
-      data: [
-        {
-          address: collectionAddress.toLowerCase(),
-          chain_id: chainId,
-          creator: {
-            address: creatorAddr,
-            username: 'factoryCreator',
-          },
+    mockSelectCollection.mockResolvedValue({
+      data: {
+        address: collectionAddress.toLowerCase(),
+        chain_id: chainId,
+        creator: {
+          address: creatorAddr,
+          username: 'factoryCreator',
         },
-      ],
-      count: 1,
+      },
       error: null,
     } as never);
 
     const t = transferFixture();
     const result = await getAirdropOperator(t);
 
-    expect(mockSelectCollections).toHaveBeenCalledWith({
-      collections: [{ address: t.collection, chainId }],
+    expect(mockSelectCollection).toHaveBeenCalledWith({
+      address: t.collection,
+      chainId,
     });
     expect(mockSelectArtists).not.toHaveBeenCalled();
     expect(result).toEqual({
@@ -223,9 +221,8 @@ describe('getAirdropOperator', () => {
           ])
         ),
     } as never);
-    mockSelectCollections.mockResolvedValue({
-      data: [],
-      count: 0,
+    mockSelectCollection.mockResolvedValue({
+      data: null,
       error: null,
     } as never);
 
@@ -234,7 +231,7 @@ describe('getAirdropOperator', () => {
     );
   });
 
-  it('throws Collection not found when mint operator is factory but selectCollections returns an error', async () => {
+  it('throws Collection not found when mint operator is factory but selectCollection returns an error', async () => {
     mockGetPublicClient.mockReturnValue({
       getTransactionReceipt: vi
         .fn()
@@ -247,9 +244,8 @@ describe('getAirdropOperator', () => {
           ])
         ),
     } as never);
-    mockSelectCollections.mockResolvedValue({
+    mockSelectCollection.mockResolvedValue({
       data: null,
-      count: null,
       error: { message: 'db down' },
     } as never);
 
@@ -268,7 +264,7 @@ describe('getAirdropOperator', () => {
 
     const result = await getAirdropOperator(transferFixture());
 
-    expect(mockSelectCollections).not.toHaveBeenCalled();
+    expect(mockSelectCollection).not.toHaveBeenCalled();
     expect(mockSelectArtists).toHaveBeenCalledWith({
       smart_wallet: operatorAddress,
       address: undefined,
@@ -292,7 +288,7 @@ describe('getAirdropOperator', () => {
 
     const result = await getAirdropOperator(transferFixture());
 
-    expect(mockSelectCollections).not.toHaveBeenCalled();
+    expect(mockSelectCollection).not.toHaveBeenCalled();
     expect(mockSelectArtists).toHaveBeenCalledWith({
       smart_wallet: undefined,
       address: operatorAddress,
