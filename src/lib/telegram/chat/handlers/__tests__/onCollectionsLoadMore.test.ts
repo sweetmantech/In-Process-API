@@ -104,7 +104,7 @@ describe('registerOnCollectionsLoadMore', () => {
     await handler.fn(event);
 
     expect(selectCollections).toHaveBeenCalledWith({
-      artists: [ARTIST_ADDRESS],
+      artist: ARTIST_ADDRESS,
       limit: 20,
       chainId: CHAIN_ID,
       page: 2,

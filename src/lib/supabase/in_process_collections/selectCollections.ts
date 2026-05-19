@@ -1,51 +1,55 @@
 import { supabase } from '../client';
-import { CHAIN_ID } from '@/lib/consts';
+
+type Collection = {
+  id: string;
+  address: string;
+  name: string;
+  chain_id: number;
+  created_at: string;
+  uri: string;
+  protocol: string;
+  creator: string;
+  admins: { artist_address: string; token_id: number }[];
+};
+
+type RpcResult = {
+  collections: Collection[];
+  total_count: number;
+};
 
 const selectCollections = async ({
-  collections,
-  artists,
-  chainId = CHAIN_ID,
-  limit = 100,
-  page,
+  artist,
+  chainId,
+  limit = 20,
+  page = 1,
 }: {
-  collections?: { address: string; chainId: number }[];
-  artists?: string[];
+  artist?: string;
   chainId?: number;
   limit?: number;
   page?: number;
-} = {}) => {
-  const cappedLimit = Math.min(limit, 100);
+} = {}): Promise<{
+  data: Collection[] | null;
+  count: number | null;
+  error: { message: string } | null;
+}> => {
+  const { data: rawData, error } = await supabase.rpc(
+    'get_artist_collections',
+    {
+      p_artist: artist?.toLowerCase(),
+      p_chainid: chainId,
+      p_limit: limit,
+      p_page: page,
+    }
+  );
 
-  let query = supabase
-    .from('in_process_collections')
-    .select(
-      `*, creator:in_process_artists!inner(username, address), admins:in_process_admins(artist_address, token_id)`,
-      { count: 'exact' }
-    );
-
-  if (collections?.length) {
-    const orConditions = collections
-      .map(
-        (c) =>
-          `and(address.eq.${c.address.toLowerCase()},chain_id.eq.${c.chainId})`
-      )
-      .join(',');
-    query = query.or(orConditions);
-  } else {
-    if (chainId) query = query.eq('chain_id', chainId);
-  }
-  if (artists?.length) query = query.in('creator.address', artists);
-  if (page !== undefined) {
-    query = query.in('admins.token_id', [0]);
-    query = query.range((page - 1) * cappedLimit, page * cappedLimit - 1);
-  } else {
-    query = query.limit(cappedLimit);
-  }
-  query = query.order('created_at', { ascending: false });
-
-  const { data, count, error } = await query;
   if (error) return { data: null, count: null, error };
-  return { data: data ?? [], count: count ?? 0, error: null };
+
+  const result = rawData as unknown as RpcResult;
+  return {
+    data: result.collections ?? [],
+    count: result.total_count ?? 0,
+    error: null,
+  };
 };
 
 export default selectCollections;

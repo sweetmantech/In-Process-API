@@ -15,9 +15,9 @@ const handleCollections = async (
   artistAddress: Address
 ) => {
   const { data, count, error } = await selectCollections({
-    artists: [artistAddress],
-    limit: 20,
+    artist: artistAddress,
     chainId: CHAIN_ID,
+    limit: 20,
     page: 1,
   });
   if (error) throw error;

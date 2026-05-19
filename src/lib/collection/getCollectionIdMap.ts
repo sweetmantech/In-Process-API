@@ -1,13 +1,13 @@
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectCollectionIds from '@/lib/supabase/in_process_collections/selectCollectionIds';
 
 export async function getCollectionIdMap(
   pairs: Array<[string, number]>
 ): Promise<Map<string, string>> {
   if (!pairs.length) return new Map();
 
-  const { data, error } = await selectCollections({
-    collections: pairs.map(([address, chainId]) => ({ address, chainId })),
-  });
+  const { data, error } = await selectCollectionIds(
+    pairs.map(([address, chainId]) => ({ address, chainId }))
+  );
   if (error) throw error;
 
   const requestedPairs = new Set(

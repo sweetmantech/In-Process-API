@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import upsertAdmins from '@/lib/supabase/in_process_admins/upsertAdmins';
 import { momentSchema } from '@/lib/schema/momentSchema';
@@ -22,11 +22,10 @@ export async function POST(req: NextRequest) {
 
     const moment = validationResult.data;
 
-    const { data: collections, error: collectionsError } =
-      await selectCollections({
-        collections: [
-          { address: moment.collectionAddress, chainId: moment.chainId },
-        ],
+    const { data: collection, error: collectionsError } =
+      await selectCollection({
+        address: moment.collectionAddress,
+        chainId: moment.chainId,
       });
 
     if (collectionsError) {
@@ -36,7 +35,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const collection = collections[0];
     if (!collection) {
       return Response.json(
         { success: false, message: 'Collection not found' },

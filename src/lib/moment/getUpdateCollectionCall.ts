@@ -11,7 +11,7 @@ import { addPermissionCall } from '@/lib/zora/addPermissionCall';
 import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
 import getTokenSetupActions from './getTokenSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 
 const getUpdateCollectionCall = async ({
@@ -19,14 +19,12 @@ const getUpdateCollectionCall = async ({
   contract,
   artistAddress,
 }: UpdateCollectionCallInput) => {
-  const [{ saleConfig }, { data: collections }] = await Promise.all([
+  const [{ saleConfig }, { data: collection }] = await Promise.all([
     getInProcessMomentInfo(moment),
-    selectCollections({
-      collections: [{ address: contract.address, chainId: moment.chainId }],
-    }),
+    selectCollection({ address: contract.address, chainId: moment.chainId }),
   ]);
 
-  const collectionId = collections?.[0]?.id;
+  const collectionId = collection?.id;
   const admins = collectionId
     ? await selectAdmins({
         moments: [{ collectionId, token_id: Number(moment.tokenId) }],

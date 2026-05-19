@@ -699,6 +699,15 @@ export type Database = {
           winc_cost: string;
         }[];
       };
+      get_artist_collections: {
+        Args: {
+          p_artist?: string;
+          p_chainid?: number;
+          p_limit?: number;
+          p_page?: number;
+        };
+        Returns: Json;
+      };
       get_artist_timeline: {
         Args: {
           p_artist: string;

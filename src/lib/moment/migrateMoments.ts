@@ -21,7 +21,7 @@ const migrateMoments = async ({
   try {
     const { data: collections, error: collectionsError } =
       await selectCollections({
-        artists: [socialWallet.address],
+        artist: socialWallet.address,
         chainId: CHAIN_ID,
       });
     if (!collections || collectionsError) return;
