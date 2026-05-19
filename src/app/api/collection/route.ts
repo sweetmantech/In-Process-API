@@ -3,6 +3,8 @@ import validateGetCollectionQuery from '@/lib/collection/validateGetCollectionQu
 import getCollectionHandler from '@/lib/collection/getCollectionHandler';
 import validateCreateCollectionBody from '@/lib/collection/validateCreateCollectionBody';
 import createCollectionHandler from '@/lib/collection/createCollectionHandler';
+import validateUpdateCollectionURI from '@/lib/collection/validateUpdateCollectionURI';
+import updateCollectionURIHandler from '@/lib/collection/updateCollectionURIHandler';
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,7 +13,7 @@ export async function GET(req: NextRequest) {
     return getCollectionHandler(validated);
   } catch (e: any) {
     return NextResponse.json(
-      { message: e?.message ?? 'Failed' },
+      { message: e?.message ?? 'Failed to get collection' },
       { status: 500 }
     );
   }
@@ -25,6 +27,19 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json(
       { message: e?.message ?? 'Failed to create collection' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const validated = await validateUpdateCollectionURI(req);
+    if (validated instanceof Response) return validated;
+    return await updateCollectionURIHandler(validated);
+  } catch (e: any) {
+    return NextResponse.json(
+      { message: e?.message ?? 'Failed to update collection' },
       { status: 500 }
     );
   }

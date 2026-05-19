@@ -1,6 +1,12 @@
 import { z } from 'zod';
-import { updateCollectionBaseSchema } from './updateCollectionBaseSchema';
+import addressSchema from './addressSchema';
+import chainIdSchema from './chainIdSchema';
 
-export const updateCollectionURISchema = updateCollectionBaseSchema.extend({
+export const updateCollectionURISchema = z.object({
+  collection: z.object({
+    address: addressSchema,
+    chainId: chainIdSchema,
+  }),
+  newUri: z.string().min(1, 'URI is required'),
   newCollectionName: z.string().min(1, 'Collection name is required'),
 });
