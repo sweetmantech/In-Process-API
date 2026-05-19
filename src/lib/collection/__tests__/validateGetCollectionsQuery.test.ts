@@ -22,7 +22,9 @@ describe('validateGetCollectionsQuery', () => {
   });
 
   it('parses explicit limit and page', () => {
-    const result = validateGetCollectionsQuery(makeRequest({ limit: '10', page: '3' }));
+    const result = validateGetCollectionsQuery(
+      makeRequest({ limit: '10', page: '3' })
+    );
 
     expect((result as any).limit).toBe(10);
     expect((result as any).page).toBe(3);
@@ -34,14 +36,25 @@ describe('validateGetCollectionsQuery', () => {
     expect(result).toBeNull();
   });
 
-  it('lowercases artist address', () => {
-    const result = validateGetCollectionsQuery(makeRequest({ artist: '0xABCDEF' }));
+  it('normalizes artist address to lowercase', () => {
+    const ARTIST = '0xAf1452D289E22FBd0DEA9D5097353c72a90FAC33';
+    const result = validateGetCollectionsQuery(makeRequest({ artist: ARTIST }));
 
-    expect((result as any).artist).toBe('0xabcdef');
+    expect((result as any).artist).toBe(ARTIST.toLowerCase());
+  });
+
+  it('returns null for invalid artist address', () => {
+    const result = validateGetCollectionsQuery(
+      makeRequest({ artist: 'not-an-address' })
+    );
+
+    expect(result).toBeNull();
   });
 
   it('parses chain_id', () => {
-    const result = validateGetCollectionsQuery(makeRequest({ chain_id: '84532' }));
+    const result = validateGetCollectionsQuery(
+      makeRequest({ chain_id: '84532' })
+    );
 
     expect((result as any).chain_id).toBe(84532);
   });

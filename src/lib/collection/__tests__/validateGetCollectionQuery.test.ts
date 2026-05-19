@@ -11,27 +11,29 @@ const makeRequest = (params: Record<string, string> = {}) => {
 };
 
 describe('validateGetCollectionQuery', () => {
+  const COLLECTION = '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12';
+
   it('returns validated data for valid input', () => {
     const result = validateGetCollectionQuery(
-      makeRequest({ collectionAddress: '0xAbCdEf1234567890AbCdEf1234567890AbCdEf12' })
+      makeRequest({ collectionAddress: COLLECTION })
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect((result as any).collectionAddress).toBe('0xabcdef1234567890abcdef1234567890abcdef12');
+    expect((result as any).collectionAddress).toBe(COLLECTION.toLowerCase());
     expect((result as any).chainId).toBe(CHAIN_ID);
   });
 
-  it('lowercases collectionAddress', () => {
+  it('normalizes collectionAddress to lowercase', () => {
     const result = validateGetCollectionQuery(
-      makeRequest({ collectionAddress: '0xABCDEF' })
+      makeRequest({ collectionAddress: COLLECTION })
     );
 
-    expect((result as any).collectionAddress).toBe('0xabcdef');
+    expect((result as any).collectionAddress).toBe(COLLECTION.toLowerCase());
   });
 
   it('parses explicit chainId', () => {
     const result = validateGetCollectionQuery(
-      makeRequest({ collectionAddress: '0xabc', chainId: '84532' })
+      makeRequest({ collectionAddress: COLLECTION, chainId: '84532' })
     );
 
     expect((result as any).chainId).toBe(84532);
@@ -44,8 +46,10 @@ describe('validateGetCollectionQuery', () => {
     expect((result as NextResponse).status).toBe(400);
   });
 
-  it('returns 400 when collectionAddress is empty string', () => {
-    const result = validateGetCollectionQuery(makeRequest({ collectionAddress: '' }));
+  it('returns 400 when collectionAddress is not a valid address', () => {
+    const result = validateGetCollectionQuery(
+      makeRequest({ collectionAddress: 'not-an-address' })
+    );
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);
@@ -53,7 +57,7 @@ describe('validateGetCollectionQuery', () => {
 
   it('defaults chainId to CHAIN_ID when not provided', () => {
     const result = validateGetCollectionQuery(
-      makeRequest({ collectionAddress: '0xabc' })
+      makeRequest({ collectionAddress: COLLECTION })
     );
 
     expect((result as any).chainId).toBe(CHAIN_ID);

@@ -52,6 +52,8 @@ describe('createCollectionHandler', () => {
   it('throws when createCollection fails', async () => {
     vi.mocked(createCollection).mockRejectedValue(new Error('chain error'));
 
-    await expect(createCollectionHandler(validInput)).rejects.toThrow('chain error');
+    await expect(createCollectionHandler(validInput)).rejects.toThrow(
+      'chain error'
+    );
   });
 });

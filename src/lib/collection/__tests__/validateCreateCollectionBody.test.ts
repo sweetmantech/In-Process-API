@@ -81,8 +81,14 @@ describe('validateCreateCollectionBody', () => {
       makeRequest({
         ...validBody,
         splits: [
-          { address: '0xaf1452d289e22fbd0dea9d5097353c72a90fac33', percentAllocation: 50 },
-          { address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01', percentAllocation: 40 },
+          {
+            address: '0xaf1452d289e22fbd0dea9d5097353c72a90fac33',
+            percentAllocation: 50,
+          },
+          {
+            address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01',
+            percentAllocation: 40,
+          },
         ],
       })
     );
@@ -96,8 +102,14 @@ describe('validateCreateCollectionBody', () => {
       makeRequest({
         ...validBody,
         splits: [
-          { address: '0xaf1452d289e22fbd0dea9d5097353c72a90fac33', percentAllocation: 60 },
-          { address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01', percentAllocation: 40 },
+          {
+            address: '0xaf1452d289e22fbd0dea9d5097353c72a90fac33',
+            percentAllocation: 60,
+          },
+          {
+            address: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01',
+            percentAllocation: 40,
+          },
         ],
       })
     );
