@@ -1,72 +1,21 @@
-import { NextRequest } from 'next/server';
-import { CHAIN_ID } from '@/lib/consts';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
-import { createCollectionSchema } from '@/lib/schema/createCollectionSchema';
-import { createCollection } from '@/lib/collection/createCollection';
-import { validate } from '@/lib/schema/validate';
+import { NextRequest, NextResponse } from 'next/server';
+import validateGetCollectionsQuery from '@/lib/collection/validateGetCollectionsQuery';
+import getCollectionsHandler from '@/lib/collection/getCollectionsHandler';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const limit = Math.min(Number(searchParams.get('limit')) || 100, 100);
-  const page = Number(searchParams.get('page')) || 1;
-  const artist = searchParams.get('artist') || undefined;
-  const chainIdParam = searchParams.get('chain_id');
-  const chainId = chainIdParam ? Number(chainIdParam) : CHAIN_ID;
-
   try {
-    const {
-      data: collections,
-      count: collectionsCount,
-      error: collectionsError,
-    } = await selectCollections({
-      artists: artist ? [artist.toLowerCase()] : undefined,
-      limit,
-      page,
-      chainId,
-    });
-
-    if (collectionsError) {
-      return Response.json(
-        { status: 'error', message: collectionsError.message },
-        { status: 500 }
+    const validated = validateGetCollectionsQuery(req);
+    if (!validated)
+      return NextResponse.json(
+        { message: 'Invalid query params' },
+        { status: 400 }
       );
-    }
-
-    return Response.json({
-      status: 'success',
-      collections,
-      pagination: {
-        page,
-        limit,
-        total_pages: Math.ceil((collectionsCount || 0) / limit),
-      },
-    });
-  } catch (error) {
-    return Response.json(
-      {
-        status: 'error',
-        message: 'An error occurred while fetching collections',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
+    return getCollectionsHandler(validated);
+  } catch (e: any) {
+    return NextResponse.json(
+      { message: e?.message ?? 'Failed' },
       { status: 500 }
     );
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const validationResult = validate(createCollectionSchema, body);
-    if (!validationResult.success) {
-      return validationResult.response;
-    }
-    const data = validationResult.data;
-    const result = await createCollection(data);
-    return Response.json(result);
-  } catch (e: any) {
-    console.log(e);
-    const message = e?.message ?? 'Failed to create collection';
-    return Response.json({ message }, { status: 500 });
   }
 }
 
