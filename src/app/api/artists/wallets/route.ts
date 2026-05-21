@@ -3,8 +3,8 @@ import validateArtistWalletQuery from '@/lib/artists/validateArtistWalletQuery';
 import getArtistWalletHandler from '@/lib/artists/getArtistWalletHandler';
 import validateConnectArtistWalletBody from '@/lib/artists/validateConnectArtistWalletBody';
 import connectArtistWalletHandler from '@/lib/artists/connectArtistWalletHandler';
-import validateDisconnectArtistWalletBody from '@/lib/artists/validateDisconnectArtistWalletBody';
 import disconnectArtistWalletHandler from '@/lib/artists/disconnectArtistWalletHandler';
+import { authMiddleware } from '@/authMiddleware';
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const validated = await validateDisconnectArtistWalletBody(req);
-    if (validated instanceof NextResponse) return validated;
-    return disconnectArtistWalletHandler(validated.social_wallet);
+    const authResult = await authMiddleware(req);
+    if (authResult instanceof Response) return authResult as NextResponse;
+    return disconnectArtistWalletHandler(authResult);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to disconnect a social wallet';

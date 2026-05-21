@@ -5,8 +5,15 @@ vi.mock(
   () => ({ removeSocialWallet: vi.fn() })
 );
 
+import { AuthMethod } from '@/types/auth';
 import { removeSocialWallet } from '@/lib/supabase/in_process_artist_social_wallets/removeSocialWallet';
 import disconnectArtistWalletHandler from '@/lib/artists/disconnectArtistWalletHandler';
+
+const auth = (socialWallet: string) => ({
+  artistAddress: socialWallet,
+  socialWallet,
+  authMethod: AuthMethod.Privy,
+});
 
 describe('disconnectArtistWalletHandler', () => {
   beforeEach(() => {
@@ -16,7 +23,7 @@ describe('disconnectArtistWalletHandler', () => {
   it('returns success when wallet is disconnected', async () => {
     vi.mocked(removeSocialWallet).mockResolvedValue({ error: null } as any);
 
-    const res = await disconnectArtistWalletHandler('0xsocial');
+    const res = await disconnectArtistWalletHandler(auth('0xsocial'));
     const json = await res.json();
 
     expect(json).toEqual({ success: true });
@@ -25,7 +32,7 @@ describe('disconnectArtistWalletHandler', () => {
   it('lowercases the social wallet before removing', async () => {
     vi.mocked(removeSocialWallet).mockResolvedValue({ error: null } as any);
 
-    await disconnectArtistWalletHandler('0xSOCIAL');
+    await disconnectArtistWalletHandler(auth('0xSOCIAL'));
 
     expect(removeSocialWallet).toHaveBeenCalledWith({
       social_wallet: '0xsocial',
@@ -37,8 +44,8 @@ describe('disconnectArtistWalletHandler', () => {
       error: { message: 'not found' },
     } as any);
 
-    await expect(disconnectArtistWalletHandler('0xsocial')).rejects.toThrow(
-      'social wallet is not connected.'
-    );
+    await expect(
+      disconnectArtistWalletHandler(auth('0xsocial'))
+    ).rejects.toThrow('social wallet is not connected.');
   });
 });
