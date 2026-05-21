@@ -5,6 +5,8 @@ export enum AuthMethod {
 }
 export interface AuthResult {
   artistAddress: string;
+  /** Privy embedded wallet from linked_accounts; only set for bearer-token auth */
+  socialWallet?: string;
   authMethod: AuthMethod;
   isWebRequest?: boolean;
 }

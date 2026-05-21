@@ -22,15 +22,24 @@ const makeRequest = (
     headers: { 'content-type': 'application/json', ...headers },
   });
 
-const privyAuth = (artistAddress: string) => ({
+const privyAuth = ({
   artistAddress,
+  socialWallet = SOCIAL,
+}: {
+  artistAddress: string;
+  socialWallet?: string;
+}) => ({
+  artistAddress,
+  socialWallet,
   authMethod: AuthMethod.Privy,
 });
 
 describe('validateConnectArtistWalletBody', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(authMiddleware).mockResolvedValue(privyAuth(SOCIAL) as any);
+    vi.mocked(authMiddleware).mockResolvedValue(
+      privyAuth({ artistAddress: SOCIAL }) as any
+    );
   });
 
   it('returns normalized artist_wallet and social_wallet from Privy auth', async () => {
@@ -45,19 +54,22 @@ describe('validateConnectArtistWalletBody', () => {
     });
   });
 
-  it('lowercases social_wallet from the authorized Privy address', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: '0xB234567890123456789012345678901234567891',
-      authMethod: AuthMethod.Privy,
-    } as any);
+  it('uses socialWallet from Privy auth, not artistAddress when both are present', async () => {
+    const newArtist = '0x0000000000000000000000000000000000000003';
+    vi.mocked(authMiddleware).mockResolvedValue(
+      privyAuth({
+        artistAddress: ARTIST,
+        socialWallet: SOCIAL,
+      }) as any
+    );
 
     const result = await validateConnectArtistWalletBody(
-      makeRequest({ artist_wallet: ARTIST })
+      makeRequest({ artist_wallet: newArtist })
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect(result).toEqual({
-      artist_wallet: ARTIST.toLowerCase(),
+      artist_wallet: newArtist.toLowerCase(),
       social_wallet: SOCIAL.toLowerCase(),
     });
   });
@@ -77,7 +89,9 @@ describe('validateConnectArtistWalletBody', () => {
   });
 
   it('returns 403 when authenticated social wallet equals artist_wallet', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue(privyAuth(ARTIST) as any);
+    vi.mocked(authMiddleware).mockResolvedValue(
+      privyAuth({ artistAddress: ARTIST, socialWallet: ARTIST }) as any
+    );
 
     const result = await validateConnectArtistWalletBody(
       makeRequest({ artist_wallet: ARTIST })
@@ -105,6 +119,39 @@ describe('validateConnectArtistWalletBody', () => {
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);
+  });
+
+  it('returns 403 when artistAddress already matches artist_wallet (external wallet connected)', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue(
+      privyAuth({ artistAddress: ARTIST, socialWallet: SOCIAL }) as any
+    );
+
+    const result = await validateConnectArtistWalletBody(
+      makeRequest({ artist_wallet: ARTIST })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(403);
+    const body = await (result as NextResponse).json();
+    expect(body).toEqual({
+      message: 'An external wallet is already connected',
+    });
+  });
+
+  it('returns 403 when socialWallet is missing from Privy auth', async () => {
+    vi.mocked(authMiddleware).mockResolvedValue({
+      artistAddress: ARTIST,
+      authMethod: AuthMethod.Privy,
+    } as any);
+
+    const result = await validateConnectArtistWalletBody(
+      makeRequest({ artist_wallet: ARTIST })
+    );
+
+    expect(result).toBeInstanceOf(NextResponse);
+    expect((result as NextResponse).status).toBe(403);
+    const body = await (result as NextResponse).json();
+    expect(body).toEqual({ message: 'Privy social wallet not found' });
   });
 
   it('returns auth response when authMiddleware fails', async () => {

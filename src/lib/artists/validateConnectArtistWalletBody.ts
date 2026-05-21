@@ -11,7 +11,13 @@ const validateConnectArtistWalletBody = async (req: NextRequest) => {
   const authMethod = authResult.authMethod;
   if (authMethod !== AuthMethod.Privy)
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-  const authorizedAddress = authResult.artistAddress;
+
+  const socialWallet = authResult.socialWallet;
+  if (!socialWallet)
+    return NextResponse.json(
+      { message: 'Privy social wallet not found' },
+      { status: 403 }
+    );
 
   const body = await req.json();
   const result = validate(connectArtistWalletSchema, body);
@@ -19,15 +25,21 @@ const validateConnectArtistWalletBody = async (req: NextRequest) => {
 
   const { artist_wallet } = result.data;
 
-  if (authorizedAddress === artist_wallet)
+  if (socialWallet === artist_wallet)
     return NextResponse.json(
-      { message: 'An external wallet is already connected' },
+      { message: 'An artist wallet same as social wallet' },
+      { status: 403 }
+    );
+
+  if (authResult.artistAddress === artist_wallet)
+    return NextResponse.json(
+      { message: 'An artist wallet is already connected' },
       { status: 403 }
     );
 
   return {
     ...result.data,
-    social_wallet: authorizedAddress.toLowerCase() as Address,
+    social_wallet: socialWallet as Address,
   };
 };
 

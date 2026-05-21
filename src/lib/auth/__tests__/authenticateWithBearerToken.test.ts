@@ -27,6 +27,7 @@ describe('authenticateWithBearerToken', () => {
 
     expect(result).toEqual({
       artistAddress: ARTIST_ADDRESS,
+      socialWallet: SOCIAL_WALLET,
       authMethod: AuthMethod.Privy,
     });
   });
@@ -41,6 +42,7 @@ describe('authenticateWithBearerToken', () => {
 
     expect(result).toEqual({
       artistAddress: SOCIAL_WALLET,
+      socialWallet: SOCIAL_WALLET,
       authMethod: AuthMethod.Privy,
     });
   });
