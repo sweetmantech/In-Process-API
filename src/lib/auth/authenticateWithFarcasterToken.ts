@@ -19,7 +19,7 @@ const authenticateWithFarcasterToken = async (token: string) => {
     parsed.data.message,
     parsed.data.signature
   );
-  return { artistAddress, authMethod: AuthMethod.FARCaster };
+  return { artistAddress, authMethod: AuthMethod.Farcaster };
 };
 
 export default authenticateWithFarcasterToken;

@@ -13,7 +13,7 @@ export async function selectSocialWallets({
   const { error, data } = await supabase
     .from('in_process_artist_social_wallets')
     .select('social_wallet')
-    .eq('artist_address', artistAddress);
+    .eq('artist_address', artistAddress.toLowerCase());
 
   if (error) return { data: null, error };
 

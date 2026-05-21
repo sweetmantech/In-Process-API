@@ -1,5 +1,5 @@
 export enum AuthMethod {
-  FARCaster = 'farcaster',
+  Farcaster = 'farcaster',
   Privy = 'privy',
   ApiKey = 'apiKey',
 }
