@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   try {
     const validated = validateArtistWalletQuery(req);
     if (validated instanceof NextResponse) return validated;
-    return getArtistWalletHandler(validated.social_wallet);
+    return getArtistWalletHandler(validated);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to get an artist wallet.';

@@ -31,7 +31,7 @@ describe('authenticateWithFarcasterToken', () => {
 
     expect(result).toEqual({
       artistAddress: ARTIST_ADDRESS,
-      authMethod: AuthMethod.FARCaster,
+      authMethod: AuthMethod.Farcaster,
     });
   });
 
