@@ -101,7 +101,7 @@ describe('validateConnectArtistWalletBody', () => {
     expect((result as NextResponse).status).toBe(403);
     const body = await (result as NextResponse).json();
     expect(body).toEqual({
-      message: 'An external wallet is already connected',
+      message: 'An artist wallet same as social wallet',
     });
   });
 
@@ -134,7 +134,7 @@ describe('validateConnectArtistWalletBody', () => {
     expect((result as NextResponse).status).toBe(403);
     const body = await (result as NextResponse).json();
     expect(body).toEqual({
-      message: 'An external wallet is already connected',
+      message: 'An artist wallet is already connected',
     });
   });
 
