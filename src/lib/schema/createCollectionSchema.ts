@@ -46,8 +46,8 @@ const collectionItemSchema = z
 
 export type CollectionItem = z.infer<typeof collectionItemSchema>;
 
-export const createCollectionsSchema = z.object({
+export const createCollectionSchema = z.object({
   account: addressSchema,
-  collections: z.array(collectionItemSchema).min(1),
+  collection: collectionItemSchema,
   chainId: chainIdSchema,
 });

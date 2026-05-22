@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import validateGetCollectionsQuery from '@/lib/collection/validateGetCollectionsQuery';
 import getCollectionsHandler from '@/lib/collection/getCollectionsHandler';
-import validateCreateCollectionsBody from '@/lib/collection/validateCreateCollectionsBody';
-import createCollectionsHandler from '@/lib/collection/createCollectionsHandler';
+import validateCreateCollectionBody from '@/lib/collection/validateCreateCollectionBody';
+import createCollectionHandler from '@/lib/collection/createCollectionHandler';
 
 export async function GET(req: NextRequest) {
   try {
@@ -23,12 +23,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const validated = await validateCreateCollectionsBody(req);
+    const validated = await validateCreateCollectionBody(req);
     if (validated instanceof NextResponse) return validated;
-    return createCollectionsHandler(validated);
+    return createCollectionHandler(validated);
   } catch (e: any) {
     return NextResponse.json(
-      { message: e?.message ?? 'Failed to create collections' },
+      { message: e?.message ?? 'Failed to create collection' },
       { status: 500 }
     );
   }

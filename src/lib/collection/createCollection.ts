@@ -1,7 +1,7 @@
 import { Address, Hash, parseEventLogs, ParseEventLogsReturnType } from 'viem';
 import { z } from 'zod';
 import { baseSepolia } from 'viem/chains';
-import { createCollectionsSchema } from '@/lib/schema/createCollectionsSchema';
+import { createCollectionSchema } from '@/lib/schema/createCollectionSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { zoraCreator1155FactoryImplABI } from '@zoralabs/protocol-deployments';
 import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
@@ -13,27 +13,27 @@ export interface CreateCollectionResult {
 }
 import prepareCreateCollectionCall from './prepareCreateCollectionCall';
 
-type CreateCollectionsInput = z.infer<typeof createCollectionsSchema>;
+type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
 
-export async function createCollections(
-  input: CreateCollectionsInput
-): Promise<CreateCollectionResult[]> {
+export async function createCollection(
+  input: CreateCollectionInput
+): Promise<CreateCollectionResult> {
   const accountAddress = input.account as Address;
 
   const smartAccount = await getOrCreateSmartWallet({
     address: accountAddress,
   });
 
-  const calls = await Promise.all(
-    input.collections.map((item) =>
-      prepareCreateCollectionCall(item, smartAccount, accountAddress)
-    )
+  const call = await prepareCreateCollectionCall(
+    input.collection,
+    smartAccount,
+    accountAddress
   );
 
   const transaction = await sendUserOperation({
     smartAccount,
     network: input.chainId === baseSepolia.id ? 'base-sepolia' : 'base',
-    calls,
+    calls: [call],
   });
 
   const factoryLogs = parseEventLogs({
@@ -48,9 +48,10 @@ export async function createCollections(
     );
   }
 
-  return factoryLogs.map((log) => ({
-    contractAddress: (log.args as { newContract: Address }).newContract,
+  return {
+    contractAddress: (factoryLogs[0].args as { newContract: Address })
+      .newContract,
     hash: transaction.transactionHash as Hash,
     chainId: input.chainId,
-  }));
+  };
 }

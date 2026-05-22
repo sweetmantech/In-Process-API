@@ -1,6 +1,6 @@
 import { Address, encodeFunctionData, getAddress } from 'viem';
 import { CHAIN_ID, ROYALTY_BPS_DEFAULT } from '@/lib/consts';
-import { CollectionItem } from '@/lib/schema/createCollectionsSchema';
+import { CollectionItem } from '@/lib/schema/createCollectionSchema';
 import { zoraCreator1155FactoryImplABI } from '@zoralabs/protocol-deployments';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
 import { makeContractParameters } from '@/lib/protocolSdk/utils';
