@@ -4,15 +4,16 @@ import getMimeType from '@/lib/arweave/getMimeType';
 import getMetadata from '@/lib/moment/getMetadata';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
 import { resolveMomentInfo } from '@/lib/moment/resolveMomentInfo';
-import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import getZoraMediaInfo from '@/lib/viem/getZoraMediaInfo';
 import { Moment } from '@/types/moment';
 
 const getMomentHandler = async (moment: Moment) => {
-  const { data: collection } = await selectCollection({
-    address: moment.collectionAddress,
+  const { data: collections } = await selectCollections({
+    addresses: [moment.collectionAddress],
     chainId: moment.chainId,
   });
+  const collection = collections?.[0] ?? null;
   const protocol = collection?.protocol ?? null;
 
   const { uri, contentUri, owner, saleConfig, id } =

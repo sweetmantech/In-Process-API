@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 
@@ -12,10 +12,11 @@ const getCollectionHandler = async ({
   collectionAddress,
   chainId,
 }: GetCollectionInput): Promise<NextResponse> => {
-  const { data: collection, error } = await selectCollection({
-    address: collectionAddress,
+  const { data: collections, error } = await selectCollections({
+    addresses: [collectionAddress],
     chainId,
   });
+  const collection = collections?.[0] ?? null;
 
   if (error) {
     return NextResponse.json(

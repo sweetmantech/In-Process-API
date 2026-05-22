@@ -4,7 +4,7 @@ import indexMoment from '../indexMoment';
 
 vi.mock('@/lib/consts', () => ({ CHAIN_ID: 8453 }));
 vi.mock('@/lib/artists/ensureArtists', () => ({ ensureArtists: vi.fn() }));
-vi.mock('@/lib/supabase/in_process_collections/selectCollection', () => ({
+vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_collections/upsertCollections', () => ({
@@ -18,7 +18,7 @@ vi.mock('@/lib/supabase/in_process_moments/upsertMoments', () => ({
 }));
 
 import { ensureArtists } from '@/lib/artists/ensureArtists';
-import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
@@ -38,8 +38,9 @@ const baseParams = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(ensureArtists).mockResolvedValue(undefined as never);
-  vi.mocked(selectCollection).mockResolvedValue({
-    data: null,
+  vi.mocked(selectCollections).mockResolvedValue({
+    data: [],
+    count: 0,
     error: null,
   } as never);
   vi.mocked(upsertCollections).mockResolvedValue([
@@ -77,8 +78,9 @@ describe('indexMoment', () => {
   });
 
   it('skips collection upsert when collection already exists', async () => {
-    vi.mocked(selectCollection).mockResolvedValue({
-      data: { id: COLLECTION_ID },
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [{ id: COLLECTION_ID }],
+      count: 1,
       error: null,
     } as never);
 
@@ -88,8 +90,9 @@ describe('indexMoment', () => {
   });
 
   it('upserts moment with channel when provided', async () => {
-    vi.mocked(selectCollection).mockResolvedValue({
-      data: { id: COLLECTION_ID },
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [{ id: COLLECTION_ID }],
+      count: 1,
       error: null,
     } as never);
 
@@ -107,8 +110,9 @@ describe('indexMoment', () => {
   });
 
   it('omits channel from upsert when not provided', async () => {
-    vi.mocked(selectCollection).mockResolvedValue({
-      data: { id: COLLECTION_ID },
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [{ id: COLLECTION_ID }],
+      count: 1,
       error: null,
     } as never);
 
@@ -119,8 +123,9 @@ describe('indexMoment', () => {
   });
 
   it('skips moment upsert when moment already exists', async () => {
-    vi.mocked(selectCollection).mockResolvedValue({
-      data: { id: COLLECTION_ID },
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [{ id: COLLECTION_ID }],
+      count: 1,
       error: null,
     } as never);
     vi.mocked(selectMoments).mockResolvedValue({

@@ -3,7 +3,7 @@ import type { z } from 'zod';
 import { CHAIN_ID } from '@/lib/consts';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
 import { ensureArtists } from '@/lib/artists/ensureArtists';
-import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
@@ -35,15 +35,16 @@ const indexMoment = async ({
   const normalizedAddress = getAddress(contractAddress).toLowerCase();
   await ensureArtists([artist]);
 
-  const { data: existingCollection } = await selectCollection({
-    address: normalizedAddress,
+  const { data: collections } = await selectCollections({
+    addresses: [normalizedAddress],
     chainId: resolvedChainId,
   });
+  const existingCollection = collections?.[0] ?? null;
 
   let collectionId = existingCollection?.id ?? '';
   if (!existingCollection?.id) {
     const placeholder = new Date(0).toISOString();
-    const collections = await upsertCollections([
+    const upserted = await upsertCollections([
       {
         address: normalizedAddress,
         chain_id: resolvedChainId,
@@ -55,7 +56,7 @@ const indexMoment = async ({
         name: '',
       },
     ]);
-    collectionId = collections[0]?.id ?? '';
+    collectionId = upserted[0]?.id ?? '';
   }
   if (!collectionId) return;
 
