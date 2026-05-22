@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import addressSchema from './addressSchema';
+import chainIdSchema from './chainIdSchema';
 import { splitSchema } from './createMomentSchema';
 import { validateSplitAddress } from '@/lib/splits/validateSplitAddress';
 import { calculateTotalPercentage } from '@/lib/splits/calculateTotalPercentage';
@@ -48,4 +49,5 @@ export type CollectionItem = z.infer<typeof collectionItemSchema>;
 export const createCollectionsSchema = z.object({
   account: addressSchema,
   collections: z.array(collectionItemSchema).min(1),
+  chainId: chainIdSchema,
 });

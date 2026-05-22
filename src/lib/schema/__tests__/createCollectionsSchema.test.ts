@@ -71,6 +71,35 @@ describe('createCollectionsSchema', () => {
     expect(result.success).toBe(false);
   });
 
+  it('accepts chainId when provided', () => {
+    const result = createCollectionsSchema.safeParse({
+      account: ACCOUNT,
+      collections: [validItem],
+      chainId: 8453,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.chainId).toBe(8453);
+  });
+
+  it('defaults chainId when omitted', () => {
+    const result = createCollectionsSchema.safeParse({
+      account: ACCOUNT,
+      collections: [validItem],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.chainId).toBeTypeOf('number');
+  });
+
+  it('coerces chainId string to number', () => {
+    const result = createCollectionsSchema.safeParse({
+      account: ACCOUNT,
+      collections: [validItem],
+      chainId: '84532',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.chainId).toBe(84532);
+  });
+
   it('accepts items with optional splits omitted', () => {
     const result = createCollectionsSchema.safeParse({
       account: ACCOUNT,

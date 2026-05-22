@@ -1,10 +1,11 @@
 import { Address, Hash, parseEventLogs, ParseEventLogsReturnType } from 'viem';
 import { z } from 'zod';
-import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
+import { baseSepolia } from 'viem/chains';
 import { createCollectionsSchema } from '@/lib/schema/createCollectionsSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { zoraCreator1155FactoryImplABI } from '@zoralabs/protocol-deployments';
 import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
+
 export interface CreateCollectionResult {
   contractAddress: Address;
   hash: Hash;
@@ -31,7 +32,7 @@ export async function createCollections(
 
   const transaction = await sendUserOperation({
     smartAccount,
-    network: IS_TESTNET ? 'base-sepolia' : 'base',
+    network: input.chainId === baseSepolia.id ? 'base-sepolia' : 'base',
     calls,
   });
 
@@ -50,6 +51,6 @@ export async function createCollections(
   return factoryLogs.map((log) => ({
     contractAddress: (log.args as { newContract: Address }).newContract,
     hash: transaction.transactionHash as Hash,
-    chainId: CHAIN_ID,
+    chainId: input.chainId,
   }));
 }

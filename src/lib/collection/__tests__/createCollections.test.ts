@@ -33,6 +33,7 @@ const TX_HASH = '0xdeadbeef' as `0x${string}`;
 
 const baseInput = {
   account: ACCOUNT,
+  chainId: 8453,
   collections: [
     { uri: 'ipfs://test1', name: 'Collection 1' },
     { uri: 'ipfs://test2', name: 'Collection 2' },
@@ -64,10 +65,24 @@ describe('createCollections', () => {
     expect(results[1].contractAddress).toBe(CONTRACT_B);
   });
 
-  it('includes hash and chainId in each result', async () => {
+  it('includes hash and chainId from input in each result', async () => {
     const results = await createCollections(baseInput);
     expect(results[0].hash).toBe(TX_HASH);
-    expect(results[0].chainId).toBeTypeOf('number');
+    expect(results[0].chainId).toBe(8453);
+  });
+
+  it('uses base-sepolia network when chainId is 84532', async () => {
+    await createCollections({ ...baseInput, chainId: 84532 });
+    expect(sendUserOperation).toHaveBeenCalledWith(
+      expect.objectContaining({ network: 'base-sepolia' })
+    );
+  });
+
+  it('uses base network when chainId is 8453', async () => {
+    await createCollections({ ...baseInput, chainId: 8453 });
+    expect(sendUserOperation).toHaveBeenCalledWith(
+      expect.objectContaining({ network: 'base' })
+    );
   });
 
   it('calls getOrCreateSmartWallet with the top-level account', async () => {
