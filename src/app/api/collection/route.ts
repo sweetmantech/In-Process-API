@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import validateGetCollectionQuery from '@/lib/collection/validateGetCollectionQuery';
 import getCollectionHandler from '@/lib/collection/getCollectionHandler';
-import validateCreateCollectionBody from '@/lib/collection/validateCreateCollectionBody';
-import createCollectionHandler from '@/lib/collection/createCollectionHandler';
 import validateUpdateCollectionURI from '@/lib/collection/validateUpdateCollectionURI';
 import updateCollectionURIHandler from '@/lib/collection/updateCollectionURIHandler';
 
@@ -14,19 +12,6 @@ export async function GET(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json(
       { message: e?.message ?? 'Failed to get collection' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const validated = await validateCreateCollectionBody(req);
-    if (validated instanceof NextResponse) return validated;
-    return createCollectionHandler(validated);
-  } catch (e: any) {
-    return NextResponse.json(
-      { message: e?.message ?? 'Failed to create collection' },
       { status: 500 }
     );
   }

@@ -4,18 +4,14 @@ import { splitSchema } from './createMomentSchema';
 import { validateSplitAddress } from '@/lib/splits/validateSplitAddress';
 import { calculateTotalPercentage } from '@/lib/splits/calculateTotalPercentage';
 
-export const createCollectionSchema = z
+const collectionItemSchema = z
   .object({
-    account: addressSchema,
     uri: z.string().min(1, 'URI is required'),
     name: z.string().min(1, 'Collection name is required'),
     splits: z.array(splitSchema).optional(),
   })
   .superRefine((data, ctx) => {
-    if (!data.splits || data.splits.length === 0) {
-      return;
-    }
-
+    if (!data.splits || data.splits.length === 0) return;
     if (data.splits.length < 2) {
       ctx.addIssue({
         code: 'custom',
@@ -25,7 +21,6 @@ export const createCollectionSchema = z
       });
       return;
     }
-
     for (let i = 0; i < data.splits.length; i++) {
       const addressError = validateSplitAddress(data.splits[i].address);
       if (addressError) {
@@ -38,7 +33,6 @@ export const createCollectionSchema = z
         return;
       }
     }
-
     if (calculateTotalPercentage(data.splits) !== 100) {
       ctx.addIssue({
         code: 'custom',
@@ -48,3 +42,10 @@ export const createCollectionSchema = z
       });
     }
   });
+
+export type CollectionItem = z.infer<typeof collectionItemSchema>;
+
+export const createCollectionsSchema = z.object({
+  account: addressSchema,
+  collections: z.array(collectionItemSchema).min(1),
+});
