@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_collections/selectCollection', () => ({
+vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_admins/selectAdmins', () => ({
@@ -10,7 +10,7 @@ vi.mock('@/lib/protocolSdk/ipfs/token-metadata', () => ({
   fetchTokenMetadata: vi.fn(),
 }));
 
-import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
 import getCollectionHandler from '@/lib/collection/getCollectionHandler';
@@ -34,8 +34,9 @@ const mockAdmins = [
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(selectCollection).mockResolvedValue({
-    data: mockCollection as any,
+  vi.mocked(selectCollections).mockResolvedValue({
+    data: [mockCollection] as any,
+    count: 1,
     error: null,
   });
   vi.mocked(selectAdmins).mockResolvedValue(mockAdmins as any);
@@ -66,11 +67,11 @@ describe('getCollectionHandler', () => {
     expect(body.admins).toEqual(['0xaaa', '0xzzz']);
   });
 
-  it('calls selectCollection with address and chainId', async () => {
+  it('calls selectCollections with address and chainId', async () => {
     await getCollectionHandler(baseInput);
 
-    expect(selectCollection).toHaveBeenCalledWith({
-      address: '0xabc',
+    expect(selectCollections).toHaveBeenCalledWith({
+      addresses: ['0xabc'],
       chainId: 8453,
     });
   });
@@ -84,8 +85,9 @@ describe('getCollectionHandler', () => {
   });
 
   it('returns 404 when collection is not found', async () => {
-    vi.mocked(selectCollection).mockResolvedValue({
-      data: null,
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [],
+      count: 0,
       error: null,
     });
 
@@ -97,10 +99,11 @@ describe('getCollectionHandler', () => {
     expect(body.message).toBe('Collection not found');
   });
 
-  it('returns 500 when selectCollection returns an error', async () => {
-    vi.mocked(selectCollection).mockResolvedValue({
+  it('returns 500 when selectCollections returns an error', async () => {
+    vi.mocked(selectCollections).mockResolvedValue({
       data: null,
-      error: { message: 'db error' } as any,
+      count: null,
+      error: { message: 'db error' },
     });
 
     const res = await getCollectionHandler(baseInput);

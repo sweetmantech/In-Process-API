@@ -14,7 +14,7 @@ import getMomentPreview from '@/lib/og/getMomentPreview';
 import { ImageMetadata } from '@/types/og';
 import WritingPreview from '@/components/Og/WritingPreview';
 import ImagePreview from '@/components/Og/ImagePreview';
-import selectCollection from '@/lib/supabase/in_process_collections/selectCollection';
+import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import normalizeMetadata from '@/lib/metadata/normalizeMetadata';
 import { momentSchema } from '@/lib/schema/momentSchema';
 
@@ -32,10 +32,11 @@ const getOgMomentHandler = async ({
   let uri: string | null = null;
   let customGateway: string | undefined;
 
-  const { data: collection } = await selectCollection({
-    address: moment.collectionAddress,
+  const { data: collections } = await selectCollections({
+    addresses: [moment.collectionAddress],
     chainId: moment.chainId,
   });
+  const collection = collections?.[0] ?? null;
   const isCatalog = collection && collection.protocol === 'catalog';
 
   if (collection)

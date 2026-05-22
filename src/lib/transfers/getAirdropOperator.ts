@@ -4,7 +4,7 @@ import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import isCoinbaseSmartWallet from '@/lib/smartwallets/isCoinbaseSmartWallet';
 import { FACTORY_ADDRESSES } from '@/lib/protocolSdk/create/factory-addresses';
 import topicToAddress from './topicToAddress';
-import selectCollection from '../supabase/in_process_collections/selectCollection';
+import selectCollections from '../supabase/in_process_collections/selectCollections';
 import type { Transfers_t } from '@/types/envio';
 
 const TRANSFER_SINGLE_TOPIC =
@@ -41,14 +41,15 @@ const getAirdropOperator = async (
     factoryAddress &&
     factoryAddress.toLowerCase() === address.toLowerCase()
   ) {
-    const { data: collection } = await selectCollection({
-      address: t.collection,
+    const { data: collections } = await selectCollections({
+      addresses: [t.collection],
       chainId,
     });
+    const collection = collections?.[0];
     if (collection) {
       return {
-        address: collection.creator.address,
-        username: collection.creator.username,
+        address: collection.creator,
+        username: collection.creator_username ?? null,
       };
     }
     throw new Error('Collection not found');
