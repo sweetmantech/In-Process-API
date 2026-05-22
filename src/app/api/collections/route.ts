@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import validateGetCollectionsQuery from '@/lib/collection/validateGetCollectionsQuery';
 import getCollectionsHandler from '@/lib/collection/getCollectionsHandler';
+import validateCreateCollectionsBody from '@/lib/collection/validateCreateCollectionsBody';
+import createCollectionsHandler from '@/lib/collection/createCollectionsHandler';
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,6 +16,19 @@ export async function GET(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json(
       { message: e?.message ?? 'Failed' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const validated = await validateCreateCollectionsBody(req);
+    if (validated instanceof NextResponse) return validated;
+    return createCollectionsHandler(validated);
+  } catch (e: any) {
+    return NextResponse.json(
+      { message: e?.message ?? 'Failed to create collections' },
       { status: 500 }
     );
   }
