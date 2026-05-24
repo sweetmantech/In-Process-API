@@ -9,12 +9,8 @@ const getArtistWalletsByFarcasterToken = async (token: string) => {
     await authenticateWithFarcasterToken(token);
   const social_wallets = [farcasterAddress].filter(Boolean) as string[];
 
-  if (!farcasterUsername) {
-    return NextResponse.json({ artist_wallet: undefined, social_wallets });
-  }
-
   const { data: profileRows, error } = await selectArtists({
-    farcaster_username: farcasterUsername,
+    farcaster_username: farcasterUsername || farcasterAddress,
   });
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });

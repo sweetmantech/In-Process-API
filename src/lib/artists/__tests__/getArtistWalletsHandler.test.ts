@@ -139,6 +139,10 @@ describe('getArtistWalletsHandler', () => {
         farcasterUsername: undefined,
         authMethod: AuthMethod.Farcaster,
       });
+      vi.mocked(selectArtists).mockResolvedValue({
+        data: [],
+        error: null,
+      } as any);
 
       const res = await getArtistWalletsHandler({
         method: AuthMethod.Farcaster,
