@@ -88,6 +88,10 @@ describe('getArtistWalletsHandler', () => {
         error: null,
       } as any);
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(false);
+      vi.mocked(selectSocialWallets).mockResolvedValue({
+        data: [],
+        error: null,
+      } as any);
 
       const res = await getArtistWalletsHandler({
         method: AuthMethod.Farcaster,

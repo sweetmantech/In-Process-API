@@ -10,10 +10,10 @@ export async function GET(req: NextRequest) {
   try {
     const validated = validateArtistWalletsQuery(req);
     if (validated instanceof NextResponse) return validated;
-    return getArtistWalletsHandler(validated);
+    return await getArtistWalletsHandler(validated);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'failed to get an artist wallet.';
+    const message = e?.message ?? 'Failed to get the artist wallets.';
     return Response.json({ message }, { status: 500 });
   }
 }

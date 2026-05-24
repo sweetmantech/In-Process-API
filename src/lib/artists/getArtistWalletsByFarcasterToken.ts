@@ -42,7 +42,19 @@ const getArtistWalletsByFarcasterToken = async (token: string) => {
     });
   }
 
-  return NextResponse.json({ artist_wallet: profileAddress, social_wallets });
+  const { data: walletRows, error: walletError } = await selectSocialWallets({
+    artistAddress: profileAddress,
+  });
+  if (walletError) {
+    return NextResponse.json({ message: walletError.message }, { status: 500 });
+  }
+  const socialWallet = walletRows?.[0]?.social_wallet;
+  return NextResponse.json({
+    artist_wallet: profileAddress,
+    social_wallets: [socialWallet, ...social_wallets].filter(
+      Boolean
+    ) as string[],
+  });
 };
 
 export default getArtistWalletsByFarcasterToken;

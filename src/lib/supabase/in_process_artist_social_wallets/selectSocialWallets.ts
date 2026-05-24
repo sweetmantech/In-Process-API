@@ -15,7 +15,10 @@ const selectSocialWallets = async ({
     return query.eq('artist_address', artistAddress.toLowerCase());
   }
   if (socialWallets?.length) {
-    return query.in('social_wallet', socialWallets);
+    return query.in(
+      'social_wallet',
+      socialWallets.map((sw) => sw.toLowerCase())
+    );
   }
   return query;
 };
