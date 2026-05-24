@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/api-keys/getArtistAddressByApiKey', () => ({
-  getArtistAddressByApiKey: vi.fn(),
+vi.mock('@/lib/api-keys/getAuthorizedAddressByApiKey', () => ({
+  getAuthorizedAddressByApiKey: vi.fn(),
 }));
 
-import { getArtistAddressByApiKey } from '@/lib/api-keys/getArtistAddressByApiKey';
+import { getAuthorizedAddressByApiKey } from '@/lib/api-keys/getAuthorizedAddressByApiKey';
 import { AuthMethod } from '@/types/auth';
 import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
 
@@ -16,7 +16,7 @@ describe('authenticateWithApiKey', () => {
   });
 
   it('returns artistAddress and ApiKey authMethod on success', async () => {
-    vi.mocked(getArtistAddressByApiKey).mockResolvedValue(ARTIST_ADDRESS);
+    vi.mocked(getAuthorizedAddressByApiKey).mockResolvedValue(ARTIST_ADDRESS);
 
     const result = await authenticateWithApiKey('valid-key');
 
@@ -26,8 +26,8 @@ describe('authenticateWithApiKey', () => {
     });
   });
 
-  it('throws when getArtistAddressByApiKey throws', async () => {
-    vi.mocked(getArtistAddressByApiKey).mockRejectedValue(
+  it('throws when getAuthorizedAddressByApiKey throws', async () => {
+    vi.mocked(getAuthorizedAddressByApiKey).mockRejectedValue(
       new Error('Invalid API key')
     );
 

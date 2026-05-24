@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import validateArtistWalletQuery from '@/lib/artists/validateArtistWalletQuery';
-import getArtistWalletHandler from '@/lib/artists/getArtistWalletHandler';
+import validateArtistWalletsQuery from '@/lib/artists/validateArtistWalletsQuery';
+import getArtistWalletsHandler from '@/lib/artists/getArtistWalletsHandler';
 import validateConnectArtistWalletBody from '@/lib/artists/validateConnectArtistWalletBody';
 import connectArtistWalletHandler from '@/lib/artists/connectArtistWalletHandler';
 import disconnectArtistWalletHandler from '@/lib/artists/disconnectArtistWalletHandler';
@@ -8,12 +8,12 @@ import { authMiddleware } from '@/authMiddleware';
 
 export async function GET(req: NextRequest) {
   try {
-    const validated = validateArtistWalletQuery(req);
+    const validated = validateArtistWalletsQuery(req);
     if (validated instanceof NextResponse) return validated;
-    return getArtistWalletHandler(validated);
+    return await getArtistWalletsHandler(validated);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'failed to get an artist wallet.';
+    const message = e?.message ?? 'Failed to get the artist wallets.';
     return Response.json({ message }, { status: 500 });
   }
 }

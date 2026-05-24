@@ -39,10 +39,14 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: true,
       verifiedAddress: signerAddress,
+      farcasterUsername: 'testuser',
     });
 
     const result = await verifyFarcasterAuth(message, signature);
-    expect(result).toBe(signerAddress);
+    expect(result).toEqual({
+      verifiedAddress: signerAddress,
+      farcasterUsername: 'testuser',
+    });
   });
 
   it('returns verified address when signer is a verified address', async () => {
@@ -55,10 +59,14 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: true,
       verifiedAddress: signerAddress,
+      farcasterUsername: 'testuser',
     });
 
     const result = await verifyFarcasterAuth(message, signature);
-    expect(result).toBe(signerAddress);
+    expect(result).toEqual({
+      verifiedAddress: signerAddress,
+      farcasterUsername: 'testuser',
+    });
   });
 
   it('throws when chainId does not match expected chain', async () => {
@@ -122,6 +130,7 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: false,
       verifiedAddress: signerAddress,
+      farcasterUsername: undefined,
     });
 
     await expect(verifyFarcasterAuth(message, signature)).rejects.toThrow(

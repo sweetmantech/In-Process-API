@@ -25,27 +25,44 @@ describe('isAuthorizedSigner', () => {
       custodyAddress,
       verifiedAddress,
       artistName,
+      farcasterUsername: 'testuser',
     });
   });
 
   it('returns authorized true and verifiedAddress when signer is the custody address', async () => {
     const result = await isAuthorizedSigner(FID, custodyAddress);
-    expect(result).toEqual({ authorized: true, verifiedAddress });
+    expect(result).toEqual({
+      authorized: true,
+      verifiedAddress,
+      farcasterUsername: 'testuser',
+    });
   });
 
   it('returns authorized true when signer is the custody address (case-insensitive)', async () => {
     const result = await isAuthorizedSigner(FID, custodyAddress.toUpperCase());
-    expect(result).toEqual({ authorized: true, verifiedAddress });
+    expect(result).toEqual({
+      authorized: true,
+      verifiedAddress,
+      farcasterUsername: 'testuser',
+    });
   });
 
   it('returns authorized false when signer is not the custody address', async () => {
     const result = await isAuthorizedSigner(FID, unknownAddress);
-    expect(result).toEqual({ authorized: false, verifiedAddress });
+    expect(result).toEqual({
+      authorized: false,
+      verifiedAddress,
+      farcasterUsername: 'testuser',
+    });
   });
 
   it('returns authorized false when signer is the verified address but not the custody address', async () => {
     const result = await isAuthorizedSigner(FID, verifiedAddress);
-    expect(result).toEqual({ authorized: false, verifiedAddress });
+    expect(result).toEqual({
+      authorized: false,
+      verifiedAddress,
+      farcasterUsername: 'testuser',
+    });
   });
 
   it('upserts artist name when authorized and artistName is present', async () => {
@@ -65,6 +82,7 @@ describe('isAuthorizedSigner', () => {
       custodyAddress,
       verifiedAddress,
       artistName: undefined,
+      farcasterUsername: undefined,
     });
     await isAuthorizedSigner(FID, custodyAddress);
     expect(upsertArtistNames).not.toHaveBeenCalled();

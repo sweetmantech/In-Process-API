@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
-import { selectSocialWallets } from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
+import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 
 export interface SmartWallet {

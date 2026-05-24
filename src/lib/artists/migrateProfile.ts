@@ -1,4 +1,4 @@
-import { getProfile } from '../supabase/in_process_artists/getProfile';
+import selectArtists from '../supabase/in_process_artists/selectArtists';
 import { upsertArtists } from '../supabase/in_process_artists/upsertArtists';
 
 const migrateProfile = async ({
@@ -9,8 +9,14 @@ const migrateProfile = async ({
   artist_wallet: string;
 }) => {
   try {
-    const existingProfile = await getProfile(social_wallet);
-    const artistExistingProfile = await getProfile(artist_wallet);
+    const { data: existingData } = await selectArtists({
+      address: social_wallet,
+    });
+    const existingProfile = existingData?.[0];
+    const { data: artistData } = await selectArtists({
+      address: artist_wallet,
+    });
+    const artistExistingProfile = artistData?.[0];
 
     await upsertArtists([
       {

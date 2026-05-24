@@ -1,7 +1,7 @@
-import getArtistAddresses from '../supabase/in_process_artist_social_wallets/getArtistAddresses';
+import selectSocialWallets from '../supabase/in_process_artist_social_wallets/selectSocialWallets';
 import privyClient from './client';
 
-export async function getAddressesByAuthToken(authToken: string): Promise<{
+export async function getAddressesByPrivyToken(authToken: string): Promise<{
   artistAddress: string | undefined;
   socialWallet: string | undefined;
 }> {
@@ -24,9 +24,9 @@ export async function getAddressesByAuthToken(authToken: string): Promise<{
   );
   if (socialAccount?.address) {
     const socialWallet = socialAccount.address.toLowerCase();
-    const { data: walletRows, error } = await getArtistAddresses([
-      socialWallet,
-    ]);
+    const { data: walletRows, error } = await selectSocialWallets({
+      socialWallets: [socialWallet],
+    });
     if (error) throw new Error(error.message);
     const artistAddress = walletRows?.[0]?.artist_address;
     if (artistAddress)

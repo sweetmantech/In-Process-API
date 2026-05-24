@@ -15,11 +15,9 @@ const authenticateWithFarcasterToken = async (token: string) => {
   }
   const parsed = farcasterAuthSchema.safeParse(raw);
   if (!parsed.success) throw new Error(AuthErrorMessages.INVALID_AUTH_TOKEN);
-  const artistAddress = await verifyFarcasterAuth(
-    parsed.data.message,
-    parsed.data.signature
-  );
-  return { artistAddress, authMethod: AuthMethod.Farcaster };
+  const { verifiedAddress: artistAddress, farcasterUsername } =
+    await verifyFarcasterAuth(parsed.data.message, parsed.data.signature);
+  return { artistAddress, farcasterUsername, authMethod: AuthMethod.Farcaster };
 };
 
 export default authenticateWithFarcasterToken;

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/privy/getAddressesByAuthToken', () => ({
-  getAddressesByAuthToken: vi.fn(),
+vi.mock('@/lib/privy/getAddressesByPrivyToken', () => ({
+  getAddressesByPrivyToken: vi.fn(),
 }));
 
-import { getAddressesByAuthToken } from '@/lib/privy/getAddressesByAuthToken';
+import { getAddressesByPrivyToken } from '@/lib/privy/getAddressesByPrivyToken';
 import { AuthErrorMessages } from '@/errors';
 import { AuthMethod } from '@/types/auth';
 import authenticateWithBearerToken from '@/lib/auth/authenticateWithBearerToken';
@@ -18,7 +18,7 @@ describe('authenticateWithBearerToken', () => {
   });
 
   it('returns artistAddress when both artistAddress and socialWallet are present', async () => {
-    vi.mocked(getAddressesByAuthToken).mockResolvedValue({
+    vi.mocked(getAddressesByPrivyToken).mockResolvedValue({
       artistAddress: ARTIST_ADDRESS,
       socialWallet: SOCIAL_WALLET,
     } as any);
@@ -33,7 +33,7 @@ describe('authenticateWithBearerToken', () => {
   });
 
   it('falls back to socialWallet when artistAddress is empty', async () => {
-    vi.mocked(getAddressesByAuthToken).mockResolvedValue({
+    vi.mocked(getAddressesByPrivyToken).mockResolvedValue({
       artistAddress: '',
       socialWallet: SOCIAL_WALLET,
     } as any);
@@ -48,7 +48,7 @@ describe('authenticateWithBearerToken', () => {
   });
 
   it('throws NO_SOCIAL_OR_ARTIST_WALLET when both artistAddress and socialWallet are empty', async () => {
-    vi.mocked(getAddressesByAuthToken).mockResolvedValue({
+    vi.mocked(getAddressesByPrivyToken).mockResolvedValue({
       artistAddress: '',
       socialWallet: '',
     } as any);
@@ -58,8 +58,8 @@ describe('authenticateWithBearerToken', () => {
     );
   });
 
-  it('throws when getAddressesByAuthToken throws', async () => {
-    vi.mocked(getAddressesByAuthToken).mockRejectedValue(
+  it('throws when getAddressesByPrivyToken throws', async () => {
+    vi.mocked(getAddressesByPrivyToken).mockRejectedValue(
       new Error('Invalid authentication token')
     );
 

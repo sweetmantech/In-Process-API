@@ -7,9 +7,7 @@ vi.mock('@/lib/consts', () => ({
 
 vi.mock(
   '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets',
-  () => ({
-    selectSocialWallets: vi.fn(),
-  })
+  () => ({ default: vi.fn() })
 );
 
 vi.mock('@/lib/privy/getEmailByWalletAddress', () => ({
@@ -20,17 +18,9 @@ vi.mock('@/lib/privy/getAllEmails', () => ({
   default: vi.fn(),
 }));
 
-vi.mock(
-  '@/lib/supabase/in_process_artist_social_wallets/getArtistAddresses',
-  () => ({
-    default: vi.fn(),
-  })
-);
-
-import { selectSocialWallets } from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
+import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
 import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 import getAllEmails from '@/lib/privy/getAllEmails';
-import getArtistAddresses from '@/lib/supabase/in_process_artist_social_wallets/getArtistAddresses';
 import getEmailsHandler from '@/lib/emails/getEmailsHandler';
 
 const ADMIN_ADDRESS = '0xaf1452d289e22fbd0dea9d5097353c72a90fac33';
@@ -130,7 +120,7 @@ describe('getEmailsHandler', () => {
         emails: [{ address: '0xsocial', email: 'user@example.com' }],
         next_cursor: null,
       } as any);
-      vi.mocked(getArtistAddresses).mockResolvedValue({
+      vi.mocked(selectSocialWallets).mockResolvedValue({
         data: [
           {
             social_wallet: '0xsocial',
@@ -153,6 +143,9 @@ describe('getEmailsHandler', () => {
         },
       ]);
       expect(json.next_cursor).toBeNull();
+      expect(selectSocialWallets).toHaveBeenCalledWith({
+        socialWallets: ['0xsocial'],
+      });
     });
 
     it('returns null artist_address and username when no match in supabase', async () => {
@@ -160,7 +153,7 @@ describe('getEmailsHandler', () => {
         emails: [{ address: '0xunknown', email: 'unknown@example.com' }],
         next_cursor: null,
       } as any);
-      vi.mocked(getArtistAddresses).mockResolvedValue({
+      vi.mocked(selectSocialWallets).mockResolvedValue({
         data: [],
         error: null,
       } as any);
@@ -183,7 +176,7 @@ describe('getEmailsHandler', () => {
         emails: [{ address: '0xsocial', email: 'user@example.com' }],
         next_cursor: null,
       } as any);
-      vi.mocked(getArtistAddresses).mockResolvedValue({
+      vi.mocked(selectSocialWallets).mockResolvedValue({
         data: [
           {
             social_wallet: '0xsocial',
@@ -200,12 +193,12 @@ describe('getEmailsHandler', () => {
       expect(json.emails[0].username).toBeNull();
     });
 
-    it('throws when getArtistAddresses returns an error', async () => {
+    it('throws when selectSocialWallets returns an error', async () => {
       vi.mocked(getAllEmails).mockResolvedValue({
         emails: [{ address: '0xsocial', email: 'user@example.com' }],
         next_cursor: null,
       } as any);
-      vi.mocked(getArtistAddresses).mockResolvedValue({
+      vi.mocked(selectSocialWallets).mockResolvedValue({
         data: null,
         error: { message: 'DB connection failed' },
       } as any);
@@ -220,7 +213,7 @@ describe('getEmailsHandler', () => {
         emails: [],
         next_cursor: null,
       } as any);
-      vi.mocked(getArtistAddresses).mockResolvedValue({
+      vi.mocked(selectSocialWallets).mockResolvedValue({
         data: [],
         error: null,
       } as any);

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ADMIN_ADDRESSES } from '@/lib/consts';
 import getAllEmails from '@/lib/privy/getAllEmails';
-import getArtistAddresses from '@/lib/supabase/in_process_artist_social_wallets/getArtistAddresses';
+import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
 import lookupEmail from '@/lib/emails/lookupEmail';
 
 const getEmailsHandler = async (
@@ -22,9 +22,9 @@ const getEmailsHandler = async (
 
   const { emails, next_cursor } = await getAllEmails(cursor, limit);
 
-  const { data: walletRows, error } = await getArtistAddresses(
-    emails.map((e) => e.address.toLowerCase())
-  );
+  const { data: walletRows, error } = await selectSocialWallets({
+    socialWallets: emails.map((e) => e.address.toLowerCase()),
+  });
   if (error) throw new Error(error.message);
   const artistAddressMap: Record<
     string,

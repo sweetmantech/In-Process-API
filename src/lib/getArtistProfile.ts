@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-import { getProfile } from './supabase/in_process_artists/getProfile';
+import selectArtists from './supabase/in_process_artists/selectArtists';
 import resolveAddressToEns from './ens/resolveAddressToEns';
 
 const getArtistProfile = async (address: string) => {
@@ -14,7 +14,8 @@ const getArtistProfile = async (address: string) => {
   try {
     const ensName = await resolveAddressToEns(address as Address);
 
-    const profile = await getProfile(address as Address);
+    const { data } = await selectArtists({ address });
+    const profile = data?.[0];
     if (profile)
       return {
         ...profile,

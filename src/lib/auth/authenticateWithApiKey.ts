@@ -1,8 +1,8 @@
-import { getArtistAddressByApiKey } from '@/lib/api-keys/getArtistAddressByApiKey';
+import { getAuthorizedAddressByApiKey } from '@/lib/api-keys/getAuthorizedAddressByApiKey';
 import { AuthMethod } from '@/types/auth';
 
 const authenticateWithApiKey = async (apiKey: string) => {
-  const artistAddress = await getArtistAddressByApiKey(apiKey);
+  const artistAddress = await getAuthorizedAddressByApiKey(apiKey);
   return { artistAddress, authMethod: AuthMethod.ApiKey };
 };
 

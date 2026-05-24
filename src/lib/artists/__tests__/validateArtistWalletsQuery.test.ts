@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import validateArtistWalletQuery from '@/lib/artists/validateArtistWalletQuery';
+import validateArtistWalletsQuery from '@/lib/artists/validateArtistWalletsQuery';
 import { AuthErrorTypes } from '@/errors';
 import { AuthMethod } from '@/types/auth';
 
@@ -13,9 +13,9 @@ const makeRequest = (
   return new NextRequest(url, { headers: new Headers(headers) });
 };
 
-describe('validateArtistWalletQuery', () => {
+describe('validateArtistWalletsQuery', () => {
   it('returns Privy auth when bearer token is provided', () => {
-    const result = validateArtistWalletQuery(
+    const result = validateArtistWalletsQuery(
       makeRequest({}, { authorization: 'Bearer privy-token' })
     );
 
@@ -27,7 +27,7 @@ describe('validateArtistWalletQuery', () => {
   });
 
   it('returns Farcaster auth when farcaster token is provided', () => {
-    const result = validateArtistWalletQuery(
+    const result = validateArtistWalletsQuery(
       makeRequest({}, { authorization: 'Farcaster fc-token' })
     );
 
@@ -39,7 +39,7 @@ describe('validateArtistWalletQuery', () => {
   });
 
   it('returns ApiKey auth when x-api-key header is provided', () => {
-    const result = validateArtistWalletQuery(
+    const result = validateArtistWalletsQuery(
       makeRequest({}, { 'x-api-key': 'api-key-value' })
     );
 
@@ -51,7 +51,7 @@ describe('validateArtistWalletQuery', () => {
   });
 
   it('prefers bearer token over farcaster token and api key', () => {
-    const result = validateArtistWalletQuery(
+    const result = validateArtistWalletsQuery(
       makeRequest(
         {},
         {
@@ -68,7 +68,7 @@ describe('validateArtistWalletQuery', () => {
   });
 
   it('returns 401 when no auth credentials are provided', async () => {
-    const result = validateArtistWalletQuery(makeRequest());
+    const result = validateArtistWalletsQuery(makeRequest());
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(401);

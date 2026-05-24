@@ -4,6 +4,7 @@ const selectArtists = async ({
   address,
   smart_wallet,
   telegram_username,
+  farcaster_username,
   q,
   type = 'human',
   limit = 50,
@@ -12,6 +13,7 @@ const selectArtists = async ({
   address?: string;
   smart_wallet?: string;
   telegram_username?: string;
+  farcaster_username?: string;
   q?: string;
   type?: 'human' | 'bot';
   limit?: number;
@@ -19,7 +21,9 @@ const selectArtists = async ({
 } = {}) => {
   let query = supabase
     .from('in_process_artists')
-    .select('*', { count: 'exact' });
+    .select('*, phone:in_process_artist_phones(phone_number, verified)', {
+      count: 'exact',
+    });
 
   if (address) {
     return query.eq('address', address.toLowerCase()).limit(1);
@@ -33,6 +37,10 @@ const selectArtists = async ({
     return query
       .eq('telegram_username', telegram_username.toLowerCase())
       .limit(1);
+  }
+
+  if (farcaster_username) {
+    return query.eq('farcaster_username', farcaster_username).limit(1);
   }
 
   if (q?.trim()) {
