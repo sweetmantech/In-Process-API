@@ -4,7 +4,7 @@ import { getBearerToken } from '../api-keys/getBearerToken';
 import { getFarcasterAuthToken } from '../api-keys/getFarcasterAuthToken';
 import { AuthMethod } from '@/types/auth';
 
-const validateArtistWalletQuery = (req: NextRequest) => {
+const validateArtistWalletsQuery = (req: NextRequest) => {
   const authHeader = req.headers.get('authorization');
   const bearerToken = getBearerToken(authHeader);
   const farcasterToken = getFarcasterAuthToken(authHeader);
@@ -33,4 +33,4 @@ const validateArtistWalletQuery = (req: NextRequest) => {
   };
 };
 
-export default validateArtistWalletQuery;
+export default validateArtistWalletsQuery;

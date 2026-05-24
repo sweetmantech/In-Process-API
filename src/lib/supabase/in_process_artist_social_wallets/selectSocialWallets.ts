@@ -1,21 +1,23 @@
 import { supabase } from '../client';
-import { Address } from 'viem';
-import type { PostgrestError } from '@supabase/supabase-js';
 
-export async function selectSocialWallets({
+const selectSocialWallets = async ({
   artistAddress,
+  socialWallets,
 }: {
-  artistAddress: Address;
-}): Promise<{
-  data: { social_wallet: string }[] | null;
-  error: PostgrestError | null;
-}> {
-  const { error, data } = await supabase
+  artistAddress?: string;
+  socialWallets?: string[];
+}) => {
+  const query = supabase
     .from('in_process_artist_social_wallets')
-    .select('social_wallet')
-    .eq('artist_address', artistAddress.toLowerCase());
+    .select('social_wallet, artist_address, in_process_artists(username)');
 
-  if (error) return { data: null, error };
+  if (artistAddress) {
+    return query.eq('artist_address', artistAddress.toLowerCase());
+  }
+  if (socialWallets?.length) {
+    return query.in('social_wallet', socialWallets);
+  }
+  return query;
+};
 
-  return { data, error: null };
-}
+export default selectSocialWallets;

@@ -1,8 +1,7 @@
 import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
-import { selectSocialWallets } from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
-import getArtistAddresses from '@/lib/supabase/in_process_artist_social_wallets/getArtistAddresses';
+import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
 import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 
 const handleMe = async (
@@ -21,7 +20,9 @@ const handleMe = async (
   }
 
   // artistAddress may itself be a social wallet
-  const { data: rows, error: err } = await getArtistAddresses([artistAddress]);
+  const { data: rows, error: err } = await selectSocialWallets({
+    socialWallets: [artistAddress],
+  });
   if (err) throw err;
 
   if (rows && rows.length > 0) {

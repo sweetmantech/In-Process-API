@@ -7,7 +7,10 @@ import isAuthorizedSigner from '@/lib/farcaster/isAuthorizedSigner';
 const verifyFarcasterAuth = async (
   message: string,
   signature: string
-): Promise<string> => {
+): Promise<{
+  verifiedAddress: string;
+  farcasterUsername: string | undefined;
+}> => {
   const parsed = parseSiweMessage(message);
 
   if (parsed.chainId !== optimism.id) {
@@ -26,13 +29,11 @@ const verifyFarcasterAuth = async (
   const fid = parseFidFromResources(parsed.resources);
   if (fid === null) throw new Error('No FID found in SIWE message');
 
-  const { authorized, verifiedAddress } = await isAuthorizedSigner(
-    fid,
-    recovered
-  );
+  const { authorized, verifiedAddress, farcasterUsername } =
+    await isAuthorizedSigner(fid, recovered);
   if (!authorized) throw new Error('Signer not authorized for FID');
 
-  return verifiedAddress;
+  return { verifiedAddress, farcasterUsername };
 };
 
 export default verifyFarcasterAuth;

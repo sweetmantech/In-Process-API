@@ -30,8 +30,9 @@ describe('authenticate', () => {
   it('delegates to authenticateWithFarcasterToken when farcasterToken is provided', async () => {
     vi.mocked(authenticateWithFarcasterToken).mockResolvedValue({
       artistAddress: ARTIST_ADDRESS,
+      farcasterUsername: undefined,
       authMethod: AuthMethod.FARCaster,
-    });
+    } as any);
 
     const result = await authenticate({
       farcasterToken: 'fc-token',
@@ -49,6 +50,7 @@ describe('authenticate', () => {
   it('delegates to authenticateWithBearerToken when bearerToken is provided', async () => {
     vi.mocked(authenticateWithBearerToken).mockResolvedValue({
       artistAddress: ARTIST_ADDRESS,
+      socialWallet: undefined,
       authMethod: AuthMethod.Privy,
     });
 
@@ -87,8 +89,9 @@ describe('authenticate', () => {
   it('prefers farcasterToken over bearerToken and apiKey', async () => {
     vi.mocked(authenticateWithFarcasterToken).mockResolvedValue({
       artistAddress: ARTIST_ADDRESS,
+      farcasterUsername: undefined,
       authMethod: AuthMethod.FARCaster,
-    });
+    } as any);
 
     await authenticate({
       farcasterToken: 'fc-token',

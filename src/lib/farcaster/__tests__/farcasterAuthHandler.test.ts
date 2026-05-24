@@ -24,7 +24,10 @@ describe('farcasterAuthHandler', () => {
   });
 
   it('returns a token on valid message and signature', async () => {
-    vi.mocked(verifyFarcasterAuth).mockResolvedValue(address);
+    vi.mocked(verifyFarcasterAuth).mockResolvedValue({
+      verifiedAddress: address,
+      farcasterUsername: 'testuser',
+    });
     vi.mocked(signJwt).mockReturnValue(token);
 
     const result = await farcasterAuthHandler(message, signature);
@@ -33,7 +36,10 @@ describe('farcasterAuthHandler', () => {
   });
 
   it('calls verifyFarcasterAuth with message and signature', async () => {
-    vi.mocked(verifyFarcasterAuth).mockResolvedValue(address);
+    vi.mocked(verifyFarcasterAuth).mockResolvedValue({
+      verifiedAddress: address,
+      farcasterUsername: 'testuser',
+    });
     vi.mocked(signJwt).mockReturnValue(token);
 
     await farcasterAuthHandler(message, signature);
@@ -42,7 +48,10 @@ describe('farcasterAuthHandler', () => {
   });
 
   it('calls signJwt with message, signature, and FARCASTER_JWT_SECRET', async () => {
-    vi.mocked(verifyFarcasterAuth).mockResolvedValue(address);
+    vi.mocked(verifyFarcasterAuth).mockResolvedValue({
+      verifiedAddress: address,
+      farcasterUsername: 'testuser',
+    });
     vi.mocked(signJwt).mockReturnValue(token);
 
     await farcasterAuthHandler(message, signature);

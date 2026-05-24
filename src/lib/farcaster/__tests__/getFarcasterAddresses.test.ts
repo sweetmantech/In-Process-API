@@ -33,6 +33,7 @@ describe('getFarcasterAddresses', () => {
       custodyAddress: custodyAddress.toLowerCase(),
       verifiedAddress: primaryEthAddress.toLowerCase(),
       artistName: 'ziad',
+      farcasterUsername: undefined,
     });
   });
 
@@ -45,6 +46,7 @@ describe('getFarcasterAddresses', () => {
       custodyAddress: custodyAddress.toLowerCase(),
       verifiedAddress: custodyAddress.toLowerCase(),
       artistName: undefined,
+      farcasterUsername: undefined,
     });
   });
 

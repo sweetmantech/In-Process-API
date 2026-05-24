@@ -4,8 +4,12 @@ import { upsertArtistNames } from '@/lib/supabase/in_process_artists/upsertArtis
 const isAuthorizedSigner = async (
   fid: bigint,
   signer: string
-): Promise<{ authorized: boolean; verifiedAddress: string }> => {
-  const { custodyAddress, verifiedAddress, artistName } =
+): Promise<{
+  authorized: boolean;
+  verifiedAddress: string;
+  farcasterUsername: string | undefined;
+}> => {
+  const { custodyAddress, verifiedAddress, artistName, farcasterUsername } =
     await getFarcasterAddresses(fid);
   const authorized = signer.toLowerCase() === custodyAddress;
   if (authorized && artistName) {
@@ -13,7 +17,7 @@ const isAuthorizedSigner = async (
       console.error('upsertArtistNames failed in isAuthorizedSigner:', e)
     );
   }
-  return { authorized, verifiedAddress };
+  return { authorized, verifiedAddress, farcasterUsername };
 };
 
 export default isAuthorizedSigner;

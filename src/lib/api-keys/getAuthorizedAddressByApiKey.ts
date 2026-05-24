@@ -2,12 +2,7 @@ import { supabase } from '@/lib/supabase/client';
 import { hashApiKey } from './hashApiKey';
 import { PRIVY_PROJECT_SECRET } from '@/lib/consts';
 
-/**
- * Get artist address by validating API key
- * @param apiKey - The API key to validate
- * @returns The artist address if key is valid
- */
-export async function getArtistAddressByApiKey(
+export async function getAuthorizedAddressByApiKey(
   apiKey: string
 ): Promise<string> {
   if (!apiKey) {

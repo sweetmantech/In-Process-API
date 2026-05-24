@@ -23,14 +23,18 @@ describe('authenticateWithFarcasterToken', () => {
     process.env.FARCASTER_JWT_SECRET = 'test-secret';
   });
 
-  it('returns artistAddress and Farcaster authMethod on success', async () => {
+  it('returns artistAddress, farcasterUsername and Farcaster authMethod on success', async () => {
     vi.mocked(verifyJwt).mockReturnValue(VALID_PAYLOAD);
-    vi.mocked(verifyFarcasterAuth).mockResolvedValue(ARTIST_ADDRESS);
+    vi.mocked(verifyFarcasterAuth).mockResolvedValue({
+      verifiedAddress: ARTIST_ADDRESS,
+      farcasterUsername: 'testuser',
+    });
 
     const result = await authenticateWithFarcasterToken('valid-token');
 
     expect(result).toEqual({
       artistAddress: ARTIST_ADDRESS,
+      farcasterUsername: 'testuser',
       authMethod: AuthMethod.Farcaster,
     });
   });
@@ -61,7 +65,7 @@ describe('authenticateWithFarcasterToken', () => {
     );
   });
 
-  it('throws when verifyFarcasterAuth throws', async () => {
+  it('throws when verifyFarcasterAuth rejects', async () => {
     vi.mocked(verifyJwt).mockReturnValue(VALID_PAYLOAD);
     vi.mocked(verifyFarcasterAuth).mockRejectedValue(
       new Error('Invalid signature')
