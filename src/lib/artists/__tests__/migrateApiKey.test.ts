@@ -24,8 +24,8 @@ describe('migrateApiKey', () => {
     } as any);
 
     await migrateApiKey({
-      social_wallet: '0xb234567890123456789012345678901234567891',
-      artist_wallet: '0xa123456789012345678901234567890123456789',
+      from: '0xb234567890123456789012345678901234567891',
+      to: '0xa123456789012345678901234567890123456789',
     });
 
     expect(getApiKeys).toHaveBeenCalledWith(
@@ -41,8 +41,8 @@ describe('migrateApiKey', () => {
     } as any);
 
     await migrateApiKey({
-      social_wallet: '0xB234567890123456789012345678901234567891',
-      artist_wallet: '0xA123456789012345678901234567890123456789',
+      from: '0xB234567890123456789012345678901234567891',
+      to: '0xA123456789012345678901234567890123456789',
     });
 
     expect(getApiKeys).toHaveBeenCalledWith(
@@ -63,8 +63,8 @@ describe('migrateApiKey', () => {
 
     await expect(
       migrateApiKey({
-        social_wallet: '0xb2',
-        artist_wallet: '0xa1',
+        from: '0xb2',
+        to: '0xa1',
       })
     ).rejects.toThrow('Failed to migrate api key');
     errSpy.mockRestore();
@@ -82,8 +82,8 @@ describe('migrateApiKey', () => {
 
     await expect(
       migrateApiKey({
-        social_wallet: '0xb2',
-        artist_wallet: '0xa1',
+        from: '0xb2',
+        to: '0xa1',
       })
     ).rejects.toThrow('Failed to migrate api key');
     errSpy.mockRestore();

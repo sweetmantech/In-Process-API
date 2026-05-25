@@ -1,21 +1,57 @@
 import { NextResponse } from 'next/server';
-import { Address } from 'viem';
-import { AuthResult } from '@/types/auth';
-import { removeSocialWallet } from '@/lib/supabase/in_process_artist_social_wallets/removeSocialWallet';
+import { AuthMethod } from '@/types/auth';
+import { getAddressesByPrivyToken } from '@/lib/privy/getAddressesByPrivyToken';
+import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
+import isPrivyWalletAddress from '@/lib/privy/isPrivyWalletAddress';
+import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
+import disconnectWallets from '@/lib/artists/disconnectWallets';
 
-const disconnectArtistWalletHandler = async (auth: AuthResult) => {
-  if (auth.socialWallet) {
-    const { error } = await removeSocialWallet({
-      social_wallet: auth.socialWallet!.toLowerCase() as Address,
+const disconnectArtistWalletHandler = async ({
+  method,
+  token,
+}: {
+  method: AuthMethod;
+  token: string;
+}) => {
+  if (method === AuthMethod.Privy) {
+    const { artistAddress: externalWallet, socialWallet } =
+      await getAddressesByPrivyToken(token);
+    if (!socialWallet) throw new Error('In*Process wallet not found');
+    if (!externalWallet) throw new Error('External wallet not found');
+    await disconnectWallets({
+      social_wallet: socialWallet,
+      external_wallet: externalWallet,
     });
-    if (error) throw new Error('social wallet is not connected.');
     return NextResponse.json({ success: true });
   }
 
-  const { error } = await removeSocialWallet({
-    artist_address: auth.artistAddress!.toLowerCase() as Address,
+  const { artistAddress: walletAddress } = await authenticateWithApiKey(token);
+  const isPrivySocialWallet = await isPrivyWalletAddress(walletAddress);
+
+  if (isPrivySocialWallet) {
+    const { data: socialWallets, error } = await selectSocialWallets({
+      socialWallets: [walletAddress],
+    });
+    if (error) throw new Error(error.message);
+    const externalWallet = socialWallets?.[0]?.artist_address;
+    if (!externalWallet) throw new Error('External wallet not found');
+    await disconnectWallets({
+      social_wallet: walletAddress,
+      external_wallet: externalWallet,
+    });
+    return NextResponse.json({ success: true });
+  }
+
+  const { data: socialWallets, error } = await selectSocialWallets({
+    artistAddress: walletAddress,
   });
-  if (error) throw new Error('artist wallet is not connected.');
+  if (error) throw new Error(error.message);
+  const socialWallet = socialWallets?.[0]?.social_wallet;
+  if (!socialWallet) throw new Error('In*Process wallet not found');
+  await disconnectWallets({
+    social_wallet: socialWallet,
+    external_wallet: walletAddress,
+  });
   return NextResponse.json({ success: true });
 };
 

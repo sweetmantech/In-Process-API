@@ -27,8 +27,8 @@ const connectArtistWalletHandler = async ({
 
   // 2. Migrate api keys from social wallet to artist wallet
   await migrateApiKey({
-    social_wallet,
-    artist_wallet,
+    from: social_wallet,
+    to: artist_wallet,
   });
 
   const socialSmartAccount = await getOrCreateSmartWallet({

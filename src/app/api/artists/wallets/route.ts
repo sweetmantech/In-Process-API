@@ -4,7 +4,7 @@ import getArtistWalletsHandler from '@/lib/artists/getArtistWalletsHandler';
 import validateConnectArtistWalletBody from '@/lib/artists/validateConnectArtistWalletBody';
 import connectArtistWalletHandler from '@/lib/artists/connectArtistWalletHandler';
 import disconnectArtistWalletHandler from '@/lib/artists/disconnectArtistWalletHandler';
-import { authMiddleware } from '@/authMiddleware';
+import validateDisconnectArtistWallet from '@/lib/artists/validateDisconnectArtistWallet';
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,12 +32,12 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
-    if (authResult instanceof Response) return authResult as NextResponse;
-    return disconnectArtistWalletHandler(authResult);
+    const validated = await validateDisconnectArtistWallet(req);
+    if (validated instanceof NextResponse) return validated;
+    return await disconnectArtistWalletHandler(validated);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'failed to disconnect a social wallet';
+    const message = e?.message ?? 'Failed to disconnect a social wallet';
     return Response.json({ message }, { status: 500 });
   }
 }
