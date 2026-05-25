@@ -57,8 +57,8 @@ describe('connectArtistWalletHandler', () => {
       artist_wallet: '0xa123456789012345678901234567890123456789',
     });
     expect(migrateApiKey).toHaveBeenCalledWith({
-      social_wallet: '0xb234567890123456789012345678901234567891',
-      artist_wallet: '0xa123456789012345678901234567890123456789',
+      from: '0xb234567890123456789012345678901234567891',
+      to: '0xa123456789012345678901234567890123456789',
     });
     expect(migrateMoments).toHaveBeenCalledTimes(1);
     expect(migrateMoments).toHaveBeenCalledWith({
@@ -95,8 +95,8 @@ describe('connectArtistWalletHandler', () => {
       artist_wallet: '0xA123456789012345678901234567890123456789',
     });
     expect(migrateApiKey).toHaveBeenCalledWith({
-      social_wallet: '0xB234567890123456789012345678901234567891',
-      artist_wallet: '0xA123456789012345678901234567890123456789',
+      from: '0xB234567890123456789012345678901234567891',
+      to: '0xA123456789012345678901234567890123456789',
     });
     expect(insertSocialWallet).toHaveBeenCalledWith({
       artist_address: '0xA123456789012345678901234567890123456789',
