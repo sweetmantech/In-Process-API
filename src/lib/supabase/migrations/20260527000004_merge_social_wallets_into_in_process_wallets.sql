@@ -41,9 +41,8 @@ BEGIN
 
     DELETE FROM in_process_artists_v2 WHERE id = b_uuid;
 
-    INSERT INTO in_process_wallets (address, artist, type)
-    VALUES (lower(sw.social_wallet), a_uuid, 'farcaster')
-    ON CONFLICT (address) DO UPDATE SET artist = EXCLUDED.artist, type = 'farcaster';
+    UPDATE in_process_wallets SET type = 'privy'    WHERE address = lower(sw.social_wallet);
+    UPDATE in_process_wallets SET type = 'external' WHERE address = lower(sw.artist_address);
   END LOOP;
 END;
 $$;
