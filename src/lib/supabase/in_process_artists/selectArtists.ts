@@ -10,6 +10,9 @@ type ArtistRow = {
   x: string | null;
 };
 
+const SELECT_FIELDS =
+  'id, username, bio, x, telegram, instagram, in_process_wallets!inner(address)';
+
 const selectArtists = async ({
   address,
   telegram,
@@ -29,28 +32,15 @@ const selectArtists = async ({
   error: null;
   count: number | null;
 }> => {
-  // Address lookup pivots on in_process_wallets via an inner embed —
-  // selects the artist whose wallet row matches the given address.
-  if (address) {
-    const { data, error } = await supabase
-      .from('in_process_artists')
-      .select(
-        'id, username, bio, x, telegram, instagram, in_process_wallets!inner(address)'
-      )
-      .eq('in_process_wallets.address', address.toLowerCase())
-      .limit(1);
-    if (error) throw error;
-    return { data: flattenRows(data), error: null, count: data?.length ?? 0 };
-  }
-
   let query = supabase
     .from('in_process_artists')
-    .select(
-      'id, username, bio, x, telegram, instagram, in_process_wallets(address)',
-      { count: 'exact' }
-    );
+    .select(SELECT_FIELDS, { count: 'exact' });
 
-  if (telegram) {
+  if (address) {
+    query = query
+      .eq('in_process_wallets.address', address.toLowerCase())
+      .limit(1);
+  } else if (telegram) {
     query = query.eq('telegram', telegram.toLowerCase()).limit(1);
   } else if (q?.trim()) {
     query = query.ilike('username', `${q}%`).limit(limit);
@@ -64,23 +54,14 @@ const selectArtists = async ({
 
   const { data, error, count } = await query;
   if (error) throw error;
-  return { data: flattenRows(data), error: null, count: count ?? null };
+  return {
+    data: (data ?? []).map(({ in_process_wallets, ...rest }) => ({
+      ...rest,
+      address: in_process_wallets?.[0]?.address ?? null,
+    })),
+    error: null,
+    count: count ?? null,
+  };
 };
-
-const flattenRows = (
-  rows: Array<{
-    id: string;
-    username: string | null;
-    bio: string | null;
-    instagram: string | null;
-    telegram: string | null;
-    x: string | null;
-    in_process_wallets: Array<{ address: string }> | null;
-  }> | null
-): ArtistRow[] =>
-  (rows ?? []).map(({ in_process_wallets, ...rest }) => ({
-    ...rest,
-    address: in_process_wallets?.[0]?.address ?? null,
-  }));
 
 export default selectArtists;
