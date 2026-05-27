@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Transfers_t } from '@/types/envio';
 
-vi.mock('@/lib/supabase/account_notifications/selectTelegramChatId', () => ({
+vi.mock('@/lib/supabase/account_notifications/selectAccountNotification', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/telegram/client', () => ({
@@ -13,7 +13,7 @@ vi.mock('@/lib/consts', () => ({
   SITE_ORIGINAL_URL: 'https://inprocess.world',
 }));
 
-import selectTelegramChatId from '@/lib/supabase/account_notifications/selectTelegramChatId';
+import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from '../getAirdropOperator';
 import notifyAirdrop from '../notifyAirdrop';
@@ -36,7 +36,7 @@ const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(selectTelegramChatId).mockResolvedValue({
+  vi.mocked(selectAccountNotification).mockResolvedValue({
     data: { telegram_chat_id: CHAT_ID },
     error: null,
   } as any);
@@ -56,7 +56,7 @@ describe('notifyAirdrop', () => {
   });
 
   it('skips notification when no telegram_chat_id is found', async () => {
-    vi.mocked(selectTelegramChatId).mockResolvedValue({
+    vi.mocked(selectAccountNotification).mockResolvedValue({
       data: { telegram_chat_id: null },
       error: null,
     } as any);
