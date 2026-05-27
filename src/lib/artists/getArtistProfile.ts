@@ -6,10 +6,9 @@ const getArtistProfile = async (address: string) => {
   const emptyFields = {
     username: '',
     bio: '',
-    farcaster_username: '',
-    instagram_username: '',
-    twitter_username: '',
-    telegram_username: '',
+    instagram: '',
+    x: '',
+    telegram: '',
   };
   try {
     const ensName = await resolveAddressToEns(address as Address);
@@ -20,7 +19,6 @@ const getArtistProfile = async (address: string) => {
       return {
         ...profile,
         username: profile.username || ensName,
-        phone: profile.phone ? profile.phone[0] : undefined,
       };
 
     return {

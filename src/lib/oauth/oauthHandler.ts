@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import getArtistProfile from '@/lib/getArtistProfile';
+import getArtistProfile from '@/lib/artists/getArtistProfile';
 
 const oauthHandler = async (artistAddress: string): Promise<NextResponse> => {
   const profile = await getArtistProfile(artistAddress.toLowerCase());

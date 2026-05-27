@@ -61,7 +61,7 @@ export type Database = {
             foreignKeyName: 'account_notifications_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: true;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
         ];
@@ -96,7 +96,7 @@ export type Database = {
             foreignKeyName: 'in_process_admins_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
           {
@@ -138,7 +138,7 @@ export type Database = {
             foreignKeyName: 'in_process_api_keys_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
         ];
@@ -170,7 +170,7 @@ export type Database = {
             foreignKeyName: 'in_process_artist_phones_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
         ];
@@ -196,12 +196,42 @@ export type Database = {
             foreignKeyName: 'in_process_artist_social_wallets_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
         ];
       };
       in_process_artists: {
+        Row: {
+          address: string;
+          bio: string | null;
+          id: string;
+          instagram: string | null;
+          telegram: string | null;
+          username: string | null;
+          x: string | null;
+        };
+        Insert: {
+          address: string;
+          bio?: string | null;
+          id?: string;
+          instagram?: string | null;
+          telegram?: string | null;
+          username?: string | null;
+          x?: string | null;
+        };
+        Update: {
+          address?: string;
+          bio?: string | null;
+          id?: string;
+          instagram?: string | null;
+          telegram?: string | null;
+          username?: string | null;
+          x?: string | null;
+        };
+        Relationships: [];
+      };
+      in_process_artists_old: {
         Row: {
           address: string;
           bio: string | null;
@@ -270,7 +300,7 @@ export type Database = {
             foreignKeyName: 'in_process_arweave_uploads_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
         ];
@@ -314,7 +344,7 @@ export type Database = {
             foreignKeyName: 'in_process_collections_creator_fkey';
             columns: ['creator'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
         ];
@@ -390,7 +420,7 @@ export type Database = {
             foreignKeyName: 'in_process_moment_comments_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
           {
@@ -429,7 +459,7 @@ export type Database = {
             foreignKeyName: 'in_process_moment_fee_recipients_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
           {
@@ -509,7 +539,7 @@ export type Database = {
             foreignKeyName: 'in_process_notifications_artist_fkey';
             columns: ['artist'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
           },
           {
@@ -608,8 +638,37 @@ export type Database = {
             foreignKeyName: 'in_process_transfers_recipient_fkey';
             columns: ['recipient'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_artists_old';
             referencedColumns: ['address'];
+          },
+        ];
+      };
+      in_process_wallets: {
+        Row: {
+          address: string;
+          artist: string | null;
+          smart_wallet_address: string | null;
+          type: Database['public']['Enums']['wallet_type'] | null;
+        };
+        Insert: {
+          address: string;
+          artist?: string | null;
+          smart_wallet_address?: string | null;
+          type?: Database['public']['Enums']['wallet_type'] | null;
+        };
+        Update: {
+          address?: string;
+          artist?: string | null;
+          smart_wallet_address?: string | null;
+          type?: Database['public']['Enums']['wallet_type'] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_wallets_artist_fkey';
+            columns: ['artist'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -839,6 +898,7 @@ export type Database = {
         | 'catalog'
         | 'sound.xyz'
         | 'zora_media';
+      wallet_type: 'privy' | 'farcaster' | 'external';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -973,6 +1033,7 @@ export const Constants = {
   public: {
     Enums: {
       collection_protocol: ['in_process', 'catalog', 'sound.xyz', 'zora_media'],
+      wallet_type: ['privy', 'farcaster', 'external'],
     },
   },
 } as const;
