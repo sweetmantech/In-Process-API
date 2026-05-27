@@ -35,7 +35,7 @@ describe('getEmailsHandler', () => {
     it('returns own email using callerAddress', async () => {
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -55,7 +55,7 @@ describe('getEmailsHandler', () => {
     it('returns null email when no privy wallet found', async () => {
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({ data: [], error: null } as any);
@@ -70,7 +70,7 @@ describe('getEmailsHandler', () => {
     it('ignores artist_address param and returns own email', async () => {
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -90,7 +90,7 @@ describe('getEmailsHandler', () => {
     it('returns email for specified artist', async () => {
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -132,14 +132,14 @@ describe('getEmailsHandler', () => {
           data: [
             {
               address: '0xsocial',
-              artist: ARTIST_UUID,
-              in_process_artists: { username: 'coolartist' },
+              artist_id: ARTIST_UUID,
+              artist: { username: 'coolartist' },
             },
           ],
           error: null,
         } as any)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID, address: '0xartist' }],
+          data: [{ artist_id: ARTIST_UUID, address: '0xartist' }],
           error: null,
         } as any);
 
@@ -189,14 +189,14 @@ describe('getEmailsHandler', () => {
           data: [
             {
               address: '0xsocial',
-              artist: ARTIST_UUID,
-              in_process_artists: null,
+              artist_id: ARTIST_UUID,
+              artist: null,
             },
           ],
           error: null,
         } as any)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID, address: '0xartist' }],
+          data: [{ artist_id: ARTIST_UUID, address: '0xartist' }],
           error: null,
         } as any);
 

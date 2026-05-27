@@ -261,10 +261,8 @@ describe('getAirdropOperator', () => {
     mockSelectWallets.mockResolvedValue({
       data: [
         {
-          in_process_artists: {
-            address: '0xARTIST0000000000000000000000000000',
-            username: 'bob',
-          },
+          address: operatorAddress,
+          artist: { username: 'bob' },
         },
       ],
     } as never);
@@ -277,7 +275,7 @@ describe('getAirdropOperator', () => {
       smartWalletAddress: operatorAddress,
     });
     expect(result).toEqual({
-      address: '0xARTIST0000000000000000000000000000',
+      address: operatorAddress,
       username: 'bob',
     });
   });
@@ -288,7 +286,7 @@ describe('getAirdropOperator', () => {
       data: [
         {
           address: operatorAddress,
-          in_process_artists: { username: 'ann' },
+          artist: { username: 'ann' },
         },
       ],
     } as never);

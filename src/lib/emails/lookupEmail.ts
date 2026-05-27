@@ -6,7 +6,7 @@ const lookupEmail = async (artistAddress: string) => {
   const { data: walletRows } = await selectWallets({
     addresses: [artistAddress.toLowerCase()],
   });
-  const artistId = walletRows?.[0]?.artist;
+  const artistId = walletRows?.[0]?.artist_id;
   if (!artistId) return NextResponse.json({ email: null });
 
   const { data: privyRows } = await selectWallets({

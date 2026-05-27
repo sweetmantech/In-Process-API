@@ -5,7 +5,7 @@ const getArtistApiKeysHandler = async (artistAddress: string) => {
   const { data: walletRows } = await selectWallets({
     addresses: [artistAddress],
   });
-  const artistId = walletRows?.[0]?.artist ?? null;
+  const artistId = walletRows?.[0]?.artist_id ?? null;
 
   const keys = await getApiKeys({ artistId });
 

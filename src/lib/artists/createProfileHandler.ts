@@ -31,7 +31,7 @@ const createProfileHandler = async ({
     const { data: walletRows } = await selectWallets({
       addresses: [socialWalletAddress],
     });
-    const artistId = walletRows?.[0]?.artist;
+    const artistId = walletRows?.[0]?.artist_id;
     if (!artistId) {
       throw new Error('Wallet is not linked to an artist');
     }

@@ -41,7 +41,7 @@ describe('createArtistApiKeyHandler', () => {
 
   it('uses existing artist UUID when wallet is already linked', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist: ARTIST_UUID }],
+      data: [{ artist_id: ARTIST_UUID }],
       error: null,
     } as any);
 
@@ -68,7 +68,7 @@ describe('createArtistApiKeyHandler', () => {
 
   it('creates a new artist when the wallet has no link, then inserts key', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist: null }],
+      data: [{ artist_id: null }],
       error: null,
     } as any);
     vi.mocked(upsertArtists).mockResolvedValue([{ id: ARTIST_UUID }] as any);
@@ -79,10 +79,9 @@ describe('createArtistApiKeyHandler', () => {
     });
 
     expect(upsertArtists).toHaveBeenCalledWith({ address: ARTIST_LC });
-    expect(upsertWallets).toHaveBeenNthCalledWith(
-      2,
-      [{ address: ARTIST_LC, artist: ARTIST_UUID }]
-    );
+    expect(upsertWallets).toHaveBeenNthCalledWith(2, [
+      { address: ARTIST_LC, artist: ARTIST_UUID },
+    ]);
     expect(insertApiKey).toHaveBeenCalledWith({
       name: 'n',
       artist_id: ARTIST_UUID,
@@ -92,7 +91,7 @@ describe('createArtistApiKeyHandler', () => {
 
   it('propagates errors from insertApiKey', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist: ARTIST_UUID }],
+      data: [{ artist_id: ARTIST_UUID }],
       error: null,
     } as any);
     vi.mocked(insertApiKey).mockRejectedValue(new Error('insert failed'));

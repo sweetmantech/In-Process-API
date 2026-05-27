@@ -12,7 +12,7 @@ const getArtistWalletsByApiKey = async (token: string) => {
     const { data: walletRows } = await selectWallets({
       addresses: [artistAddress],
     });
-    const artistId = walletRows?.[0]?.artist;
+    const artistId = walletRows?.[0]?.artist_id;
     let artist_wallet: string | undefined;
     if (artistId) {
       const { data: externalRows } = await selectWallets({
@@ -32,7 +32,7 @@ const getArtistWalletsByApiKey = async (token: string) => {
   const { data: walletRows } = await selectWallets({
     addresses: [artistAddress],
   });
-  const artistId = walletRows?.[0]?.artist;
+  const artistId = walletRows?.[0]?.artist_id;
   let socialWallet: string | undefined;
   if (artistId) {
     const { data: privyRows } = await selectWallets({

@@ -33,7 +33,7 @@ const disconnectArtistWalletHandler = async ({
     const { data: walletRows } = await selectWallets({
       addresses: [walletAddress],
     });
-    const artistId = walletRows?.[0]?.artist;
+    const artistId = walletRows?.[0]?.artist_id;
     if (!artistId) throw new Error('External wallet not found');
     const { data: externalRows } = await selectWallets({
       artistIds: [artistId],

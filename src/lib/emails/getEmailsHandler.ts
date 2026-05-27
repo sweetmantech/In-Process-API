@@ -28,23 +28,22 @@ const getEmailsHandler = async (
   });
 
   const artistIds = [
-    ...new Set(privyRows?.map((r) => r.artist).filter(Boolean) as string[]),
+    ...new Set(privyRows?.map((r) => r.artist_id).filter(Boolean) as string[]),
   ];
   const { data: externalRows } = artistIds.length
     ? await selectWallets({ artistIds, type: 'external' })
     : { data: [] };
 
   const artistIdToExternal = Object.fromEntries(
-    externalRows?.map((r) => [r.artist, r.address]) ?? []
+    externalRows?.map((r) => [r.artist_id, r.address]) ?? []
   );
   const privyToArtistId = Object.fromEntries(
-    privyRows?.map((r) => [r.address.toLowerCase(), r.artist]) ?? []
+    privyRows?.map((r) => [r.address.toLowerCase(), r.artist_id]) ?? []
   );
   const privyToUsername = Object.fromEntries(
     privyRows?.map((r) => [
       r.address.toLowerCase(),
-      (r.in_process_artists as { username: string | null } | null)?.username ??
-        null,
+      r.artist?.username ?? null,
     ]) ?? []
   );
 

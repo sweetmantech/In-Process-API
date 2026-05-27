@@ -22,7 +22,7 @@ const createArtistApiKeyHandler = async ({
 
   // 2. Resolve the artist UUID, creating one if the wallet is not linked yet.
   const { data: walletRows } = await selectWallets({ addresses: [address] });
-  let artistId = walletRows?.[0]?.artist ?? null;
+  let artistId = walletRows?.[0]?.artist_id ?? null;
 
   if (!artistId) {
     const [created] = await upsertArtists({ address });

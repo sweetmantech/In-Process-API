@@ -12,7 +12,7 @@ export async function getAddressesByPrivyToken(authToken: string): Promise<{
     const { data: walletRows } = await selectWallets({
       addresses: [socialWalletAddress],
     });
-    const artistId = walletRows?.[0]?.artist;
+    const artistId = walletRows?.[0]?.artist_id;
     if (artistId) {
       const { data: externalRows } = await selectWallets({
         artistIds: [artistId],

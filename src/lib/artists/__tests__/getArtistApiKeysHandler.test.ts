@@ -21,7 +21,7 @@ describe('getArtistApiKeysHandler', () => {
 
   it('returns keys from supabase keyed by artist UUID', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist: ARTIST_UUID }],
+      data: [{ artist_id: ARTIST_UUID }],
       error: null,
     } as any);
     const rows = [{ id: '1', name: 'a', created_at: 't' }];
@@ -37,7 +37,7 @@ describe('getArtistApiKeysHandler', () => {
 
   it('returns empty list when wallet is not linked to an artist', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist: null }],
+      data: [{ artist_id: null }],
       error: null,
     } as any);
     vi.mocked(getApiKeys).mockResolvedValue([]);
@@ -51,7 +51,7 @@ describe('getArtistApiKeysHandler', () => {
 
   it('propagates errors from getApiKeys', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist: ARTIST_UUID }],
+      data: [{ artist_id: ARTIST_UUID }],
       error: null,
     } as any);
     vi.mocked(getApiKeys).mockRejectedValue(new Error('db'));

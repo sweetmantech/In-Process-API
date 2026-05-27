@@ -57,13 +57,13 @@ const connectArtistWalletHandler = async ({
   const { data: artistWalletRows } = await selectWallets({
     addresses: [artist_wallet.toLowerCase()],
   });
-  const artistUuid = artistWalletRows?.[0]?.artist;
+  const artistUuid = artistWalletRows?.[0]?.artist_id;
   if (!artistUuid) throw new Error('Artist wallet not found');
 
   const { data: existingRows } = await selectWallets({
     addresses: [social_wallet.toLowerCase()],
   });
-  const existingArtist = existingRows?.[0]?.artist;
+  const existingArtist = existingRows?.[0]?.artist_id;
   if (existingArtist && existingArtist !== artistUuid) {
     throw new Error('social_wallet is connected already.');
   }

@@ -55,11 +55,7 @@ export async function POST(req: NextRequest) {
               const { data: walletRows } = await selectWallets({
                 addresses: [phone.artist_address],
               });
-              const username = (
-                walletRows?.[0]?.in_process_artists as {
-                  username: string | null;
-                } | null
-              )?.username;
+              const username = walletRows?.[0]?.artist?.username;
               const displayName =
                 username || truncateAddress(phone.artist_address);
               await verifyAndNotifyPhone(displayName, fromPhoneNumber);

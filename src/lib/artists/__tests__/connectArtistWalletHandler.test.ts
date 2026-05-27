@@ -44,7 +44,7 @@ describe('connectArtistWalletHandler', () => {
     vi.mocked(upsertWallets).mockResolvedValue(undefined);
     vi.mocked(selectWallets)
       .mockResolvedValueOnce({
-        data: [{ artist: ARTIST_UUID }],
+        data: [{ artist_id: ARTIST_UUID }],
         error: null,
       } as any)
       .mockResolvedValueOnce({ data: [], error: null } as any);
@@ -134,11 +134,11 @@ describe('connectArtistWalletHandler', () => {
     vi.mocked(selectWallets).mockReset();
     vi.mocked(selectWallets)
       .mockResolvedValueOnce({
-        data: [{ artist: ARTIST_UUID }],
+        data: [{ artist_id: ARTIST_UUID }],
         error: null,
       } as any)
       .mockResolvedValueOnce({
-        data: [{ artist: 'another-uuid' }],
+        data: [{ artist_id: 'another-uuid' }],
         error: null,
       } as any);
 

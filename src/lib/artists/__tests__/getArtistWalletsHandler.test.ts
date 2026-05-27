@@ -82,7 +82,7 @@ describe('getArtistWalletsHandler', () => {
       });
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -113,7 +113,7 @@ describe('getArtistWalletsHandler', () => {
       });
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -145,7 +145,7 @@ describe('getArtistWalletsHandler', () => {
       });
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -200,7 +200,7 @@ describe('getArtistWalletsHandler', () => {
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(true);
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -232,7 +232,7 @@ describe('getArtistWalletsHandler', () => {
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(false);
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({

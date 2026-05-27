@@ -98,7 +98,7 @@ describe('disconnectArtistWalletHandler', () => {
     it('returns success and calls disconnectWallets with correct args', async () => {
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -135,7 +135,7 @@ describe('disconnectArtistWalletHandler', () => {
     it('throws when external wallet not found', async () => {
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ artist: ARTIST_UUID }],
+          data: [{ artist_id: ARTIST_UUID }],
           error: null,
         } as any)
         .mockResolvedValueOnce({ data: [], error: null } as any);

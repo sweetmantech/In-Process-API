@@ -39,9 +39,7 @@ export async function POST(req: NextRequest) {
     const { data: walletRows } = await selectWallets({
       addresses: [artistAddress.toLowerCase()],
     });
-    const username = (
-      walletRows?.[0]?.in_process_artists as { username: string | null } | null
-    )?.username;
+    const username = walletRows?.[0]?.artist?.username;
     const artistName = username || truncateAddress(artistAddress);
 
     // Send SMS verification message

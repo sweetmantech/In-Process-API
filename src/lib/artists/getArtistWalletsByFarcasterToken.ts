@@ -9,7 +9,7 @@ const getArtistWalletsByFarcasterToken = async (token: string) => {
   const { data: walletRows } = await selectWallets({
     addresses: [farcasterAddress],
   });
-  const artistId = walletRows?.[0]?.artist;
+  const artistId = walletRows?.[0]?.artist_id;
 
   if (!artistId) {
     return NextResponse.json({
