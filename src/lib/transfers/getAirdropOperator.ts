@@ -65,7 +65,10 @@ const getAirdropOperator = async (
     const { data: wallets } = await selectWallets({
       smartWalletAddress: address,
     });
-    const artist = wallets?.[0]?.in_process_artists as { address: string; username: string | null } | null;
+    const artist = wallets?.[0]?.in_process_artists as {
+      address: string;
+      username: string | null;
+    } | null;
     artistAddress = artist?.address;
     artistUsername = artist?.username;
   } else {

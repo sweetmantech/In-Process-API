@@ -12,7 +12,12 @@ const getArtistWalletsByFarcasterToken = async (token: string) => {
   const { data: walletRows } = await selectWallets({
     address: farcasterAddress,
   });
-  const profileAddress = (walletRows?.[0]?.in_process_artists as { address: string; username: string | null } | null)?.address;
+  const profileAddress = (
+    walletRows?.[0]?.in_process_artists as {
+      address: string;
+      username: string | null;
+    } | null
+  )?.address;
   if (!profileAddress) {
     return NextResponse.json({ artist_wallet: undefined, social_wallets });
   }
