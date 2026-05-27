@@ -2,7 +2,6 @@ import { generateApiKey } from '@/lib/api-keys/generateApiKey';
 import { hashApiKey } from '@/lib/api-keys/hashApiKey';
 import { insertApiKey } from '@/lib/supabase/in_process_api_keys/insertApiKey';
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
-import linkWalletToArtist from '@/lib/supabase/in_process_wallets/linkWalletToArtist';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 import { PRIVY_PROJECT_SECRET } from '@/lib/consts';
@@ -30,7 +29,7 @@ const createArtistApiKeyHandler = async ({
     if (!created) throw new Error('Failed to create artist entity');
     artistId = created.id;
 
-    await linkWalletToArtist(address, artistId);
+    await upsertWallets([{ address, artist: artistId }]);
   }
 
   await insertApiKey({
