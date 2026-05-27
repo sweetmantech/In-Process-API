@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { insertSocialWallet } from '@/lib/supabase/in_process_artist_social_wallets/insertSocialWallet';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import { Address } from 'viem';
 import migrateMoments from '@/lib/moment/migrateMoments';
 import { retriesGeneric } from '@/lib/protocolSdk/retries';
-import migrateApiKey from './migrateApiKey';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
+import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 import migrateProfile from './migrateProfile';
 import migrateSmartWalletFunds from './migrateSmartWalletFunds';
 
@@ -25,17 +25,11 @@ const connectArtistWalletHandler = async ({
     artist_wallet,
   });
 
-  // 2. Migrate api keys from social wallet to artist wallet
-  await migrateApiKey({
-    from: social_wallet,
-    to: artist_wallet,
-  });
-
   const socialSmartAccount = await getOrCreateSmartWallet({
     address: social_wallet,
   });
 
-  // 3. Migrate moments from social wallet to artist wallet
+  // 2. Migrate moments from social wallet to artist wallet
   await retriesGeneric({
     tryFn: async () => {
       await migrateMoments({
@@ -53,18 +47,30 @@ const connectArtistWalletHandler = async ({
     linearBackoffMS: 200,
   });
 
-  // 4. Migrate ETH and USDC from social wallet's smart wallet to artist wallet's smart wallet
+  // 3. Migrate ETH and USDC from social wallet's smart wallet to artist wallet's smart wallet
   await migrateSmartWalletFunds({
     socialSmartAccount,
     artistSmartWalletAddress: artistSmartAccount.address as Address,
   });
 
-  // 5. Connect social wallet to artist wallet
-  const { error: insertError } = await insertSocialWallet({
-    artist_address: artist_wallet,
-    social_wallet,
+  // 4. Connect social wallet to artist wallet
+  const { data: artistWalletRows } = await selectWallets({
+    addresses: [artist_wallet.toLowerCase()],
   });
-  if (insertError) throw new Error('social_wallet is connected already.');
+  const artistUuid = artistWalletRows?.[0]?.artist;
+  if (!artistUuid) throw new Error('Artist wallet not found');
+
+  const { data: existingRows } = await selectWallets({
+    addresses: [social_wallet.toLowerCase()],
+  });
+  const existingArtist = existingRows?.[0]?.artist;
+  if (existingArtist && existingArtist !== artistUuid) {
+    throw new Error('social_wallet is connected already.');
+  }
+
+  await upsertWallets([
+    { address: social_wallet.toLowerCase(), artist: artistUuid, type: 'privy' },
+  ]);
 
   return NextResponse.json({ success: true });
 };
