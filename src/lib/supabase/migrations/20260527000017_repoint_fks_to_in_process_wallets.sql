@@ -25,7 +25,7 @@ SELECT DISTINCT addr FROM (
   UNION SELECT recipient      FROM public.in_process_airdrops           WHERE recipient      IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_artist_phones      WHERE artist_address IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_arweave_uploads    WHERE artist_address IS NOT NULL
-  UNION SELECT default_admin  FROM public.in_process_collections        WHERE default_admin  IS NOT NULL
+  UNION SELECT creator        FROM public.in_process_collections        WHERE creator        IS NOT NULL
   UNION SELECT collector      FROM public.in_process_collectors         WHERE collector      IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_moment_comments    WHERE artist_address IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_moment_fee_recipients WHERE artist_address IS NOT NULL
@@ -76,10 +76,13 @@ ALTER TABLE public.in_process_arweave_uploads
     FOREIGN KEY (artist_address) REFERENCES public.in_process_wallets(address)
     ON UPDATE CASCADE ON DELETE CASCADE;
 
+-- in_process_collections.default_admin was renamed to `creator` in
+-- migration 20260305000001 (and the constraint name renamed alongside it),
+-- so we re-point the current `creator_fkey` constraint.
 ALTER TABLE public.in_process_collections
-  DROP CONSTRAINT IF EXISTS in_process_collections_default_admin_fkey,
-  ADD CONSTRAINT in_process_collections_default_admin_fkey
-    FOREIGN KEY (default_admin) REFERENCES public.in_process_wallets(address)
+  DROP CONSTRAINT IF EXISTS in_process_collections_creator_fkey,
+  ADD CONSTRAINT in_process_collections_creator_fkey
+    FOREIGN KEY (creator) REFERENCES public.in_process_wallets(address)
     ON UPDATE CASCADE ON DELETE RESTRICT;
 
 ALTER TABLE public.in_process_collectors
