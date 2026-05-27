@@ -83,11 +83,7 @@ describe('searchArtistsHandler', () => {
   });
 
   it('throws when supabase returns an error', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
-      data: null,
-      count: null,
-      error: { message: 'DB failure' },
-    } as any);
+    vi.mocked(selectArtists).mockRejectedValue(new Error('DB failure'));
 
     await expect(searchArtistsHandler('alice', 10)).rejects.toThrow(
       'DB failure'

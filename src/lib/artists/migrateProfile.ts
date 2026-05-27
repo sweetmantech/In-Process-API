@@ -23,18 +23,10 @@ const migrateProfile = async ({
         address: artist_wallet.toLowerCase(),
         username: artistExistingProfile?.username || existingProfile?.username,
         bio: artistExistingProfile?.bio || existingProfile?.bio,
-        farcaster_username:
-          artistExistingProfile?.farcaster_username ||
-          existingProfile?.farcaster_username,
-        instagram_username:
-          artistExistingProfile?.instagram_username ||
-          existingProfile?.instagram_username,
-        twitter_username:
-          artistExistingProfile?.twitter_username ||
-          existingProfile?.twitter_username,
-        telegram_username:
-          artistExistingProfile?.telegram_username ||
-          existingProfile?.telegram_username,
+        instagram:
+          artistExistingProfile?.instagram || existingProfile?.instagram,
+        x: artistExistingProfile?.x || existingProfile?.x,
+        telegram: artistExistingProfile?.telegram || existingProfile?.telegram,
       },
     ]);
 
@@ -43,10 +35,9 @@ const migrateProfile = async ({
         address: social_wallet.toLowerCase(),
         username: '',
         bio: '',
-        farcaster_username: '',
-        instagram_username: '',
-        twitter_username: '',
-        telegram_username: '',
+        instagram: '',
+        x: '',
+        telegram: '',
       },
     ]);
 

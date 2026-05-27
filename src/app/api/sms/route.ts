@@ -7,6 +7,7 @@ import { sendNewbieWelcome } from '@/lib/messages/sendNewbieWelcome';
 import { sendVerificationRequest } from '@/lib/messages/sendVerificationRequest';
 import verifyAndNotifyPhone from '@/lib/messages/verifyAndNotifyPhone';
 import truncateAddress from '@/lib/truncateAddress';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,13 +42,22 @@ export async function POST(req: NextRequest) {
         if (phone) {
           if (phone.verified) {
             if (media && media?.length > 0)
-              await processMmsMedia(phone, media[0], event.data.payload);
+              await processMmsMedia(
+                {
+                  phone_number: phone.phone_number,
+                  artist: { address: phone.artist_address },
+                },
+                media[0],
+                event.data.payload
+              );
           } else {
             if (messageText === 'yes') {
-              await verifyAndNotifyPhone(
-                phone.artist.username || truncateAddress(phone.artist_address),
-                fromPhoneNumber
-              );
+              const { data: artists } = await selectArtists({
+                address: phone.artist_address,
+              });
+              const username =
+                artists?.[0]?.username || truncateAddress(phone.artist_address);
+              await verifyAndNotifyPhone(username, fromPhoneNumber);
             } else
               await sendVerificationRequest(
                 fromPhoneNumber,

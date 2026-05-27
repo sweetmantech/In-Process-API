@@ -13,7 +13,7 @@ export function registerOnNudgePeriod(bot: TelegramChatBot) {
     if (!telegramUsername) return;
 
     const { data } = await selectArtists({
-      telegram_username: telegramUsername,
+      telegram: telegramUsername,
     });
     const artist = data?.[0];
     if (!artist) return;

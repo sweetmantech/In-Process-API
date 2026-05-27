@@ -32,10 +32,9 @@ describe('migrateProfile', () => {
     const profile = {
       username: 'u',
       bio: 'b',
-      farcaster_username: 'fc',
-      instagram_username: 'ig',
-      twitter_username: 'tw',
-      telegram_username: 'tg',
+      instagram: 'ig',
+      x: 'tw',
+      telegram: 'tg',
     };
     vi.mocked(selectArtists).mockResolvedValue(makeProfile(profile) as any);
 
@@ -49,10 +48,9 @@ describe('migrateProfile', () => {
         address: artist.toLowerCase(),
         username: 'u',
         bio: 'b',
-        farcaster_username: 'fc',
-        instagram_username: 'ig',
-        twitter_username: 'tw',
-        telegram_username: 'tg',
+        instagram: 'ig',
+        x: 'tw',
+        telegram: 'tg',
       },
     ]);
     expect(upsertArtists).toHaveBeenNthCalledWith(2, [
@@ -60,10 +58,9 @@ describe('migrateProfile', () => {
         address: social.toLowerCase(),
         username: '',
         bio: '',
-        farcaster_username: '',
-        instagram_username: '',
-        twitter_username: '',
-        telegram_username: '',
+        instagram: '',
+        x: '',
+        telegram: '',
       },
     ]);
   });
@@ -74,20 +71,18 @@ describe('migrateProfile', () => {
         makeProfile({
           username: 'from_social',
           bio: 'social_bio',
-          farcaster_username: 'fc_s',
-          instagram_username: 'ig_s',
-          twitter_username: 'tw_s',
-          telegram_username: 'tg_s',
+          instagram: 'ig_s',
+          x: 'tw_s',
+          telegram: 'tg_s',
         }) as any
       )
       .mockResolvedValueOnce(
         makeProfile({
           username: 'from_artist',
           bio: 'artist_bio',
-          farcaster_username: 'fc_a',
-          instagram_username: 'ig_a',
-          twitter_username: 'tw_a',
-          telegram_username: 'tg_a',
+          instagram: 'ig_a',
+          x: 'tw_a',
+          telegram: 'tg_a',
         }) as any
       );
 
@@ -98,10 +93,9 @@ describe('migrateProfile', () => {
         address: artist.toLowerCase(),
         username: 'from_artist',
         bio: 'artist_bio',
-        farcaster_username: 'fc_a',
-        instagram_username: 'ig_a',
-        twitter_username: 'tw_a',
-        telegram_username: 'tg_a',
+        instagram: 'ig_a',
+        x: 'tw_a',
+        telegram: 'tg_a',
       },
     ]);
   });
@@ -112,20 +106,18 @@ describe('migrateProfile', () => {
         makeProfile({
           username: 'soc_u',
           bio: 'soc_bio',
-          farcaster_username: 'fc_s',
-          instagram_username: null,
-          twitter_username: '',
-          telegram_username: 'tg_s',
+          instagram: null,
+          x: '',
+          telegram: 'tg_s',
         }) as any
       )
       .mockResolvedValueOnce(
         makeProfile({
           username: '',
           bio: null,
-          farcaster_username: null,
-          instagram_username: 'ig_a',
-          twitter_username: null,
-          telegram_username: null,
+          instagram: 'ig_a',
+          x: null,
+          telegram: null,
         }) as any
       );
 
@@ -136,10 +128,9 @@ describe('migrateProfile', () => {
         address: artist.toLowerCase(),
         username: 'soc_u',
         bio: 'soc_bio',
-        farcaster_username: 'fc_s',
-        instagram_username: 'ig_a',
-        twitter_username: '',
-        telegram_username: 'tg_s',
+        instagram: 'ig_a',
+        x: '',
+        telegram: 'tg_s',
       },
     ]);
   });
@@ -164,10 +155,9 @@ describe('migrateProfile', () => {
         address: '0xa123456789012345678901234567890123456789',
         username: undefined,
         bio: undefined,
-        farcaster_username: undefined,
-        instagram_username: undefined,
-        twitter_username: undefined,
-        telegram_username: undefined,
+        instagram: undefined,
+        x: undefined,
+        telegram: undefined,
       },
     ]);
     expect(upsertArtists).toHaveBeenNthCalledWith(2, [
@@ -175,10 +165,9 @@ describe('migrateProfile', () => {
         address: '0xb234567890123456789012345678901234567891',
         username: '',
         bio: '',
-        farcaster_username: '',
-        instagram_username: '',
-        twitter_username: '',
-        telegram_username: '',
+        instagram: '',
+        x: '',
+        telegram: '',
       },
     ]);
   });

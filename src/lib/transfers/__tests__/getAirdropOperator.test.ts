@@ -76,6 +76,9 @@ vi.mock('@/lib/viem/publicClient', () => ({
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/smartwallets/isCoinbaseSmartWallet', () => ({
   default: vi.fn(),
 }));
@@ -83,8 +86,11 @@ vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
   default: vi.fn(),
 }));
 
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
+
 const mockGetPublicClient = vi.mocked(getPublicClient);
 const mockSelectArtists = vi.mocked(selectArtists);
+const mockSelectWallets = vi.mocked(selectWallets);
 const mockIsCb = vi.mocked(isCoinbaseSmartWallet);
 const mockSelectCollections = vi.mocked(selectCollections);
 
@@ -250,20 +256,25 @@ describe('getAirdropOperator', () => {
     );
   });
 
-  it('returns artist from DB by smart_wallet when address is a Coinbase smart wallet', async () => {
+  it('returns artist from DB via selectWallets when address is a Coinbase smart wallet', async () => {
     mockIsCb.mockResolvedValue(true);
-    mockSelectArtists.mockResolvedValue({
+    mockSelectWallets.mockResolvedValue({
       data: [
-        { address: '0xARTIST0000000000000000000000000000', username: 'bob' },
+        {
+          in_process_artists: {
+            address: '0xARTIST0000000000000000000000000000',
+            username: 'bob',
+          },
+        },
       ],
     } as never);
 
     const result = await getAirdropOperator(transferFixture());
 
     expect(mockSelectCollections).not.toHaveBeenCalled();
-    expect(mockSelectArtists).toHaveBeenCalledWith({
-      smart_wallet: operatorAddress,
-      address: undefined,
+    expect(mockSelectArtists).not.toHaveBeenCalled();
+    expect(mockSelectWallets).toHaveBeenCalledWith({
+      smartWalletAddress: operatorAddress,
     });
     expect(result).toEqual({
       address: '0xARTIST0000000000000000000000000000',
@@ -285,8 +296,8 @@ describe('getAirdropOperator', () => {
     const result = await getAirdropOperator(transferFixture());
 
     expect(mockSelectCollections).not.toHaveBeenCalled();
+    expect(mockSelectWallets).not.toHaveBeenCalled();
     expect(mockSelectArtists).toHaveBeenCalledWith({
-      smart_wallet: undefined,
       address: operatorAddress,
     });
     expect(result).toEqual({
@@ -306,14 +317,14 @@ describe('getAirdropOperator', () => {
 
   it('throws when artist is not in DB (Coinbase smart wallet path)', async () => {
     mockIsCb.mockResolvedValue(true);
-    mockSelectArtists.mockResolvedValue({ data: null } as never);
+    mockSelectWallets.mockResolvedValue({ data: null } as never);
 
     await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
       'Airdrop operator not found'
     );
   });
 
-  it('throws when selectArtists returns an empty list', async () => {
+  it('throws when selectArtists returns an empty list (non-Coinbase path)', async () => {
     mockIsCb.mockResolvedValue(false);
     mockSelectArtists.mockResolvedValue({ data: [] } as never);
 

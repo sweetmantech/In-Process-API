@@ -21,7 +21,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       if (!telegramUsername) return;
 
       const { data } = await selectArtists({
-        telegram_username: telegramUsername,
+        telegram: telegramUsername,
       });
       const artist = data?.[0] ?? null;
       const text = message.text?.trim() ?? '';

@@ -21,7 +21,7 @@ export function registerOnCollectionsLoadMore(bot: TelegramChatBot) {
     if (!telegramUsername) return;
 
     const { data: artists } = await selectArtists({
-      telegram_username: telegramUsername,
+      telegram: telegramUsername,
     });
     const artist = artists?.[0];
     if (!artist) return;

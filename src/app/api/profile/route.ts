@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import getArtistProfile from '@/lib/getArtistProfile';
+import getArtistProfile from '@/lib/artists/getArtistProfile';
 import { Address } from 'viem';
 
 export async function GET(req: NextRequest) {

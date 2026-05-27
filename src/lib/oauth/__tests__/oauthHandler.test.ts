@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { NextResponse } from 'next/server';
 
-vi.mock('@/lib/getArtistProfile', () => ({
+vi.mock('@/lib/artists/getArtistProfile', () => ({
   default: vi.fn(),
 }));
 
 import oauthHandler from '@/lib/oauth/oauthHandler';
-import getArtistProfile from '@/lib/getArtistProfile';
+import getArtistProfile from '@/lib/artists/getArtistProfile';
 
 const mockGetArtistProfile = vi.mocked(getArtistProfile);
 

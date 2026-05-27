@@ -16,7 +16,7 @@ vi.mock('next/og', () => ({
 vi.mock('@/lib/supabase/in_process_moments/getArtistTimeline', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/getArtistProfile', () => ({
+vi.mock('@/lib/artists/getArtistProfile', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/og/getArchivoFont', () => ({
@@ -31,7 +31,7 @@ vi.mock('@/lib/truncateAddress', () => ({
 
 import { ImageResponse } from 'next/og';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
-import getArtistProfile from '@/lib/getArtistProfile';
+import getArtistProfile from '@/lib/artists/getArtistProfile';
 import getArchivoFont from '@/lib/og/getArchivoFont';
 import collectCollageImages from '@/lib/og/collectCollageImages';
 import truncateAddress from '@/lib/truncateAddress';

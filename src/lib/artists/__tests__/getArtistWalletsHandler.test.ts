@@ -20,6 +20,9 @@ vi.mock(
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/artists/getFarcasterSocialWallet', () => ({
   default: vi.fn(),
 }));
@@ -29,7 +32,7 @@ import isPrivyWalletAddress from '@/lib/privy/isPrivyWalletAddress';
 import { getAuthorizedAddressByApiKey } from '@/lib/api-keys/getAuthorizedAddressByApiKey';
 import authenticateWithFarcasterToken from '@/lib/auth/authenticateWithFarcasterToken';
 import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import getFarcasterSocialWallet from '@/lib/artists/getFarcasterSocialWallet';
 import getArtistWalletsHandler from '@/lib/artists/getArtistWalletsHandler';
 
@@ -83,8 +86,8 @@ describe('getArtistWalletsHandler', () => {
         farcasterUsername: 'testuser',
         authMethod: AuthMethod.Farcaster,
       });
-      vi.mocked(selectArtists).mockResolvedValue({
-        data: [{ address: '0xartist' }],
+      vi.mocked(selectWallets).mockResolvedValue({
+        data: [{ in_process_artists: { address: '0xartist', username: null } }],
         error: null,
       } as any);
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(false);
@@ -111,8 +114,8 @@ describe('getArtistWalletsHandler', () => {
         farcasterUsername: 'testuser',
         authMethod: AuthMethod.Farcaster,
       });
-      vi.mocked(selectArtists).mockResolvedValue({
-        data: [{ address: '0xprivy' }],
+      vi.mocked(selectWallets).mockResolvedValue({
+        data: [{ in_process_artists: { address: '0xprivy', username: null } }],
         error: null,
       } as any);
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(true);
@@ -133,13 +136,13 @@ describe('getArtistWalletsHandler', () => {
       });
     });
 
-    it('returns undefined artist_wallet when no farcasterUsername', async () => {
+    it('returns undefined artist_wallet when wallet not found in DB', async () => {
       vi.mocked(authenticateWithFarcasterToken).mockResolvedValue({
         artistAddress: '0xfarcaster',
         farcasterUsername: undefined,
         authMethod: AuthMethod.Farcaster,
       });
-      vi.mocked(selectArtists).mockResolvedValue({
+      vi.mocked(selectWallets).mockResolvedValue({
         data: [],
         error: null,
       } as any);

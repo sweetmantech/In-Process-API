@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
+vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
   default: vi.fn(),
 }));
 
@@ -8,7 +8,7 @@ vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
   getOrCreateSmartWallet: vi.fn(),
 }));
 
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import getSmartWalletAddress from '@/lib/smartwallets/getSmartWalletAddress';
 
@@ -20,10 +20,9 @@ describe('getSmartWalletAddress', () => {
     vi.clearAllMocks();
   });
 
-  it('returns existing smart_wallet from DB (lowercased)', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
-      data: [{ smart_wallet: SMART_WALLET }],
-      count: 1,
+  it('returns existing smart_wallet_address from DB (lowercased)', async () => {
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ smart_wallet_address: SMART_WALLET }],
       error: null,
     } as any);
 
@@ -34,34 +33,28 @@ describe('getSmartWalletAddress', () => {
   });
 
   it('lowercases the address before querying DB', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
-      data: [{ smart_wallet: SMART_WALLET }],
-      count: 1,
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ smart_wallet_address: SMART_WALLET }],
       error: null,
     } as any);
 
     await getSmartWalletAddress('0xABCDEF' as any);
 
-    expect(selectArtists).toHaveBeenCalledWith({ address: '0xabcdef' });
+    expect(selectWallets).toHaveBeenCalledWith({ address: '0xabcdef' });
   });
 
-  it('throws when selectArtists returns an error', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
-      data: null,
-      count: null,
-      error: { message: 'DB failure' },
-    } as any);
+  it('throws when selectWallets rejects', async () => {
+    vi.mocked(selectWallets).mockRejectedValue(new Error('DB failure'));
 
     await expect(getSmartWalletAddress(ARTIST_ADDRESS)).rejects.toThrow(
-      'DB failure'
+      'Failed to get or create smart wallet'
     );
     expect(getOrCreateSmartWallet).not.toHaveBeenCalled();
   });
 
-  it('calls getOrCreateSmartWallet when artist has no smart_wallet', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
-      data: [{ smart_wallet: null }],
-      count: 1,
+  it('calls getOrCreateSmartWallet when wallet has no smart_wallet_address', async () => {
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ smart_wallet_address: null }],
       error: null,
     } as any);
     vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
@@ -76,10 +69,9 @@ describe('getSmartWalletAddress', () => {
     expect(result).toBe(SMART_WALLET.toLowerCase());
   });
 
-  it('calls getOrCreateSmartWallet when artist is not found in DB', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
+  it('calls getOrCreateSmartWallet when wallet is not found in DB', async () => {
+    vi.mocked(selectWallets).mockResolvedValue({
       data: [],
-      count: 0,
       error: null,
     } as any);
     vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
@@ -93,9 +85,8 @@ describe('getSmartWalletAddress', () => {
   });
 
   it('throws wrapped error when getOrCreateSmartWallet returns no address', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
+    vi.mocked(selectWallets).mockResolvedValue({
       data: [],
-      count: 0,
       error: null,
     } as any);
     vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
@@ -108,9 +99,8 @@ describe('getSmartWalletAddress', () => {
   });
 
   it('throws wrapped error when getOrCreateSmartWallet rejects', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
+    vi.mocked(selectWallets).mockResolvedValue({
       data: [],
-      count: 0,
       error: null,
     } as any);
     vi.mocked(getOrCreateSmartWallet).mockRejectedValue(
