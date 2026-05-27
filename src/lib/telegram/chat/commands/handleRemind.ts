@@ -10,16 +10,13 @@ const handleRemind = async (
   thread: Thread<TelegramThreadState>,
   artistAddress: Address
 ) => {
-  const { data, error: fetchError } =
-    await selectAccountNotification(artistAddress);
-  if (fetchError) throw fetchError;
+  const data = await selectAccountNotification(artistAddress);
 
   const disabled = data?.nudge_period == null;
-  const { error } = await upsertAccountNotification({
+  await upsertAccountNotification({
     artist_address: artistAddress,
     nudge_period: disabled ? 3 : null,
   });
-  if (error) throw error;
 
   const text = disabled
     ? "🔔 Nudges are now ON. I'll remind you if you haven't posted in 3 or more days.\nWould you like to change how many days I wait before nudging?"

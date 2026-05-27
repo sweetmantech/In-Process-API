@@ -25,7 +25,7 @@ describe('getArtistApiKeysHandler', () => {
       error: null,
     } as any);
     const rows = [{ id: '1', name: 'a', created_at: 't' }];
-    vi.mocked(getApiKeys).mockResolvedValue({ data: rows, error: null } as any);
+    vi.mocked(getApiKeys).mockResolvedValue(rows as any);
 
     const res = await getArtistApiKeysHandler(ARTIST_ADDRESS);
     const json = await res.json();
@@ -40,7 +40,7 @@ describe('getArtistApiKeysHandler', () => {
       data: [{ artist: null }],
       error: null,
     } as any);
-    vi.mocked(getApiKeys).mockResolvedValue({ data: [], error: null } as any);
+    vi.mocked(getApiKeys).mockResolvedValue([]);
 
     const res = await getArtistApiKeysHandler(ARTIST_ADDRESS);
     const json = await res.json();
@@ -49,18 +49,13 @@ describe('getArtistApiKeysHandler', () => {
     expect(json).toEqual({ keys: [] });
   });
 
-  it('throws when getApiKeys returns error', async () => {
+  it('propagates errors from getApiKeys', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
       data: [{ artist: ARTIST_UUID }],
       error: null,
     } as any);
-    vi.mocked(getApiKeys).mockResolvedValue({
-      data: null,
-      error: { message: 'db' },
-    } as any);
+    vi.mocked(getApiKeys).mockRejectedValue(new Error('db'));
 
-    await expect(getArtistApiKeysHandler(ARTIST_ADDRESS)).rejects.toThrow(
-      'Failed to fetch API keys'
-    );
+    await expect(getArtistApiKeysHandler(ARTIST_ADDRESS)).rejects.toThrow('db');
   });
 });

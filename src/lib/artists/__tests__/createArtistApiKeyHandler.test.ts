@@ -40,8 +40,8 @@ describe('createArtistApiKeyHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(upsertWallets).mockResolvedValue(undefined);
-    vi.mocked(linkWalletToArtist).mockResolvedValue({ error: null } as any);
-    vi.mocked(insertApiKey).mockResolvedValue({ error: null } as any);
+    vi.mocked(linkWalletToArtist).mockResolvedValue(undefined);
+    vi.mocked(insertApiKey).mockResolvedValue(undefined);
   });
 
   it('uses existing artist UUID when wallet is already linked', async () => {
@@ -92,20 +92,18 @@ describe('createArtistApiKeyHandler', () => {
     });
   });
 
-  it('throws when insertApiKey fails', async () => {
+  it('propagates errors from insertApiKey', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
       data: [{ artist: ARTIST_UUID }],
       error: null,
     } as any);
-    vi.mocked(insertApiKey).mockResolvedValue({
-      error: { message: 'e' },
-    } as any);
+    vi.mocked(insertApiKey).mockRejectedValue(new Error('insert failed'));
 
     await expect(
       createArtistApiKeyHandler({
         artistAddress: ARTIST_LC,
         key_name: 'n',
       })
-    ).rejects.toThrow('Failed to store api key');
+    ).rejects.toThrow('insert failed');
   });
 });

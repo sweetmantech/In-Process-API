@@ -10,8 +10,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
     if (t.value && t.currency) continue;
     const recipient = t.recipient.toLowerCase();
     try {
-      const { data } = await selectAccountNotification(recipient);
-
+      const data = await selectAccountNotification(recipient);
       const chatId = data?.telegram_chat_id;
       if (!chatId) continue;
 

@@ -30,21 +30,16 @@ const createArtistApiKeyHandler = async ({
     if (!created) throw new Error('Failed to create artist entity');
     artistId = created.id;
 
-    const { error: linkError } = await linkWalletToArtist(address, artistId);
-    if (linkError) throw new Error('Failed to link wallet to artist');
+    await linkWalletToArtist(address, artistId);
   }
 
-  const { error } = await insertApiKey({
+  await insertApiKey({
     name: key_name.trim(),
     artist_id: artistId,
     key_hash: keyHash,
   });
 
-  if (error) throw new Error('Failed to store api key');
-
-  return Response.json({
-    key: rawApiKey,
-  });
+  return Response.json({ key: rawApiKey });
 };
 
 export default createArtistApiKeyHandler;

@@ -37,8 +37,7 @@ const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(selectAccountNotification).mockResolvedValue({
-    data: { telegram_chat_id: CHAT_ID },
-    error: null,
+    telegram_chat_id: CHAT_ID,
   } as any);
   vi.mocked(getAirdropOperator).mockResolvedValue({
     address: SENDER,
@@ -57,8 +56,7 @@ describe('notifyAirdrop', () => {
 
   it('skips notification when no telegram_chat_id is found', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { telegram_chat_id: null },
-      error: null,
+      telegram_chat_id: null,
     } as any);
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();

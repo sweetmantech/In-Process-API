@@ -8,16 +8,13 @@ const handleNotify = async (
   thread: Thread<TelegramThreadState>,
   artistAddress: Address
 ) => {
-  const { data, error: fetchError } =
-    await selectAccountNotification(artistAddress);
-  if (fetchError) throw fetchError;
+  const data = await selectAccountNotification(artistAddress);
 
   const enabled = !(data?.notify_enabled ?? false);
-  const { error } = await upsertAccountNotification({
+  await upsertAccountNotification({
     artist_address: artistAddress,
     notify_enabled: enabled,
   });
-  if (error) throw error;
 
   const text = enabled
     ? "🔔 Airdrop notifications are now ON. I'll let you know any time someone sends your wallet an airdrop."

@@ -26,18 +26,14 @@ const makeThread = () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(upsertAccountNotification).mockResolvedValue({
-    data: null,
-    error: null,
-  } as never);
+  vi.mocked(upsertAccountNotification).mockResolvedValue(undefined);
 });
 
 describe('handleNotify', () => {
   it('enables notifications when currently disabled', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { notify_enabled: false },
-      error: null,
-    } as never);
+      notify_enabled: false,
+    } as any);
 
     await handleNotify(makeThread() as never, ARTIST_ADDRESS);
 
@@ -48,9 +44,8 @@ describe('handleNotify', () => {
 
   it('disables notifications when currently enabled', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { notify_enabled: true },
-      error: null,
-    } as never);
+      notify_enabled: true,
+    } as any);
 
     await handleNotify(makeThread() as never, ARTIST_ADDRESS);
 
@@ -61,9 +56,8 @@ describe('handleNotify', () => {
 
   it('posts an "ON" message when enabling', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { notify_enabled: false },
-      error: null,
-    } as never);
+      notify_enabled: false,
+    } as any);
     const thread = makeThread();
 
     await handleNotify(thread as never, ARTIST_ADDRESS);
@@ -74,9 +68,8 @@ describe('handleNotify', () => {
 
   it('posts an "OFF" message when disabling', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { notify_enabled: true },
-      error: null,
-    } as never);
+      notify_enabled: true,
+    } as any);
     const thread = makeThread();
 
     await handleNotify(thread as never, ARTIST_ADDRESS);
@@ -85,15 +78,13 @@ describe('handleNotify', () => {
     expect(message).toContain('OFF');
   });
 
-  it('throws when upsert fails', async () => {
+  it('propagates errors from upsertAccountNotification', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { notify_enabled: false },
-      error: null,
-    } as never);
-    vi.mocked(upsertAccountNotification).mockResolvedValue({
-      data: null,
-      error: new Error('DB error'),
-    } as never);
+      notify_enabled: false,
+    } as any);
+    vi.mocked(upsertAccountNotification).mockRejectedValue(
+      new Error('DB error')
+    );
 
     await expect(
       handleNotify(makeThread() as never, ARTIST_ADDRESS)

@@ -38,18 +38,14 @@ const makeThread = () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(upsertAccountNotification).mockResolvedValue({
-    data: null,
-    error: null,
-  } as never);
+  vi.mocked(upsertAccountNotification).mockResolvedValue(undefined);
 });
 
 describe('handleRemind', () => {
   it('enables nudges when currently disabled (nudge_period is null)', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { nudge_period: null },
-      error: null,
-    } as never);
+      nudge_period: null,
+    } as any);
 
     await handleRemind(makeThread() as never, ARTIST_ADDRESS);
 
@@ -60,9 +56,8 @@ describe('handleRemind', () => {
 
   it('disables nudges when currently enabled', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { nudge_period: 3 },
-      error: null,
-    } as never);
+      nudge_period: 3,
+    } as any);
 
     await handleRemind(makeThread() as never, ARTIST_ADDRESS);
 
@@ -73,9 +68,8 @@ describe('handleRemind', () => {
 
   it('posts an "ON" message when enabling nudges', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { nudge_period: null },
-      error: null,
-    } as never);
+      nudge_period: null,
+    } as any);
     const thread = makeThread();
 
     await handleRemind(thread as never, ARTIST_ADDRESS);
@@ -86,9 +80,8 @@ describe('handleRemind', () => {
 
   it('posts an "OFF" message when disabling nudges', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { nudge_period: 7 },
-      error: null,
-    } as never);
+      nudge_period: 7,
+    } as any);
     const thread = makeThread();
 
     await handleRemind(thread as never, ARTIST_ADDRESS);
@@ -97,15 +90,13 @@ describe('handleRemind', () => {
     expect(message).toContain('OFF');
   });
 
-  it('throws when upsert fails', async () => {
+  it('propagates errors from upsertAccountNotification', async () => {
     vi.mocked(selectAccountNotification).mockResolvedValue({
-      data: { nudge_period: null },
-      error: null,
-    } as never);
-    vi.mocked(upsertAccountNotification).mockResolvedValue({
-      data: null,
-      error: new Error('DB error'),
-    } as never);
+      nudge_period: null,
+    } as any);
+    vi.mocked(upsertAccountNotification).mockRejectedValue(
+      new Error('DB error')
+    );
 
     await expect(
       handleRemind(makeThread() as never, ARTIST_ADDRESS)

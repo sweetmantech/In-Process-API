@@ -12,10 +12,9 @@ export async function getAuthorizedAddressByApiKey(
 
   const keyHash = hashApiKey(apiKey, PRIVY_PROJECT_SECRET);
 
-  const { data, error } = await getApiKeys({ keyHash });
-  const row = data?.[0];
+  const [row] = await getApiKeys({ keyHash });
 
-  if (error || !row) {
+  if (!row) {
     throw new Error('Invalid API key');
   }
 

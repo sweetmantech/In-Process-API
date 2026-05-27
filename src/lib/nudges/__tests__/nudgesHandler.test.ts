@@ -25,24 +25,14 @@ beforeEach(() => {
 });
 
 describe('nudgesHandler', () => {
-  it('returns 500 when the RPC returns an error', async () => {
-    vi.mocked(getNudges).mockResolvedValue({
-      data: null,
-      error: { message: 'rpc failure' },
-    } as never);
+  it('propagates errors from getNudges', async () => {
+    vi.mocked(getNudges).mockRejectedValue(new Error('rpc failure'));
 
-    const res = await nudgesHandler();
-    const json = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(json.message).toBe('rpc failure');
+    await expect(nudgesHandler()).rejects.toThrow('rpc failure');
   });
 
   it('returns success with total 0 when there are no nudge targets', async () => {
-    vi.mocked(getNudges).mockResolvedValue({
-      data: [],
-      error: null,
-    } as never);
+    vi.mocked(getNudges).mockResolvedValue([]);
 
     const res = await nudgesHandler();
     const json = await res.json();
@@ -55,10 +45,7 @@ describe('nudgesHandler', () => {
   });
 
   it('calls sendNudge for each target', async () => {
-    vi.mocked(getNudges).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getNudges).mockResolvedValue(TARGETS as any);
     vi.mocked(sendNudge).mockResolvedValue(undefined);
 
     await nudgesHandler();
@@ -77,10 +64,7 @@ describe('nudgesHandler', () => {
   });
 
   it('returns sent count equal to the number of successful nudges', async () => {
-    vi.mocked(getNudges).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getNudges).mockResolvedValue(TARGETS as any);
     vi.mocked(sendNudge).mockResolvedValue(undefined);
 
     const res = await nudgesHandler();
@@ -92,10 +76,7 @@ describe('nudgesHandler', () => {
   });
 
   it('captures errors per-target without aborting the rest', async () => {
-    vi.mocked(getNudges).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getNudges).mockResolvedValue(TARGETS as any);
     vi.mocked(sendNudge)
       .mockResolvedValueOnce(undefined)
       .mockRejectedValueOnce(new Error('telegram error'));

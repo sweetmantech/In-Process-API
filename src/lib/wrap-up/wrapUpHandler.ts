@@ -3,16 +3,7 @@ import getWeeklyWrapUpStats from '@/lib/supabase/account_notifications/getWeekly
 import sendWrapUp from '@/lib/wrap-up/sendWrapUp';
 
 const wrapUpHandler = async (): Promise<NextResponse> => {
-  const { data, error } = await getWeeklyWrapUpStats();
-
-  if (error) {
-    return NextResponse.json(
-      { status: 'error', message: error.message },
-      { status: 500 }
-    );
-  }
-
-  const targets = data ?? [];
+  const targets = await getWeeklyWrapUpStats();
 
   const results = await Promise.all(
     targets.map(

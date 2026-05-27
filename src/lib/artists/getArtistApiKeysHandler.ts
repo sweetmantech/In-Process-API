@@ -7,13 +7,9 @@ const getArtistApiKeysHandler = async (artistAddress: string) => {
   });
   const artistId = walletRows?.[0]?.artist ?? null;
 
-  const { data, error } = await getApiKeys({ artistId });
+  const keys = await getApiKeys({ artistId });
 
-  if (error) throw new Error('Failed to fetch API keys');
-
-  return Response.json({
-    keys: data || [],
-  });
+  return Response.json({ keys });
 };
 
 export default getArtistApiKeysHandler;
