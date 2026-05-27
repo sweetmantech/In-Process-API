@@ -20,28 +20,15 @@ const selectWallets = async ({
       'address, artist, type, smart_wallet_address, in_process_artists(address, username)'
     );
 
-  if (address) {
-    const { data, error } = await query
-      .eq('address', address.toLowerCase())
-      .limit(1);
-    if (error) throw error;
-    return { data, error };
-  }
-
-  if (smartWalletAddress) {
-    const { data, error } = await query
+  if (address) query = query.eq('address', address.toLowerCase()).limit(1);
+  else if (smartWalletAddress)
+    query = query
       .eq('smart_wallet_address', smartWalletAddress.toLowerCase())
       .limit(1);
-    if (error) throw error;
-    return { data, error };
-  }
-
-  if (artistId) {
-    let q = query.eq('artist', artistId);
-    if (type) q = q.eq('type', type);
-    const { data, error } = await q.limit(1);
-    if (error) throw error;
-    return { data, error };
+  else if (artistId) {
+    query = query.eq('artist', artistId);
+    if (type) query = query.eq('type', type);
+    query = query.limit(1);
   }
 
   const { data, error } = await query;
