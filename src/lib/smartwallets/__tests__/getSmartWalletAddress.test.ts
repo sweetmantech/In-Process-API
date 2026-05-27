@@ -40,7 +40,7 @@ describe('getSmartWalletAddress', () => {
 
     await getSmartWalletAddress('0xABCDEF' as any);
 
-    expect(selectWallets).toHaveBeenCalledWith({ address: '0xabcdef' });
+    expect(selectWallets).toHaveBeenCalledWith({ addresses: ['0xabcdef'] });
   });
 
   it('throws when selectWallets rejects', async () => {

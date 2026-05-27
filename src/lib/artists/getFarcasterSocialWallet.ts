@@ -9,7 +9,7 @@ const getFarcasterSocialWallet = async (
   if (!artistId) return undefined;
 
   const { data: wallets } = await selectWallets({
-    artistId,
+    artistIds: [artistId],
     type: 'farcaster',
   });
   return wallets?.[0]?.address ?? undefined;

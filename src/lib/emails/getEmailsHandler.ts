@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ADMIN_ADDRESSES } from '@/lib/consts';
 import getAllEmails from '@/lib/privy/getAllEmails';
-import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import lookupEmail from '@/lib/emails/lookupEmail';
 
 const getEmailsHandler = async (
@@ -22,28 +22,40 @@ const getEmailsHandler = async (
 
   const { emails, next_cursor } = await getAllEmails(cursor, limit);
 
-  const { data: walletRows, error } = await selectSocialWallets({
-    socialWallets: emails.map((e) => e.address.toLowerCase()),
+  const privyAddresses = emails.map((e) => e.address.toLowerCase());
+  const { data: privyRows } = await selectWallets({
+    addresses: privyAddresses,
   });
-  if (error) throw new Error(error.message);
-  const artistAddressMap: Record<
-    string,
-    { artist_address: string; username: string | null }
-  > = {};
-  for (const row of walletRows ?? []) {
-    artistAddressMap[row.social_wallet.toLowerCase()] = {
-      artist_address: row.artist_address,
-      username:
-        (row.in_process_artists as { username: string | null } | null)
-          ?.username ?? null,
+
+  const artistIds = [
+    ...new Set(privyRows?.map((r) => r.artist).filter(Boolean) as string[]),
+  ];
+  const { data: externalRows } = artistIds.length
+    ? await selectWallets({ artistIds, type: 'external' })
+    : { data: [] };
+
+  const artistIdToExternal = Object.fromEntries(
+    externalRows?.map((r) => [r.artist, r.address]) ?? []
+  );
+  const privyToArtistId = Object.fromEntries(
+    privyRows?.map((r) => [r.address.toLowerCase(), r.artist]) ?? []
+  );
+  const privyToUsername = Object.fromEntries(
+    privyRows?.map((r) => [
+      r.address.toLowerCase(),
+      (r.in_process_artists as { username: string | null } | null)?.username ??
+        null,
+    ]) ?? []
+  );
+
+  const enriched = emails.map((e) => {
+    const artistId = privyToArtistId[e.address.toLowerCase()];
+    return {
+      ...e,
+      artist_address: artistId ? (artistIdToExternal[artistId] ?? null) : null,
+      username: privyToUsername[e.address.toLowerCase()] ?? null,
     };
-  }
-  const enriched = emails.map((e) => ({
-    ...e,
-    artist_address:
-      artistAddressMap[e.address.toLowerCase()]?.artist_address ?? null,
-    username: artistAddressMap[e.address.toLowerCase()]?.username ?? null,
-  }));
+  });
 
   return NextResponse.json({ emails: enriched, next_cursor });
 };

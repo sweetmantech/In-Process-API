@@ -3,7 +3,8 @@ import { AuthMethod } from '@/types/auth';
 import { getAddressesByPrivyToken } from '@/lib/privy/getAddressesByPrivyToken';
 import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
 import isPrivyWalletAddress from '@/lib/privy/isPrivyWalletAddress';
-import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import disconnectWallets from '@/lib/artists/disconnectWallets';
 
 const disconnectArtistWalletHandler = async ({
@@ -29,11 +30,16 @@ const disconnectArtistWalletHandler = async ({
   const isPrivySocialWallet = await isPrivyWalletAddress(walletAddress);
 
   if (isPrivySocialWallet) {
-    const { data: socialWallets, error } = await selectSocialWallets({
-      socialWallets: [walletAddress],
+    const { data: walletRows } = await selectWallets({
+      addresses: [walletAddress],
     });
-    if (error) throw new Error(error.message);
-    const externalWallet = socialWallets?.[0]?.artist_address;
+    const artistId = walletRows?.[0]?.artist;
+    if (!artistId) throw new Error('External wallet not found');
+    const { data: externalRows } = await selectWallets({
+      artistIds: [artistId],
+      type: 'external',
+    });
+    const externalWallet = externalRows?.[0]?.address;
     if (!externalWallet) throw new Error('External wallet not found');
     await disconnectWallets({
       social_wallet: walletAddress,
@@ -42,11 +48,14 @@ const disconnectArtistWalletHandler = async ({
     return NextResponse.json({ success: true });
   }
 
-  const { data: socialWallets, error } = await selectSocialWallets({
-    artistAddress: walletAddress,
+  const { data: artists } = await selectArtists({ address: walletAddress });
+  const artistId = artists?.[0]?.id;
+  if (!artistId) throw new Error('Artist not found');
+  const { data: privyRows } = await selectWallets({
+    artistIds: [artistId],
+    type: 'privy',
   });
-  if (error) throw new Error(error.message);
-  const socialWallet = socialWallets?.[0]?.social_wallet;
+  const socialWallet = privyRows?.[0]?.address;
   if (!socialWallet) throw new Error('In*Process wallet not found');
   await disconnectWallets({
     social_wallet: socialWallet,

@@ -13,13 +13,6 @@ vi.mock('@/lib/api-keys/getAuthorizedAddressByApiKey', () => ({
 vi.mock('@/lib/auth/authenticateWithFarcasterToken', () => ({
   default: vi.fn(),
 }));
-vi.mock(
-  '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets',
-  () => ({ default: vi.fn() })
-);
-vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
-  default: vi.fn(),
-}));
 vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
   default: vi.fn(),
 }));
@@ -31,10 +24,11 @@ import { getAddressesByPrivyToken } from '@/lib/privy/getAddressesByPrivyToken';
 import isPrivyWalletAddress from '@/lib/privy/isPrivyWalletAddress';
 import { getAuthorizedAddressByApiKey } from '@/lib/api-keys/getAuthorizedAddressByApiKey';
 import authenticateWithFarcasterToken from '@/lib/auth/authenticateWithFarcasterToken';
-import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import getFarcasterSocialWallet from '@/lib/artists/getFarcasterSocialWallet';
 import getArtistWalletsHandler from '@/lib/artists/getArtistWalletsHandler';
+
+const ARTIST_UUID = 'uuid-artist-1234';
 
 describe('getArtistWalletsHandler', () => {
   beforeEach(() => {
@@ -86,15 +80,13 @@ describe('getArtistWalletsHandler', () => {
         farcasterUsername: 'testuser',
         authMethod: AuthMethod.Farcaster,
       });
-      vi.mocked(selectWallets).mockResolvedValue({
-        data: [{ in_process_artists: { address: '0xartist', username: null } }],
-        error: null,
-      } as any);
+      vi.mocked(selectWallets)
+        .mockResolvedValueOnce({
+          data: [{ artist: ARTIST_UUID, in_process_artists: { address: '0xartist', username: null } }],
+          error: null,
+        } as any)
+        .mockResolvedValueOnce({ data: [], error: null } as any);
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(false);
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: [],
-        error: null,
-      } as any);
 
       const res = await getArtistWalletsHandler({
         method: AuthMethod.Farcaster,
@@ -108,21 +100,19 @@ describe('getArtistWalletsHandler', () => {
       });
     });
 
-    it('resolves artist_wallet via selectSocialWallets and adds privy address to social_wallets when profile is privy', async () => {
+    it('resolves artist_wallet via external wallet when profile is privy', async () => {
       vi.mocked(authenticateWithFarcasterToken).mockResolvedValue({
         artistAddress: '0xfarcaster',
         farcasterUsername: 'testuser',
         authMethod: AuthMethod.Farcaster,
       });
-      vi.mocked(selectWallets).mockResolvedValue({
-        data: [{ in_process_artists: { address: '0xprivy', username: null } }],
-        error: null,
-      } as any);
+      vi.mocked(selectWallets)
+        .mockResolvedValueOnce({
+          data: [{ artist: ARTIST_UUID, in_process_artists: { address: '0xprivy', username: null } }],
+          error: null,
+        } as any)
+        .mockResolvedValueOnce({ data: [{ address: '0xartist' }], error: null } as any);
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(true);
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: [{ artist_address: '0xartist' }],
-        error: null,
-      } as any);
 
       const res = await getArtistWalletsHandler({
         method: AuthMethod.Farcaster,
@@ -142,10 +132,7 @@ describe('getArtistWalletsHandler', () => {
         farcasterUsername: undefined,
         authMethod: AuthMethod.Farcaster,
       });
-      vi.mocked(selectWallets).mockResolvedValue({
-        data: [],
-        error: null,
-      } as any);
+      vi.mocked(selectWallets).mockResolvedValue({ data: [], error: null } as any);
 
       const res = await getArtistWalletsHandler({
         method: AuthMethod.Farcaster,
@@ -162,14 +149,11 @@ describe('getArtistWalletsHandler', () => {
 
   describe('ApiKey auth', () => {
     it('resolves artist_wallet and social_wallets when api key address is a privy wallet', async () => {
-      vi.mocked(getAuthorizedAddressByApiKey).mockResolvedValue(
-        '0xSocialWallet'
-      );
+      vi.mocked(getAuthorizedAddressByApiKey).mockResolvedValue('0xSocialWallet');
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(true);
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: [{ artist_address: '0xartist' }],
-        error: null,
-      } as any);
+      vi.mocked(selectWallets)
+        .mockResolvedValueOnce({ data: [{ artist: ARTIST_UUID }], error: null } as any)
+        .mockResolvedValueOnce({ data: [{ address: '0xartist' }], error: null } as any);
       vi.mocked(getFarcasterSocialWallet).mockResolvedValue('0xfarcaster');
 
       const res = await getArtistWalletsHandler({
@@ -179,24 +163,19 @@ describe('getArtistWalletsHandler', () => {
       const json = await res.json();
 
       expect(isPrivyWalletAddress).toHaveBeenCalledWith('0xSocialWallet');
-      expect(selectSocialWallets).toHaveBeenCalledWith({
-        socialWallets: ['0xSocialWallet'],
-      });
+      expect(selectWallets).toHaveBeenCalledWith({ addresses: ['0xSocialWallet'] });
       expect(json).toEqual({
         artist_wallet: '0xartist',
         social_wallets: ['0xSocialWallet', '0xfarcaster'],
       });
     });
 
-    it('returns social_wallets when api key address is an artist wallet', async () => {
-      vi.mocked(getAuthorizedAddressByApiKey).mockResolvedValue(
-        '0xArtistWallet'
-      );
+    it('returns artist_wallet and social_wallets when api key address is an external wallet', async () => {
+      vi.mocked(getAuthorizedAddressByApiKey).mockResolvedValue('0xArtistWallet');
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(false);
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: [{ social_wallet: '0xsocial' }],
-        error: null,
-      } as any);
+      vi.mocked(selectWallets)
+        .mockResolvedValueOnce({ data: [{ artist: ARTIST_UUID }], error: null } as any)
+        .mockResolvedValueOnce({ data: [{ address: '0xsocial' }], error: null } as any);
       vi.mocked(getFarcasterSocialWallet).mockResolvedValue('0xfarcaster');
 
       const res = await getArtistWalletsHandler({
@@ -205,30 +184,21 @@ describe('getArtistWalletsHandler', () => {
       });
       const json = await res.json();
 
-      expect(selectSocialWallets).toHaveBeenCalledWith({
-        artistAddress: '0xArtistWallet',
-      });
+      expect(selectWallets).toHaveBeenCalledWith({ addresses: ['0xArtistWallet'] });
       expect(json).toEqual({
         artist_wallet: '0xArtistWallet',
         social_wallets: ['0xsocial', '0xfarcaster'],
       });
     });
 
-    it('returns 500 when selectSocialWallets returns an error', async () => {
+    it('throws when selectWallets throws', async () => {
       vi.mocked(getAuthorizedAddressByApiKey).mockResolvedValue('0xartist');
       vi.mocked(isPrivyWalletAddress).mockResolvedValue(false);
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: null,
-        error: { message: 'DB error' },
-      } as any);
+      vi.mocked(selectWallets).mockRejectedValue(new Error('DB error'));
 
-      const res = await getArtistWalletsHandler({
-        method: AuthMethod.ApiKey,
-        token: 'api-key',
-      });
-
-      expect(res.status).toBe(500);
-      expect(await res.json()).toEqual({ message: 'DB error' });
+      await expect(
+        getArtistWalletsHandler({ method: AuthMethod.ApiKey, token: 'api-key' })
+      ).rejects.toThrow('DB error');
     });
   });
 });

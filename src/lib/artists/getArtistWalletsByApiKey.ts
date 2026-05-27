@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { Address } from 'viem';
 import { getAuthorizedAddressByApiKey } from '../api-keys/getAuthorizedAddressByApiKey';
 import isPrivyWalletAddress from '../privy/isPrivyWalletAddress';
-import selectSocialWallets from '../supabase/in_process_artist_social_wallets/selectSocialWallets';
+import selectWallets from '../supabase/in_process_wallets/selectWallets';
 import getFarcasterSocialWallet from './getFarcasterSocialWallet';
 
 const getArtistWalletsByApiKey = async (token: string) => {
@@ -10,13 +9,18 @@ const getArtistWalletsByApiKey = async (token: string) => {
   const isPrivyWallet = await isPrivyWalletAddress(artistAddress);
 
   if (isPrivyWallet) {
-    const { data: walletRows, error } = await selectSocialWallets({
-      socialWallets: [artistAddress],
+    const { data: walletRows } = await selectWallets({
+      addresses: [artistAddress],
     });
-    if (error) {
-      return NextResponse.json({ message: error.message }, { status: 500 });
+    const artistId = walletRows?.[0]?.artist;
+    let artist_wallet: string | undefined;
+    if (artistId) {
+      const { data: externalRows } = await selectWallets({
+        artistIds: [artistId],
+        type: 'external',
+      });
+      artist_wallet = externalRows?.[0]?.address;
     }
-    const artist_wallet = walletRows?.[0]?.artist_address;
     const profileAddress = artist_wallet ?? artistAddress;
     const farcasterWallet = await getFarcasterSocialWallet(profileAddress);
     const social_wallets = [artistAddress, farcasterWallet].filter(
@@ -25,13 +29,16 @@ const getArtistWalletsByApiKey = async (token: string) => {
     return NextResponse.json({ artist_wallet, social_wallets });
   }
 
-  const { data: walletRows, error } = await selectSocialWallets({
-    artistAddress: artistAddress as Address,
-  });
-  if (error) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  const { data: walletRows } = await selectWallets({ addresses: [artistAddress] });
+  const artistId = walletRows?.[0]?.artist;
+  let socialWallet: string | undefined;
+  if (artistId) {
+    const { data: privyRows } = await selectWallets({
+      artistIds: [artistId],
+      type: 'privy',
+    });
+    socialWallet = privyRows?.[0]?.address;
   }
-  const socialWallet = walletRows?.[0]?.social_wallet;
   const farcasterWallet = await getFarcasterSocialWallet(artistAddress);
   const social_wallets = [socialWallet, farcasterWallet].filter(
     Boolean

@@ -6,7 +6,9 @@ const getSmartWalletAddress = async (address: Address) => {
   const lowercasedAddress = address.toLowerCase() as Address;
 
   try {
-    const { data: wallets } = await selectWallets({ address: lowercasedAddress });
+    const { data: wallets } = await selectWallets({
+      addresses: [lowercasedAddress],
+    });
     const cached = wallets?.[0]?.smart_wallet_address;
     if (cached) return cached.toLowerCase() as Address;
 

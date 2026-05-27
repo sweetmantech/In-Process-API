@@ -1,17 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Address } from 'viem';
 
-vi.mock(
-  '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets',
-  () => ({ default: vi.fn() })
-);
+vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/privy/getEmailByWalletAddress', () => ({ default: vi.fn() }));
 
-import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 import handleMe from '../handleMe';
 
 const ARTIST_ADDRESS = '0xartist' as Address;
+const ARTIST_UUID = 'uuid-artist-1234';
 const SOCIAL_WALLET = '0xsocial' as Address;
 
 const makeThread = () => ({
@@ -20,33 +24,31 @@ const makeThread = () => ({
 });
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
 });
 
 describe('handleMe', () => {
-  describe('artistAddress is a real artist address', () => {
-    it('posts the linked email found via social wallet', async () => {
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: [{ social_wallet: SOCIAL_WALLET }],
-        error: null,
-      } as any);
+  describe('artistAddress has a known artist record', () => {
+    it('posts the linked email found via privy wallet', async () => {
+      vi.mocked(selectArtists).mockResolvedValue({ data: [{ id: ARTIST_UUID }], error: null } as any);
+      vi.mocked(selectWallets)
+        .mockResolvedValueOnce({ data: [{ address: SOCIAL_WALLET }], error: null } as any)
+        .mockResolvedValueOnce({ data: [], error: null } as any);
       vi.mocked(getEmailByWalletAddress).mockResolvedValue('user@example.com');
 
       const thread = makeThread();
       await handleMe(thread as never, ARTIST_ADDRESS);
 
-      expect(selectSocialWallets).toHaveBeenCalledWith({
-        artistAddress: ARTIST_ADDRESS,
-      });
+      expect(selectArtists).toHaveBeenCalledWith({ address: ARTIST_ADDRESS });
+      expect(selectWallets).toHaveBeenCalledWith({ artistIds: [ARTIST_UUID], type: 'privy' });
       expect(getEmailByWalletAddress).toHaveBeenCalledWith(SOCIAL_WALLET);
-      expect(thread.post).toHaveBeenCalledWith(
-        'Your linked email: user@example.com'
-      );
+      expect(thread.post).toHaveBeenCalledWith('Your linked email: user@example.com');
     });
 
-    it('tries each social wallet and returns the first email found', async () => {
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: [{ social_wallet: '0xsocial1' }, { social_wallet: '0xsocial2' }],
+    it('tries each privy wallet and returns the first email found', async () => {
+      vi.mocked(selectArtists).mockResolvedValue({ data: [{ id: ARTIST_UUID }], error: null } as any);
+      vi.mocked(selectWallets).mockResolvedValueOnce({
+        data: [{ address: '0xsocial1' }, { address: '0xsocial2' }],
         error: null,
       } as any);
       vi.mocked(getEmailByWalletAddress)
@@ -57,118 +59,76 @@ describe('handleMe', () => {
       await handleMe(thread as never, ARTIST_ADDRESS);
 
       expect(getEmailByWalletAddress).toHaveBeenCalledTimes(2);
-      expect(thread.post).toHaveBeenCalledWith(
-        'Your linked email: second@example.com'
-      );
+      expect(thread.post).toHaveBeenCalledWith('Your linked email: second@example.com');
     });
 
-    it('falls through to social wallet lookup when no social wallet has an email', async () => {
-      vi.mocked(selectSocialWallets)
-        .mockResolvedValueOnce({
-          data: [{ social_wallet: SOCIAL_WALLET }],
-          error: null,
-        } as any)
-        .mockResolvedValueOnce({
-          data: [],
-          error: null,
-        } as any);
+    it('falls through to direct address check when no privy wallet has an email', async () => {
+      vi.mocked(selectArtists).mockResolvedValue({ data: [{ id: ARTIST_UUID }], error: null } as any);
+      vi.mocked(selectWallets)
+        .mockResolvedValueOnce({ data: [{ address: SOCIAL_WALLET }], error: null } as any)
+        .mockResolvedValueOnce({ data: [{ type: 'privy' }], error: null } as any);
       vi.mocked(getEmailByWalletAddress).mockResolvedValue(null);
 
       const thread = makeThread();
       await handleMe(thread as never, ARTIST_ADDRESS);
 
-      expect(selectSocialWallets).toHaveBeenCalledWith({
-        socialWallets: [ARTIST_ADDRESS],
-      });
-      expect(thread.post).toHaveBeenCalledWith(
-        'No email address linked to your account.'
-      );
+      expect(selectWallets).toHaveBeenCalledWith({ addresses: [ARTIST_ADDRESS] });
+      expect(thread.post).toHaveBeenCalledWith('No email address linked to your account.');
     });
   });
 
-  describe('artistAddress is itself a social wallet', () => {
-    it('posts the email found directly from the social wallet address', async () => {
-      vi.mocked(selectSocialWallets)
-        .mockResolvedValueOnce({ data: [], error: null } as any)
-        .mockResolvedValueOnce({
-          data: [{ social_wallet: ARTIST_ADDRESS, artist_address: '0xreal' }],
-          error: null,
-        } as any);
-      vi.mocked(getEmailByWalletAddress).mockResolvedValue(
-        'social@example.com'
-      );
+  describe('artistAddress is itself a privy wallet', () => {
+    it('posts the email found directly from the privy wallet address', async () => {
+      vi.mocked(selectArtists).mockResolvedValue({ data: [], error: null } as any);
+      vi.mocked(selectWallets).mockResolvedValue({ data: [{ type: 'privy' }], error: null } as any);
+      vi.mocked(getEmailByWalletAddress).mockResolvedValue('social@example.com');
 
       const thread = makeThread();
       await handleMe(thread as never, ARTIST_ADDRESS);
 
-      expect(selectSocialWallets).toHaveBeenCalledWith({
-        socialWallets: [ARTIST_ADDRESS],
-      });
+      expect(selectWallets).toHaveBeenCalledWith({ addresses: [ARTIST_ADDRESS] });
       expect(getEmailByWalletAddress).toHaveBeenCalledWith(ARTIST_ADDRESS);
-      expect(thread.post).toHaveBeenCalledWith(
-        'Your linked email: social@example.com'
-      );
+      expect(thread.post).toHaveBeenCalledWith('Your linked email: social@example.com');
     });
 
-    it('posts no email message when social wallet has no Privy email', async () => {
-      vi.mocked(selectSocialWallets)
-        .mockResolvedValueOnce({ data: [], error: null } as any)
-        .mockResolvedValueOnce({
-          data: [{ social_wallet: ARTIST_ADDRESS, artist_address: '0xreal' }],
-          error: null,
-        } as any);
+    it('posts no email message when privy wallet has no email', async () => {
+      vi.mocked(selectArtists).mockResolvedValue({ data: [], error: null } as any);
+      vi.mocked(selectWallets).mockResolvedValue({ data: [{ type: 'privy' }], error: null } as any);
       vi.mocked(getEmailByWalletAddress).mockResolvedValue(null);
 
       const thread = makeThread();
       await handleMe(thread as never, ARTIST_ADDRESS);
 
-      expect(thread.post).toHaveBeenCalledWith(
-        'No email address linked to your account.'
-      );
+      expect(thread.post).toHaveBeenCalledWith('No email address linked to your account.');
     });
   });
 
   describe('no linked wallet at all', () => {
     it('posts no email message when both lookups return empty', async () => {
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: [],
-        error: null,
-      } as any);
+      vi.mocked(selectArtists).mockResolvedValue({ data: [], error: null } as any);
+      vi.mocked(selectWallets).mockResolvedValue({ data: [], error: null } as any);
 
       const thread = makeThread();
       await handleMe(thread as never, ARTIST_ADDRESS);
 
-      expect(thread.post).toHaveBeenCalledWith(
-        'No email address linked to your account.'
-      );
+      expect(thread.post).toHaveBeenCalledWith('No email address linked to your account.');
     });
   });
 
   describe('error handling', () => {
-    it('rethrows on selectSocialWallets error', async () => {
-      vi.mocked(selectSocialWallets).mockResolvedValue({
-        data: null,
-        error: { message: 'db down' },
-      } as any);
+    it('rethrows on selectArtists error', async () => {
+      vi.mocked(selectArtists).mockRejectedValue(new Error('db down'));
 
       const thread = makeThread();
-      await expect(handleMe(thread as never, ARTIST_ADDRESS)).rejects.toEqual({
-        message: 'db down',
-      });
+      await expect(handleMe(thread as never, ARTIST_ADDRESS)).rejects.toThrow('db down');
     });
 
-    it('rethrows on second selectSocialWallets error', async () => {
-      vi.mocked(selectSocialWallets)
-        .mockResolvedValueOnce({ data: [], error: null } as any)
-        .mockResolvedValueOnce({
-          data: null,
-          error: { message: 'lookup failed' },
-        } as any);
+    it('rethrows on selectWallets error', async () => {
+      vi.mocked(selectArtists).mockResolvedValue({ data: [{ id: ARTIST_UUID }], error: null } as any);
+      vi.mocked(selectWallets).mockRejectedValue(new Error('lookup failed'));
 
       const thread = makeThread();
-      await expect(handleMe(thread as never, ARTIST_ADDRESS)).rejects.toEqual({
-        message: 'lookup failed',
-      });
+      await expect(handleMe(thread as never, ARTIST_ADDRESS)).rejects.toThrow('lookup failed');
     });
   });
 });
