@@ -1,25 +1,12 @@
-import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import validateCreateProfileBody from '@/lib/artists/validateCreateProfileBody';
+import createProfileHandler from '@/lib/artists/createProfileHandler';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { address, username, bio, instagram, x, telegram } = body;
-
-    await upsertArtists([
-      {
-        address: address.toLowerCase(),
-        username,
-        bio,
-        instagram,
-        x,
-        telegram,
-      },
-    ]);
-
-    return Response.json({
-      success: true,
-    });
+    const validated = await validateCreateProfileBody(req);
+    if (validated instanceof NextResponse) return validated;
+    return createProfileHandler(validated);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to create profile';
