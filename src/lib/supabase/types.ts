@@ -61,7 +61,7 @@ export type Database = {
             foreignKeyName: 'account_notifications_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: true;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
         ];
@@ -96,7 +96,7 @@ export type Database = {
             foreignKeyName: 'in_process_admins_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
           {
@@ -170,33 +170,7 @@ export type Database = {
             foreignKeyName: 'in_process_artist_phones_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
-            referencedColumns: ['address'];
-          },
-        ];
-      };
-      in_process_artist_social_wallets: {
-        Row: {
-          artist_address: string;
-          created_at: string;
-          social_wallet: string;
-        };
-        Insert: {
-          artist_address: string;
-          created_at?: string;
-          social_wallet: string;
-        };
-        Update: {
-          artist_address?: string;
-          created_at?: string;
-          social_wallet?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'in_process_artist_social_wallets_artist_address_fkey';
-            columns: ['artist_address'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
         ];
@@ -228,39 +202,6 @@ export type Database = {
           telegram?: string | null;
           username?: string | null;
           x?: string | null;
-        };
-        Relationships: [];
-      };
-      in_process_artists_old: {
-        Row: {
-          address: string;
-          bio: string | null;
-          farcaster_username: string | null;
-          instagram_username: string | null;
-          smart_wallet: string | null;
-          telegram_username: string | null;
-          twitter_username: string | null;
-          username: string | null;
-        };
-        Insert: {
-          address: string;
-          bio?: string | null;
-          farcaster_username?: string | null;
-          instagram_username?: string | null;
-          smart_wallet?: string | null;
-          telegram_username?: string | null;
-          twitter_username?: string | null;
-          username?: string | null;
-        };
-        Update: {
-          address?: string;
-          bio?: string | null;
-          farcaster_username?: string | null;
-          instagram_username?: string | null;
-          smart_wallet?: string | null;
-          telegram_username?: string | null;
-          twitter_username?: string | null;
-          username?: string | null;
         };
         Relationships: [];
       };
@@ -300,7 +241,7 @@ export type Database = {
             foreignKeyName: 'in_process_arweave_uploads_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
         ];
@@ -344,7 +285,7 @@ export type Database = {
             foreignKeyName: 'in_process_collections_creator_fkey';
             columns: ['creator'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
         ];
@@ -420,7 +361,7 @@ export type Database = {
             foreignKeyName: 'in_process_moment_comments_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
           {
@@ -459,7 +400,7 @@ export type Database = {
             foreignKeyName: 'in_process_moment_fee_recipients_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
           {
@@ -539,7 +480,7 @@ export type Database = {
             foreignKeyName: 'in_process_notifications_artist_fkey';
             columns: ['artist'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
           {
@@ -638,7 +579,7 @@ export type Database = {
             foreignKeyName: 'in_process_transfers_recipient_fkey';
             columns: ['recipient'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
         ];

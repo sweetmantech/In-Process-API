@@ -36,12 +36,17 @@ describe('connectArtistWalletHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(migrateProfile).mockResolvedValue(undefined);
-    vi.mocked(getOrCreateSmartWallet).mockResolvedValue({ address: SMART } as any);
+    vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
+      address: SMART,
+    } as any);
     vi.mocked(migrateMoments).mockResolvedValue(undefined);
     vi.mocked(migrateSmartWalletFunds).mockResolvedValue(undefined);
     vi.mocked(upsertWallets).mockResolvedValue(undefined);
     vi.mocked(selectWallets)
-      .mockResolvedValueOnce({ data: [{ artist: ARTIST_UUID }], error: null } as any)
+      .mockResolvedValueOnce({
+        data: [{ artist: ARTIST_UUID }],
+        error: null,
+      } as any)
       .mockResolvedValueOnce({ data: [], error: null } as any);
   });
 
@@ -52,7 +57,9 @@ describe('connectArtistWalletHandler', () => {
     });
     const json = await res.json();
 
-    expect(getOrCreateSmartWallet).toHaveBeenCalledWith({ address: ARTIST_WALLET });
+    expect(getOrCreateSmartWallet).toHaveBeenCalledWith({
+      address: ARTIST_WALLET,
+    });
     expect(migrateProfile).toHaveBeenCalledWith({
       social_wallet: SOCIAL_WALLET,
       artist_wallet: ARTIST_WALLET,
@@ -63,7 +70,11 @@ describe('connectArtistWalletHandler', () => {
       artistSmartWalletAddress: SMART,
     });
     expect(upsertWallets).toHaveBeenCalledWith([
-      { address: SOCIAL_WALLET.toLowerCase(), artist: ARTIST_UUID, type: 'privy' },
+      {
+        address: SOCIAL_WALLET.toLowerCase(),
+        artist: ARTIST_UUID,
+        type: 'privy',
+      },
     ]);
     expect(json).toEqual({ success: true });
   });
@@ -75,39 +86,67 @@ describe('connectArtistWalletHandler', () => {
     });
 
     expect(upsertWallets).toHaveBeenCalledWith([
-      expect.objectContaining({ address: '0xb234567890123456789012345678901234567891' }),
+      expect.objectContaining({
+        address: '0xb234567890123456789012345678901234567891',
+      }),
     ]);
   });
 
   it('runs profile, moments, funds before upsert', async () => {
     const order: string[] = [];
-    vi.mocked(migrateProfile).mockImplementation(async () => { order.push('profile'); });
-    vi.mocked(migrateMoments).mockImplementation(async () => { order.push('moments'); });
-    vi.mocked(migrateSmartWalletFunds).mockImplementation(async () => { order.push('funds'); });
-    vi.mocked(upsertWallets).mockImplementation(async () => { order.push('upsert'); });
+    vi.mocked(migrateProfile).mockImplementation(async () => {
+      order.push('profile');
+    });
+    vi.mocked(migrateMoments).mockImplementation(async () => {
+      order.push('moments');
+    });
+    vi.mocked(migrateSmartWalletFunds).mockImplementation(async () => {
+      order.push('funds');
+    });
+    vi.mocked(upsertWallets).mockImplementation(async () => {
+      order.push('upsert');
+    });
 
-    await connectArtistWalletHandler({ artist_wallet: ARTIST_WALLET, social_wallet: SOCIAL_WALLET });
+    await connectArtistWalletHandler({
+      artist_wallet: ARTIST_WALLET,
+      social_wallet: SOCIAL_WALLET,
+    });
 
     expect(order).toEqual(['profile', 'moments', 'funds', 'upsert']);
   });
 
   it('throws when artist wallet not found in DB', async () => {
     vi.mocked(selectWallets).mockReset();
-    vi.mocked(selectWallets).mockResolvedValue({ data: [], error: null } as any);
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [],
+      error: null,
+    } as any);
 
     await expect(
-      connectArtistWalletHandler({ artist_wallet: ARTIST_WALLET, social_wallet: SOCIAL_WALLET })
+      connectArtistWalletHandler({
+        artist_wallet: ARTIST_WALLET,
+        social_wallet: SOCIAL_WALLET,
+      })
     ).rejects.toThrow('Artist wallet not found');
   });
 
   it('throws when social wallet is already connected to a different artist', async () => {
     vi.mocked(selectWallets).mockReset();
     vi.mocked(selectWallets)
-      .mockResolvedValueOnce({ data: [{ artist: ARTIST_UUID }], error: null } as any)
-      .mockResolvedValueOnce({ data: [{ artist: 'another-uuid' }], error: null } as any);
+      .mockResolvedValueOnce({
+        data: [{ artist: ARTIST_UUID }],
+        error: null,
+      } as any)
+      .mockResolvedValueOnce({
+        data: [{ artist: 'another-uuid' }],
+        error: null,
+      } as any);
 
     await expect(
-      connectArtistWalletHandler({ artist_wallet: ARTIST_WALLET, social_wallet: SOCIAL_WALLET })
+      connectArtistWalletHandler({
+        artist_wallet: ARTIST_WALLET,
+        social_wallet: SOCIAL_WALLET,
+      })
     ).rejects.toThrow('social_wallet is connected already.');
   });
 });

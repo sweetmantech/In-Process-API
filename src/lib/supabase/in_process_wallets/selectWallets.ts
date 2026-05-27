@@ -21,7 +21,10 @@ const selectWallets = async ({
     );
 
   if (addresses?.length) {
-    query = query.in('address', addresses.map((a) => a.toLowerCase()));
+    query = query.in(
+      'address',
+      addresses.map((a) => a.toLowerCase())
+    );
   } else if (smartWalletAddress) {
     query = query.eq('smart_wallet_address', smartWalletAddress.toLowerCase());
   } else if (artistIds?.length) {

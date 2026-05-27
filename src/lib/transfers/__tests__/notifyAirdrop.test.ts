@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Transfers_t } from '@/types/envio';
 
-vi.mock('@/lib/supabase/account_notifications/selectAccountNotification', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '@/lib/supabase/account_notifications/selectAccountNotification',
+  () => ({
+    default: vi.fn(),
+  })
+);
 vi.mock('@/lib/telegram/client', () => ({
   telegramChatBotClient: { sendMessage: vi.fn() },
 }));

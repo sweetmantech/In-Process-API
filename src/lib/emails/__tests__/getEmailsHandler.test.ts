@@ -34,9 +34,17 @@ describe('getEmailsHandler', () => {
   describe('non-admin (normal API key)', () => {
     it('returns own email using callerAddress', async () => {
       vi.mocked(selectWallets)
-        .mockResolvedValueOnce({ data: [{ artist: ARTIST_UUID }], error: null } as any)
-        .mockResolvedValueOnce({ data: [{ address: '0xsocialwallet' }], error: null } as any);
-      vi.mocked(getEmailByWalletAddress).mockResolvedValue('artist@example.com');
+        .mockResolvedValueOnce({
+          data: [{ artist: ARTIST_UUID }],
+          error: null,
+        } as any)
+        .mockResolvedValueOnce({
+          data: [{ address: '0xsocialwallet' }],
+          error: null,
+        } as any);
+      vi.mocked(getEmailByWalletAddress).mockResolvedValue(
+        'artist@example.com'
+      );
 
       const res = await getEmailsHandler(NON_ADMIN_ADDRESS);
       const json = await res.json();
@@ -46,7 +54,10 @@ describe('getEmailsHandler', () => {
 
     it('returns null email when no privy wallet found', async () => {
       vi.mocked(selectWallets)
-        .mockResolvedValueOnce({ data: [{ artist: ARTIST_UUID }], error: null } as any)
+        .mockResolvedValueOnce({
+          data: [{ artist: ARTIST_UUID }],
+          error: null,
+        } as any)
         .mockResolvedValueOnce({ data: [], error: null } as any);
 
       const res = await getEmailsHandler(NON_ADMIN_ADDRESS);
@@ -58,8 +69,14 @@ describe('getEmailsHandler', () => {
 
     it('ignores artist_address param and returns own email', async () => {
       vi.mocked(selectWallets)
-        .mockResolvedValueOnce({ data: [{ artist: ARTIST_UUID }], error: null } as any)
-        .mockResolvedValueOnce({ data: [{ address: '0xsocialwallet' }], error: null } as any);
+        .mockResolvedValueOnce({
+          data: [{ artist: ARTIST_UUID }],
+          error: null,
+        } as any)
+        .mockResolvedValueOnce({
+          data: [{ address: '0xsocialwallet' }],
+          error: null,
+        } as any);
       vi.mocked(getEmailByWalletAddress).mockResolvedValue('own@example.com');
 
       const res = await getEmailsHandler(NON_ADMIN_ADDRESS, OTHER_ADDRESS);
@@ -72,9 +89,17 @@ describe('getEmailsHandler', () => {
   describe('admin with artist_address', () => {
     it('returns email for specified artist', async () => {
       vi.mocked(selectWallets)
-        .mockResolvedValueOnce({ data: [{ artist: ARTIST_UUID }], error: null } as any)
-        .mockResolvedValueOnce({ data: [{ address: '0xsocialwallet' }], error: null } as any);
-      vi.mocked(getEmailByWalletAddress).mockResolvedValue('artist@example.com');
+        .mockResolvedValueOnce({
+          data: [{ artist: ARTIST_UUID }],
+          error: null,
+        } as any)
+        .mockResolvedValueOnce({
+          data: [{ address: '0xsocialwallet' }],
+          error: null,
+        } as any);
+      vi.mocked(getEmailByWalletAddress).mockResolvedValue(
+        'artist@example.com'
+      );
 
       const res = await getEmailsHandler(ADMIN_ADDRESS, OTHER_ADDRESS);
       const json = await res.json();
@@ -83,7 +108,10 @@ describe('getEmailsHandler', () => {
     });
 
     it('returns null email when no artistId found', async () => {
-      vi.mocked(selectWallets).mockResolvedValue({ data: [], error: null } as any);
+      vi.mocked(selectWallets).mockResolvedValue({
+        data: [],
+        error: null,
+      } as any);
 
       const res = await getEmailsHandler(ADMIN_ADDRESS, OTHER_ADDRESS);
       const json = await res.json();
@@ -101,7 +129,13 @@ describe('getEmailsHandler', () => {
       } as any);
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ address: '0xsocial', artist: ARTIST_UUID, in_process_artists: { username: 'coolartist' } }],
+          data: [
+            {
+              address: '0xsocial',
+              artist: ARTIST_UUID,
+              in_process_artists: { username: 'coolartist' },
+            },
+          ],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -136,7 +170,12 @@ describe('getEmailsHandler', () => {
       const json = await res.json();
 
       expect(json.emails).toEqual([
-        { address: '0xunknown', email: 'unknown@example.com', artist_address: null, username: null },
+        {
+          address: '0xunknown',
+          email: 'unknown@example.com',
+          artist_address: null,
+          username: null,
+        },
       ]);
     });
 
@@ -147,7 +186,13 @@ describe('getEmailsHandler', () => {
       } as any);
       vi.mocked(selectWallets)
         .mockResolvedValueOnce({
-          data: [{ address: '0xsocial', artist: ARTIST_UUID, in_process_artists: null }],
+          data: [
+            {
+              address: '0xsocial',
+              artist: ARTIST_UUID,
+              in_process_artists: null,
+            },
+          ],
           error: null,
         } as any)
         .mockResolvedValueOnce({
@@ -162,8 +207,14 @@ describe('getEmailsHandler', () => {
     });
 
     it('passes cursor and limit to getAllEmails', async () => {
-      vi.mocked(getAllEmails).mockResolvedValue({ emails: [], next_cursor: null } as any);
-      vi.mocked(selectWallets).mockResolvedValue({ data: [], error: null } as any);
+      vi.mocked(getAllEmails).mockResolvedValue({
+        emails: [],
+        next_cursor: null,
+      } as any);
+      vi.mocked(selectWallets).mockResolvedValue({
+        data: [],
+        error: null,
+      } as any);
 
       await getEmailsHandler(ADMIN_ADDRESS, undefined, 'cursor-abc', 10);
 

@@ -9,7 +9,10 @@ const lookupEmail = async (artistAddress: string) => {
   const artistId = walletRows?.[0]?.artist;
   if (!artistId) return NextResponse.json({ email: null });
 
-  const { data: privyRows } = await selectWallets({ artistIds: [artistId], type: 'privy' });
+  const { data: privyRows } = await selectWallets({
+    artistIds: [artistId],
+    type: 'privy',
+  });
   const socialWallet = privyRows?.[0]?.address;
   if (!socialWallet) return NextResponse.json({ email: null });
 

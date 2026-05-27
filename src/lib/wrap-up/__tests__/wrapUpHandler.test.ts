@@ -36,9 +36,7 @@ beforeEach(() => {
 
 describe('wrapUpHandler', () => {
   it('propagates errors from getWeeklyWrapUpStats', async () => {
-    vi.mocked(getWeeklyWrapUpStats).mockRejectedValue(
-      new Error('rpc failure')
-    );
+    vi.mocked(getWeeklyWrapUpStats).mockRejectedValue(new Error('rpc failure'));
 
     await expect(wrapUpHandler()).rejects.toThrow('rpc failure');
   });

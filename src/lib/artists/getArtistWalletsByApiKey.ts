@@ -29,7 +29,9 @@ const getArtistWalletsByApiKey = async (token: string) => {
     return NextResponse.json({ artist_wallet, social_wallets });
   }
 
-  const { data: walletRows } = await selectWallets({ addresses: [artistAddress] });
+  const { data: walletRows } = await selectWallets({
+    addresses: [artistAddress],
+  });
   const artistId = walletRows?.[0]?.artist;
   let socialWallet: string | undefined;
   if (artistId) {

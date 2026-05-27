@@ -27,7 +27,9 @@ const handleMe = async (
   }
 
   // artistAddress may itself be a privy wallet
-  const { data: walletRows } = await selectWallets({ addresses: [artistAddress] });
+  const { data: walletRows } = await selectWallets({
+    addresses: [artistAddress],
+  });
   if (walletRows?.[0]?.type === 'privy') {
     const email = await getEmailByWalletAddress(artistAddress);
     if (email) {
