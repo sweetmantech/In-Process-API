@@ -31,7 +31,7 @@ describe('getArtistApiKeysHandler', () => {
     const json = await res.json();
 
     expect(selectWallets).toHaveBeenCalledWith({ addresses: [ARTIST_ADDRESS] });
-    expect(getApiKeys).toHaveBeenCalledWith(ARTIST_UUID);
+    expect(getApiKeys).toHaveBeenCalledWith({ artistId: ARTIST_UUID });
     expect(json).toEqual({ keys: rows });
   });
 
@@ -45,7 +45,7 @@ describe('getArtistApiKeysHandler', () => {
     const res = await getArtistApiKeysHandler(ARTIST_ADDRESS);
     const json = await res.json();
 
-    expect(getApiKeys).toHaveBeenCalledWith(null);
+    expect(getApiKeys).toHaveBeenCalledWith({ artistId: null });
     expect(json).toEqual({ keys: [] });
   });
 
