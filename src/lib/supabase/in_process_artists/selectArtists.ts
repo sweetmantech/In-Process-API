@@ -29,25 +29,15 @@ const selectArtists = async ({
   error: null;
   count: number | null;
 }> => {
-  // Address-based lookup routes through in_process_wallets so it keeps
-  // working after in_process_artists.address is dropped.
+  // Address lookup pivots on in_process_wallets via an inner embed —
+  // selects the artist whose wallet row matches the given address.
   if (address) {
-    const { data: walletRows, error: walletErr } = await supabase
-      .from('in_process_wallets')
-      .select('artist')
-      .eq('address', address.toLowerCase())
-      .not('artist', 'is', null)
-      .limit(1);
-    if (walletErr) throw walletErr;
-    const artistId = walletRows?.[0]?.artist;
-    if (!artistId) return { data: [], error: null, count: 0 };
-
     const { data, error } = await supabase
       .from('in_process_artists')
       .select(
-        'id, username, bio, x, telegram, instagram, in_process_wallets(address)'
+        'id, username, bio, x, telegram, instagram, in_process_wallets!inner(address)'
       )
-      .eq('id', artistId)
+      .eq('in_process_wallets.address', address.toLowerCase())
       .limit(1);
     if (error) throw error;
     return { data: flattenRows(data), error: null, count: data?.length ?? 0 };
