@@ -17,16 +17,16 @@ DROP TABLE IF EXISTS public.in_process_artist_smart_wallets;
 --    but any address inserted between then and now (or by a path that did
 --    not touch the artists table) would otherwise fail validation.
 -- ---------------------------------------------------------------------------
+-- in_process_airdrops and in_process_collectors were dropped in migrations
+-- 20260414090000 and 20260414130000 respectively, so they are intentionally
+-- absent from this UNION.
 INSERT INTO public.in_process_wallets (address)
 SELECT DISTINCT addr FROM (
   SELECT artist_address AS addr FROM public.account_notifications WHERE artist_address IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_admins             WHERE artist_address IS NOT NULL
-  UNION SELECT artist_address FROM public.in_process_airdrops           WHERE artist_address IS NOT NULL
-  UNION SELECT recipient      FROM public.in_process_airdrops           WHERE recipient      IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_artist_phones      WHERE artist_address IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_arweave_uploads    WHERE artist_address IS NOT NULL
   UNION SELECT creator        FROM public.in_process_collections        WHERE creator        IS NOT NULL
-  UNION SELECT collector      FROM public.in_process_collectors         WHERE collector      IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_moment_comments    WHERE artist_address IS NOT NULL
   UNION SELECT artist_address FROM public.in_process_moment_fee_recipients WHERE artist_address IS NOT NULL
   UNION SELECT artist         FROM public.in_process_notifications      WHERE artist         IS NOT NULL
@@ -52,18 +52,6 @@ ALTER TABLE public.in_process_admins
     FOREIGN KEY (artist_address) REFERENCES public.in_process_wallets(address)
     ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE public.in_process_airdrops
-  DROP CONSTRAINT IF EXISTS in_process_airdrops_artist_address_fkey,
-  ADD CONSTRAINT in_process_airdrops_artist_address_fkey
-    FOREIGN KEY (artist_address) REFERENCES public.in_process_wallets(address)
-    ON UPDATE CASCADE ON DELETE CASCADE;
-
-ALTER TABLE public.in_process_airdrops
-  DROP CONSTRAINT IF EXISTS in_process_airdrops_recipient_fkey,
-  ADD CONSTRAINT in_process_airdrops_recipient_fkey
-    FOREIGN KEY (recipient) REFERENCES public.in_process_wallets(address)
-    ON UPDATE CASCADE ON DELETE CASCADE;
-
 ALTER TABLE public.in_process_artist_phones
   DROP CONSTRAINT IF EXISTS in_process_artist_phones_artist_address_fkey,
   ADD CONSTRAINT in_process_artist_phones_artist_address_fkey
@@ -84,12 +72,6 @@ ALTER TABLE public.in_process_collections
   ADD CONSTRAINT in_process_collections_creator_fkey
     FOREIGN KEY (creator) REFERENCES public.in_process_wallets(address)
     ON UPDATE CASCADE ON DELETE RESTRICT;
-
-ALTER TABLE public.in_process_collectors
-  DROP CONSTRAINT IF EXISTS in_process_collectors_collector_fkey,
-  ADD CONSTRAINT in_process_collectors_collector_fkey
-    FOREIGN KEY (collector) REFERENCES public.in_process_wallets(address)
-    ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE public.in_process_moment_comments
   DROP CONSTRAINT IF EXISTS in_process_moment_comments_artist_address_fkey,
