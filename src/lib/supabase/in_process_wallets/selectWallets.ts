@@ -17,7 +17,7 @@ const selectWallets = async ({
   let query = supabase
     .from('in_process_wallets')
     .select(
-      'address, artist, type, smart_wallet_address, in_process_artists(address, username)'
+      'address, artist, type, smart_wallet_address, in_process_artists(username)'
     );
 
   if (addresses?.length) {
