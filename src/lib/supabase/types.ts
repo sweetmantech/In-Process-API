@@ -110,7 +110,6 @@ export type Database = {
       };
       in_process_api_keys: {
         Row: {
-          artist_address: string | null;
           artist_id: string | null;
           created_at: string;
           id: string;
@@ -119,7 +118,6 @@ export type Database = {
           name: string;
         };
         Insert: {
-          artist_address?: string | null;
           artist_id?: string | null;
           created_at?: string;
           id?: string;
@@ -128,7 +126,6 @@ export type Database = {
           name: string;
         };
         Update: {
-          artist_address?: string | null;
           artist_id?: string | null;
           created_at?: string;
           id?: string;
