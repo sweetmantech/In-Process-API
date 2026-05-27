@@ -34,8 +34,7 @@ const getEmailsHandler = async (
     artistAddressMap[row.social_wallet.toLowerCase()] = {
       artist_address: row.artist_address,
       username:
-        (row.in_process_artists as { username: string } | null)?.username ??
-        null,
+        (row.in_process_artists as { username: string | null } | null)?.username ?? null,
     };
   }
   const enriched = emails.map((e) => ({

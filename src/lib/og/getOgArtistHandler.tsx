@@ -8,7 +8,7 @@ import ImagePreview from '@/components/Og/ImagePreview';
 import WritingPreview from '@/components/Og/WritingPreview';
 import NoMoments from '@/components/Og/NoMoments';
 import fetchUri from '@/lib/arweave/fetchUri';
-import getArtistProfile from '@/lib/getArtistProfile';
+import getArtistProfile from '@/lib/artists/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
@@ -32,9 +32,10 @@ const getOgArtistHandler = async ({
     metadata = await fetchTokenMetadata(moment.uri);
   }
 
-  const { username } = await getArtistProfile(
+  const profile = await getArtistProfile(
     artistAddress?.toLowerCase() as Address
   );
+  const username = profile?.username;
 
   const { archivo, spectral } = await getOgFonts();
 

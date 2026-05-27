@@ -1,33 +1,29 @@
 import { Address } from 'viem';
-import selectArtists from './supabase/in_process_artists/selectArtists';
-import resolveAddressToEns from './ens/resolveAddressToEns';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import resolveAddressToEns from '@/lib/ens/resolveAddressToEns';
+import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 
 const getArtistProfile = async (address: string) => {
-  const emptyFields = {
-    username: '',
-    bio: '',
-    instagram: '',
-    x: '',
-    telegram: '',
-  };
   try {
     const ensName = await resolveAddressToEns(address as Address);
 
     const { data } = await selectArtists({ address });
     const profile = data?.[0];
-    if (profile)
-      return {
-        ...profile,
-        username: profile.username || ensName,
-      };
+    if (profile) return { ...profile, username: profile.username || ensName };
 
+    await upsertArtists([
+      { address: address.toLowerCase(), username: ensName },
+    ]);
     return {
-      ...emptyFields,
       username: ensName,
+      bio: null,
+      instagram: null,
+      x: null,
+      telegram: null,
     };
   } catch (error) {
     console.error(error);
-    return emptyFields;
+    return null;
   }
 };
 

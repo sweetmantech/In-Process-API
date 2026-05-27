@@ -4,25 +4,16 @@ import { NextRequest } from 'next/server';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const {
-      address,
-      username,
-      bio,
-      instagram_username,
-      twitter_username,
-      farcaster_username,
-      telegram_username,
-    } = body;
+    const { address, username, bio, instagram, x, telegram } = body;
 
     await upsertArtists([
       {
         address: address.toLowerCase(),
         username,
         bio,
-        twitter_username,
-        instagram_username,
-        farcaster_username,
-        telegram_username,
+        instagram,
+        x,
+        telegram,
       },
     ]);
 

@@ -16,12 +16,11 @@ const getArtistsHandler = async (
   const resolvedLimit = limit ?? 50;
   const resolvedPage = page ?? 1;
 
-  const { data, count, error } = await selectArtists({
+  const { data, count } = await selectArtists({
     type,
     limit: resolvedLimit,
     page: resolvedPage,
   });
-  if (error) throw new Error(error.message);
 
   return NextResponse.json({
     status: 'success',

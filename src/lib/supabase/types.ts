@@ -196,7 +196,7 @@ export type Database = {
             foreignKeyName: 'in_process_artist_social_wallets_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_artists';
             referencedColumns: ['address'];
           },
         ];
@@ -420,7 +420,7 @@ export type Database = {
             foreignKeyName: 'in_process_moment_comments_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_artists';
             referencedColumns: ['address'];
           },
           {
@@ -638,7 +638,7 @@ export type Database = {
             foreignKeyName: 'in_process_transfers_recipient_fkey';
             columns: ['recipient'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
+            referencedRelation: 'in_process_artists';
             referencedColumns: ['address'];
           },
         ];

@@ -20,15 +20,27 @@ const selectArtists = async ({
     .select('*', { count: 'exact' });
 
   if (address) {
-    return query.eq('address', address.toLowerCase()).limit(1);
+    const { data, error, count } = await query
+      .eq('address', address.toLowerCase())
+      .limit(1);
+    if (error) throw error;
+    return { data, error, count };
   }
 
   if (telegram) {
-    return query.eq('telegram', telegram.toLowerCase()).limit(1);
+    const { data, error, count } = await query
+      .eq('telegram', telegram.toLowerCase())
+      .limit(1);
+    if (error) throw error;
+    return { data, error, count };
   }
 
   if (q?.trim()) {
-    return query.ilike('username', `${q}%`).limit(limit);
+    const { data, error, count } = await query
+      .ilike('username', `${q}%`)
+      .limit(limit);
+    if (error) throw error;
+    return { data, error, count };
   }
 
   if (type === 'human') {
@@ -37,7 +49,12 @@ const selectArtists = async ({
     query = query.is('username', null);
   }
 
-  return query.range((page - 1) * limit, page * limit - 1);
+  const { data, error, count } = await query.range(
+    (page - 1) * limit,
+    page * limit - 1
+  );
+  if (error) throw error;
+  return { data, error, count };
 };
 
 export default selectArtists;
