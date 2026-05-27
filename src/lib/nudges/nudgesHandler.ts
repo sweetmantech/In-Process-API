@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import getNudges from '@/lib/supabase/account_notifications/getNudges';
 import sendNudge from '@/lib/nudges/sendNudge';
 
 const nudgesHandler = async () => {
-  const { data: targets, error } = await supabase.rpc('get_nudges');
+  const { data: targets, error } = await getNudges();
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }

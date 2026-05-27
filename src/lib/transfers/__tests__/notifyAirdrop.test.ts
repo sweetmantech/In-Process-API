@@ -1,14 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Transfers_t } from '@/types/envio';
 
-vi.mock('@/lib/supabase/client', () => {
-  const maybeSingle = vi.fn();
-  const chain = { from: vi.fn(), select: vi.fn(), eq: vi.fn(), maybeSingle };
-  chain.from.mockReturnValue(chain);
-  chain.select.mockReturnValue(chain);
-  chain.eq.mockReturnValue(chain);
-  return { supabase: chain };
-});
+vi.mock('@/lib/supabase/account_notifications/selectTelegramChatId', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/telegram/client', () => ({
   telegramChatBotClient: { sendMessage: vi.fn() },
 }));
@@ -18,7 +13,7 @@ vi.mock('@/lib/consts', () => ({
   SITE_ORIGINAL_URL: 'https://inprocess.world',
 }));
 
-import { supabase } from '@/lib/supabase/client';
+import selectTelegramChatId from '@/lib/supabase/account_notifications/selectTelegramChatId';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from '../getAirdropOperator';
 import notifyAirdrop from '../notifyAirdrop';
@@ -26,8 +21,6 @@ import notifyAirdrop from '../notifyAirdrop';
 const RECIPIENT = '0xrecipient0000000000000000000000000000000';
 const SENDER = '0xsender00000000000000000000000000000000000';
 const CHAT_ID = '1352384640';
-
-const maybeSingle = (supabase as any).maybeSingle as ReturnType<typeof vi.fn>;
 
 const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
   ({
@@ -43,10 +36,10 @@ const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  maybeSingle.mockResolvedValue({
+  vi.mocked(selectTelegramChatId).mockResolvedValue({
     data: { telegram_chat_id: CHAT_ID },
     error: null,
-  });
+  } as any);
   vi.mocked(getAirdropOperator).mockResolvedValue({
     address: SENDER,
     username: 'alice',
@@ -63,10 +56,10 @@ describe('notifyAirdrop', () => {
   });
 
   it('skips notification when no telegram_chat_id is found', async () => {
-    maybeSingle.mockResolvedValue({
+    vi.mocked(selectTelegramChatId).mockResolvedValue({
       data: { telegram_chat_id: null },
       error: null,
-    });
+    } as any);
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
   });

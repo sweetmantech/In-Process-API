@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import getWeeklyWrapUpStats from '@/lib/supabase/account_notifications/getWeeklyWrapUpStats';
 import sendWrapUp from '@/lib/wrap-up/sendWrapUp';
 
 const wrapUpHandler = async (): Promise<NextResponse> => {
-  const { data, error } = await supabase.rpc('get_weekly_wrap_up_stats');
+  const { data, error } = await getWeeklyWrapUpStats();
 
   if (error) {
     return NextResponse.json(

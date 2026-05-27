@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/client', () => ({
-  supabase: { rpc: vi.fn() },
+vi.mock('@/lib/supabase/account_notifications/getNudges', () => ({
+  default: vi.fn(),
 }));
 vi.mock('../sendNudge', () => ({
   default: vi.fn(),
 }));
 
-import { supabase } from '@/lib/supabase/client';
+import getNudges from '@/lib/supabase/account_notifications/getNudges';
 import sendNudge from '../sendNudge';
 import nudgesHandler from '../nudgesHandler';
 
@@ -26,7 +26,7 @@ beforeEach(() => {
 
 describe('nudgesHandler', () => {
   it('returns 500 when the RPC returns an error', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getNudges).mockResolvedValue({
       data: null,
       error: { message: 'rpc failure' },
     } as never);
@@ -39,7 +39,7 @@ describe('nudgesHandler', () => {
   });
 
   it('returns success with total 0 when there are no nudge targets', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getNudges).mockResolvedValue({
       data: [],
       error: null,
     } as never);
@@ -55,7 +55,7 @@ describe('nudgesHandler', () => {
   });
 
   it('calls sendNudge for each target', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getNudges).mockResolvedValue({
       data: TARGETS,
       error: null,
     } as never);
@@ -77,7 +77,7 @@ describe('nudgesHandler', () => {
   });
 
   it('returns sent count equal to the number of successful nudges', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getNudges).mockResolvedValue({
       data: TARGETS,
       error: null,
     } as never);
@@ -92,7 +92,7 @@ describe('nudgesHandler', () => {
   });
 
   it('captures errors per-target without aborting the rest', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getNudges).mockResolvedValue({
       data: TARGETS,
       error: null,
     } as never);

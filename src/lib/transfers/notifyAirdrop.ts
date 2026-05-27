@@ -1,5 +1,5 @@
 import { SHORT_CHAIN_NAME, SITE_ORIGINAL_URL } from '@/lib/consts';
-import { supabase } from '@/lib/supabase/client';
+import selectTelegramChatId from '@/lib/supabase/account_notifications/selectTelegramChatId';
 import type { Transfers_t } from '@/types/envio';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from './getAirdropOperator';
@@ -10,11 +10,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
     if (t.value && t.currency) continue;
     const recipient = t.recipient.toLowerCase();
     try {
-      const { data } = await supabase
-        .from('account_notifications')
-        .select('telegram_chat_id')
-        .eq('artist_address', recipient)
-        .maybeSingle();
+      const { data } = await selectTelegramChatId(recipient);
 
       const chatId = data?.telegram_chat_id;
       if (!chatId) continue;

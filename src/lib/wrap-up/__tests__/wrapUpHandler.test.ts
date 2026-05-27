@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/client', () => ({
-  supabase: { rpc: vi.fn() },
+vi.mock('@/lib/supabase/account_notifications/getWeeklyWrapUpStats', () => ({
+  default: vi.fn(),
 }));
 vi.mock('../sendWrapUp', () => ({
   default: vi.fn(),
 }));
 
-import { supabase } from '@/lib/supabase/client';
+import getWeeklyWrapUpStats from '@/lib/supabase/account_notifications/getWeeklyWrapUpStats';
 import sendWrapUp from '../sendWrapUp';
 import wrapUpHandler from '../wrapUpHandler';
 
@@ -36,7 +36,7 @@ beforeEach(() => {
 
 describe('wrapUpHandler', () => {
   it('returns 500 when the RPC returns an error', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue({
       data: null,
       error: { message: 'rpc failure' },
     } as never);
@@ -49,7 +49,7 @@ describe('wrapUpHandler', () => {
   });
 
   it('returns success with total 0 when there are no targets', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue({
       data: [],
       error: null,
     } as never);
@@ -65,7 +65,7 @@ describe('wrapUpHandler', () => {
   });
 
   it('calls sendWrapUp for each target with mapped fields', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue({
       data: TARGETS,
       error: null,
     } as never);
@@ -93,7 +93,7 @@ describe('wrapUpHandler', () => {
   });
 
   it('returns sent count equal to the number of successful wrap-ups', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue({
       data: TARGETS,
       error: null,
     } as never);
@@ -108,7 +108,7 @@ describe('wrapUpHandler', () => {
   });
 
   it('captures errors per-target without aborting the rest', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue({
       data: TARGETS,
       error: null,
     } as never);
