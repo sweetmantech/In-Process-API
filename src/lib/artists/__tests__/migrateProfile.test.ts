@@ -25,7 +25,7 @@ const makeProfile = (fields: object) => ({
 describe('migrateProfile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(upsertArtists).mockResolvedValue(undefined);
+    vi.mocked(upsertArtists).mockResolvedValue([]);
   });
 
   it('copies social profile onto artist wallet then clears social row', async () => {

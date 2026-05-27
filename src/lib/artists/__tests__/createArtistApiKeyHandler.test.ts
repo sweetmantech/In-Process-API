@@ -18,8 +18,8 @@ vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
 vi.mock('@/lib/supabase/in_process_wallets/linkWalletToArtist', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_artists/insertArtist', () => ({
-  default: vi.fn(),
+vi.mock('@/lib/supabase/in_process_artists/upsertArtists', () => ({
+  upsertArtists: vi.fn(),
 }));
 
 import { generateApiKey } from '@/lib/api-keys/generateApiKey';
@@ -28,7 +28,7 @@ import { insertApiKey } from '@/lib/supabase/in_process_api_keys/insertApiKey';
 import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import linkWalletToArtist from '@/lib/supabase/in_process_wallets/linkWalletToArtist';
-import insertArtist from '@/lib/supabase/in_process_artists/insertArtist';
+import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import createArtistApiKeyHandler from '@/lib/artists/createArtistApiKeyHandler';
 import { PRIVY_PROJECT_SECRET } from '@/lib/consts';
 
@@ -61,7 +61,7 @@ describe('createArtistApiKeyHandler', () => {
     expect(upsertWallets).toHaveBeenCalledWith([{ address: ARTIST_LC }], {
       ignoreDuplicates: true,
     });
-    expect(insertArtist).not.toHaveBeenCalled();
+    expect(upsertArtists).not.toHaveBeenCalled();
     expect(linkWalletToArtist).not.toHaveBeenCalled();
     expect(insertApiKey).toHaveBeenCalledWith({
       name: 'prod',
@@ -76,17 +76,14 @@ describe('createArtistApiKeyHandler', () => {
       data: [{ artist: null }],
       error: null,
     } as any);
-    vi.mocked(insertArtist).mockResolvedValue({
-      data: { id: ARTIST_UUID },
-      error: null,
-    } as any);
+    vi.mocked(upsertArtists).mockResolvedValue([{ id: ARTIST_UUID }] as any);
 
     await createArtistApiKeyHandler({
       artistAddress: ARTIST_LC,
       key_name: 'n',
     });
 
-    expect(insertArtist).toHaveBeenCalledWith({ address: ARTIST_LC });
+    expect(upsertArtists).toHaveBeenCalledWith({ address: ARTIST_LC });
     expect(linkWalletToArtist).toHaveBeenCalledWith(ARTIST_LC, ARTIST_UUID);
     expect(insertApiKey).toHaveBeenCalledWith({
       name: 'n',

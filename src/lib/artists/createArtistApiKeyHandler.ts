@@ -1,7 +1,7 @@
 import { generateApiKey } from '@/lib/api-keys/generateApiKey';
 import { hashApiKey } from '@/lib/api-keys/hashApiKey';
 import { insertApiKey } from '@/lib/supabase/in_process_api_keys/insertApiKey';
-import insertArtist from '@/lib/supabase/in_process_artists/insertArtist';
+import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import linkWalletToArtist from '@/lib/supabase/in_process_wallets/linkWalletToArtist';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
@@ -26,13 +26,9 @@ const createArtistApiKeyHandler = async ({
   let artistId = walletRows?.[0]?.artist ?? null;
 
   if (!artistId) {
-    const { data: newArtist, error: insertArtistError } = await insertArtist({
-      address,
-    });
-    if (insertArtistError || !newArtist) {
-      throw new Error('Failed to create artist entity');
-    }
-    artistId = newArtist.id;
+    const [created] = await upsertArtists({ address });
+    if (!created) throw new Error('Failed to create artist entity');
+    artistId = created.id;
 
     const { error: linkError } = await linkWalletToArtist(address, artistId);
     if (linkError) throw new Error('Failed to link wallet to artist');
