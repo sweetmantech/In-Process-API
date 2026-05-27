@@ -1,7 +1,9 @@
 import { Address } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
-import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import sleep from '@/lib/sleep';
 
 export interface SmartWallet {
   address: Address;
@@ -11,26 +13,27 @@ export interface SmartWallet {
 export async function getSocialSmartWallets(
   artistAddress: Address
 ): Promise<SmartWallet[]> {
-  const { data: socialWallets, error } = await selectSocialWallets({
-    artistAddress,
-  });
+  const { data: artists } = await selectArtists({ address: artistAddress });
+  const artistId = artists?.[0]?.id;
 
-  if (error || !socialWallets)
-    throw new Error('Failed to fetch social wallets');
-
-  const socials = socialWallets.map(
-    (social) => social.social_wallet as Address
-  );
+  const privyAddresses: Address[] = [];
+  if (artistId) {
+    const { data: privyRows } = await selectWallets({
+      artistIds: [artistId],
+      type: 'privy',
+    });
+    for (const row of privyRows ?? []) {
+      privyAddresses.push(row.address as Address);
+    }
+  }
 
   const socialSmartWallets: SmartWallet[] = [];
-  if (socials.length) {
-    for (const social of socials) {
-      const smartWallet = await getOrCreateSmartWallet({ address: social });
-      socialSmartWallets.push({
-        address: social,
-        smartWallet,
-      });
-      new Promise((resolve) => setTimeout(resolve, 200));
+  if (privyAddresses.length) {
+    for (let i = 0; i < privyAddresses.length; i++) {
+      const address = privyAddresses[i];
+      const smartWallet = await getOrCreateSmartWallet({ address });
+      socialSmartWallets.push({ address, smartWallet });
+      if (i < privyAddresses.length - 1) await sleep(200);
     }
   } else {
     const artistSmartWallet = await getOrCreateSmartWallet({

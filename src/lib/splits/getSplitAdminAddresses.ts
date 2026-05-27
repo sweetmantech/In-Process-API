@@ -1,6 +1,7 @@
 import { Address, getAddress } from 'viem';
 import { SplitRecipient } from '@0xsplits/splits-sdk';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import sleep from '@/lib/sleep';
 
 export interface SplitAdminAddresses {
   addresses: Address[];
@@ -26,11 +27,13 @@ export async function getSplitAdminAddresses(
     // Add all resolved addresses
     addresses.push(...resolvedAddresses);
 
-    // Get smart wallets for each split recipient address
+    // Get smart wallets for each split recipient address.
+    // Throttle to avoid CDP rate limits when many recipients are present.
     for (let i = 0; i < resolvedAddresses.length; i++) {
       const address = resolvedAddresses[i];
       const smartAccount = await getOrCreateSmartWallet({ address });
       smartWallets.push(getAddress(smartAccount.address));
+      if (i < resolvedAddresses.length - 1) await sleep(200);
     }
   }
 
