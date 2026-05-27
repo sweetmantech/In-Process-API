@@ -7,7 +7,7 @@ import { sendNewbieWelcome } from '@/lib/messages/sendNewbieWelcome';
 import { sendVerificationRequest } from '@/lib/messages/sendVerificationRequest';
 import verifyAndNotifyPhone from '@/lib/messages/verifyAndNotifyPhone';
 import truncateAddress from '@/lib/truncateAddress';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,12 +52,17 @@ export async function POST(req: NextRequest) {
               );
           } else {
             if (messageText === 'yes') {
-              const { data: artists } = await selectArtists({
-                address: phone.artist_address,
+              const { data: walletRows } = await selectWallets({
+                addresses: [phone.artist_address],
               });
-              const username =
-                artists?.[0]?.username || truncateAddress(phone.artist_address);
-              await verifyAndNotifyPhone(username, fromPhoneNumber);
+              const username = (
+                walletRows?.[0]?.in_process_artists as {
+                  username: string | null;
+                } | null
+              )?.username;
+              const displayName =
+                username || truncateAddress(phone.artist_address);
+              await verifyAndNotifyPhone(displayName, fromPhoneNumber);
             } else
               await sendVerificationRequest(
                 fromPhoneNumber,

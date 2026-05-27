@@ -1,6 +1,5 @@
 import { zeroAddress, type Hex } from 'viem';
 import { getPublicClient } from '@/lib/viem/publicClient';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import isCoinbaseSmartWallet from '@/lib/smartwallets/isCoinbaseSmartWallet';
 import { FACTORY_ADDRESSES } from '@/lib/protocolSdk/create/factory-addresses';
@@ -72,9 +71,12 @@ const getAirdropOperator = async (
     artistAddress = artist?.address;
     artistUsername = artist?.username;
   } else {
-    const { data: artists } = await selectArtists({ address });
-    artistAddress = artists?.[0]?.address;
-    artistUsername = artists?.[0]?.username;
+    const { data: wallets } = await selectWallets({ addresses: [address] });
+    const wallet = wallets?.[0];
+    artistAddress = wallet?.address;
+    artistUsername = (
+      wallet?.in_process_artists as { username: string | null } | null
+    )?.username;
   }
 
   if (artistAddress) {

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
 import { upsertPhone } from '@/lib/supabase/in_process_artist_phones/upsertPhone';
 import { deletePhone } from '@/lib/supabase/in_process_artist_phones/deletePhone';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import truncateAddress from '@/lib/truncateAddress';
 import { registerPhoneSchema } from '@/lib/schema/phoneNumberSchema';
 import { sendSms } from '@/lib/phones/sendSms';
@@ -36,13 +36,13 @@ export async function POST(req: NextRequest) {
       throw new Error(`Failed to insert phone number: ${insertError.message}`);
     }
 
-    // Get artist name for SMS message
-    const { data: artistData, error: artistError } = await selectArtists({
-      address: artistAddress.toLowerCase(),
+    const { data: walletRows } = await selectWallets({
+      addresses: [artistAddress.toLowerCase()],
     });
-    if (artistError) throw artistError;
-    const artist = artistData?.[0];
-    const artistName = artist?.username || truncateAddress(artistAddress);
+    const username = (
+      walletRows?.[0]?.in_process_artists as { username: string | null } | null
+    )?.username;
+    const artistName = username || truncateAddress(artistAddress);
 
     // Send SMS verification message
     await sendSms(

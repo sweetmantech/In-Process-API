@@ -284,11 +284,11 @@ describe('getAirdropOperator', () => {
 
   it('returns artist from DB by address when not a Coinbase smart wallet', async () => {
     mockIsCb.mockResolvedValue(false);
-    mockSelectArtists.mockResolvedValue({
+    mockSelectWallets.mockResolvedValue({
       data: [
         {
-          address: '0x5555555555555555555555555555555555555555',
-          username: 'ann',
+          address: operatorAddress,
+          in_process_artists: { username: 'ann' },
         },
       ],
     } as never);
@@ -296,19 +296,19 @@ describe('getAirdropOperator', () => {
     const result = await getAirdropOperator(transferFixture());
 
     expect(mockSelectCollections).not.toHaveBeenCalled();
-    expect(mockSelectWallets).not.toHaveBeenCalled();
-    expect(mockSelectArtists).toHaveBeenCalledWith({
-      address: operatorAddress,
+    expect(mockSelectArtists).not.toHaveBeenCalled();
+    expect(mockSelectWallets).toHaveBeenCalledWith({
+      addresses: [operatorAddress],
     });
     expect(result).toEqual({
-      address: '0x5555555555555555555555555555555555555555',
+      address: operatorAddress,
       username: 'ann',
     });
   });
 
   it('throws when artist is not in DB (not a Coinbase smart wallet path)', async () => {
     mockIsCb.mockResolvedValue(false);
-    mockSelectArtists.mockResolvedValue({ data: null } as never);
+    mockSelectWallets.mockResolvedValue({ data: null } as never);
 
     await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
       'Airdrop operator not found'
@@ -324,9 +324,9 @@ describe('getAirdropOperator', () => {
     );
   });
 
-  it('throws when selectArtists returns an empty list (non-Coinbase path)', async () => {
+  it('throws when selectWallets returns an empty list (non-Coinbase path)', async () => {
     mockIsCb.mockResolvedValue(false);
-    mockSelectArtists.mockResolvedValue({ data: [] } as never);
+    mockSelectWallets.mockResolvedValue({ data: [] } as never);
 
     await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
       'Airdrop operator not found'
