@@ -1,14 +1,13 @@
 import { getApiKeys } from '@/lib/supabase/in_process_api_keys/getApiKeys';
-import { supabase } from '@/lib/supabase/client';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 
 const getArtistApiKeysHandler = async (artistAddress: string) => {
-  const { data: walletRow } = await supabase
-    .from('in_process_wallets')
-    .select('artist')
-    .eq('address', artistAddress.toLowerCase())
-    .single();
+  const { data: walletRows } = await selectWallets({
+    addresses: [artistAddress],
+  });
+  const artistId = walletRows?.[0]?.artist ?? null;
 
-  const { data, error } = await getApiKeys(walletRow?.artist ?? null);
+  const { data, error } = await getApiKeys(artistId);
 
   if (error) throw new Error('Failed to fetch API keys');
 

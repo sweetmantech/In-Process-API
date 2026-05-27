@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client';
+import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 
 export async function ensureArtists(addresses: string[]): Promise<void> {
   if (!addresses.length) return;
@@ -6,13 +6,10 @@ export async function ensureArtists(addresses: string[]): Promise<void> {
   try {
     // ignoreDuplicates so we never clobber an existing wallet row that may
     // already have artist UUID / type / smart_wallet_address populated.
-    const { error } = await supabase
-      .from('in_process_wallets')
-      .upsert(
-        normalized.map((address) => ({ address })),
-        { onConflict: 'address', ignoreDuplicates: true }
-      );
-    if (error) throw error;
+    await upsertWallets(
+      normalized.map((address) => ({ address })),
+      { ignoreDuplicates: true }
+    );
     console.log(`💾 ensureArtists: Upserted ${normalized.length} wallet(s)`);
   } catch (err) {
     console.error('❌ ensureArtists exception:', err);

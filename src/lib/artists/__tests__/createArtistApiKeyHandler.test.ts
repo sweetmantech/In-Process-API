@@ -9,51 +9,26 @@ vi.mock('@/lib/api-keys/hashApiKey', () => ({
 vi.mock('@/lib/supabase/in_process_api_keys/insertApiKey', () => ({
   insertApiKey: vi.fn(),
 }));
-
-type FluentResult = { data?: unknown; error?: unknown };
-
-const mocks = vi.hoisted(() => ({
-  walletUpsert: vi.fn<(...args: unknown[]) => Promise<FluentResult>>(),
-  walletSelectSingle: vi.fn<(...args: unknown[]) => Promise<FluentResult>>(),
-  walletUpdate: vi.fn<(...args: unknown[]) => Promise<FluentResult>>(),
-  artistInsertSingle: vi.fn<(...args: unknown[]) => Promise<FluentResult>>(),
+vi.mock('@/lib/supabase/in_process_wallets/upsertWallets', () => ({
+  default: vi.fn(),
 }));
-
-vi.mock('@/lib/supabase/client', () => ({
-  supabase: {
-    from: (table: string) => {
-      if (table === 'in_process_wallets') {
-        return {
-          upsert: vi.fn(() => mocks.walletUpsert()),
-          select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              single: vi.fn(() => mocks.walletSelectSingle()),
-            })),
-          })),
-          update: vi.fn(() => ({
-            eq: vi.fn(() => ({
-              is: vi.fn(() => mocks.walletUpdate()),
-            })),
-          })),
-        };
-      }
-      if (table === 'in_process_artists') {
-        return {
-          insert: vi.fn(() => ({
-            select: vi.fn(() => ({
-              single: vi.fn(() => mocks.artistInsertSingle()),
-            })),
-          })),
-        };
-      }
-      throw new Error(`Unexpected table: ${table}`);
-    },
-  },
+vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/supabase/in_process_wallets/linkWalletToArtist', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/supabase/in_process_artists/insertArtist', () => ({
+  default: vi.fn(),
 }));
 
 import { generateApiKey } from '@/lib/api-keys/generateApiKey';
 import { hashApiKey } from '@/lib/api-keys/hashApiKey';
 import { insertApiKey } from '@/lib/supabase/in_process_api_keys/insertApiKey';
+import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
+import linkWalletToArtist from '@/lib/supabase/in_process_wallets/linkWalletToArtist';
+import insertArtist from '@/lib/supabase/in_process_artists/insertArtist';
 import createArtistApiKeyHandler from '@/lib/artists/createArtistApiKeyHandler';
 import { PRIVY_PROJECT_SECRET } from '@/lib/consts';
 
@@ -64,16 +39,16 @@ const ARTIST_UUID = '00000000-0000-0000-0000-000000000001';
 describe('createArtistApiKeyHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.walletUpsert.mockResolvedValue({ error: null });
-    mocks.walletUpdate.mockResolvedValue({ error: null });
+    vi.mocked(upsertWallets).mockResolvedValue(undefined);
+    vi.mocked(linkWalletToArtist).mockResolvedValue({ error: null } as any);
     vi.mocked(insertApiKey).mockResolvedValue({ error: null } as any);
   });
 
   it('uses existing artist UUID when wallet is already linked', async () => {
-    mocks.walletSelectSingle.mockResolvedValue({
-      data: { artist: ARTIST_UUID },
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ artist: ARTIST_UUID }],
       error: null,
-    });
+    } as any);
 
     const res = await createArtistApiKeyHandler({
       artistAddress: ARTIST_ADDRESS,
@@ -83,8 +58,11 @@ describe('createArtistApiKeyHandler', () => {
 
     expect(generateApiKey).toHaveBeenCalledWith('art_sk');
     expect(hashApiKey).toHaveBeenCalledWith('art_sk_raw', PRIVY_PROJECT_SECRET);
-    expect(mocks.walletUpsert).toHaveBeenCalledTimes(1);
-    expect(mocks.artistInsertSingle).not.toHaveBeenCalled();
+    expect(upsertWallets).toHaveBeenCalledWith([{ address: ARTIST_LC }], {
+      ignoreDuplicates: true,
+    });
+    expect(insertArtist).not.toHaveBeenCalled();
+    expect(linkWalletToArtist).not.toHaveBeenCalled();
     expect(insertApiKey).toHaveBeenCalledWith({
       name: 'prod',
       artist_id: ARTIST_UUID,
@@ -94,22 +72,22 @@ describe('createArtistApiKeyHandler', () => {
   });
 
   it('creates a new artist when the wallet has no link, then inserts key', async () => {
-    mocks.walletSelectSingle.mockResolvedValue({
-      data: { artist: null },
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ artist: null }],
       error: null,
-    });
-    mocks.artistInsertSingle.mockResolvedValue({
+    } as any);
+    vi.mocked(insertArtist).mockResolvedValue({
       data: { id: ARTIST_UUID },
       error: null,
-    });
+    } as any);
 
     await createArtistApiKeyHandler({
       artistAddress: ARTIST_LC,
       key_name: 'n',
     });
 
-    expect(mocks.artistInsertSingle).toHaveBeenCalledTimes(1);
-    expect(mocks.walletUpdate).toHaveBeenCalledTimes(1);
+    expect(insertArtist).toHaveBeenCalledWith({ address: ARTIST_LC });
+    expect(linkWalletToArtist).toHaveBeenCalledWith(ARTIST_LC, ARTIST_UUID);
     expect(insertApiKey).toHaveBeenCalledWith({
       name: 'n',
       artist_id: ARTIST_UUID,
@@ -118,10 +96,10 @@ describe('createArtistApiKeyHandler', () => {
   });
 
   it('throws when insertApiKey fails', async () => {
-    mocks.walletSelectSingle.mockResolvedValue({
-      data: { artist: ARTIST_UUID },
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ artist: ARTIST_UUID }],
       error: null,
-    });
+    } as any);
     vi.mocked(insertApiKey).mockResolvedValue({
       error: { message: 'e' },
     } as any);

@@ -1,8 +1,11 @@
 import { generateApiKey } from '@/lib/api-keys/generateApiKey';
 import { hashApiKey } from '@/lib/api-keys/hashApiKey';
 import { insertApiKey } from '@/lib/supabase/in_process_api_keys/insertApiKey';
+import insertArtist from '@/lib/supabase/in_process_artists/insertArtist';
+import linkWalletToArtist from '@/lib/supabase/in_process_wallets/linkWalletToArtist';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
+import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 import { PRIVY_PROJECT_SECRET } from '@/lib/consts';
-import { supabase } from '@/lib/supabase/client';
 
 const createArtistApiKeyHandler = async ({
   artistAddress,
@@ -16,38 +19,22 @@ const createArtistApiKeyHandler = async ({
   const address = artistAddress.toLowerCase();
 
   // 1. Ensure a wallet row exists for the address (no-op if already present).
-  const { error: walletUpsertError } = await supabase
-    .from('in_process_wallets')
-    .upsert({ address }, { onConflict: 'address', ignoreDuplicates: true });
-  if (walletUpsertError) throw new Error('Failed to ensure wallet row');
+  await upsertWallets([{ address }], { ignoreDuplicates: true });
 
   // 2. Resolve the artist UUID, creating one if the wallet is not linked yet.
-  const { data: walletRow } = await supabase
-    .from('in_process_wallets')
-    .select('artist')
-    .eq('address', address)
-    .single();
-
-  let artistId = walletRow?.artist ?? null;
+  const { data: walletRows } = await selectWallets({ addresses: [address] });
+  let artistId = walletRows?.[0]?.artist ?? null;
 
   if (!artistId) {
-    const { data: newArtist, error: insertArtistError } = await supabase
-      .from('in_process_artists')
-      .insert({ address })
-      .select('id')
-      .single();
+    const { data: newArtist, error: insertArtistError } = await insertArtist({
+      address,
+    });
     if (insertArtistError || !newArtist) {
       throw new Error('Failed to create artist entity');
     }
     artistId = newArtist.id;
 
-    // Guard against a concurrent writer having populated artist in the
-    // meantime by only filling when still null.
-    const { error: linkError } = await supabase
-      .from('in_process_wallets')
-      .update({ artist: artistId })
-      .eq('address', address)
-      .is('artist', null);
+    const { error: linkError } = await linkWalletToArtist(address, artistId);
     if (linkError) throw new Error('Failed to link wallet to artist');
   }
 
