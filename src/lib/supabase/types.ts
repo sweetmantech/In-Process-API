@@ -111,6 +111,7 @@ export type Database = {
       in_process_api_keys: {
         Row: {
           artist_address: string | null;
+          artist_id: string | null;
           created_at: string;
           id: string;
           key_hash: string | null;
@@ -119,6 +120,7 @@ export type Database = {
         };
         Insert: {
           artist_address?: string | null;
+          artist_id?: string | null;
           created_at?: string;
           id?: string;
           key_hash?: string | null;
@@ -127,6 +129,7 @@ export type Database = {
         };
         Update: {
           artist_address?: string | null;
+          artist_id?: string | null;
           created_at?: string;
           id?: string;
           key_hash?: string | null;
@@ -135,11 +138,11 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'in_process_api_keys_artist_address_fkey';
-            columns: ['artist_address'];
+            foreignKeyName: 'in_process_api_keys_artist_id_fkey';
+            columns: ['artist_id'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists_old';
-            referencedColumns: ['address'];
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['id'];
           },
         ];
       };
