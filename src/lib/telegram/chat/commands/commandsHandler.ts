@@ -1,7 +1,7 @@
 import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
-import type { ArtistRow } from '@/lib/supabase/in_process_artists/selectArtists';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import handleWelcome from './handleWelcome';
 import handleStart from './handleStart';
 import handleRemind from './handleRemind';
@@ -9,18 +9,21 @@ import handleNotify from './handleNotify';
 import handleCollections from './handleCollections';
 import handleMe from './handleMe';
 
+type CommandArtist = NonNullable<
+  Awaited<ReturnType<typeof selectArtists>>['data']
+>[number];
+
 const commandsHandler = async (
   text: string,
   thread: Thread<TelegramThreadState>,
   telegramUsername: string,
-  artist: ArtistRow | null
+  artist: CommandArtist | null,
+  artistAddress: Address
 ): Promise<boolean> => {
   if (!artist) {
     await handleWelcome(thread);
     return true;
   }
-
-  const artistAddress = artist.address! as Address;
 
   switch (text) {
     case '/start':
@@ -36,6 +39,7 @@ const commandsHandler = async (
       await handleCollections(thread, artistAddress);
       return true;
     case '/me':
+      if (!artistAddress) return false;
       await handleMe(thread, artistAddress);
       return true;
     default:

@@ -29,14 +29,28 @@ const TG_USERNAME = 'testuser';
 
 const ARTIST = {
   id: ARTIST_UUID,
-  address: ARTIST_ADDRESS,
   username: 'alice',
+  wallets: [{ address: ARTIST_ADDRESS, type: 'external' }],
 };
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
   channelId: ROOM_ID,
 });
+
+const callCommandsHandler = (
+  text: string,
+  thread: ReturnType<typeof makeThread>,
+  artist: typeof ARTIST | null,
+  artistAddress?: Address
+) =>
+  commandsHandler(
+    text,
+    thread as never,
+    TG_USERNAME,
+    artist as never,
+    artistAddress as Address
+  );
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -52,19 +66,14 @@ describe('commandsHandler', () => {
   describe('when artist is null (unregistered user)', () => {
     it('calls handleWelcome and returns true', async () => {
       const thread = makeThread();
-      const result = await commandsHandler(
-        'hello',
-        thread as never,
-        TG_USERNAME,
-        null
-      );
+      const result = await callCommandsHandler('hello', thread, null);
 
       expect(handleWelcome).toHaveBeenCalledWith(thread);
       expect(result).toBe(true);
     });
 
     it('does not call handleStart, handleRemind, handleNotify, handleCollections, or handleMe', async () => {
-      await commandsHandler('/start', makeThread() as never, TG_USERNAME, null);
+      await callCommandsHandler('/start', makeThread(), null);
       expect(handleStart).not.toHaveBeenCalled();
       expect(handleRemind).not.toHaveBeenCalled();
       expect(handleNotify).not.toHaveBeenCalled();
@@ -76,11 +85,11 @@ describe('commandsHandler', () => {
   describe('when artist is registered', () => {
     it('calls handleStart and returns true for /start', async () => {
       const thread = makeThread();
-      const result = await commandsHandler(
+      const result = await callCommandsHandler(
         '/start',
-        thread as never,
-        TG_USERNAME,
-        ARTIST as never
+        thread,
+        ARTIST,
+        ARTIST_ADDRESS
       );
 
       expect(handleStart).toHaveBeenCalledWith(
@@ -93,11 +102,11 @@ describe('commandsHandler', () => {
 
     it('calls handleRemind and returns true for /remind', async () => {
       const thread = makeThread();
-      const result = await commandsHandler(
+      const result = await callCommandsHandler(
         '/remind',
-        thread as never,
-        TG_USERNAME,
-        ARTIST as never
+        thread,
+        ARTIST,
+        ARTIST_ADDRESS
       );
 
       expect(handleRemind).toHaveBeenCalledWith(thread, ARTIST_UUID);
@@ -106,11 +115,11 @@ describe('commandsHandler', () => {
 
     it('calls handleNotify and returns true for /notify', async () => {
       const thread = makeThread();
-      const result = await commandsHandler(
+      const result = await callCommandsHandler(
         '/notify',
-        thread as never,
-        TG_USERNAME,
-        ARTIST as never
+        thread,
+        ARTIST,
+        ARTIST_ADDRESS
       );
 
       expect(handleNotify).toHaveBeenCalledWith(thread, ARTIST_UUID);
@@ -119,11 +128,11 @@ describe('commandsHandler', () => {
 
     it('calls handleCollections and returns true for /collections', async () => {
       const thread = makeThread();
-      const result = await commandsHandler(
+      const result = await callCommandsHandler(
         '/collections',
-        thread as never,
-        TG_USERNAME,
-        ARTIST as never
+        thread,
+        ARTIST,
+        ARTIST_ADDRESS
       );
 
       expect(handleCollections).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
@@ -132,23 +141,36 @@ describe('commandsHandler', () => {
 
     it('calls handleMe and returns true for /me', async () => {
       const thread = makeThread();
-      const result = await commandsHandler(
+      const result = await callCommandsHandler(
         '/me',
-        thread as never,
-        TG_USERNAME,
-        ARTIST as never
+        thread,
+        ARTIST,
+        ARTIST_ADDRESS
       );
 
       expect(handleMe).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
       expect(result).toBe(true);
     });
 
+    it('returns false for /me when artistAddress is missing', async () => {
+      const thread = makeThread();
+      const result = await callCommandsHandler(
+        '/me',
+        thread,
+        ARTIST,
+        undefined
+      );
+
+      expect(result).toBe(false);
+      expect(handleMe).not.toHaveBeenCalled();
+    });
+
     it('returns false for unrecognised text without calling any command handler', async () => {
-      const result = await commandsHandler(
+      const result = await callCommandsHandler(
         'just some text',
-        makeThread() as never,
-        TG_USERNAME,
-        ARTIST as never
+        makeThread(),
+        ARTIST,
+        ARTIST_ADDRESS
       );
 
       expect(result).toBe(false);

@@ -26,7 +26,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       });
       const artist = data?.[0] ?? null;
       const artistId = artist?.id;
-      const artistAddress = await getPrimaryWallet(
+      const artistAddress = getPrimaryWallet(
         artist?.wallets as Tables<'in_process_wallets'>[]
       );
       if (!artistAddress) return;
@@ -44,7 +44,8 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         text,
         thread,
         telegramUsername,
-        artist
+        artist,
+        artistAddress as Address
       );
       if (handled) return;
 
