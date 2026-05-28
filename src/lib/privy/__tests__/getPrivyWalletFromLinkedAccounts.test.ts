@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import getPrivySocialWalletFromLinkedAccounts from '@/lib/privy/getPrivySocialWalletFromLinkedAccounts';
+import getPrivyWalletFromLinkedAccounts from '@/lib/privy/getPrivyWalletFromLinkedAccounts';
 
-describe('getPrivySocialWalletFromLinkedAccounts', () => {
+describe('getPrivyWalletFromLinkedAccounts', () => {
   it('returns lowercase privy embedded wallet address', () => {
-    const result = getPrivySocialWalletFromLinkedAccounts([
+    const result = getPrivyWalletFromLinkedAccounts([
       { type: 'email', address: 'user@example.com' } as any,
       {
         type: 'wallet',
@@ -17,11 +17,11 @@ describe('getPrivySocialWalletFromLinkedAccounts', () => {
 
   it('returns undefined when no privy wallet exists', () => {
     expect(
-      getPrivySocialWalletFromLinkedAccounts([
+      getPrivyWalletFromLinkedAccounts([
         { type: 'email', address: 'user@example.com' } as any,
       ])
     ).toBeUndefined();
-    expect(getPrivySocialWalletFromLinkedAccounts([])).toBeUndefined();
-    expect(getPrivySocialWalletFromLinkedAccounts(undefined)).toBeUndefined();
+    expect(getPrivyWalletFromLinkedAccounts([])).toBeUndefined();
+    expect(getPrivyWalletFromLinkedAccounts(undefined)).toBeUndefined();
   });
 });

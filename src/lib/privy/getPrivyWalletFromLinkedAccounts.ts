@@ -3,7 +3,7 @@ type LinkedAccount = {
   address?: string;
 };
 
-const getPrivySocialWalletFromLinkedAccounts = (
+const getPrivyWalletFromLinkedAccounts = (
   linkedAccounts: LinkedAccount[] | undefined
 ): string | undefined => {
   const account = linkedAccounts?.find(
@@ -12,4 +12,4 @@ const getPrivySocialWalletFromLinkedAccounts = (
   return account?.address?.toLowerCase();
 };
 
-export default getPrivySocialWalletFromLinkedAccounts;
+export default getPrivyWalletFromLinkedAccounts;
