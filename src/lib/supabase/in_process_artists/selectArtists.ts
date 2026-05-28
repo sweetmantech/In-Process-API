@@ -7,7 +7,6 @@ const selectArtists = async ({
   limit = 50,
   page = 1,
 }: {
-  address?: string;
   telegram?: string;
   q?: string;
   type?: 'human' | 'bot';

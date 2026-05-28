@@ -28,7 +28,7 @@ const selectWallets = async ({
 
   const { data, error } = await query;
   if (error) throw error;
-  return { data, error };
+  return { data };
 };
 
 export default selectWallets;
