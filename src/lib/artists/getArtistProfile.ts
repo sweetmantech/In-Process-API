@@ -9,18 +9,14 @@ const getArtistProfile = async (address: string) => {
     const normalized = address.toLowerCase();
     const ensName = await resolveAddressToEns(address as Address);
 
-    const { data: walletRows } = await selectWallets({
-      addresses: [normalized],
-    });
-    const profile = walletRows?.[0]?.artist;
+    const [upserted] = await upsertWallets([{ address: normalized }]);
+    const profile = upserted.artist;
     if (profile) {
       return {
         ...profile,
         username: profile.username || ensName,
       };
     }
-
-    await upsertWallets([{ address: normalized }], { ignoreDuplicates: true });
 
     const [created] = await upsertArtists({ username: ensName });
     if (!created) throw new Error('Failed to create artist entity');
