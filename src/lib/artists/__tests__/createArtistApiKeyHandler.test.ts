@@ -9,55 +9,30 @@ vi.mock('@/lib/api-keys/hashApiKey', () => ({
 vi.mock('@/lib/supabase/in_process_api_keys/insertApiKey', () => ({
   insertApiKey: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_wallets/upsertWallets', () => ({
-  default: vi.fn(),
-}));
-vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
-  default: vi.fn(),
-}));
-vi.mock('@/lib/supabase/in_process_artists/upsertArtists', () => ({
-  upsertArtists: vi.fn(),
-}));
 
 import { generateApiKey } from '@/lib/api-keys/generateApiKey';
 import { hashApiKey } from '@/lib/api-keys/hashApiKey';
 import { insertApiKey } from '@/lib/supabase/in_process_api_keys/insertApiKey';
-import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
-import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
-import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import createArtistApiKeyHandler from '@/lib/artists/createArtistApiKeyHandler';
 import { PRIVY_PROJECT_SECRET } from '@/lib/consts';
 
-const ARTIST_ADDRESS = '0xA123456789012345678901234567890123456789';
-const ARTIST_LC = ARTIST_ADDRESS.toLowerCase();
 const ARTIST_UUID = '00000000-0000-0000-0000-000000000001';
 
 describe('createArtistApiKeyHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(upsertWallets).mockResolvedValue(undefined);
     vi.mocked(insertApiKey).mockResolvedValue(undefined);
   });
 
-  it('uses existing artist UUID when wallet is already linked', async () => {
-    vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist_id: ARTIST_UUID }],
-      error: null,
-    } as any);
-
+  it('generates and inserts the api key for the artist', async () => {
     const res = await createArtistApiKeyHandler({
-      artistAddress: ARTIST_ADDRESS,
+      artistId: ARTIST_UUID,
       key_name: '  prod  ',
     });
     const json = await res.json();
 
     expect(generateApiKey).toHaveBeenCalledWith('art_sk');
     expect(hashApiKey).toHaveBeenCalledWith('art_sk_raw', PRIVY_PROJECT_SECRET);
-    expect(upsertWallets).toHaveBeenCalledTimes(1);
-    expect(upsertWallets).toHaveBeenCalledWith([{ address: ARTIST_LC }], {
-      ignoreDuplicates: true,
-    });
-    expect(upsertArtists).not.toHaveBeenCalled();
     expect(insertApiKey).toHaveBeenCalledWith({
       name: 'prod',
       artist_id: ARTIST_UUID,
@@ -66,39 +41,12 @@ describe('createArtistApiKeyHandler', () => {
     expect(json).toEqual({ key: 'art_sk_raw' });
   });
 
-  it('creates a new artist when the wallet has no link, then inserts key', async () => {
-    vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist_id: null }],
-      error: null,
-    } as any);
-    vi.mocked(upsertArtists).mockResolvedValue([{ id: ARTIST_UUID }] as any);
-
-    await createArtistApiKeyHandler({
-      artistAddress: ARTIST_LC,
-      key_name: 'n',
-    });
-
-    expect(upsertArtists).toHaveBeenCalledWith({ address: ARTIST_LC });
-    expect(upsertWallets).toHaveBeenNthCalledWith(2, [
-      { address: ARTIST_LC, artist: ARTIST_UUID },
-    ]);
-    expect(insertApiKey).toHaveBeenCalledWith({
-      name: 'n',
-      artist_id: ARTIST_UUID,
-      key_hash: 'hashed',
-    });
-  });
-
   it('propagates errors from insertApiKey', async () => {
-    vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ artist_id: ARTIST_UUID }],
-      error: null,
-    } as any);
     vi.mocked(insertApiKey).mockRejectedValue(new Error('insert failed'));
 
     await expect(
       createArtistApiKeyHandler({
-        artistAddress: ARTIST_LC,
+        artistId: ARTIST_UUID,
         key_name: 'n',
       })
     ).rejects.toThrow('insert failed');

@@ -10,7 +10,7 @@ export async function upsertArtists(
   if (!rows.length) return [];
   const { data, error } = await supabase
     .from('in_process_artists')
-    .upsert(rows, { onConflict: 'address' })
+    .upsert(rows, { onConflict: 'id' })
     .select('id');
   if (error) throw error;
   return data ?? [];

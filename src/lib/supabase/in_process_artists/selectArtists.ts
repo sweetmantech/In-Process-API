@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 
-type ArtistRow = {
+export type ArtistRow = {
   id: string;
   address: string | null;
   username: string | null;

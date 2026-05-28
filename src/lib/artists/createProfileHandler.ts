@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AuthMethod } from '@/types/auth';
-import getPrivyLinkedAccounts from '@/lib/privy/getPrivyLinkedAccounts';
+import getPrivyLinkedAccounts from '@/lib/privy/getPrivyLinkedAccount';
 import authenticateWithFarcasterToken from '@/lib/auth/authenticateWithFarcasterToken';
 import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
@@ -24,12 +24,12 @@ const createProfileHandler = async ({
   token: string;
 } & ProfileFields) => {
   if (method === AuthMethod.Privy) {
-    const { socialWalletAddress } = await getPrivyLinkedAccounts(token);
-    if (!socialWalletAddress) {
+    const { linkedAccount } = await getPrivyLinkedAccounts(token);
+    if (!linkedAccount) {
       throw new Error('Privy social wallet not found');
     }
     const { data: walletRows } = await selectWallets({
-      addresses: [socialWalletAddress],
+      addresses: [linkedAccount],
     });
     const artistId = walletRows?.[0]?.artist_id;
     if (!artistId) {
@@ -40,13 +40,13 @@ const createProfileHandler = async ({
   }
 
   if (method === AuthMethod.Farcaster) {
-    const { artistAddress } = await authenticateWithFarcasterToken(token);
-    await upsertArtists({ address: artistAddress.toLowerCase(), ...fields });
+    const { artistId } = await authenticateWithFarcasterToken(token);
+    await upsertArtists({ id: artistId, ...fields });
     return NextResponse.json({ success: true });
   }
 
-  const { artistAddress } = await authenticateWithApiKey(token);
-  await upsertArtists({ address: artistAddress.toLowerCase(), ...fields });
+  const { artistId } = await authenticateWithApiKey(token);
+  await upsertArtists({ id: artistId, ...fields });
   return NextResponse.json({ success: true });
 };
 
