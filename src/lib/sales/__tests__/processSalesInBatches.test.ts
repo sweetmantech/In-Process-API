@@ -8,20 +8,20 @@ vi.mock(
   '@/lib/supabase/in_process_moment_fee_recipients/upsertFeeRecipients',
   () => ({ upsertFeeRecipients: vi.fn() })
 );
-vi.mock('@/lib/artists/ensureArtists', () => ({
-  ensureArtists: vi.fn(),
+vi.mock('@/lib/wallets/ensureWallets', () => ({
+  ensureWallets: vi.fn(),
 }));
 
 import { processSalesInBatches } from '../processSalesInBatches';
 import { mapSalesToSupabase } from '../mapSalesToSupabase';
 import { upsertSales } from '@/lib/supabase/in_process_sales/upsertSales';
 import { upsertFeeRecipients } from '@/lib/supabase/in_process_moment_fee_recipients/upsertFeeRecipients';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 
 const mockMapSales = vi.mocked(mapSalesToSupabase);
 const mockUpsertSales = vi.mocked(upsertSales);
 const mockUpsertFeeRec = vi.mocked(upsertFeeRecipients);
-const mockEnsureArtists = vi.mocked(ensureArtists);
+const mockEnsureArtists = vi.mocked(ensureWallets);
 
 const sale = {
   id: '1',
@@ -80,7 +80,7 @@ describe('processSalesInBatches', () => {
     expect(mockUpsertFeeRec).toHaveBeenCalledWith(mappedFeeRec);
   });
 
-  it('deduplicates artists passed to ensureArtists', async () => {
+  it('deduplicates artists passed to ensureWallets', async () => {
     const feeRecs = [
       { moment: 'mid', artist_address: '0xfunds', percent_allocation: 60 },
       { moment: 'mid', artist_address: '0xfunds', percent_allocation: 40 },

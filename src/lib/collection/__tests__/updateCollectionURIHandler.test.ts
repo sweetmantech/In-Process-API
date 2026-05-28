@@ -20,7 +20,11 @@ const TX_HASH = '0xdeadbeef';
 const NEW_URI = 'ar://some-arweave-hash';
 
 const baseInput = {
-  artistAddress: ARTIST_ADDRESS,
+  artist: {
+    artistId: 'artist-uuid',
+    primaryWallet: ARTIST_ADDRESS,
+    wallets: [ARTIST_ADDRESS],
+  },
   collection: { address: COLLECTION_ADDRESS, chainId: 8453 },
   newUri: NEW_URI,
   newCollectionName: 'My Collection',
@@ -49,7 +53,7 @@ describe('updateCollectionURIHandler', () => {
       collection: baseInput.collection,
       newUri: NEW_URI,
       newCollectionName: 'My Collection',
-      artistAddress: ARTIST_ADDRESS,
+      artist: baseInput.artist,
     });
   });
 

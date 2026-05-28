@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import addressSchema from '@/lib/schema/addressSchema';
 
 export const getNotificationsQuerySchema = z.object({
   limit: z.coerce
@@ -10,7 +9,7 @@ export const getNotificationsQuerySchema = z.object({
     .optional()
     .default(20),
   page: z.coerce.number().int().min(1).optional().default(1),
-  artist: addressSchema.optional(),
+  artist_id: z.string().uuid().optional(),
   viewed: z
     .enum(['true', 'false'])
     .transform((v) => v === 'true')
@@ -18,5 +17,5 @@ export const getNotificationsQuerySchema = z.object({
 });
 
 export const putNotificationsQuerySchema = z.object({
-  artist: addressSchema.optional(),
+  artist_id: z.string().uuid().optional(),
 });

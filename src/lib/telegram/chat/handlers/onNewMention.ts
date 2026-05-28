@@ -9,7 +9,9 @@ import commandsHandler from '../commands/commandsHandler';
 import processMediaThread from '../processMediaThread';
 import youtubeParser from '@/lib/link/youtubeParser';
 import processYoutubeLink from '../processYoutubeLink';
-
+import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
+import { Tables } from '@/lib/supabase/types';
+import type { ArtistContext } from '@/types/artist';
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
 
@@ -21,14 +23,26 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       if (!telegramUsername) return;
 
       const { data } = await selectArtists({
-        telegram_username: telegramUsername,
+        telegram: telegramUsername,
       });
-      const artist = data?.[0] ?? null;
+      const raw = data?.[0] ?? null;
+      const wallets = (raw?.wallets ?? []) as Tables<'in_process_wallets'>[];
+      const primaryWallet = getPrimaryWallet(wallets);
+      if (!primaryWallet) return;
+
+      const artist: ArtistContext | null = raw
+        ? {
+            artistId: raw.id,
+            primaryWallet: primaryWallet as Address,
+            wallets: wallets.map((w) => w.address as Address),
+          }
+        : null;
+
       const text = message.text?.trim() ?? '';
 
       if (artist) {
         await upsertAccountNotification({
-          artist_address: artist.address as Address,
+          artist_id: artist.artistId,
           telegram_chat_id: parseTelegramChatId(thread.channelId),
         });
       }
@@ -37,30 +51,23 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         text,
         thread,
         telegramUsername,
-        artist
+        raw,
+        primaryWallet as Address
       );
       if (handled) return;
-
-      const artistAddress = artist!.address as Address;
 
       const attachment = message.attachments?.[0];
       if (
         attachment &&
         (attachment.type === 'image' || attachment.type === 'video')
       ) {
-        await processMediaThread(
-          thread,
-          message,
-          attachment,
-          text,
-          artistAddress
-        );
+        await processMediaThread(thread, message, attachment, text, artist);
         return;
       }
 
       const youtubeUrl = text.match(YOUTUBE_URL_REGEX)?.[0];
       if (youtubeUrl && youtubeParser(youtubeUrl)) {
-        await processYoutubeLink(thread, youtubeUrl, artistAddress);
+        await processYoutubeLink(thread, youtubeUrl, artist);
         return;
       }
 

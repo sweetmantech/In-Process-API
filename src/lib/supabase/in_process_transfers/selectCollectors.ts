@@ -10,7 +10,7 @@ const selectCollectors = async ({
   const { data, error } = await supabase
     .from('in_process_transfers')
     .select(
-      'id, collector:recipient, amount:quantity, transaction_hash, collected_at:transferred_at, artist:in_process_artists!inner(username)'
+      'id, collector:recipient, amount:quantity, transaction_hash, collected_at:transferred_at, wallet:in_process_wallets!recipient(artist:in_process_artists(username))'
     )
     .eq('moment', momentId)
     .order('transferred_at', { ascending: false })

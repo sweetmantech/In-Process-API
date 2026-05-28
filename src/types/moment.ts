@@ -144,7 +144,7 @@ export interface UpdateMomentURIInput {
   moment: Moment;
   newUri: string;
   newCollectionAddress?: Address;
-  artistAddress: Address;
+  artist: import('@/types/artist').ArtistContext;
 }
 
 export interface UpdateMomentURIResult {

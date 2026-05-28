@@ -1,6 +1,6 @@
 import { zeroAddress, type Hex } from 'viem';
 import { getPublicClient } from '@/lib/viem/publicClient';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import isCoinbaseSmartWallet from '@/lib/smartwallets/isCoinbaseSmartWallet';
 import { FACTORY_ADDRESSES } from '@/lib/protocolSdk/create/factory-addresses';
 import topicToAddress from './topicToAddress';
@@ -57,15 +57,26 @@ const getAirdropOperator = async (
 
   const isCb = await isCoinbaseSmartWallet(address, chainId);
 
-  const { data: artists } = await selectArtists({
-    smart_wallet: isCb ? address : undefined,
-    address: isCb ? undefined : address,
-  });
+  let artistAddress: string | undefined;
+  let artistUsername: string | null | undefined;
 
-  if (artists?.length) {
+  if (isCb) {
+    // Smart wallets are now their own rows (type='smart') — query by address directly
+    const { data: wallets } = await selectWallets({ addresses: [address] });
+    const wallet = wallets?.[0];
+    artistAddress = wallet?.address;
+    artistUsername = wallet?.artist?.username;
+  } else {
+    const { data: wallets } = await selectWallets({ addresses: [address] });
+    const wallet = wallets?.[0];
+    artistAddress = wallet?.address;
+    artistUsername = wallet?.artist?.username;
+  }
+
+  if (artistAddress) {
     return {
-      address: artists[0].address,
-      username: artists[0].username,
+      address: artistAddress,
+      username: artistUsername ?? null,
     };
   }
   throw new Error('Airdrop operator not found');

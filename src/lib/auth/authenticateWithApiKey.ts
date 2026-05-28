@@ -1,9 +1,9 @@
-import { getAuthorizedAddressByApiKey } from '@/lib/api-keys/getAuthorizedAddressByApiKey';
+import { getWalletsByApiKey } from '@/lib/wallets/getWalletsByApiKey';
 import { AuthMethod } from '@/types/auth';
 
 const authenticateWithApiKey = async (apiKey: string) => {
-  const artistAddress = await getAuthorizedAddressByApiKey(apiKey);
-  return { artistAddress, authMethod: AuthMethod.ApiKey };
+  const wallets = await getWalletsByApiKey(apiKey);
+  return { ...wallets, authMethod: AuthMethod.ApiKey };
 };
 
 export default authenticateWithApiKey;

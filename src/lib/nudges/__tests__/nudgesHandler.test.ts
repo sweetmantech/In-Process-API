@@ -1,23 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/client', () => ({
-  supabase: { rpc: vi.fn() },
+vi.mock('@/lib/supabase/account_notifications/getNudges', () => ({
+  default: vi.fn(),
 }));
 vi.mock('../sendNudge', () => ({
   default: vi.fn(),
 }));
 
-import { supabase } from '@/lib/supabase/client';
+import getNudges from '@/lib/supabase/account_notifications/getNudges';
 import sendNudge from '../sendNudge';
 import nudgesHandler from '../nudgesHandler';
 
 const TARGETS = [
   {
-    artist_address: '0xAlice',
+    artist_id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
     chat_id: 'telegram:1',
     days_since_last_moment: 3,
   },
-  { artist_address: '0xBob', chat_id: 'telegram:2', days_since_last_moment: 7 },
+  {
+    artist_id: 'ffffffff-gggg-hhhh-iiii-jjjjjjjjjjjj',
+    chat_id: 'telegram:2',
+    days_since_last_moment: 7,
+  },
 ];
 
 beforeEach(() => {
@@ -25,24 +29,14 @@ beforeEach(() => {
 });
 
 describe('nudgesHandler', () => {
-  it('returns 500 when the RPC returns an error', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: null,
-      error: { message: 'rpc failure' },
-    } as never);
+  it('propagates errors from getNudges', async () => {
+    vi.mocked(getNudges).mockRejectedValue(new Error('rpc failure'));
 
-    const res = await nudgesHandler();
-    const json = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(json.message).toBe('rpc failure');
+    await expect(nudgesHandler()).rejects.toThrow('rpc failure');
   });
 
   it('returns success with total 0 when there are no nudge targets', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: [],
-      error: null,
-    } as never);
+    vi.mocked(getNudges).mockResolvedValue([]);
 
     const res = await nudgesHandler();
     const json = await res.json();
@@ -55,10 +49,7 @@ describe('nudgesHandler', () => {
   });
 
   it('calls sendNudge for each target', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getNudges).mockResolvedValue(TARGETS as any);
     vi.mocked(sendNudge).mockResolvedValue(undefined);
 
     await nudgesHandler();
@@ -66,21 +57,18 @@ describe('nudgesHandler', () => {
     expect(sendNudge).toHaveBeenCalledTimes(2);
     expect(sendNudge).toHaveBeenCalledWith({
       chatId: 'telegram:1',
-      artistAddress: '0xAlice',
+      artistId: TARGETS[0].artist_id,
       daysSinceLastMoment: 3,
     });
     expect(sendNudge).toHaveBeenCalledWith({
       chatId: 'telegram:2',
-      artistAddress: '0xBob',
+      artistId: TARGETS[1].artist_id,
       daysSinceLastMoment: 7,
     });
   });
 
   it('returns sent count equal to the number of successful nudges', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getNudges).mockResolvedValue(TARGETS as any);
     vi.mocked(sendNudge).mockResolvedValue(undefined);
 
     const res = await nudgesHandler();
@@ -92,10 +80,7 @@ describe('nudgesHandler', () => {
   });
 
   it('captures errors per-target without aborting the rest', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getNudges).mockResolvedValue(TARGETS as any);
     vi.mocked(sendNudge)
       .mockResolvedValueOnce(undefined)
       .mockRejectedValueOnce(new Error('telegram error'));
@@ -108,6 +93,6 @@ describe('nudgesHandler', () => {
 
     const failed = json.results.find((r: { sent: boolean }) => !r.sent);
     expect(failed.error).toBe('telegram error');
-    expect(failed.artist).toBe('0xBob');
+    expect(failed.artist).toBe(TARGETS[1].artist_id);
   });
 });

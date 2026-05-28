@@ -1,6 +1,6 @@
-import type { Address } from 'viem';
 import type { Thread, Message, Attachment } from 'chat';
 import type { TelegramThreadState } from './telegramThreadState';
+import type { ArtistContext } from '@/types/artist';
 import extractTelegramFileIds from './extractTelegramFileIds';
 import isTooBigForTelegram, { TOO_BIG_MESSAGE } from './isTooBigForTelegram';
 import processSingleMedia from './processSingleMedia';
@@ -11,8 +11,9 @@ const processMediaThread = async (
   message: Message,
   attachment: Attachment,
   text: string,
-  artistAddress: Address
+  artist: ArtistContext | null
 ): Promise<void> => {
+  if (!artist) return;
   if (isTooBigForTelegram(attachment)) {
     await thread.post(TOO_BIG_MESSAGE);
     return;
@@ -29,7 +30,7 @@ const processMediaThread = async (
       attachment,
       fileId,
       title,
-      artistAddress,
+      artist,
       thumbFileId
     );
     return;
@@ -40,7 +41,7 @@ const processMediaThread = async (
     attachment,
     fileId,
     title,
-    artistAddress,
+    artist,
     mediaGroupId,
     raw.date,
     thumbFileId

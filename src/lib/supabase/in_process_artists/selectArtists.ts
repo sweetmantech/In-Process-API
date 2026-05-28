@@ -1,19 +1,13 @@
 import { supabase } from '@/lib/supabase/client';
 
 const selectArtists = async ({
-  address,
-  smart_wallet,
-  telegram_username,
-  farcaster_username,
+  telegram,
   q,
   type = 'human',
   limit = 50,
   page = 1,
 }: {
-  address?: string;
-  smart_wallet?: string;
-  telegram_username?: string;
-  farcaster_username?: string;
+  telegram?: string;
   q?: string;
   type?: 'human' | 'bot';
   limit?: number;
@@ -21,39 +15,30 @@ const selectArtists = async ({
 } = {}) => {
   let query = supabase
     .from('in_process_artists')
-    .select('*, phone:in_process_artist_phones(phone_number, verified)', {
-      count: 'exact',
-    });
+    .select(
+      'id, username, bio, x, telegram, instagram, wallets:in_process_wallets!inner(*)',
+      { count: 'exact' }
+    );
 
-  if (address) {
-    return query.eq('address', address.toLowerCase()).limit(1);
-  }
-
-  if (smart_wallet) {
-    return query.eq('smart_wallet', smart_wallet.toLowerCase()).limit(1);
-  }
-
-  if (telegram_username) {
-    return query
-      .eq('telegram_username', telegram_username.toLowerCase())
-      .limit(1);
-  }
-
-  if (farcaster_username) {
-    return query.eq('farcaster_username', farcaster_username).limit(1);
-  }
-
-  if (q?.trim()) {
-    return query.ilike('username', `${q}%`).limit(limit);
-  }
-
-  if (type === 'human') {
-    query = query.not('username', 'is', null).neq('username', '');
+  if (telegram) {
+    query = query.eq('telegram', telegram.toLowerCase()).limit(1);
+  } else if (q?.trim()) {
+    query = query.ilike('username', `${q}%`).limit(limit);
   } else {
-    query = query.or('username.is.null,username.eq.""');
+    query =
+      type === 'human'
+        ? query.not('username', 'is', null)
+        : query.is('username', null);
+    query = query.range((page - 1) * limit, page * limit - 1);
   }
 
-  return query.range((page - 1) * limit, page * limit - 1);
+  const { data, error, count } = await query;
+  if (error) throw error;
+  return {
+    data: data ?? [],
+    error: null,
+    count: count ?? null,
+  };
 };
 
 export default selectArtists;

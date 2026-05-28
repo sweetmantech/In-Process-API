@@ -15,10 +15,15 @@ import { sendSms } from '@/lib/phones/sendSms';
 import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 
 const PHONE_NUMBER = '+15550001234';
-const ARTIST_ADDRESS = '0xArtist';
+const ARTIST_ADDRESS = '0xArtist' as `0x${string}`;
+const ARTIST_CONTEXT = {
+  id: 'artist-uuid-123',
+  primaryWallet: ARTIST_ADDRESS,
+  wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
+};
 const phone = {
   phone_number: PHONE_NUMBER,
-  artist: { address: ARTIST_ADDRESS },
+  artist: ARTIST_CONTEXT,
 };
 
 const makeMedia = (

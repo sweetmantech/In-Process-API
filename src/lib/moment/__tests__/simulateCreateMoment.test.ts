@@ -9,8 +9,8 @@ import {
   simulateCreateMomentBatch,
 } from '../simulateCreateMoment';
 
-vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
-  getOrCreateSmartWallet: vi.fn(),
+vi.mock('@/lib/coinbase/getWalletLinkedSmartAccount', () => ({
+  getWalletLinkedSmartAccount: vi.fn(),
 }));
 vi.mock('../createBatchSetupActions', () => ({ default: vi.fn() }));
 vi.mock('@/lib/viem/createMomentBatchCall', () => ({ default: vi.fn() }));
@@ -24,7 +24,7 @@ vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
 }));
 
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
 import createBatchSetupActions from '../createBatchSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { publicClient } from '@/lib/viem/publicClient';
@@ -71,7 +71,7 @@ const makeSingleInput = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
+  vi.mocked(getWalletLinkedSmartAccount).mockResolvedValue({
     address: '0x0000000000000000000000000000000000000bee',
   } as never);
   vi.mocked(createBatchSetupActions).mockResolvedValue({

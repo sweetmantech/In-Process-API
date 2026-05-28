@@ -7,7 +7,7 @@ export interface UpdateCollectionURIInput {
   };
   newUri: string;
   newCollectionName: string;
-  artistAddress: Address;
+  artist: import('@/types/artist').ArtistContext;
 }
 
 export interface UpdateCollectionURIResult {

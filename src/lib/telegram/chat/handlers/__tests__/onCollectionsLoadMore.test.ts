@@ -49,7 +49,7 @@ const makeEvent = (
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(selectArtists).mockResolvedValue({
-    data: [{ address: ARTIST_ADDRESS }],
+    data: [{ wallets: [{ address: ARTIST_ADDRESS, type: 'external' }] }],
     error: null,
   } as never);
   vi.mocked(selectCollections).mockResolvedValue({

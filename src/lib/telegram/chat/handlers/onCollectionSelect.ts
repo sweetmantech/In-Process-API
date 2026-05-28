@@ -2,7 +2,6 @@ import { getAddress, isAddress } from 'viem';
 import type { ActionEvent, ActionHandler } from 'chat';
 import { Actions, Button, Card, CardText } from 'chat';
 import type { TelegramChatBot } from '../bot';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTION_SELECTION_CANCEL_ACTION_ID,
@@ -18,15 +17,6 @@ async function handleCollectionSelect(
 
   const thread = event.thread;
   if (!thread) return;
-
-  const telegramUsername = event.user.userName;
-  if (!telegramUsername) return;
-
-  const { data: artists } = await selectArtists({
-    telegram_username: telegramUsername,
-  });
-  const artist = artists?.[0];
-  if (!artist) return;
 
   const normalized = getAddress(address);
   await setSelectedCollectionAddress(thread, normalized);

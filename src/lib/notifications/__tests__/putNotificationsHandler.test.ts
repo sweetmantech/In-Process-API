@@ -41,16 +41,17 @@ describe('putNotificationsHandler', () => {
     expect(json.message).toBe('Marked 0 notifications as viewed');
   });
 
-  it('calls updateNotifications with artist when provided', async () => {
+  it('calls updateNotifications with artist_id when provided', async () => {
     vi.mocked(updateNotifications).mockResolvedValue({
       data: [{ id: '1' }] as any,
       error: null,
     });
 
-    await putNotificationsHandler('0xartist');
+    const artistId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+    await putNotificationsHandler(artistId);
 
     expect(updateNotifications).toHaveBeenCalledWith({
-      artist: '0xartist',
+      artist_id: artistId,
       viewed: true,
     });
   });

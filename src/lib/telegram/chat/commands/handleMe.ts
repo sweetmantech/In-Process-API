@@ -1,31 +1,34 @@
 import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
-import selectSocialWallets from '@/lib/supabase/in_process_artist_social_wallets/selectSocialWallets';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 
 const handleMe = async (
   thread: Thread<TelegramThreadState>,
   artistAddress: Address
 ) => {
-  const { data, error } = await selectSocialWallets({ artistAddress });
-  if (error) throw error;
+  const { data: walletRows } = await selectWallets({
+    addresses: [artistAddress],
+  });
+  const artistId = walletRows?.[0]?.artist_id;
 
-  for (const { social_wallet } of data ?? []) {
-    const email = await getEmailByWalletAddress(social_wallet);
-    if (email) {
-      await thread.post(`Your linked email: ${email}`);
-      return;
+  if (artistId) {
+    const { data: privyRows } = await selectWallets({
+      artistIds: [artistId],
+      type: 'privy',
+    });
+    for (const { address } of privyRows ?? []) {
+      const email = await getEmailByWalletAddress(address);
+      if (email) {
+        await thread.post(`Your linked email: ${email}`);
+        return;
+      }
     }
   }
 
-  // artistAddress may itself be a social wallet
-  const { data: rows, error: err } = await selectSocialWallets({
-    socialWallets: [artistAddress],
-  });
-  if (err) throw err;
-
-  if (rows && rows.length > 0) {
+  // artistAddress may itself be a privy wallet
+  if (walletRows?.[0]?.type === 'privy') {
     const email = await getEmailByWalletAddress(artistAddress);
     if (email) {
       await thread.post(`Your linked email: ${email}`);

@@ -23,7 +23,7 @@ const validateUpload = async (req: NextRequest) => {
   if (!parsed.success) return parsed.response;
 
   const { url } = parsed.data;
-  const artistAddress = authResult.artistAddress;
+  const artistAddress = authResult.primaryWallet;
 
   const { blob, type } = await getBlob(url);
 

@@ -4,22 +4,24 @@ import { sendVideoNotSupported } from '@/lib/messages/sendVideoNotSupported';
 import { sendSms } from '@/lib/phones/sendSms';
 import getMomentSuccessMessage from '@/lib/moment/getMomentSuccessMessage';
 
+import type { ArtistContext } from '@/types/artist';
+
 export const processMmsMedia = async (
   phone: {
     phone_number: string;
-    artist: { address: string };
+    artist: ArtistContext;
   },
   media: NonNullable<InboundMessagePayload['media']>[number],
   payload: InboundMessagePayload | undefined
 ): Promise<{ contractAddress: string; tokenId: string } | void> => {
   if (media.content_type?.includes('video')) {
-    await sendVideoNotSupported(phone.phone_number, phone.artist.address);
+    await sendVideoNotSupported(phone.phone_number, phone.artist.primaryWallet);
     return;
   }
   const { contractAddress, tokenId } = await createMomentFromMedia(
     media,
     payload,
-    phone.artist.address
+    phone.artist.primaryWallet
   );
   const message = getMomentSuccessMessage(contractAddress, tokenId);
   await sendSms(phone.phone_number, message);

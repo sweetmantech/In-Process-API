@@ -10,11 +10,10 @@ export async function GET(req: NextRequest) {
   try {
     const validated = await validateArtistApiKeysGet(req);
     if (validated instanceof NextResponse) return validated;
-    const { artistAddress } = validated;
-    return getArtistApiKeysHandler(artistAddress);
+    return getArtistApiKeysHandler(validated);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'Failed to fetch API keys';
+    const message = e?.message ?? 'Failed to get API keys';
     return Response.json({ message }, { status: 500 });
   }
 }
@@ -39,7 +38,7 @@ export async function DELETE(req: NextRequest) {
     return deleteArtistApiKeyHandler(keyId);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'Failed to delete API key';
+    const message = e?.message ?? 'Failed to delete an API key';
     return Response.json({ message }, { status: 500 });
   }
 }

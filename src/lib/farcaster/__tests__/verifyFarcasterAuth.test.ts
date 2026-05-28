@@ -39,13 +39,13 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: true,
       verifiedAddress: signerAddress,
-      farcasterUsername: 'testuser',
+      artistName: 'testuser',
     });
 
     const result = await verifyFarcasterAuth(message, signature);
     expect(result).toEqual({
       verifiedAddress: signerAddress,
-      farcasterUsername: 'testuser',
+      artistName: 'testuser',
     });
   });
 
@@ -59,13 +59,13 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: true,
       verifiedAddress: signerAddress,
-      farcasterUsername: 'testuser',
+      artistName: 'testuser',
     });
 
     const result = await verifyFarcasterAuth(message, signature);
     expect(result).toEqual({
       verifiedAddress: signerAddress,
-      farcasterUsername: 'testuser',
+      artistName: 'testuser',
     });
   });
 
@@ -130,7 +130,7 @@ describe('verifyFarcasterAuth', () => {
     vi.mocked(isAuthorizedSigner).mockResolvedValue({
       authorized: false,
       verifiedAddress: signerAddress,
-      farcasterUsername: undefined,
+      artistName: undefined,
     });
 
     await expect(verifyFarcasterAuth(message, signature)).rejects.toThrow(

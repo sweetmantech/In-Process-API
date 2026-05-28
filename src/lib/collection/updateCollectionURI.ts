@@ -1,6 +1,7 @@
+import type { ArtistContext } from '@/types/artist';
 import { Hash } from 'viem';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import {
   UpdateCollectionURIInput,
   UpdateCollectionURIResult,
@@ -14,10 +15,15 @@ export async function updateCollectionURI({
   collection,
   newUri,
   newCollectionName,
-  artistAddress,
+  artist,
 }: UpdateCollectionURIInput): Promise<UpdateCollectionURIResult> {
-  const smartAccount = await getOrCreateSmartWallet({
-    address: artistAddress,
+  const smartAccount = await getOperationalSmartWallet({
+    artist,
+    moment: {
+      collectionAddress: collection.address,
+      chainId: collection.chainId,
+      tokenId: '0',
+    },
   });
 
   const updateCollectionURICall = getUpdateCollectionURICall(

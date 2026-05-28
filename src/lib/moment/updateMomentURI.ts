@@ -1,6 +1,6 @@
 import { Address, Hash } from 'viem';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import getUpdateTokenURICall from '@/lib/viem/getUpdateTokenURICall';
 import { UpdateMomentURIInput, UpdateMomentURIResult } from '@/types/moment';
 import getUpdateCollectionCall from './getUpdateCollectionCall';
@@ -10,9 +10,9 @@ export async function updateMomentURI({
   moment,
   newUri,
   newCollectionAddress,
-  artistAddress,
+  artist,
 }: UpdateMomentURIInput): Promise<UpdateMomentURIResult> {
-  const smartAccount = await getOrCreateSmartWallet({ address: artistAddress });
+  const smartAccount = await getOperationalSmartWallet({ artist, moment });
 
   const network = moment.chainId === baseSepolia.id ? 'base-sepolia' : 'base';
 
@@ -25,7 +25,7 @@ export async function updateMomentURI({
     const result = await getUpdateCollectionCall({
       moment,
       contract: { uri: newUri, address: newCollectionAddress },
-      artistAddress,
+      artistAddress: artist.primaryWallet,
     });
 
     extraCalls.push(result.call);

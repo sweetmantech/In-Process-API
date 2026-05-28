@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-create-helper';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
 import createBatchSetupActions from './createBatchSetupActions';
 import migrateAndIndexMoment from './migrateAndIndexMoment';
 import getCreatedTokenIds from './getCreatedTokenIds';
@@ -21,7 +21,7 @@ export interface CreateMomentBatchResult {
 const createMomentBatch = async (
   input: CreateMomentBatchInput
 ): Promise<CreateMomentBatchResult> => {
-  const smartAccount = await getOrCreateSmartWallet({
+  const smartAccount = await getWalletLinkedSmartAccount({
     address: input.account as Address,
   });
 

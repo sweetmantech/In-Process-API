@@ -6,8 +6,8 @@ vi.mock('../mapTransfersToSupabase', () => ({
   mapTransfersToSupabase: vi.fn(),
 }));
 vi.mock('../notifyAirdrop', () => ({ default: vi.fn() }));
-vi.mock('@/lib/artists/ensureArtists', () => ({
-  ensureArtists: vi.fn(),
+vi.mock('@/lib/wallets/ensureWallets', () => ({
+  ensureWallets: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_transfers/upsertTransfers', () => ({
   upsertTransfers: vi.fn(),
@@ -16,14 +16,14 @@ vi.mock('@/lib/supabase/in_process_transfers/upsertTransfers', () => ({
 import { processTransfersInBatches } from '../processTransfersInBatches';
 import { distribute } from '../distribute';
 import { mapTransfersToSupabase } from '../mapTransfersToSupabase';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
 import notifyAirdrop from '../notifyAirdrop';
 import type { Transfers_t } from '@/types/envio';
 
 const mockDistribute = vi.mocked(distribute);
 const mockMap = vi.mocked(mapTransfersToSupabase);
-const mockEnsureArtists = vi.mocked(ensureArtists);
+const mockEnsureArtists = vi.mocked(ensureWallets);
 const mockUpsert = vi.mocked(upsertTransfers);
 const mockNotifyAirdrop = vi.mocked(notifyAirdrop);
 
@@ -55,7 +55,7 @@ describe('processTransfersInBatches', () => {
     expect(mockUpsert).not.toHaveBeenCalled();
   });
 
-  it('runs distribute before map, then ensureArtists and upsert', async () => {
+  it('runs distribute before map, then ensureWallets and upsert', async () => {
     const rows = [
       {
         recipient: '0xab',
@@ -86,7 +86,7 @@ describe('processTransfersInBatches', () => {
     expect(mockNotifyAirdrop).toHaveBeenCalledWith(batch);
   });
 
-  it('does not call ensureArtists when map returns no rows', async () => {
+  it('does not call ensureWallets when map returns no rows', async () => {
     mockMap.mockResolvedValue({ rows: [], processedTransfers: [] });
 
     await processTransfersInBatches([transfer('1')]);

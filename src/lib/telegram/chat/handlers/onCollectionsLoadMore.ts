@@ -8,6 +8,8 @@ import {
 } from '../consts';
 import truncateTelegramButtonLabel from '../../truncateTelegramButtonLabel';
 import { CHAIN_ID } from '@/lib/consts';
+import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
+import { Tables } from '@/lib/supabase/types';
 
 export function registerOnCollectionsLoadMore(bot: TelegramChatBot) {
   bot.onAction(COLLECTIONS_LOAD_MORE_ACTION_ID, async (event) => {
@@ -21,13 +23,17 @@ export function registerOnCollectionsLoadMore(bot: TelegramChatBot) {
     if (!telegramUsername) return;
 
     const { data: artists } = await selectArtists({
-      telegram_username: telegramUsername,
+      telegram: telegramUsername,
     });
     const artist = artists?.[0];
     if (!artist) return;
 
+    const artistAddress = await getPrimaryWallet(
+      artist.wallets as Tables<'in_process_wallets'>[]
+    );
+
     const { data, count, error } = await selectCollections({
-      artist: artist.address,
+      artist: artistAddress,
       chainId: CHAIN_ID,
       limit: 20,
       page,

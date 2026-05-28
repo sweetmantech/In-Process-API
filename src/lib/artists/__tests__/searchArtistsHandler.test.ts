@@ -7,25 +7,19 @@ vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import searchArtistsHandler from '@/lib/artists/searchArtistsHandler';
 
+const WALLETS_1 = [{ address: '0xartist1', type: 'external' }];
+const WALLETS_2 = [{ address: '0xartist2', type: 'privy' }];
+
 describe('searchArtistsHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('returns mapped artists with only address and username fields', async () => {
+  it('returns mapped artists with username and wallets fields', async () => {
     vi.mocked(selectArtists).mockResolvedValue({
       data: [
-        {
-          address: '0xartist1',
-          username: 'alice',
-          telegram_username: 'aliceTg',
-          smart_wallet: '0xsmart1',
-        },
-        {
-          address: '0xartist2',
-          username: 'alice2',
-          email: 'a@b.com',
-        },
+        { username: 'alice', wallets: WALLETS_1 },
+        { username: 'alice2', wallets: WALLETS_2 },
       ],
       count: 2,
       error: null,
@@ -36,8 +30,8 @@ describe('searchArtistsHandler', () => {
 
     expect(json).toEqual({
       artists: [
-        { address: '0xartist1', username: 'alice' },
-        { address: '0xartist2', username: 'alice2' },
+        { username: 'alice', wallets: WALLETS_1 },
+        { username: 'alice2', wallets: WALLETS_2 },
       ],
     });
   });
@@ -83,11 +77,7 @@ describe('searchArtistsHandler', () => {
   });
 
   it('throws when supabase returns an error', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
-      data: null,
-      count: null,
-      error: { message: 'DB failure' },
-    } as any);
+    vi.mocked(selectArtists).mockRejectedValue(new Error('DB failure'));
 
     await expect(searchArtistsHandler('alice', 10)).rejects.toThrow(
       'DB failure'

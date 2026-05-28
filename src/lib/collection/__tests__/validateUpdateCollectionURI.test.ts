@@ -25,15 +25,20 @@ const validBody = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: ARTIST } as any);
+  vi.mocked(authMiddleware).mockResolvedValue({
+    primaryWallet: ARTIST,
+    artistId: 'artist-uuid',
+    wallets: [ARTIST],
+    authMethod: 'privy',
+  } as any);
 });
 
 describe('validateUpdateCollectionURI', () => {
-  it('returns validated data with artistAddress on valid input', async () => {
+  it('returns validated data with primaryWallet on valid input', async () => {
     const result = await validateUpdateCollectionURI(makeRequest(validBody));
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect((result as any).artistAddress).toBe(ARTIST);
+    expect((result as any).artist.primaryWallet).toBe(ARTIST);
     expect((result as any).collection.address).toBe(COLLECTION);
     expect((result as any).newUri).toBe(NEW_URI);
     expect((result as any).newCollectionName).toBe('My Collection');

@@ -1,13 +1,25 @@
 import { supabase } from '@/lib/supabase/client';
 
-export async function getApiKeys(artistAddress: string) {
-  const { data, error } = await supabase
+const getApiKeys = async ({
+  artistId,
+  keyHash,
+}: {
+  artistId?: string | null;
+  keyHash?: string;
+}) => {
+  if (!artistId && !keyHash) return [];
+
+  let query = supabase
     .from('in_process_api_keys')
-    .select('id, name, created_at')
-    .eq('artist_address', artistAddress.toLowerCase())
+    .select('id, name, created_at, artist_id')
     .order('created_at', { ascending: false });
 
-  if (error) return { data: null, error };
+  if (artistId) query = query.eq('artist_id', artistId);
+  if (keyHash) query = query.eq('key_hash', keyHash);
 
-  return { data, error: null };
-}
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
+};
+
+export { getApiKeys };

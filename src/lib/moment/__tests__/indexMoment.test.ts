@@ -3,7 +3,7 @@ import { getAddress, type Address } from 'viem';
 import indexMoment from '../indexMoment';
 
 vi.mock('@/lib/consts', () => ({ CHAIN_ID: 8453 }));
-vi.mock('@/lib/artists/ensureArtists', () => ({ ensureArtists: vi.fn() }));
+vi.mock('@/lib/wallets/ensureWallets', () => ({ ensureWallets: vi.fn() }));
 vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
   default: vi.fn(),
 }));
@@ -17,7 +17,7 @@ vi.mock('@/lib/supabase/in_process_moments/upsertMoments', () => ({
   upsertMoments: vi.fn(),
 }));
 
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
@@ -37,7 +37,7 @@ const baseParams = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(ensureArtists).mockResolvedValue(undefined as never);
+  vi.mocked(ensureWallets).mockResolvedValue(undefined as never);
   vi.mocked(selectCollections).mockResolvedValue({
     data: [],
     count: 0,
@@ -56,7 +56,7 @@ beforeEach(() => {
 describe('indexMoment', () => {
   it('ensures artist exists with normalized address', async () => {
     await indexMoment(baseParams);
-    expect(ensureArtists).toHaveBeenCalledWith([
+    expect(ensureWallets).toHaveBeenCalledWith([
       getAddress(ARTIST).toLowerCase(),
     ]);
   });

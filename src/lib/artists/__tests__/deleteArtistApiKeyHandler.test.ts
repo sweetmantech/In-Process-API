@@ -10,7 +10,7 @@ import deleteArtistApiKeyHandler from '@/lib/artists/deleteArtistApiKeyHandler';
 describe('deleteArtistApiKeyHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(deleteApiKey).mockResolvedValue({ error: null } as any);
+    vi.mocked(deleteApiKey).mockResolvedValue(undefined);
   });
 
   it('returns success when delete succeeds', async () => {
@@ -21,13 +21,9 @@ describe('deleteArtistApiKeyHandler', () => {
     expect(json).toEqual({ message: 'API key deleted successfully' });
   });
 
-  it('throws when deleteApiKey returns error', async () => {
-    vi.mocked(deleteApiKey).mockResolvedValue({
-      error: { message: 'e' },
-    } as any);
+  it('propagates errors from deleteApiKey', async () => {
+    vi.mocked(deleteApiKey).mockRejectedValue(new Error('db down'));
 
-    await expect(deleteArtistApiKeyHandler('kid')).rejects.toThrow(
-      'Failed to delete API key'
-    );
+    await expect(deleteArtistApiKeyHandler('kid')).rejects.toThrow('db down');
   });
 });

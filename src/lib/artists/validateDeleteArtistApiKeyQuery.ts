@@ -1,33 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getBearerToken } from '@/lib/api-keys/getBearerToken';
-import privyClient from '@/lib/privy/client';
+import { authMiddleware } from '@/authMiddleware';
+import { deleteApiKeySchema } from '@/lib/schema/apiKeySchema';
 
 const validateDeleteArtistApiKeyQuery = async (req: NextRequest) => {
-  const authHeader = req.headers.get('authorization');
-  const authToken = getBearerToken(authHeader);
-  if (!authToken) {
-    return NextResponse.json(
-      { message: 'Authorization header with Bearer token required' },
-      { status: 500 }
-    );
-  }
+  const authResult = await authMiddleware(req);
+  if (authResult instanceof Response) return authResult as NextResponse;
 
-  try {
-    await privyClient.utils().auth().verifyAuthToken(authToken);
-  } catch (e: any) {
-    const message = e?.message ?? 'Failed to delete API key';
-    return NextResponse.json({ message }, { status: 500 });
-  }
-
-  const keyId = req.nextUrl.searchParams.get('keyId');
-  if (!keyId) {
+  const result = deleteApiKeySchema.safeParse(
+    Object.fromEntries(req.nextUrl.searchParams.entries())
+  );
+  if (!result.success) {
     return NextResponse.json(
-      { message: 'keyId parameter required' },
+      { message: result.error.issues[0]?.message ?? 'Invalid parameters' },
       { status: 400 }
     );
   }
 
-  return { keyId };
+  return { keyId: result.data.keyId };
 };
 
 export default validateDeleteArtistApiKeyQuery;

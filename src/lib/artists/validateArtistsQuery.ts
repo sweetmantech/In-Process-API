@@ -6,7 +6,7 @@ import artistsQuerySchema from '@/lib/schema/artistsQuerySchema';
 const validateArtistsQuery = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
   if (authResult instanceof Response) return authResult as NextResponse;
-  const { artistAddress: callerAddress } = authResult;
+  const { primaryWallet: callerAddress } = authResult;
 
   const result = validate(
     artistsQuerySchema,

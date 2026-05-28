@@ -36,21 +36,21 @@ export type Database = {
     Tables: {
       account_notifications: {
         Row: {
-          artist_address: string;
+          artist_id: string;
           last_nudge_sent_at: string | null;
           notify_enabled: boolean;
           nudge_period: number | null;
           telegram_chat_id: string | null;
         };
         Insert: {
-          artist_address: string;
+          artist_id: string;
           last_nudge_sent_at?: string | null;
           notify_enabled?: boolean;
           nudge_period?: number | null;
           telegram_chat_id?: string | null;
         };
         Update: {
-          artist_address?: string;
+          artist_id?: string;
           last_nudge_sent_at?: string | null;
           notify_enabled?: boolean;
           nudge_period?: number | null;
@@ -58,11 +58,11 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'account_notifications_artist_address_fkey';
-            columns: ['artist_address'];
+            foreignKeyName: 'account_notifications_artist_id_fkey';
+            columns: ['artist_id'];
             isOneToOne: true;
             referencedRelation: 'in_process_artists';
-            referencedColumns: ['address'];
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -96,7 +96,7 @@ export type Database = {
             foreignKeyName: 'in_process_admins_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
           {
@@ -110,7 +110,7 @@ export type Database = {
       };
       in_process_api_keys: {
         Row: {
-          artist_address: string | null;
+          artist_id: string | null;
           created_at: string;
           id: string;
           key_hash: string | null;
@@ -118,7 +118,7 @@ export type Database = {
           name: string;
         };
         Insert: {
-          artist_address?: string | null;
+          artist_id?: string | null;
           created_at?: string;
           id?: string;
           key_hash?: string | null;
@@ -126,7 +126,7 @@ export type Database = {
           name: string;
         };
         Update: {
-          artist_address?: string | null;
+          artist_id?: string | null;
           created_at?: string;
           id?: string;
           key_hash?: string | null;
@@ -135,31 +135,31 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'in_process_api_keys_artist_address_fkey';
-            columns: ['artist_address'];
+            foreignKeyName: 'in_process_api_keys_artist_id_fkey';
+            columns: ['artist_id'];
             isOneToOne: false;
             referencedRelation: 'in_process_artists';
-            referencedColumns: ['address'];
+            referencedColumns: ['id'];
           },
         ];
       };
       in_process_artist_phones: {
         Row: {
-          artist_address: string;
+          artist_id: string;
           created_at: string;
           id: string;
           phone_number: string;
           verified: boolean;
         };
         Insert: {
-          artist_address: string;
+          artist_id: string;
           created_at?: string;
           id?: string;
           phone_number: string;
           verified?: boolean;
         };
         Update: {
-          artist_address?: string;
+          artist_id?: string;
           created_at?: string;
           id?: string;
           phone_number?: string;
@@ -167,70 +167,38 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'in_process_artist_phones_artist_address_fkey';
-            columns: ['artist_address'];
-            isOneToOne: false;
+            foreignKeyName: 'in_process_artist_phones_artist_id_fkey';
+            columns: ['artist_id'];
+            isOneToOne: true;
             referencedRelation: 'in_process_artists';
-            referencedColumns: ['address'];
-          },
-        ];
-      };
-      in_process_artist_social_wallets: {
-        Row: {
-          artist_address: string;
-          created_at: string;
-          social_wallet: string;
-        };
-        Insert: {
-          artist_address: string;
-          created_at?: string;
-          social_wallet: string;
-        };
-        Update: {
-          artist_address?: string;
-          created_at?: string;
-          social_wallet?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'in_process_artist_social_wallets_artist_address_fkey';
-            columns: ['artist_address'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_artists';
-            referencedColumns: ['address'];
+            referencedColumns: ['id'];
           },
         ];
       };
       in_process_artists: {
         Row: {
-          address: string;
           bio: string | null;
-          farcaster_username: string | null;
-          instagram_username: string | null;
-          smart_wallet: string | null;
-          telegram_username: string | null;
-          twitter_username: string | null;
+          id: string;
+          instagram: string | null;
+          telegram: string | null;
           username: string | null;
+          x: string | null;
         };
         Insert: {
-          address: string;
           bio?: string | null;
-          farcaster_username?: string | null;
-          instagram_username?: string | null;
-          smart_wallet?: string | null;
-          telegram_username?: string | null;
-          twitter_username?: string | null;
+          id?: string;
+          instagram?: string | null;
+          telegram?: string | null;
           username?: string | null;
+          x?: string | null;
         };
         Update: {
-          address?: string;
           bio?: string | null;
-          farcaster_username?: string | null;
-          instagram_username?: string | null;
-          smart_wallet?: string | null;
-          telegram_username?: string | null;
-          twitter_username?: string | null;
+          id?: string;
+          instagram?: string | null;
+          telegram?: string | null;
           username?: string | null;
+          x?: string | null;
         };
         Relationships: [];
       };
@@ -270,7 +238,7 @@ export type Database = {
             foreignKeyName: 'in_process_arweave_uploads_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
         ];
@@ -314,7 +282,7 @@ export type Database = {
             foreignKeyName: 'in_process_collections_creator_fkey';
             columns: ['creator'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
         ];
@@ -390,7 +358,7 @@ export type Database = {
             foreignKeyName: 'in_process_moment_comments_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
           {
@@ -429,7 +397,7 @@ export type Database = {
             foreignKeyName: 'in_process_moment_fee_recipients_artist_address_fkey';
             columns: ['artist_address'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
           },
           {
@@ -484,21 +452,21 @@ export type Database = {
       };
       in_process_notifications: {
         Row: {
-          artist: string;
+          artist_id: string;
           created_at: string | null;
           id: string;
           transfer: string;
           viewed: boolean;
         };
         Insert: {
-          artist: string;
+          artist_id: string;
           created_at?: string | null;
           id?: string;
           transfer: string;
           viewed?: boolean;
         };
         Update: {
-          artist?: string;
+          artist_id?: string;
           created_at?: string | null;
           id?: string;
           transfer?: string;
@@ -506,11 +474,11 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'in_process_notifications_artist_fkey';
-            columns: ['artist'];
+            foreignKeyName: 'in_process_notifications_artist_id_fkey';
+            columns: ['artist_id'];
             isOneToOne: false;
             referencedRelation: 'in_process_artists';
-            referencedColumns: ['address'];
+            referencedColumns: ['id'];
           },
           {
             foreignKeyName: 'in_process_notifications_transfer_fkey';
@@ -608,8 +576,34 @@ export type Database = {
             foreignKeyName: 'in_process_transfers_recipient_fkey';
             columns: ['recipient'];
             isOneToOne: false;
-            referencedRelation: 'in_process_artists';
+            referencedRelation: 'in_process_wallets';
             referencedColumns: ['address'];
+          },
+        ];
+      };
+      in_process_wallets: {
+        Row: {
+          address: string;
+          artist: string | null;
+          type: Database['public']['Enums']['wallet_type'] | null;
+        };
+        Insert: {
+          address: string;
+          artist?: string | null;
+          type?: Database['public']['Enums']['wallet_type'] | null;
+        };
+        Update: {
+          address?: string;
+          artist?: string | null;
+          type?: Database['public']['Enums']['wallet_type'] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_wallets_artist_fkey';
+            columns: ['artist'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -726,7 +720,6 @@ export type Database = {
         Returns: {
           artist_address: string;
           artist_username: string;
-          file_size_bytes: number;
           total_count: number;
           total_usdc_cost: number;
           usdc_cost: number;
@@ -800,7 +793,7 @@ export type Database = {
       get_nudges: {
         Args: never;
         Returns: {
-          artist_address: string;
+          artist_id: string;
           chat_id: string;
           days_since_last_moment: number;
           nudge_period: number;
@@ -839,6 +832,7 @@ export type Database = {
         | 'catalog'
         | 'sound.xyz'
         | 'zora_media';
+      wallet_type: 'privy' | 'farcaster' | 'external' | 'smart';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -973,6 +967,7 @@ export const Constants = {
   public: {
     Enums: {
       collection_protocol: ['in_process', 'catalog', 'sound.xyz', 'zora_media'],
+      wallet_type: ['privy', 'farcaster', 'external', 'smart'],
     },
   },
 } as const;

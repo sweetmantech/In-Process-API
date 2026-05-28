@@ -1,5 +1,7 @@
-import { maxUint64, parseUnits, type Address } from 'viem';
+import { maxUint64, parseUnits } from 'viem';
 import type { Thread, Attachment } from 'chat';
+import type { TelegramThreadState } from './telegramThreadState';
+import type { ArtistContext } from '@/types/artist';
 import processAttachmentUpload from './processAttachmentUpload';
 import sendReadyMessage from './sendReadyMessage';
 import sendArtistCollage from './sendArtistCollage';
@@ -7,7 +9,6 @@ import createMomentBatch from '@/lib/moment/createMomentBatch';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
-import type { TelegramThreadState } from './telegramThreadState';
 import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
 import getSelectedCollectionAddress from './getSelectedCollectionAddress';
 import postMomentPending from './postMomentPending';
@@ -17,7 +18,7 @@ const processSingleMedia = async (
   attachment: Attachment,
   fileId: string,
   name: string,
-  artistAddress: Address,
+  artist: ArtistContext,
   thumbFileId?: string
 ): Promise<void> => {
   await postMomentPending(thread);
@@ -30,7 +31,7 @@ const processSingleMedia = async (
       attachment,
       fileId,
       name,
-      artistAddress,
+      artist.primaryWallet,
       thumbFileId
     );
 
@@ -52,10 +53,10 @@ const processSingleMedia = async (
             currency: USDC_ADDRESS[CHAIN_ID],
           },
           mintToCreatorCount: 1,
-          payoutRecipient: artistAddress,
+          payoutRecipient: artist.primaryWallet,
         },
       ],
-      account: artistAddress,
+      account: artist.primaryWallet,
       channel: 'telegram',
     });
 
@@ -67,7 +68,7 @@ const processSingleMedia = async (
     }
 
     await sendReadyMessage(thread, contractAddress.toString(), tokenId);
-    await sendArtistCollage(thread, artistAddress);
+    await sendArtistCollage(thread, artist.primaryWallet);
   } finally {
     if (typingInterval !== undefined) {
       clearInterval(typingInterval);

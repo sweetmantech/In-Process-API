@@ -1,10 +1,11 @@
+import type { ArtistContext } from '@/types/artist';
 import { Address } from 'viem';
 import { airdropMoment } from './airdropMoment';
 import { z } from 'zod';
 import { airdropMomentSchema } from '@/lib/schema/airdropMomentSchema';
 
 type AirdropMomentHandlerInput = z.infer<typeof airdropMomentSchema> & {
-  artistAddress: Address;
+  artist: ArtistContext;
 };
 
 const airdropMomentHandler = async (params: AirdropMomentHandlerInput) => {

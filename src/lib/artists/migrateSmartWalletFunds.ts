@@ -1,52 +1,58 @@
 import { Address } from 'viem';
-import { EvmSmartAccount } from '@coinbase/cdp-sdk';
-import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
-import getSmartWalletsBalances from '@/lib/smartwallets/getSmartWalletsBalances';
+import { baseSepolia } from 'viem/chains';
+import { CHAIN_ID } from '@/lib/consts';
+import { getLegacySmartAccount } from '@/lib/coinbase/getLegacySmartAccount';
+import getWalletBalance from '@/lib/viem/getWalletBalance';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getWithdrawalCall } from '@/lib/smartwallets/getWithdrawalCall';
 
 const migrateSmartWalletFunds = async ({
-  socialSmartAccount,
-  artistSmartWalletAddress,
+  legacyWalletAddress,
+  canonicalSmartAccountAddress,
+  chainId = CHAIN_ID,
 }: {
-  socialSmartAccount: EvmSmartAccount;
-  artistSmartWalletAddress: Address;
+  legacyWalletAddress: Address;
+  canonicalSmartAccountAddress: Address;
+  chainId?: number;
 }) => {
-  const network = IS_TESTNET ? 'base-sepolia' : 'base';
+  const network = chainId === baseSepolia.id ? 'base-sepolia' : 'base';
   try {
-    const { walletsBalances } = await getSmartWalletsBalances(
-      [
-        {
-          address: socialSmartAccount.address as Address,
-          smartWallet: socialSmartAccount,
-        },
-      ],
-      CHAIN_ID
-    );
+    const legacySmartAccount = await getLegacySmartAccount({
+      address: legacyWalletAddress,
+    });
+    const legacySmartAccountAddress =
+      legacySmartAccount.address.toLowerCase() as Address;
+    if (
+      legacySmartAccountAddress === canonicalSmartAccountAddress.toLowerCase()
+    ) {
+      return;
+    }
 
-    const balance = walletsBalances.get(socialSmartAccount.address as Address);
-    if (!balance) return;
+    const { ethBalance, usdcBalance } = await getWalletBalance(
+      legacySmartAccountAddress,
+      chainId
+    );
 
     const calls = [];
 
-    if (balance.ethBalance > BigInt(0)) {
+    if (ethBalance > BigInt(0)) {
       calls.push(
         getWithdrawalCall(
           'eth',
-          balance.ethBalance,
-          artistSmartWalletAddress,
-          CHAIN_ID
+          ethBalance,
+          canonicalSmartAccountAddress,
+          chainId
         )
       );
     }
 
-    if (balance.usdcBalance > BigInt(0)) {
+    if (usdcBalance > BigInt(0)) {
       calls.push(
         getWithdrawalCall(
           'usdc',
-          balance.usdcBalance,
-          artistSmartWalletAddress,
-          CHAIN_ID
+          usdcBalance,
+          canonicalSmartAccountAddress,
+          chainId
         )
       );
     }
@@ -54,16 +60,15 @@ const migrateSmartWalletFunds = async ({
     if (calls.length === 0) return;
 
     const transaction = await sendUserOperation({
-      smartAccount: socialSmartAccount,
+      smartAccount: legacySmartAccount,
       network,
       calls,
     });
     console.log(
-      `✅ migrated ETH and USDC from social wallet to artist wallet: ${transaction.transactionHash}`
+      `✅ migrated ETH and USDC from legacy smart wallet to canonical: ${transaction.transactionHash}`
     );
-  } catch (error) {
-    console.error(`❌ migrateSmartWalletFunds: ${error}`);
-    throw new Error(`❌ migrateSmartWalletFunds: ${error}`);
+  } catch {
+    return;
   }
 };
 

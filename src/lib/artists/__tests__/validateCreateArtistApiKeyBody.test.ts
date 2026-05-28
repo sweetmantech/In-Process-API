@@ -7,9 +7,8 @@ vi.mock('@/authMiddleware', () => ({
 
 import { authMiddleware } from '@/authMiddleware';
 import validateCreateArtistApiKeyBody from '@/lib/artists/validateCreateArtistApiKeyBody';
-import { AuthMethod } from '@/types/auth';
 
-const ADDRESS = '0xa123456789012345678901234567890123456789';
+const ARTIST_ID = '00000000-0000-0000-0000-000000000001';
 
 const makeRequest = (
   body: unknown,
@@ -25,35 +24,20 @@ describe('validateCreateArtistApiKeyBody', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: ADDRESS,
-      authMethod: AuthMethod.Privy,
+      artistId: ARTIST_ID,
     } as any);
   });
 
-  it('returns lowercased artistAddress and key_name', async () => {
+  it('returns artistId and key_name', async () => {
     const result = await validateCreateArtistApiKeyBody(
       makeRequest({ key_name: 'My Key' })
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect(result).toEqual({
-      artistAddress: ADDRESS.toLowerCase(),
+      artistId: ARTIST_ID,
       key_name: 'My Key',
     });
-  });
-
-  it('returns 500 when artistAddress is empty', async () => {
-    vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: '',
-      authMethod: AuthMethod.Privy,
-    } as any);
-
-    const result = await validateCreateArtistApiKeyBody(
-      makeRequest({ key_name: 'k' })
-    );
-
-    expect(result).toBeInstanceOf(NextResponse);
-    expect((result as NextResponse).status).toBe(500);
   });
 
   it('returns 400 when key_name is missing', async () => {

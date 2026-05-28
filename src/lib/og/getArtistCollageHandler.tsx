@@ -2,7 +2,7 @@ import type { z } from 'zod';
 import { ImageResponse } from 'next/og';
 import type artistCollageQuerySchema from '@/lib/schema/artistCollageQuerySchema';
 import getArtistTimeline from '@/lib/supabase/in_process_moments/getArtistTimeline';
-import getArtistProfile from '@/lib/getArtistProfile';
+import getArtistProfile from '@/lib/artists/getArtistProfile';
 import truncateAddress from '@/lib/truncateAddress';
 import { SITE_ORIGINAL_URL } from '@/lib/consts';
 import getArchivoFont from '@/lib/og/getArchivoFont';
@@ -17,7 +17,7 @@ const getArtistCollageHandler = async ({
   artistAddress,
   chainId,
 }: z.infer<typeof artistCollageQuerySchema>) => {
-  const [{ data: timelineData }, { username }] = await Promise.all([
+  const [{ data: timelineData }, profile] = await Promise.all([
     getArtistTimeline({
       artist: artistAddress,
       limit: 100,
@@ -39,7 +39,7 @@ const getArtistCollageHandler = async ({
   );
 
   const archivoFontData = await getArchivoFont();
-  const artistName = username || truncateAddress(artistAddress);
+  const artistName = profile?.username || truncateAddress(artistAddress);
 
   return new ImageResponse(
     <CollageGrid

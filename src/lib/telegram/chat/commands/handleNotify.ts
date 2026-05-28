@@ -2,22 +2,18 @@ import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
-import type { Address } from 'viem';
 
 const handleNotify = async (
   thread: Thread<TelegramThreadState>,
-  artistAddress: Address
+  artistId: string
 ) => {
-  const { data, error: fetchError } =
-    await selectAccountNotification(artistAddress);
-  if (fetchError) throw fetchError;
+  const data = await selectAccountNotification(artistId);
 
   const enabled = !(data?.notify_enabled ?? false);
-  const { error } = await upsertAccountNotification({
-    artist_address: artistAddress,
+  await upsertAccountNotification({
+    artist_id: artistId,
     notify_enabled: enabled,
   });
-  if (error) throw error;
 
   const text = enabled
     ? "🔔 Airdrop notifications are now ON. I'll let you know any time someone sends your wallet an airdrop."

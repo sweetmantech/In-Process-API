@@ -9,7 +9,7 @@ import { mapAdminsToSupabase } from './mapAdminsToSupabase';
 import { mapAdminsForDeletion } from './mapAdminsForDeletion';
 import upsertAdmins from '@/lib/supabase/in_process_admins/upsertAdmins';
 import { deleteAdmins } from '@/lib/supabase/in_process_admins/deleteAdmins';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { getScope } from './getScope';
 
 export async function processAdminsInBatches(
@@ -36,7 +36,7 @@ export async function processAdminsInBatches(
 
       if (batchToUpsert.length > 0) {
         const mappedAdmins = await mapAdminsToSupabase(batchToUpsert);
-        await ensureArtists(mappedAdmins.map((a) => a.artist_address));
+        await ensureWallets(mappedAdmins.map((a) => a.artist_address));
         await upsertAdmins({ admins: mappedAdmins });
         totalUpserted += mappedAdmins.length;
       }

@@ -1,14 +1,14 @@
+import type { ArtistContext } from '@/types/artist';
 import { Address, encodeFunctionData, Hash } from 'viem';
 import { z } from 'zod';
-import { CHAIN_ID, IS_TESTNET, PERMISSION_BIT_ADMIN } from '@/lib/consts';
+import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { zoraCreator1155ImplABI } from '@zoralabs/protocol-deployments';
-import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { airdropMomentSchema } from '../schema/airdropMomentSchema';
-import getPermission from '../zora/getPermission';
 
 export type AirdropMomentInput = z.infer<typeof airdropMomentSchema> & {
-  artistAddress: Address;
+  artist: ArtistContext;
 };
 
 export interface AirdropResult {
@@ -19,28 +19,9 @@ export interface AirdropResult {
 export async function airdropMoment({
   recipients,
   moment,
-  artistAddress,
+  artist,
 }: AirdropMomentInput): Promise<AirdropResult> {
-  const smartAccount = await getOrCreateSmartWallet({
-    address: artistAddress,
-  });
-
-  const smartWalletPermissionBit = await getPermission(
-    moment.collectionAddress,
-    smartAccount.address
-  );
-
-  if (smartWalletPermissionBit !== BigInt(PERMISSION_BIT_ADMIN)) {
-    const accountPermissionBit = await getPermission(
-      moment.collectionAddress,
-      artistAddress
-    );
-    if (accountPermissionBit !== BigInt(PERMISSION_BIT_ADMIN))
-      throw Error(
-        'The account does not have admin permission for this collection.'
-      );
-    else throw Error('Admin permission are not yet granted to smart wallet.');
-  }
+  const smartAccount = await getOperationalSmartWallet({ artist, moment });
 
   const calls = recipients.map((recipient) =>
     encodeFunctionData({

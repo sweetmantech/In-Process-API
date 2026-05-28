@@ -1,4 +1,5 @@
-import { maxUint64, parseUnits, type Address } from 'viem';
+import { maxUint64, parseUnits } from 'viem';
+import type { ArtistContext } from '@/types/artist';
 import getYoutubeDetail from '@/lib/link/getYoutubeDetail';
 import uploadYtDetails from '@/lib/link/uploadYtDetails';
 import type { CreateContractResult } from '@/lib/schema/createMomentSchema';
@@ -6,16 +7,21 @@ import createMomentBatch from '@/lib/moment/createMomentBatch';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
+import type { Address } from 'viem';
 
 const createMomentFromYoutubeLink = async (
   url: string,
-  artistAddress: Address,
+  artist: ArtistContext,
   existingCollectionAddress?: Address
 ): Promise<CreateContractResult> => {
   const detail = await getYoutubeDetail(url);
   if (!detail) throw new Error('Failed to fetch YouTube details');
 
-  const { metadataUri } = await uploadYtDetails(detail, url, artistAddress);
+  const { metadataUri } = await uploadYtDetails(
+    detail,
+    url,
+    artist.primaryWallet
+  );
 
   const contract = existingCollectionAddress
     ? { address: existingCollectionAddress }
@@ -35,10 +41,10 @@ const createMomentFromYoutubeLink = async (
           currency: USDC_ADDRESS[CHAIN_ID],
         },
         mintToCreatorCount: 1,
-        payoutRecipient: artistAddress,
+        payoutRecipient: artist.primaryWallet,
       },
     ],
-    account: artistAddress,
+    account: artist.primaryWallet,
     channel: 'telegram',
   });
 

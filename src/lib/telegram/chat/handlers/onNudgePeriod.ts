@@ -13,16 +13,15 @@ export function registerOnNudgePeriod(bot: TelegramChatBot) {
     if (!telegramUsername) return;
 
     const { data } = await selectArtists({
-      telegram_username: telegramUsername,
+      telegram: telegramUsername,
     });
     const artist = data?.[0];
-    if (!artist) return;
+    if (!artist?.id) return;
 
-    const { error } = await upsertAccountNotification({
-      artist_address: artist.address,
+    await upsertAccountNotification({
+      artist_id: artist.id,
       nudge_period: period,
     });
-    if (error) throw error;
 
     const { description } = NUDGE_PERIODS[value];
     await event.thread?.post(

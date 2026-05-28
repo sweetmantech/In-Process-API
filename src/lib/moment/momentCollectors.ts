@@ -28,7 +28,7 @@ export async function momentCollectors({ moment, offset }: GetCollectorsInput) {
   const formattedCollectors = collectors.map((collector) => ({
     id: collector.id,
     collector: collector.collector,
-    username: collector.artist.username ?? '',
+    username: collector.wallet?.artist?.username ?? '',
     amount: collector.amount,
     transactionHash: collector.transaction_hash,
     timestamp: collector.collected_at

@@ -1,91 +1,29 @@
-import { NextRequest } from 'next/server';
-import { authMiddleware } from '@/authMiddleware';
-import { upsertPhone } from '@/lib/supabase/in_process_artist_phones/upsertPhone';
-import { deletePhone } from '@/lib/supabase/in_process_artist_phones/deletePhone';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import truncateAddress from '@/lib/truncateAddress';
-import { registerPhoneSchema } from '@/lib/schema/phoneNumberSchema';
-import { sendSms } from '@/lib/phones/sendSms';
-import { validate } from '@/lib/schema/validate';
+import { NextRequest, NextResponse } from 'next/server';
+import validateRegisterPhoneBody from '@/lib/phones/validateRegisterPhoneBody';
+import validateDeletePhone from '@/lib/phones/validateDeletePhone';
+import registerPhoneHandler from '@/lib/phones/registerPhoneHandler';
+import deletePhoneHandler from '@/lib/phones/deletePhoneHandler';
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
-    if (authResult instanceof Response) {
-      return authResult;
-    }
-    const { artistAddress } = authResult;
-
-    // Get and validate phone number from request body
-    const body = await req.json();
-    const validationResult = validate(registerPhoneSchema, body);
-    if (!validationResult.success) {
-      return validationResult.response;
-    }
-
-    const { phone_number } = validationResult.data;
-
-    // Upsert phone number into Supabase with verified = false
-    const { error: insertError } = await upsertPhone({
-      artist_address: artistAddress.toLowerCase(),
-      phone_number,
-      verified: false,
-    });
-
-    if (insertError) {
-      throw new Error(`Failed to insert phone number: ${insertError.message}`);
-    }
-
-    // Get artist name for SMS message
-    const { data: artistData, error: artistError } = await selectArtists({
-      address: artistAddress.toLowerCase(),
-    });
-    if (artistError) throw artistError;
-    const artist = artistData?.[0];
-    const artistName = artist?.username || truncateAddress(artistAddress);
-
-    // Send SMS verification message
-    await sendSms(
-      phone_number,
-      `Someone is trying to connect this phone number to the artist profile for ${artistName} on In Process. If this was you, please reply 'yes'. If this was not you, please ignore this message.`
-    );
-
-    return Response.json({
-      success: true,
-      message: 'Phone number registered and verification message sent',
-    });
-  } catch (e: any) {
-    console.log(e);
-    const message = e?.message ?? 'Failed to register phone number';
+    const validated = await validateRegisterPhoneBody(req);
+    if (validated instanceof NextResponse) return validated;
+    return registerPhoneHandler(validated);
+  } catch (e: unknown) {
+    const message =
+      e instanceof Error ? e.message : 'Failed to register phone number';
     return Response.json({ message }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const authResult = await authMiddleware(req);
-    if (authResult instanceof Response) {
-      return authResult;
-    }
-    const { artistAddress } = authResult;
-
-    const { error: deleteError } = await deletePhone(
-      artistAddress.toLowerCase()
-    );
-
-    if (deleteError) {
-      throw new Error(
-        `Failed to disconnect phone number: ${deleteError.message}`
-      );
-    }
-
-    return Response.json({
-      success: true,
-      message: 'Phone number is disconnected successfully',
-    });
-  } catch (e: any) {
-    console.log(e);
-    const message = e?.message ?? 'Failed to disconnect phone number';
+    const validated = await validateDeletePhone(req);
+    if (validated instanceof NextResponse) return validated;
+    return deletePhoneHandler(validated);
+  } catch (e: unknown) {
+    const message =
+      e instanceof Error ? e.message : 'Failed to disconnect phone number';
     return Response.json({ message }, { status: 500 });
   }
 }

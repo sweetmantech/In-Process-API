@@ -19,7 +19,7 @@ vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
 vi.mock('@/lib/protocolSdk/ipfs/token-metadata', () => ({
   fetchTokenMetadata: vi.fn(),
 }));
-vi.mock('@/lib/getArtistProfile', () => ({
+vi.mock('@/lib/artists/getArtistProfile', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/og/getOgFonts', () => ({
@@ -35,7 +35,7 @@ vi.mock('@/lib/og/getImageMetadata', () => ({
 import { ImageResponse } from 'next/og';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { fetchTokenMetadata } from '@/lib/protocolSdk/ipfs/token-metadata';
-import getArtistProfile from '@/lib/getArtistProfile';
+import getArtistProfile from '@/lib/artists/getArtistProfile';
 import getOgFonts from '@/lib/og/getOgFonts';
 import fetchUri from '@/lib/arweave/fetchUri';
 import getImageMetadata from '@/lib/og/getImageMetadata';

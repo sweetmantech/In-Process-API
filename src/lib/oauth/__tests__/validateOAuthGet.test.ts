@@ -15,12 +15,12 @@ const makeRequest = () =>
 
 describe('validateOAuthGet', () => {
   it('returns artistAddress when auth succeeds', async () => {
-    mockAuthMiddleware.mockResolvedValue({ artistAddress: '0xabc' } as any);
+    mockAuthMiddleware.mockResolvedValue({ primaryWallet: '0xabc' } as any);
 
     const result = await validateOAuthGet(makeRequest());
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect(result).toEqual({ artistAddress: '0xabc' });
+    expect(result).toEqual(expect.objectContaining({ primaryWallet: '0xabc' }));
   });
 
   it('returns 403 when auth fails', async () => {

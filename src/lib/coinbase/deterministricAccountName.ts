@@ -1,19 +1,19 @@
-import { keccak256, toBytes, type Address, getAddress } from 'viem';
+import { keccak256, toBytes } from 'viem';
 import deterministicShuffle from './deterministicShuffle';
 import encodeWithAlphabet from './encodeWithAlphabet';
 
 /**
- * Deterministically generate a username from an EVM address.
+ * Deterministically generate a username from any string seed.
+ * Accepts an Ethereum address or an artist UUID.
  * - Radix chosen deterministically in [2..36]
  * - Alphabet is the shuffled first `radix` characters of 0-9a-z
  * - Output length clamped to [2..36]
  */
 export function deterministicAccountName(
-  address: string,
+  seed: string,
   desiredLength = 36
 ): string {
-  const addr: Address = getAddress(address); // checksum & normalize
-  const hex = addr.toLowerCase();
+  const hex = seed.toLowerCase();
 
   // Choose radix in [2..36] deterministically from address
   const hRadix = keccak256(toBytes(`${hex}:radix`));

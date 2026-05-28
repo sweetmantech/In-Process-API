@@ -1,33 +1,37 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/api-keys/getAuthorizedAddressByApiKey', () => ({
-  getAuthorizedAddressByApiKey: vi.fn(),
+vi.mock('@/lib/wallets/getWalletsByApiKey', () => ({
+  getWalletsByApiKey: vi.fn(),
 }));
 
-import { getAuthorizedAddressByApiKey } from '@/lib/api-keys/getAuthorizedAddressByApiKey';
+import { getWalletsByApiKey } from '@/lib/wallets/getWalletsByApiKey';
 import { AuthMethod } from '@/types/auth';
 import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
 
-const ARTIST_ADDRESS = '0xabc123';
+const WALLET_DATA = {
+  primaryWallet: '0xabc123' as const,
+  wallets: ['0xabc123' as const],
+  artistId: 'artist-uuid',
+};
 
 describe('authenticateWithApiKey', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('returns artistAddress and ApiKey authMethod on success', async () => {
-    vi.mocked(getAuthorizedAddressByApiKey).mockResolvedValue(ARTIST_ADDRESS);
+  it('returns wallets and ApiKey authMethod on success', async () => {
+    vi.mocked(getWalletsByApiKey).mockResolvedValue(WALLET_DATA);
 
     const result = await authenticateWithApiKey('valid-key');
 
     expect(result).toEqual({
-      artistAddress: ARTIST_ADDRESS,
+      ...WALLET_DATA,
       authMethod: AuthMethod.ApiKey,
     });
   });
 
-  it('throws when getAuthorizedAddressByApiKey throws', async () => {
-    vi.mocked(getAuthorizedAddressByApiKey).mockRejectedValue(
+  it('throws when getWalletsByApiKey throws', async () => {
+    vi.mocked(getWalletsByApiKey).mockRejectedValue(
       new Error('Invalid API key')
     );
 

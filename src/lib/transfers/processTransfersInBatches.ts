@@ -1,5 +1,5 @@
 import { BATCH_SIZE } from '@/lib/consts';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
 import type { Transfers_t } from '@/types/envio';
 import { distribute } from './distribute';
@@ -35,7 +35,7 @@ export async function processTransfersInBatches(
 
       const recipients = [...new Set(rows.map((r) => r.recipient))];
       if (recipients.length > 0) {
-        await ensureArtists(recipients);
+        await ensureWallets(recipients);
       }
 
       await upsertTransfers(rows);
