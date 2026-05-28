@@ -90,20 +90,11 @@ describe('getActiveArtistsHandler', () => {
     expect(json.total_pages).toBe(0);
   });
 
-  it('returns 500 when getActiveArtistsStats returns an error', async () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.mocked(getActiveArtistsStats).mockResolvedValue({
-      data: null,
-      totalCount: 0,
-      error: new Error('DB failed'),
-    });
+  it('propagates error when getActiveArtistsStats throws', async () => {
+    vi.mocked(getActiveArtistsStats).mockRejectedValue(new Error('DB failed'));
 
-    const res = await getActiveArtistsHandler(BASE_PARAMS);
-    const json = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(json).toEqual({ message: 'Failed to fetch active artists stats' });
-    expect(spy).toHaveBeenCalled();
-    spy.mockRestore();
+    await expect(getActiveArtistsHandler(BASE_PARAMS)).rejects.toThrow(
+      'DB failed'
+    );
   });
 });

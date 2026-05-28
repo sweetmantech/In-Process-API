@@ -21,7 +21,7 @@ describe('validateEmailsQuery', () => {
 
   it('returns validated data with callerAddress when auth succeeds', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: CALLER,
+      primaryWallet: CALLER,
     } as any);
 
     const result = await validateEmailsQuery(
@@ -50,7 +50,7 @@ describe('validateEmailsQuery', () => {
 
   it('returns 400 when limit is not a valid number', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: CALLER,
+      primaryWallet: CALLER,
     } as any);
 
     const result = await validateEmailsQuery(makeRequest({ limit: 'abc' }));
@@ -61,7 +61,7 @@ describe('validateEmailsQuery', () => {
 
   it('returns 400 when limit exceeds 100', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: CALLER,
+      primaryWallet: CALLER,
     } as any);
 
     const result = await validateEmailsQuery(makeRequest({ limit: '101' }));
@@ -72,7 +72,7 @@ describe('validateEmailsQuery', () => {
 
   it('coerces limit to a number', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: CALLER,
+      primaryWallet: CALLER,
     } as any);
 
     const result = await validateEmailsQuery(makeRequest({ limit: '10' }));
@@ -82,7 +82,7 @@ describe('validateEmailsQuery', () => {
 
   it('returns undefined cursor and limit when not provided', async () => {
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: CALLER,
+      primaryWallet: CALLER,
     } as any);
 
     const result = await validateEmailsQuery(makeRequest());

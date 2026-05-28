@@ -14,13 +14,38 @@ const BASE_PARAMS = {
   page: 1,
   type: undefined as Transfer_Type | undefined,
   content_type: undefined as string | undefined,
-  artist: undefined as string | undefined,
-  collector: undefined as string | undefined,
+  artist: undefined as `0x${string}` | undefined,
+  collector: undefined as `0x${string}` | undefined,
 };
 
-const MOCK_TRANSFERS = [
-  { id: '1', transferred_at: '2024-01-01T00:00:00Z' },
-  { id: '2', transferred_at: '2024-01-02T00:00:00Z' },
+// Raw rows as returned from Supabase (recipient + nested wallet join).
+const MOCK_RAW_TRANSFERS = [
+  {
+    id: '1',
+    transferred_at: '2024-01-01T00:00:00Z',
+    recipient: '0xaaaa',
+    collector: { artist: { username: 'alice' } },
+  },
+  {
+    id: '2',
+    transferred_at: '2024-01-02T00:00:00Z',
+    recipient: '0xbbbb',
+    collector: null,
+  },
+];
+
+// Normalized shape that clients receive.
+const MOCK_NORMALIZED_TRANSFERS = [
+  {
+    id: '1',
+    transferred_at: '2024-01-01T00:00:00Z',
+    collector: { address: '0xaaaa', username: 'alice' },
+  },
+  {
+    id: '2',
+    transferred_at: '2024-01-02T00:00:00Z',
+    collector: { address: '0xbbbb', username: null },
+  },
 ];
 
 describe('getTransfersHandler', () => {
@@ -29,16 +54,16 @@ describe('getTransfersHandler', () => {
   });
 
   describe('successful responses', () => {
-    it('returns transfers and pagination', async () => {
+    it('returns normalized transfers and pagination', async () => {
       vi.mocked(getTransfers).mockResolvedValue({
-        data: MOCK_TRANSFERS as any,
+        data: MOCK_RAW_TRANSFERS as any,
         count: 2,
       });
 
       const res = await getTransfersHandler(BASE_PARAMS);
       const json = await res.json();
 
-      expect(json.transfers).toEqual(MOCK_TRANSFERS);
+      expect(json.transfers).toEqual(MOCK_NORMALIZED_TRANSFERS);
       expect(json.pagination.total_count).toBe(2);
       expect(json.pagination.page).toBe(1);
       expect(json.pagination.limit).toBe(20);
@@ -47,7 +72,7 @@ describe('getTransfersHandler', () => {
 
     it('returns empty transfers array when data is null', async () => {
       vi.mocked(getTransfers).mockResolvedValue({
-        data: null,
+        data: null as any,
         count: 0,
       });
 
@@ -71,7 +96,7 @@ describe('getTransfersHandler', () => {
 
     it('calculates total_pages correctly', async () => {
       vi.mocked(getTransfers).mockResolvedValue({
-        data: MOCK_TRANSFERS as any,
+        data: MOCK_RAW_TRANSFERS as any,
         count: 45,
       });
 
@@ -93,11 +118,52 @@ describe('getTransfersHandler', () => {
       expect(json.pagination.total_pages).toBe(0);
     });
 
+    it('normalizes collection.artist from wallet join', async () => {
+      vi.mocked(getTransfers).mockResolvedValue({
+        data: [
+          {
+            id: '1',
+            recipient: '0xaaaa',
+            collector: { artist: { username: 'collector_user' } },
+            moment: {
+              token_id: 1,
+              collection: {
+                address: '0xcollection',
+                chain_id: 8453,
+                protocol: 'in_process',
+                creator: '0xcreator',
+                collection_artist: { artist: { username: 'creator_user' } },
+              },
+            },
+          },
+        ] as any,
+        count: 1,
+      });
+
+      const res = await getTransfersHandler(BASE_PARAMS);
+      const json = await res.json();
+
+      expect(json.transfers[0].collector).toEqual({
+        address: '0xaaaa',
+        username: 'collector_user',
+      });
+      expect(json.transfers[0].moment.collection.artist).toEqual({
+        address: '0xcreator',
+        username: 'creator_user',
+      });
+      expect(json.transfers[0].moment.collection.creator).toBeUndefined();
+      expect(
+        json.transfers[0].moment.collection.collection_artist
+      ).toBeUndefined();
+    });
+
     it('keeps fee_recipients inside moment payload', async () => {
       vi.mocked(getTransfers).mockResolvedValue({
         data: [
           {
             id: '1',
+            recipient: '0xaaaa',
+            collector: null,
             moment: {
               token_id: 1,
               fee_recipients: [
@@ -122,6 +188,29 @@ describe('getTransfersHandler', () => {
         },
       ]);
       expect(json.transfers[0].moment.token_id).toBe(1);
+    });
+
+    it('passes airdrop data through without normalization', async () => {
+      const airdropTransfer = {
+        id: '1',
+        collector: { address: '0xaaaa', username: 'alice' },
+        moment: {
+          collection: { artist: { address: '0xcreator', username: 'bob' } },
+        },
+      };
+
+      vi.mocked(getTransfers).mockResolvedValue({
+        data: [airdropTransfer] as any,
+        count: 1,
+      });
+
+      const res = await getTransfersHandler({
+        ...BASE_PARAMS,
+        type: Transfer_Type.airdrop,
+      });
+      const json = await res.json();
+
+      expect(json.transfers[0]).toEqual(airdropTransfer);
     });
   });
 

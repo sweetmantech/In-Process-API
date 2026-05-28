@@ -5,8 +5,8 @@ const searchArtistsHandler = async (query: string, limit: number) => {
   const { data } = await selectArtists({ q: query, limit });
 
   const artists = (data ?? []).map((a) => ({
-    address: a.address,
     username: a.username,
+    wallets: a.wallets,
   }));
 
   return NextResponse.json({ artists });

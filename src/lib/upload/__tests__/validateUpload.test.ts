@@ -34,7 +34,7 @@ describe('validateUpload', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: ARTIST,
+      primaryWallet: ARTIST,
     } as any);
     vi.mocked(getBlob).mockResolvedValue({ blob: BLOB, type: 'image/png' });
   });

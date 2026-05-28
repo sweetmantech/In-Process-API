@@ -1,14 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Transfers_t } from '@/types/envio';
 
-vi.mock('@/lib/supabase/client', () => {
-  const maybeSingle = vi.fn();
-  const chain = { from: vi.fn(), select: vi.fn(), eq: vi.fn(), maybeSingle };
-  chain.from.mockReturnValue(chain);
-  chain.select.mockReturnValue(chain);
-  chain.eq.mockReturnValue(chain);
-  return { supabase: chain };
-});
+vi.mock(
+  '@/lib/supabase/account_notifications/selectAccountNotification',
+  () => ({
+    default: vi.fn(),
+  })
+);
+vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/telegram/client', () => ({
   telegramChatBotClient: { sendMessage: vi.fn() },
 }));
@@ -18,16 +19,16 @@ vi.mock('@/lib/consts', () => ({
   SITE_ORIGINAL_URL: 'https://inprocess.world',
 }));
 
-import { supabase } from '@/lib/supabase/client';
+import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from '../getAirdropOperator';
 import notifyAirdrop from '../notifyAirdrop';
 
 const RECIPIENT = '0xrecipient0000000000000000000000000000000';
 const SENDER = '0xsender00000000000000000000000000000000000';
+const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 const CHAT_ID = '1352384640';
-
-const maybeSingle = (supabase as any).maybeSingle as ReturnType<typeof vi.fn>;
 
 const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
   ({
@@ -43,10 +44,13 @@ const makeTransfer = (overrides: Partial<Transfers_t> = {}): Transfers_t =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  maybeSingle.mockResolvedValue({
-    data: { telegram_chat_id: CHAT_ID },
+  vi.mocked(selectWallets).mockResolvedValue({
+    data: [{ artist_id: ARTIST_ID } as any],
     error: null,
   });
+  vi.mocked(selectAccountNotification).mockResolvedValue({
+    telegram_chat_id: CHAT_ID,
+  } as any);
   vi.mocked(getAirdropOperator).mockResolvedValue({
     address: SENDER,
     username: 'alice',
@@ -62,11 +66,16 @@ describe('notifyAirdrop', () => {
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
   });
 
+  it('skips notification when recipient has no artist account', async () => {
+    vi.mocked(selectWallets).mockResolvedValue({ data: [], error: null });
+    await notifyAirdrop([makeTransfer()]);
+    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
+  });
+
   it('skips notification when no telegram_chat_id is found', async () => {
-    maybeSingle.mockResolvedValue({
-      data: { telegram_chat_id: null },
-      error: null,
-    });
+    vi.mocked(selectAccountNotification).mockResolvedValue({
+      telegram_chat_id: null,
+    } as any);
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
   });

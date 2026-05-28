@@ -20,7 +20,7 @@ const getActiveArtistsHandler = async ({
   sort_by: ActiveArtistsSortBy;
   sort_order: ActiveArtistsSortOrder;
 }) => {
-  const { data, totalCount, error } = await getActiveArtistsStats({
+  const { data, totalCount } = await getActiveArtistsStats({
     period,
     limit,
     page,
@@ -28,14 +28,6 @@ const getActiveArtistsHandler = async ({
     sort_by,
     sort_order,
   });
-
-  if (error) {
-    console.error('Failed to fetch active artists stats', error);
-    return NextResponse.json(
-      { message: 'Failed to fetch active artists stats' },
-      { status: 500 }
-    );
-  }
 
   return NextResponse.json({
     data,

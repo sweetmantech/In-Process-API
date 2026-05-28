@@ -25,7 +25,7 @@ const validBody = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(authMiddleware).mockResolvedValue({ artistAddress: ARTIST } as any);
+  vi.mocked(authMiddleware).mockResolvedValue({ primaryWallet: ARTIST } as any);
 });
 
 describe('validateUpdateCollectionURI', () => {

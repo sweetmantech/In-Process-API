@@ -14,7 +14,6 @@ const getActiveArtistsStats = async ({
 }: ActiveArtistsStatsParams): Promise<{
   data: ActiveArtistStats[] | null;
   totalCount: number;
-  error: Error | null;
 }> => {
   const { data, error } = await supabase.rpc('get_active_artists_stats', {
     p_period: period,
@@ -25,14 +24,12 @@ const getActiveArtistsStats = async ({
     p_sort_order: sort_order,
   });
 
-  if (error) {
-    return { data: null, totalCount: 0, error };
-  }
+  if (error) throw error;
 
   const rows = data as (ActiveArtistStats & { total_count: number })[];
   const totalCount = rows[0]?.total_count ?? 0;
 
-  return { data: rows, totalCount, error: null };
+  return { data: rows, totalCount };
 };
 
 export default getActiveArtistsStats;

@@ -1,5 +1,4 @@
-import getFarcasterAddresses from '@/lib/farcaster/getFarcasterAddresses';
-import { upsertArtistNames } from '@/lib/supabase/in_process_artists/upsertArtistNames';
+import getFarcasterAddresses from '@/lib/farcaster/getFarcasterWalletByFid';
 
 const isAuthorizedSigner = async (
   fid: bigint,
@@ -7,17 +6,13 @@ const isAuthorizedSigner = async (
 ): Promise<{
   authorized: boolean;
   verifiedAddress: string;
-  farcasterUsername: string | undefined;
+  artistName: string | undefined;
 }> => {
-  const { custodyAddress, verifiedAddress, artistName, farcasterUsername } =
+  const { custodyAddress, verifiedAddress, artistName } =
     await getFarcasterAddresses(fid);
   const authorized = signer.toLowerCase() === custodyAddress;
-  if (authorized && artistName) {
-    upsertArtistNames(new Map([[verifiedAddress, artistName]])).catch((e) =>
-      console.error('upsertArtistNames failed in isAuthorizedSigner:', e)
-    );
-  }
-  return { authorized, verifiedAddress, farcasterUsername };
+
+  return { authorized, verifiedAddress, artistName };
 };
 
 export default isAuthorizedSigner;

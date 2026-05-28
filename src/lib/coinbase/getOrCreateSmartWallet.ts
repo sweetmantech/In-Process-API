@@ -17,7 +17,7 @@ export async function getOrCreateSmartWallet({
     name: evmAccount.name as string,
     owner: evmAccount,
   });
-  const { data: wallets } = await selectWallets({ address });
+  const { data: wallets } = await selectWallets({ addresses: [address] });
   if (
     wallets?.[0]?.smart_wallet_address !== smartAccount.address.toLowerCase()
   ) {

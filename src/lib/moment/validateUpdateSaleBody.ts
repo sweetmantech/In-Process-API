@@ -13,7 +13,7 @@ export type UpdateSaleBody = { callerAddress: string } & z.infer<
 const validateUpdateSaleBody = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
   if (authResult instanceof Response) return authResult as NextResponse;
-  const { artistAddress: callerAddress } = authResult;
+  const { primaryWallet: callerAddress } = authResult;
 
   const body = await req.json();
   const result = validate(updateSaleSchema, body);

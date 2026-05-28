@@ -2,19 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getAddress } from 'viem';
 import { Actions, Button, Card, CardText } from 'chat';
 
-vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
-  default: vi.fn(),
-}));
-
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { registerOnCollectionSelect } from '../onCollectionSelect';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTION_SELECTION_CANCEL_ACTION_ID,
 } from '../../consts';
 
-const ARTIST_ADDRESS = '0xaaa';
-const TELEGRAM_USERNAME = 'u1';
 const COL_ADDRESS = '0x0000000000000000000000000000000000000001';
 
 const makeBot = () => {
@@ -42,7 +35,7 @@ const makeEvent = (
   const set = vi.fn().mockResolvedValue(undefined);
   return {
     value: COL_ADDRESS,
-    user: { userName: TELEGRAM_USERNAME },
+    user: { userName: 'u1' },
     thread: { post, channelId: 'telegram:1', _stateAdapter: { set } },
     ...overrides,
   };
@@ -50,10 +43,6 @@ const makeEvent = (
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(selectArtists).mockResolvedValue({
-    data: [{ address: ARTIST_ADDRESS }],
-    error: null,
-  } as never);
 });
 
 describe('registerOnCollectionSelect', () => {
@@ -97,27 +86,13 @@ describe('registerOnCollectionSelect', () => {
     const { bot, handler } = makeBot();
     registerOnCollectionSelect(bot as never);
     await handler.fn({ ...makeEvent(), thread: null });
-    expect(selectArtists).not.toHaveBeenCalled();
   });
 
   it('exits when value is empty', async () => {
     const { bot, handler } = makeBot();
     registerOnCollectionSelect(bot as never);
-    await handler.fn({ ...makeEvent(), value: '' });
-    expect(selectArtists).not.toHaveBeenCalled();
-  });
-
-  it('exits when artist is not found', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
-      data: [],
-      error: null,
-    } as never);
-
-    const { bot, handler } = makeBot();
-    registerOnCollectionSelect(bot as never);
-    const event = makeEvent();
+    const event = makeEvent({ value: '' });
     await handler.fn(event);
-
     expect(event.thread?.post).not.toHaveBeenCalled();
   });
 });

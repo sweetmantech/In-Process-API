@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
 import { upsertPhone } from '@/lib/supabase/in_process_artist_phones/upsertPhone';
 import { deletePhone } from '@/lib/supabase/in_process_artist_phones/deletePhone';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import truncateAddress from '@/lib/truncateAddress';
 import { registerPhoneSchema } from '@/lib/schema/phoneNumberSchema';
 import { sendSms } from '@/lib/phones/sendSms';
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { artistAddress } = authResult;
+    const { primaryWallet } = authResult;
 
     // Get and validate phone number from request body
     const body = await req.json();
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     // Upsert phone number into Supabase with verified = false
     const { error: insertError } = await upsertPhone({
-      artist_address: artistAddress.toLowerCase(),
+      artist_address: primaryWallet.toLowerCase(),
       phone_number,
       verified: false,
     });
@@ -36,13 +36,11 @@ export async function POST(req: NextRequest) {
       throw new Error(`Failed to insert phone number: ${insertError.message}`);
     }
 
-    // Get artist name for SMS message
-    const { data: artistData, error: artistError } = await selectArtists({
-      address: artistAddress.toLowerCase(),
+    const { data: walletRows } = await selectWallets({
+      addresses: [primaryWallet.toLowerCase()],
     });
-    if (artistError) throw artistError;
-    const artist = artistData?.[0];
-    const artistName = artist?.username || truncateAddress(artistAddress);
+    const username = walletRows?.[0]?.artist?.username;
+    const artistName = username || truncateAddress(primaryWallet);
 
     // Send SMS verification message
     await sendSms(
@@ -67,10 +65,10 @@ export async function DELETE(req: NextRequest) {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { artistAddress } = authResult;
+    const { primaryWallet } = authResult;
 
     const { error: deleteError } = await deletePhone(
-      artistAddress.toLowerCase()
+      primaryWallet.toLowerCase()
     );
 
     if (deleteError) {

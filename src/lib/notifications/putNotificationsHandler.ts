@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { updateNotifications } from '@/lib/supabase/in_process_notifications/updateNotifications';
 
-const putNotificationsHandler = async (artist?: string) => {
-  const { data, error } = await updateNotifications({ artist, viewed: true });
+const putNotificationsHandler = async (artist_id?: string) => {
+  const { data, error } = await updateNotifications({
+    artist_id,
+    viewed: true,
+  });
   if (error)
     return NextResponse.json({ message: error.message }, { status: 500 });
   const count = data?.length ?? 0;

@@ -15,7 +15,7 @@ const makeRequest = () =>
 
 describe('validateOAuthGet', () => {
   it('returns artistAddress when auth succeeds', async () => {
-    mockAuthMiddleware.mockResolvedValue({ artistAddress: '0xabc' } as any);
+    mockAuthMiddleware.mockResolvedValue({ primaryWallet: '0xabc' } as any);
 
     const result = await validateOAuthGet(makeRequest());
 

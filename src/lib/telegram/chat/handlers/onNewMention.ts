@@ -9,7 +9,8 @@ import commandsHandler from '../commands/commandsHandler';
 import processMediaThread from '../processMediaThread';
 import youtubeParser from '@/lib/link/youtubeParser';
 import processYoutubeLink from '../processYoutubeLink';
-
+import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
+import { Tables } from '@/lib/supabase/types';
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
 
@@ -24,11 +25,17 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         telegram: telegramUsername,
       });
       const artist = data?.[0] ?? null;
+      const artistId = artist?.id;
+      const artistAddress = getPrimaryWallet(
+        artist?.wallets as Tables<'in_process_wallets'>[]
+      );
+      if (!artistAddress) return;
+
       const text = message.text?.trim() ?? '';
 
-      if (artist) {
+      if (artistId) {
         await upsertAccountNotification({
-          artist_address: artist.address as Address,
+          artist_id: artistId,
           telegram_chat_id: parseTelegramChatId(thread.channelId),
         });
       }
@@ -37,11 +44,10 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         text,
         thread,
         telegramUsername,
-        artist
+        artist,
+        artistAddress as Address
       );
       if (handled) return;
-
-      const artistAddress = artist!.address as Address;
 
       const attachment = message.attachments?.[0];
       if (
@@ -53,14 +59,14 @@ export function registerOnNewMention(bot: TelegramChatBot) {
           message,
           attachment,
           text,
-          artistAddress
+          artistAddress as Address
         );
         return;
       }
 
       const youtubeUrl = text.match(YOUTUBE_URL_REGEX)?.[0];
       if (youtubeUrl && youtubeParser(youtubeUrl)) {
-        await processYoutubeLink(thread, youtubeUrl, artistAddress);
+        await processYoutubeLink(thread, youtubeUrl, artistAddress as Address);
         return;
       }
 

@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 
 const selectArtists = async ({
-  address,
   telegram,
   q,
   type = 'human',
@@ -17,13 +16,16 @@ const selectArtists = async ({
 } = {}) => {
   let query = supabase
     .from('in_process_artists')
-    .select('*', { count: 'exact' });
+    .select(
+      'id, username, bio, x, telegram, instagram, wallets:in_process_wallets!inner(*)',
+      { count: 'exact' }
+    );
 
-  if (address) query = query.eq('address', address.toLowerCase()).limit(1);
-  else if (telegram)
+  if (telegram) {
     query = query.eq('telegram', telegram.toLowerCase()).limit(1);
-  else if (q?.trim()) query = query.ilike('username', `${q}%`).limit(limit);
-  else {
+  } else if (q?.trim()) {
+    query = query.ilike('username', `${q}%`).limit(limit);
+  } else {
     query =
       type === 'human'
         ? query.not('username', 'is', null)
@@ -33,7 +35,11 @@ const selectArtists = async ({
 
   const { data, error, count } = await query;
   if (error) throw error;
-  return { data, error, count };
+  return {
+    data: data ?? [],
+    error: null,
+    count: count ?? null,
+  };
 };
 
 export default selectArtists;

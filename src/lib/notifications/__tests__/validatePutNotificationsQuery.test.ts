@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import validatePutNotificationsQuery from '@/lib/notifications/validatePutNotificationsQuery';
 
+const ARTIST_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+
 const makeRequest = (params: Record<string, string> = {}) => {
   const url = new URL('http://localhost/api/notifications');
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
@@ -10,9 +12,9 @@ const makeRequest = (params: Record<string, string> = {}) => {
 
 describe('validatePutNotificationsQuery', () => {
   describe('defaults', () => {
-    it('returns undefined artist when not provided', () => {
+    it('returns undefined artist_id when not provided', () => {
       const result = validatePutNotificationsQuery(makeRequest());
-      expect((result as any).artist).toBeUndefined();
+      expect((result as any).artist_id).toBeUndefined();
     });
 
     it('returns an object (not NextResponse) with no params', () => {
@@ -21,27 +23,25 @@ describe('validatePutNotificationsQuery', () => {
     });
   });
 
-  describe('artist param', () => {
-    it('accepts a valid address and normalizes to lowercase', () => {
+  describe('artist_id param', () => {
+    it('accepts a valid UUID', () => {
       const result = validatePutNotificationsQuery(
-        makeRequest({ artist: '0xAf1452D289E22fBD0DeA9d5097353C72a90Fac33' })
+        makeRequest({ artist_id: ARTIST_ID })
       );
-      expect((result as any).artist).toBe(
-        '0xaf1452d289e22fbd0dea9d5097353c72a90fac33'
-      );
+      expect((result as any).artist_id).toBe(ARTIST_ID);
     });
 
-    it('returns 400 for an invalid address', () => {
+    it('returns 400 for an invalid UUID', () => {
       const result = validatePutNotificationsQuery(
-        makeRequest({ artist: 'not-an-address' })
+        makeRequest({ artist_id: 'not-a-uuid' })
       );
       expect(result).toBeInstanceOf(NextResponse);
       expect((result as NextResponse).status).toBe(400);
     });
 
-    it('returns 400 for a partial address', () => {
+    it('returns 400 for a partial UUID', () => {
       const result = validatePutNotificationsQuery(
-        makeRequest({ artist: '0x1234' })
+        makeRequest({ artist_id: '00000000' })
       );
       expect(result).toBeInstanceOf(NextResponse);
       expect((result as NextResponse).status).toBe(400);
@@ -52,7 +52,7 @@ describe('validatePutNotificationsQuery', () => {
         makeRequest({ unknown: 'value' })
       );
       expect(result).not.toBeInstanceOf(NextResponse);
-      expect((result as any).artist).toBeUndefined();
+      expect((result as any).artist_id).toBeUndefined();
     });
   });
 });

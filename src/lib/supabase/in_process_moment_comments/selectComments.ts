@@ -10,7 +10,7 @@ const selectComments = async ({
   let query = supabase
     .from('in_process_moment_comments')
     .select(
-      'id, comment, commented_at, artist:in_process_artists!inner(address, username)'
+      'id, comment, commented_at, artist_address, wallet:in_process_wallets(artist:in_process_artists(username))'
     )
     .order('commented_at', { ascending: false });
 

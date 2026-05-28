@@ -20,7 +20,7 @@ export async function PUT(req: NextRequest) {
   try {
     const validated = validatePutNotificationsQuery(req);
     if (validated instanceof NextResponse) return validated;
-    return putNotificationsHandler(validated.artist);
+    return putNotificationsHandler(validated.artist_id);
   } catch (e: any) {
     return Response.json({ message: e?.message ?? 'Failed' }, { status: 500 });
   }

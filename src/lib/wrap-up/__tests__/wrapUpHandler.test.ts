@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/client', () => ({
-  supabase: { rpc: vi.fn() },
+vi.mock('@/lib/supabase/account_notifications/getWeeklyWrapUpStats', () => ({
+  default: vi.fn(),
 }));
 vi.mock('../sendWrapUp', () => ({
   default: vi.fn(),
 }));
 
-import { supabase } from '@/lib/supabase/client';
+import getWeeklyWrapUpStats from '@/lib/supabase/account_notifications/getWeeklyWrapUpStats';
 import sendWrapUp from '../sendWrapUp';
 import wrapUpHandler from '../wrapUpHandler';
 
@@ -35,24 +35,14 @@ beforeEach(() => {
 });
 
 describe('wrapUpHandler', () => {
-  it('returns 500 when the RPC returns an error', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: null,
-      error: { message: 'rpc failure' },
-    } as never);
+  it('propagates errors from getWeeklyWrapUpStats', async () => {
+    vi.mocked(getWeeklyWrapUpStats).mockRejectedValue(new Error('rpc failure'));
 
-    const res = await wrapUpHandler();
-    const json = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(json.message).toBe('rpc failure');
+    await expect(wrapUpHandler()).rejects.toThrow('rpc failure');
   });
 
   it('returns success with total 0 when there are no targets', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: [],
-      error: null,
-    } as never);
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue([]);
 
     const res = await wrapUpHandler();
     const json = await res.json();
@@ -65,10 +55,7 @@ describe('wrapUpHandler', () => {
   });
 
   it('calls sendWrapUp for each target with mapped fields', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue(TARGETS as any);
     vi.mocked(sendWrapUp).mockResolvedValue(undefined);
 
     await wrapUpHandler();
@@ -93,10 +80,7 @@ describe('wrapUpHandler', () => {
   });
 
   it('returns sent count equal to the number of successful wrap-ups', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue(TARGETS as any);
     vi.mocked(sendWrapUp).mockResolvedValue(undefined);
 
     const res = await wrapUpHandler();
@@ -108,10 +92,7 @@ describe('wrapUpHandler', () => {
   });
 
   it('captures errors per-target without aborting the rest', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: TARGETS,
-      error: null,
-    } as never);
+    vi.mocked(getWeeklyWrapUpStats).mockResolvedValue(TARGETS as any);
     vi.mocked(sendWrapUp)
       .mockResolvedValueOnce(undefined)
       .mockRejectedValueOnce(new Error('telegram error'));

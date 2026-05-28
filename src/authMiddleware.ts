@@ -21,15 +21,19 @@ export async function authMiddleware(
     );
   }
 
-  const resolved = await authenticate({ farcasterToken, bearerToken, apiKey });
-  if (resolved instanceof NextResponse) return resolved;
+  const authenticated = await authenticate({
+    farcasterToken,
+    bearerToken,
+    apiKey,
+  });
+  if (authenticated instanceof NextResponse) return authenticated;
 
   const recaptchaToken = req.headers.get('x-recaptcha-token');
   const isWebRequest = recaptchaToken
     ? await verifyRecaptchaToken(recaptchaToken)
     : false;
 
-  console.log('[authMiddleware]', { ...resolved, isWebRequest });
+  console.log('[authMiddleware]', { ...authenticated, isWebRequest });
 
-  return { ...resolved, isWebRequest };
+  return { ...authenticated, isWebRequest };
 }

@@ -1,43 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import validateArtistWalletsQuery from '@/lib/artists/validateArtistWalletsQuery';
-import getArtistWalletsHandler from '@/lib/artists/getArtistWalletsHandler';
-import validateConnectArtistWalletBody from '@/lib/artists/validateConnectArtistWalletBody';
-import connectArtistWalletHandler from '@/lib/artists/connectArtistWalletHandler';
-import disconnectArtistWalletHandler from '@/lib/artists/disconnectArtistWalletHandler';
-import validateDisconnectArtistWallet from '@/lib/artists/validateDisconnectArtistWallet';
+import validateArtistWalletsQuery from '@/lib/wallets/validateArtistWalletsQuery';
+import getArtistWalletsHandler from '@/lib/wallets/getArtistWalletsHandler';
+import disconnectWalletHandler from '@/lib/wallets/disconnectWalletHandler';
+import validateWalletDisconnect from '@/lib/wallets/validateWalletDisconnect';
+import validateWalletConnectBody from '@/lib/wallets/validateWalletConnectBody';
+import connectWalletHandler from '@/lib/wallets/connectWalletHandler';
 
 export async function GET(req: NextRequest) {
   try {
     const validated = validateArtistWalletsQuery(req);
     if (validated instanceof NextResponse) return validated;
-    return await getArtistWalletsHandler(validated);
+    const { wallets } = await getArtistWalletsHandler(validated);
+    return Response.json({ wallets });
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'Failed to get the artist wallets.';
+    const message = e?.message ?? 'Failed to get the wallets.';
     return Response.json({ message }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const validated = await validateConnectArtistWalletBody(req);
+    const validated = await validateWalletConnectBody(req);
     if (validated instanceof NextResponse) return validated;
-    return connectArtistWalletHandler(validated);
-  } catch (e: any) {
-    console.log(e);
-    const message = e?.message ?? 'failed to connect.';
+    return await connectWalletHandler(validated);
+  } catch (e: unknown) {
+    const message =
+      e instanceof Error ? e.message : 'Failed to connect a wallet';
     return Response.json({ message }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const validated = await validateDisconnectArtistWallet(req);
+    const validated = await validateWalletDisconnect(req);
     if (validated instanceof NextResponse) return validated;
-    return await disconnectArtistWalletHandler(validated);
+    return await disconnectWalletHandler(validated);
   } catch (e: any) {
     console.log(e);
-    const message = e?.message ?? 'Failed to disconnect a social wallet';
+    const message = e?.message ?? 'Failed to disconnect a wallet';
     return Response.json({ message }, { status: 500 });
   }
 }

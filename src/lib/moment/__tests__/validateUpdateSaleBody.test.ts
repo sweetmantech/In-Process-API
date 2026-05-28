@@ -54,7 +54,7 @@ describe('validateUpdateSaleBody', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: CALLER,
+      primaryWallet: CALLER,
     } as any);
     vi.mocked(selectMoments).mockResolvedValue({
       data: [mockMomentRow],

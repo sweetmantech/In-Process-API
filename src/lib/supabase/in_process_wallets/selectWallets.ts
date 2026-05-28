@@ -1,34 +1,33 @@
 import { supabase } from '@/lib/supabase/client';
-import type { Database } from '@/lib/supabase/types';
-
-type WalletType = Database['public']['Enums']['wallet_type'];
+import { WalletType } from '@/types/wallets';
 
 const selectWallets = async ({
-  address,
-  artistId,
+  addresses,
+  artistIds,
   smartWalletAddress,
   type,
 }: {
-  address?: string;
-  artistId?: string;
+  addresses?: string[];
+  artistIds?: string[];
   smartWalletAddress?: string;
   type?: WalletType;
 } = {}) => {
   let query = supabase
     .from('in_process_wallets')
     .select(
-      'address, artist, type, smart_wallet_address, in_process_artists(address, username)'
+      'address, artist_id:artist, type, smart_wallet_address, artist:in_process_artists(id, username, bio, x, telegram, instagram)'
     );
 
-  if (address) query = query.eq('address', address.toLowerCase()).limit(1);
-  else if (smartWalletAddress)
-    query = query
-      .eq('smart_wallet_address', smartWalletAddress.toLowerCase())
-      .limit(1);
-  else if (artistId) {
-    query = query.eq('artist', artistId);
+  if (addresses?.length) {
+    query = query.in(
+      'address',
+      addresses.map((a) => a.toLowerCase())
+    );
+  } else if (smartWalletAddress) {
+    query = query.eq('smart_wallet_address', smartWalletAddress.toLowerCase());
+  } else if (artistIds?.length) {
+    query = query.in('artist', artistIds);
     if (type) query = query.eq('type', type);
-    query = query.limit(1);
   }
 
   const { data, error } = await query;

@@ -9,7 +9,7 @@ const validateUpdateCollectionURI = async (req: NextRequest) => {
   const body = await req.json();
   const result = validate(updateCollectionURISchema, body);
   if (!result.success) return result.response;
-  return { artistAddress: authResult.artistAddress, ...result.data };
+  return { artistAddress: authResult.primaryWallet, ...result.data };
 };
 
 export default validateUpdateCollectionURI;

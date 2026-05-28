@@ -13,7 +13,7 @@ import upsertAccountNotification from '@/lib/supabase/account_notifications/upse
 import { registerOnNudgePeriod } from '../onNudgePeriod';
 import { NUDGE_PERIOD_ACTION_ID } from '@/lib/consts';
 
-const ARTIST_ADDRESS = '0xArtist';
+const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 const TELEGRAM_USERNAME = 'artist_user';
 
 const makeBot = () => {
@@ -38,7 +38,7 @@ const makeEvent = (
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(selectArtists).mockResolvedValue({
-    data: [{ address: ARTIST_ADDRESS }],
+    data: [{ id: ARTIST_ID, address: '0xArtist' }],
     error: null,
   } as never);
   vi.mocked(upsertAccountNotification).mockResolvedValue({
@@ -66,7 +66,7 @@ describe('registerOnNudgePeriod', () => {
       registerOnNudgePeriod(bot as never);
       await handler.fn(makeEvent(value));
       expect(upsertAccountNotification).toHaveBeenCalledWith({
-        artist_address: ARTIST_ADDRESS,
+        artist_id: ARTIST_ID,
         nudge_period: Number(value),
       });
     });
@@ -126,10 +126,10 @@ describe('registerOnNudgePeriod', () => {
     });
   });
 
-  it('throws when upsertAccountNotification returns an error', async () => {
-    vi.mocked(upsertAccountNotification).mockResolvedValue({
-      error: new Error('db error'),
-    } as never);
+  it('throws when upsertAccountNotification throws', async () => {
+    vi.mocked(upsertAccountNotification).mockRejectedValue(
+      new Error('db error')
+    );
     const { bot, handler } = makeBot();
     registerOnNudgePeriod(bot as never);
     await expect(handler.fn(makeEvent('1'))).rejects.toThrow('db error');

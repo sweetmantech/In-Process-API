@@ -3,16 +3,13 @@ import type { Database } from '@/lib/supabase/types';
 
 export async function insertApiKey({
   name,
-  artist_address,
+  artist_id,
   key_hash,
-}: Database['public']['Tables']['in_process_api_keys']['Insert']) {
+}: Database['public']['Tables']['in_process_api_keys']['Insert']): Promise<void> {
   const { error } = await supabase.from('in_process_api_keys').insert({
     name,
-    artist_address,
+    artist_id,
     key_hash,
   });
-
-  if (error) return { error };
-
-  return { error: null };
+  if (error) throw error;
 }
