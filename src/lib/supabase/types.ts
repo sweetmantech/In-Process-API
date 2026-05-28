@@ -585,19 +585,16 @@ export type Database = {
         Row: {
           address: string;
           artist: string | null;
-          smart_wallet_address: string | null;
           type: Database['public']['Enums']['wallet_type'] | null;
         };
         Insert: {
           address: string;
           artist?: string | null;
-          smart_wallet_address?: string | null;
           type?: Database['public']['Enums']['wallet_type'] | null;
         };
         Update: {
           address?: string;
           artist?: string | null;
-          smart_wallet_address?: string | null;
           type?: Database['public']['Enums']['wallet_type'] | null;
         };
         Relationships: [
@@ -835,7 +832,7 @@ export type Database = {
         | 'catalog'
         | 'sound.xyz'
         | 'zora_media';
-      wallet_type: 'privy' | 'farcaster' | 'external';
+      wallet_type: 'privy' | 'farcaster' | 'external' | 'smart';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -970,7 +967,7 @@ export const Constants = {
   public: {
     Enums: {
       collection_protocol: ['in_process', 'catalog', 'sound.xyz', 'zora_media'],
-      wallet_type: ['privy', 'farcaster', 'external'],
+      wallet_type: ['privy', 'farcaster', 'external', 'smart'],
     },
   },
 } as const;
