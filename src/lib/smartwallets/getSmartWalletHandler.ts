@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import type { Address } from 'viem';
-import getSmartWalletAddress from './getSmartWalletAddress';
+import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
 
-const getSmartWalletHandler = async (artist_wallet: Address) => {
-  const smartWalletAddress = await getSmartWalletAddress(artist_wallet);
+const getSmartWalletHandler = async (artistId: string) => {
+  const smartAccount = await getCanonicalSmartAccount({ artistId });
   return NextResponse.json({
-    address: smartWalletAddress.toLowerCase(),
+    address: smartAccount.address.toLowerCase(),
   });
 };
 
