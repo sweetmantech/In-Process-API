@@ -62,7 +62,7 @@ export const getOperationalSmartWallet = async ({
     if (BigInt(permission || 0) === BigInt(PERMISSION_BIT_ADMIN)) {
       // Grant canonical admin now so all future calls take the fast path
       console.log('granting canonical admin', legacySmartAccount.address);
-      const transaction = await sendUserOperation({
+      await sendUserOperation({
         smartAccount: legacySmartAccount,
         network,
         calls: [
@@ -77,7 +77,6 @@ export const getOperationalSmartWallet = async ({
           Call<unknown, { [key: string]: unknown }>
         >[],
       });
-      console.log('transaction', transaction);
       return canonicalAccount;
     }
   }
