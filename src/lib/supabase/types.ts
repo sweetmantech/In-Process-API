@@ -720,6 +720,7 @@ export type Database = {
         Returns: {
           artist_address: string;
           artist_username: string;
+          file_size_bytes: number;
           total_count: number;
           total_usdc_cost: number;
           usdc_cost: number;
