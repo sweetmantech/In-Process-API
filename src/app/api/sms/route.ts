@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import type { Address } from 'viem';
 import client from '@/lib/telnyx/client';
 import type { InboundMessageWebhookEvent } from 'telnyx/resources/webhooks';
 import { processMmsMedia } from '@/lib/phones/processMmsMedia';
@@ -8,6 +9,9 @@ import { sendVerificationRequest } from '@/lib/messages/sendVerificationRequest'
 import verifyAndNotifyPhone from '@/lib/messages/verifyAndNotifyPhone';
 import truncateAddress from '@/lib/truncateAddress';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
+import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
+import type { ArtistContext } from '@/types/artist';
+import type { Tables } from '@/lib/supabase/types';
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,29 +44,42 @@ export async function POST(req: NextRequest) {
       if (fromPhoneNumber) {
         const { data: phone } = await selectPhone(fromPhoneNumber);
         if (phone) {
+          const walletAddress = phone.wallet?.address as Address | undefined;
+          const artistData = phone.wallet?.artist;
+          const wallets = (artistData?.wallets ??
+            []) as Tables<'in_process_wallets'>[];
+          const primaryWallet = getPrimaryWallet(wallets) as
+            | Address
+            | undefined;
+          const artist: ArtistContext | null =
+            artistData && primaryWallet
+              ? {
+                  artistId: artistData.id,
+                  primaryWallet,
+                  wallets: wallets.map((w) => (w as any).address as Address),
+                }
+              : null;
+
           if (phone.verified) {
-            if (media && media?.length > 0)
+            if (media && media?.length > 0 && artist)
               await processMmsMedia(
-                {
-                  phone_number: phone.phone_number,
-                  artist: { address: phone.artist_address },
-                },
+                { phone_number: phone.phone_number, artist },
                 media[0],
                 event.data.payload
               );
           } else {
             if (messageText === 'yes') {
+              const lookupAddress = walletAddress ?? '';
               const { data: walletRows } = await selectWallets({
-                addresses: [phone.artist_address],
+                addresses: [lookupAddress],
               });
               const username = walletRows?.[0]?.artist?.username;
-              const displayName =
-                username || truncateAddress(phone.artist_address);
+              const displayName = username || truncateAddress(lookupAddress);
               await verifyAndNotifyPhone(displayName, fromPhoneNumber);
             } else
               await sendVerificationRequest(
                 fromPhoneNumber,
-                phone.artist_address
+                walletAddress ?? ''
               );
           }
         } else await sendNewbieWelcome(messageText || '', fromPhoneNumber);

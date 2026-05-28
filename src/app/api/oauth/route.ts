@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const validated = await validateOAuthGet(req);
     if (validated instanceof NextResponse) return validated;
-    return oauthHandler(validated.artistAddress);
+    return oauthHandler(validated.primaryWallet);
   } catch (e: any) {
     console.error(e);
     return NextResponse.json(
