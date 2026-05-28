@@ -1,6 +1,6 @@
-import type { Address } from 'viem';
-import type { Thread, Attachment } from 'chat';
+import type { Thread } from 'chat';
 import type { TelegramThreadState } from './telegramThreadState';
+import type { ArtistContext } from '@/types/artist';
 import fetchTelegramFile from './fetchTelegramFile';
 import processAttachmentUpload from './processAttachmentUpload';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
@@ -11,11 +11,12 @@ import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
 import getSelectedCollectionAddress from './getSelectedCollectionAddress';
 import getStateAdapter from './stateAdapter';
 import buildCreateBatchInput from './buildCreateBatchInput';
+import type { Attachment } from 'chat';
 
 const createMomentsFromGroup = async (
   thread: Thread<TelegramThreadState>,
   mediaGroupId: string,
-  artistAddress: Address
+  artist: ArtistContext
 ): Promise<void> => {
   const stateAdapter = getStateAdapter(thread);
   const pending = (await stateAdapter.getList(
@@ -41,7 +42,7 @@ const createMomentsFromGroup = async (
           attachment,
           asset.fileId,
           asset.name,
-          artistAddress,
+          artist.primaryWallet,
           asset.thumbFileId
         );
       })
@@ -51,7 +52,7 @@ const createMomentsFromGroup = async (
       pending,
       uploaded,
       selectedCollection,
-      artistAddress
+      artist.primaryWallet
     );
 
     const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
@@ -63,7 +64,7 @@ const createMomentsFromGroup = async (
         sendReadyMessage(thread, contractAddress.toString(), tokenId)
       )
     );
-    await sendArtistCollage(thread, artistAddress);
+    await sendArtistCollage(thread, artist.primaryWallet);
   } finally {
     clearInterval(typingInterval);
   }
