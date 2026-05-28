@@ -26,7 +26,10 @@ describe('getArtistWalletsHandler', () => {
     const result = await getArtistWalletsHandler({ artistId: ARTIST_ID });
 
     expect(selectWallets).toHaveBeenCalledWith({ artistIds: [ARTIST_ID] });
-    expect(result.wallets).toEqual(['0xprivy', '0xexternal']);
+    expect(result.wallets).toEqual([
+      { address: '0xprivy', type: 'privy' },
+      { address: '0xexternal', type: 'external' },
+    ]);
   });
 
   it('throws when no wallets are found', async () => {
