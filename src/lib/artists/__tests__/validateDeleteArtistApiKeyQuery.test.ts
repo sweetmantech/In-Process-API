@@ -24,7 +24,9 @@ describe('validateDeleteArtistApiKeyQuery', () => {
   });
 
   it('returns keyId when auth succeeds and keyId is a valid UUID', async () => {
-    const result = await validateDeleteArtistApiKeyQuery(makeRequest(VALID_KEY_ID));
+    const result = await validateDeleteArtistApiKeyQuery(
+      makeRequest(VALID_KEY_ID)
+    );
 
     expect(result).not.toBeInstanceOf(NextResponse);
     expect(result).toEqual({ keyId: VALID_KEY_ID });
@@ -40,7 +42,9 @@ describe('validateDeleteArtistApiKeyQuery', () => {
   });
 
   it('returns 400 when keyId is not a valid UUID', async () => {
-    const result = await validateDeleteArtistApiKeyQuery(makeRequest('not-a-uuid'));
+    const result = await validateDeleteArtistApiKeyQuery(
+      makeRequest('not-a-uuid')
+    );
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);
@@ -53,7 +57,9 @@ describe('validateDeleteArtistApiKeyQuery', () => {
       NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     );
 
-    const result = await validateDeleteArtistApiKeyQuery(makeRequest(VALID_KEY_ID));
+    const result = await validateDeleteArtistApiKeyQuery(
+      makeRequest(VALID_KEY_ID)
+    );
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(401);

@@ -28,7 +28,7 @@ describe('validateAirdropMoment', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(authMiddleware).mockResolvedValue({
-      artistAddress: ARTIST,
+      primaryWallet: ARTIST,
     } as any);
   });
 

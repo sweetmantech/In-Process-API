@@ -14,7 +14,7 @@ describe('getArtistWalletsHandler', () => {
     vi.clearAllMocks();
   });
 
-  it('returns primaryWallet and wallets for artist', async () => {
+  it('returns wallets for artist', async () => {
     vi.mocked(selectWallets).mockResolvedValue({
       data: [
         { address: '0xprivy', type: 'privy' },
@@ -26,22 +26,7 @@ describe('getArtistWalletsHandler', () => {
     const result = await getArtistWalletsHandler({ artistId: ARTIST_ID });
 
     expect(selectWallets).toHaveBeenCalledWith({ artistIds: [ARTIST_ID] });
-    expect(result).toEqual({
-      primaryWallet: '0xexternal',
-      wallets: ['0xprivy', '0xexternal'],
-      artistId: ARTIST_ID,
-    });
-  });
-
-  it('falls back to privy wallet when external wallet is missing', async () => {
-    vi.mocked(selectWallets).mockResolvedValue({
-      data: [{ address: '0xprivy', type: 'privy' }],
-      error: null,
-    } as any);
-
-    const result = await getArtistWalletsHandler({ artistId: ARTIST_ID });
-
-    expect(result.primaryWallet).toBe('0xprivy');
+    expect(result.wallets).toEqual(['0xprivy', '0xexternal']);
   });
 
   it('throws when no wallets are found', async () => {
