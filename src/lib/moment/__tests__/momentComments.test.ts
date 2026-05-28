@@ -36,7 +36,8 @@ describe('momentComments', () => {
       {
         id: 'comment-1',
         comment: 'Great track!',
-        artist: { address: '0xabc', username: 'alice' },
+        artist_address: '0xabc',
+        wallet: { artist: { username: 'alice' } },
         commented_at: '2025-01-01T00:00:00Z',
       },
     ] as any);
@@ -65,7 +66,8 @@ describe('momentComments', () => {
       {
         id: 'c1',
         comment: null,
-        artist: { address: '0xabc', username: 'alice' },
+        artist_address: '0xabc',
+        wallet: { artist: { username: 'alice' } },
         commented_at: null,
       },
     ] as any);
@@ -84,7 +86,8 @@ describe('momentComments', () => {
       {
         id: 'c1',
         comment: 'Hi',
-        artist: { address: '0xabc', username: null },
+        artist_address: '0xabc',
+        wallet: { artist: { username: null } },
         commented_at: null,
       },
     ] as any);

@@ -40,7 +40,7 @@ describe('momentCollectors', () => {
       {
         id: 'collector-1',
         collector: '0xabc',
-        artist: { username: 'alice' },
+        wallet: { artist: { username: 'alice' } },
         amount: 2,
         transaction_hash: '0xtx1',
         collected_at: '2025-01-01T00:00:00Z',
@@ -81,7 +81,7 @@ describe('momentCollectors', () => {
       {
         id: 'collector-1',
         collector: '0xabc',
-        artist: { username: null },
+        wallet: { artist: { username: null } },
         amount: 1,
         transaction_hash: '0xtx1',
         collected_at: '2025-01-01T00:00:00Z',
@@ -102,7 +102,7 @@ describe('momentCollectors', () => {
       {
         id: 'collector-1',
         collector: '0xabc',
-        artist: { username: 'alice' },
+        wallet: { artist: { username: 'alice' } },
         amount: 1,
         transaction_hash: '0xtx1',
         collected_at: null,

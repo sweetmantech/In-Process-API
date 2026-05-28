@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { artistAddress } = authResult;
+    const { primaryWallet } = authResult;
 
     const body = await req.json();
     const validationResult = validate(permissionSchema, body);
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const data = validationResult.data;
     const result = await addPermission({
       ...data,
-      artistAddress: artistAddress as Address,
+      artistAddress: primaryWallet as Address,
     });
     return NextResponse.json(result);
   } catch (error: any) {
@@ -41,7 +41,7 @@ export async function DELETE(req: NextRequest) {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { artistAddress } = authResult;
+    const { primaryWallet } = authResult;
 
     const body = await req.json();
     const validationResult = validate(permissionSchema, body);
@@ -52,7 +52,7 @@ export async function DELETE(req: NextRequest) {
     const data = validationResult.data;
     const result = await removePermission({
       ...data,
-      artistAddress: artistAddress as Address,
+      artistAddress: primaryWallet as Address,
     });
     return NextResponse.json(result);
   } catch (error: any) {
