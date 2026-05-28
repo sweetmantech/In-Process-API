@@ -3,13 +3,14 @@ import { recoverMessageAddress } from 'viem';
 import { optimism } from 'viem/chains';
 import parseFidFromResources from '@/lib/farcaster/parseFidFromResources';
 import isAuthorizedSigner from '@/lib/farcaster/isAuthorizedSigner';
+import { Address } from 'viem';
 
 const verifyFarcasterAuth = async (
   message: string,
   signature: string
 ): Promise<{
-  verifiedAddress: string;
-  farcasterUsername: string | undefined;
+  verifiedAddress: Address;
+  artistName: string;
 }> => {
   const parsed = parseSiweMessage(message);
 
@@ -29,11 +30,16 @@ const verifyFarcasterAuth = async (
   const fid = parseFidFromResources(parsed.resources);
   if (fid === null) throw new Error('No FID found in SIWE message');
 
-  const { authorized, verifiedAddress, farcasterUsername } =
-    await isAuthorizedSigner(fid, recovered);
+  const { authorized, verifiedAddress, artistName } = await isAuthorizedSigner(
+    fid,
+    recovered
+  );
   if (!authorized) throw new Error('Signer not authorized for FID');
 
-  return { verifiedAddress, farcasterUsername };
+  return {
+    verifiedAddress: verifiedAddress as Address,
+    artistName: artistName as string,
+  };
 };
 
 export default verifyFarcasterAuth;

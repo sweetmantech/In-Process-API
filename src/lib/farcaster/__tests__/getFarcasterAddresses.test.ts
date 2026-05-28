@@ -5,7 +5,7 @@ vi.mock('@/lib/farcaster/neynarFetch', () => ({
 }));
 
 import neynarFetch from '@/lib/farcaster/neynarFetch';
-import getFarcasterAddresses from '@/lib/farcaster/getFarcasterAddresses';
+import getFarcasterAddresses from '@/lib/farcaster/getFarcasterWalletByFid';
 
 const FID = 12345n;
 const custodyAddress = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';

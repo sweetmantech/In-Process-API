@@ -8,7 +8,7 @@ vi.mock('@/lib/supabase/in_process_artists/upsertArtistNames', () => ({
   upsertArtistNames: vi.fn().mockResolvedValue(undefined),
 }));
 
-import getFarcasterAddresses from '@/lib/farcaster/getFarcasterAddresses';
+import getFarcasterAddresses from '@/lib/farcaster/getFarcasterWalletByFid';
 import { upsertArtistNames } from '@/lib/supabase/in_process_artists/upsertArtistNames';
 import isAuthorizedSigner from '@/lib/farcaster/isAuthorizedSigner';
 
