@@ -2,7 +2,7 @@ import { getAddress, type Address } from 'viem';
 import type { z } from 'zod';
 import { CHAIN_ID } from '@/lib/consts';
 import { createMomentSchema } from '@/lib/schema/createMomentSchema';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
@@ -33,7 +33,7 @@ const indexMoment = async ({
   const resolvedChainId = chainId ?? CHAIN_ID;
   const artist = getAddress(artistAddress).toLowerCase();
   const normalizedAddress = getAddress(contractAddress).toLowerCase();
-  await ensureArtists([artist]);
+  await ensureWallets([artist]);
 
   const { data: collections } = await selectCollections({
     addresses: [normalizedAddress],

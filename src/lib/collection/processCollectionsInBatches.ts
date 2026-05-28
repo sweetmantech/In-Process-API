@@ -5,7 +5,7 @@ import type {
 } from '@/types/envio';
 import { BATCH_SIZE } from '@/lib/consts';
 import { mapCollectionsToSupabase } from './mapCollectionsToSupabase';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 
 export async function processCollectionsInBatches(
@@ -19,7 +19,7 @@ export async function processCollectionsInBatches(
     try {
       const batch = collections.slice(i, i + BATCH_SIZE);
       const mappedCollections = mapCollectionsToSupabase(batch);
-      await ensureArtists(mappedCollections.map((c) => c.creator));
+      await ensureWallets(mappedCollections.map((c) => c.creator));
       await upsertCollections(mappedCollections);
       totalProcessed += mappedCollections.length;
       console.log(
