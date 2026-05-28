@@ -6,17 +6,9 @@ export async function getInProcessMomentsTotalCnt(): Promise<{
   count: number | null;
   error: PostgrestError | null;
 }> {
-  const { count, error } = await supabase
-    .from('in_process_moments')
-    .select(
-      'id, collection:in_process_collections!inner(chain_id, creator, protocol, artist:in_process_artists!inner(username))',
-      { count: 'exact', head: true }
-    )
-    .neq('uri', '')
-    .eq('collection.chain_id', CHAIN_ID)
-    .eq('collection.protocol', 'in_process')
-    .not('collection.artist.username', 'is', null)
-    .neq('collection.artist.username', '');
+  const { data, error } = await supabase.rpc('get_moments_total_cnt', {
+    p_chain_id: CHAIN_ID,
+  });
 
-  return { count, error };
+  return { count: error ? null : (data as number), error };
 }

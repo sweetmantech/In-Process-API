@@ -790,6 +790,7 @@ export type Database = {
         Args: { p_collection: string; p_token_id: number };
         Returns: Json;
       };
+      get_moments_total_cnt: { Args: { p_chain_id?: number }; Returns: number };
       get_nudges: {
         Args: never;
         Returns: {
