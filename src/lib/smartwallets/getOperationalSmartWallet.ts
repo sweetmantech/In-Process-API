@@ -58,7 +58,6 @@ export const getOperationalSmartWallet = async ({
       legacySmartAccount.address as Address,
       chainId
     );
-    console.log('permission', permission);
     if (BigInt(permission || 0) === BigInt(PERMISSION_BIT_ADMIN)) {
       // Grant canonical admin now so all future calls take the fast path
       console.log('granting canonical admin', legacySmartAccount.address);
