@@ -2,14 +2,15 @@ import type { ArtistContext } from '@/types/artist';
 import { Address } from 'viem';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { updateCollectionURISchema } from '@/lib/schema/updateCollectionURISchema';
+import { updateCollectionURIBodySchema } from '@/lib/schema/updateCollectionURIBodySchema';
 import { updateCollectionURI } from '@/lib/collection/updateCollectionURI';
 import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 
 type UpdateCollectionURIHandlerInput = z.infer<
-  typeof updateCollectionURISchema
+  typeof updateCollectionURIBodySchema
 > & {
   artist: ArtistContext;
+  collection: { address: Address; chainId: number };
 };
 
 const updateCollectionURIHandler = async ({
