@@ -1,12 +1,14 @@
+import { Address } from 'viem';
+
 export enum AuthMethod {
   Farcaster = 'farcaster',
   Privy = 'privy',
   ApiKey = 'apiKey',
 }
 export interface AuthResult {
-  artistAddress: string;
-  /** Privy embedded wallet from linked_accounts; only set for bearer-token auth */
-  socialWallet?: string;
+  primaryWallet: Address;
+  wallets: Address[];
+  artistId: string;
   authMethod: AuthMethod;
   isWebRequest?: boolean;
 }
