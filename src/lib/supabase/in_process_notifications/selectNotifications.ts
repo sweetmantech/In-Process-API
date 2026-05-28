@@ -30,9 +30,9 @@ export async function selectNotifications({
            collection:in_process_collections!inner(address),
            metadata:in_process_metadata(image, name)
          ),
-         collector:in_process_artists!inner(username)
+         collector:in_process_wallets!recipient!inner(artist:in_process_artists!inner(username))
        ),
-       artist:in_process_artists!in_process_notifications_artist_id_fkey(username)`,
+       artist:in_process_artists(username)`,
       { count: 'exact' }
     )
     .order('created_at', { ascending: false })

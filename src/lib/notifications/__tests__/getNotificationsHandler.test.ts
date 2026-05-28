@@ -14,10 +14,41 @@ const BASE_PARAMS = {
   viewed: undefined as boolean | undefined,
 };
 
+const MOCK_NOTIFICATION_TRANSFER = {
+  value: 100,
+  currency: 'USDC',
+  transaction_hash: '0xabc',
+  transferred_at: '2024-01-01T00:00:00Z',
+  moment: {
+    token_id: 1,
+    collection: { address: '0xcollection' },
+    metadata: { image: null, name: 'Test' },
+  },
+  collector: { artist: { username: 'collector_user' } },
+};
+
 const MOCK_NOTIFICATIONS = [
-  { id: '1', viewed: false },
-  { id: '2', viewed: true },
+  {
+    id: '1',
+    viewed: false,
+    transfer: MOCK_NOTIFICATION_TRANSFER,
+    artist: { username: 'artist_user' },
+  },
+  {
+    id: '2',
+    viewed: true,
+    transfer: MOCK_NOTIFICATION_TRANSFER,
+    artist: { username: 'artist_user' },
+  },
 ];
+
+const MOCK_NOTIFICATIONS_FLATTENED = MOCK_NOTIFICATIONS.map((n) => ({
+  ...n,
+  transfer: {
+    ...n.transfer,
+    collector: { username: n.transfer.collector.artist?.username ?? null },
+  },
+}));
 
 describe('getNotificationsHandler', () => {
   beforeEach(() => {
@@ -36,7 +67,7 @@ describe('getNotificationsHandler', () => {
 
     expect(res.status).toBe(200);
     expect(json.status).toBe('success');
-    expect(json.notifications).toEqual(MOCK_NOTIFICATIONS);
+    expect(json.notifications).toEqual(MOCK_NOTIFICATIONS_FLATTENED);
     expect(json.pagination).toEqual({
       page: 1,
       limit: 20,

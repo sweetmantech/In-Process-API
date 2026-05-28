@@ -14,8 +14,10 @@ export type InProcessNotificationTransfer = {
     } | null;
   };
   collector: {
-    username: string | null;
-  };
+    artist: {
+      username: string | null;
+    } | null;
+  } | null;
 };
 
 export type InProcessNotification = {

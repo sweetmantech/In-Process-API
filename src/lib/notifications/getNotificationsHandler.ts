@@ -11,9 +11,16 @@ const getNotificationsHandler = async (params: {
   if (error)
     return NextResponse.json({ message: error.message }, { status: 500 });
   const total = count ?? 0;
+  const notifications = (data ?? []).map((n) => ({
+    ...n,
+    transfer: {
+      ...n.transfer,
+      collector: { username: n.transfer.collector?.artist?.username ?? null },
+    },
+  }));
   return NextResponse.json({
     status: 'success',
-    notifications: data ?? [],
+    notifications,
     pagination: {
       page: params.page,
       limit: params.limit,
