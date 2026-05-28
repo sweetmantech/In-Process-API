@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 
 export async function upsertPhone({
-  artist_address,
+  artist_id,
   phone_number,
   verified = false,
 }: Database['public']['Tables']['in_process_artist_phones']['Insert']) {
@@ -10,7 +10,7 @@ export async function upsertPhone({
     .from('in_process_artist_phones')
     .upsert(
       {
-        artist_address,
+        artist_id,
         phone_number,
         verified,
       },
