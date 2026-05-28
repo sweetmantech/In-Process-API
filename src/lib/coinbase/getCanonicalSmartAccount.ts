@@ -1,32 +1,37 @@
 import cdp from '@/lib/coinbase/client';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
-import { type Address } from 'viem';
 import { deterministicAccountName } from './deterministricAccountName';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 
-export async function getOrCreateSmartWallet({
-  address,
+export async function getCanonicalSmartAccount({
+  artistId,
 }: {
-  address: Address;
+  artistId: string;
 }): Promise<EvmSmartAccount> {
   const evmAccount = await cdp.evm.getOrCreateAccount({
-    name: deterministicAccountName(address),
+    name: deterministicAccountName(artistId),
   });
   const smartAccount = await cdp.evm.getOrCreateSmartAccount({
     name: evmAccount.name as string,
     owner: evmAccount,
   });
-  const { data: wallets } = await selectWallets({ addresses: [address] });
-  if (
-    wallets?.[0]?.smart_wallet_address !== smartAccount.address.toLowerCase()
-  ) {
+
+  const smartAddress = smartAccount.address.toLowerCase();
+
+  const { data: existing } = await selectWallets({
+    artistIds: [artistId],
+    type: 'smart',
+  });
+  if (existing?.[0]?.address !== smartAddress) {
     await upsertWallets([
       {
-        address: address.toLowerCase(),
-        smart_wallet_address: smartAccount.address.toLowerCase(),
+        address: smartAddress,
+        artist: artistId,
+        type: 'smart',
       },
     ]);
   }
+
   return smartAccount;
 }
