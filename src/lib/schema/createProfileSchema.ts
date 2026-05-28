@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
 const createProfileSchema = z.object({
-  username: z.string().optional(),
+  username: z
+    .string()
+    .optional()
+    .transform((val) => (val === '' ? null : val)),
   bio: z.string().optional(),
   instagram: z.string().optional(),
   x: z.string().optional(),

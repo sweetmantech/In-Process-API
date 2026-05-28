@@ -1,52 +1,23 @@
 import { NextResponse } from 'next/server';
-import { AuthMethod } from '@/types/auth';
-import getPrivyLinkedAccounts from '@/lib/privy/getPrivyLinkedAccount';
-import authenticateWithFarcasterToken from '@/lib/auth/authenticateWithFarcasterToken';
-import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
-import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
-import updateArtistById from '@/lib/supabase/in_process_artists/updateArtistById';
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
-
-type ProfileFields = {
-  username?: string;
-  bio?: string;
-  instagram?: string;
-  x?: string;
-  telegram?: string;
-};
+import type { CreateProfileInput } from './validateCreateProfileBody';
 
 const createProfileHandler = async ({
-  method,
-  token,
-  ...fields
-}: {
-  method: AuthMethod;
-  token: string;
-} & ProfileFields) => {
-  if (method === AuthMethod.Privy) {
-    const { linkedAccount } = await getPrivyLinkedAccounts(token);
-    if (!linkedAccount) {
-      throw new Error('Privy social wallet not found');
-    }
-    const { data: walletRows } = await selectWallets({
-      addresses: [linkedAccount],
-    });
-    const artistId = walletRows?.[0]?.artist_id;
-    if (!artistId) {
-      throw new Error('Wallet is not linked to an artist');
-    }
-    await updateArtistById(artistId, fields);
-    return NextResponse.json({ success: true });
-  }
-
-  if (method === AuthMethod.Farcaster) {
-    const { artistId } = await authenticateWithFarcasterToken(token);
-    await upsertArtists({ id: artistId, ...fields });
-    return NextResponse.json({ success: true });
-  }
-
-  const { artistId } = await authenticateWithApiKey(token);
-  await upsertArtists({ id: artistId, ...fields });
+  artist,
+  username,
+  bio,
+  instagram,
+  x,
+  telegram,
+}: CreateProfileInput) => {
+  await upsertArtists({
+    id: artist.artistId,
+    username,
+    bio,
+    instagram,
+    x,
+    telegram,
+  });
   return NextResponse.json({ success: true });
 };
 
