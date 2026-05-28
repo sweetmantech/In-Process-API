@@ -4,7 +4,7 @@ import { selectNotifications } from '@/lib/supabase/in_process_notifications/sel
 const getNotificationsHandler = async (params: {
   limit: number;
   page: number;
-  artist?: string;
+  artist_id?: string;
   viewed?: boolean;
 }) => {
   const { data, count, error } = await selectNotifications(params);
