@@ -26,17 +26,13 @@ export async function updateCollectionURI({
     },
   });
 
-  console.log('smartAccount', smartAccount);
   const updateCollectionURICall = getUpdateCollectionURICall(
     collection,
     newUri,
     newCollectionName
   );
 
-  console.log('updateCollectionURICall', updateCollectionURICall);
   const network = collection.chainId === 84532 ? 'base-sepolia' : 'base';
-
-  console.log('network', network);
 
   const transaction = await sendUserOperation({
     smartAccount,

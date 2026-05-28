@@ -36,13 +36,11 @@ export const getOperationalSmartWallet = async ({
 
   // 1. Canonical smart account — fast path
   const canonicalAccount = await getCanonicalSmartAccount({ artistId });
-  console.log('canonicalAccount', canonicalAccount);
   const canonicalPermission = await getPermission(
     collectionAddress,
     canonicalAccount.address as Address,
     chainId
   );
-  console.log('canonicalPermission', canonicalPermission);
   if (BigInt(canonicalPermission || 0) === BigInt(PERMISSION_BIT_ADMIN)) {
     return canonicalAccount;
   }
@@ -52,7 +50,6 @@ export const getOperationalSmartWallet = async ({
     const legacySmartAccount = await getLegacySmartAccount({
       address: walletAddress,
     });
-    console.log('legacySmartAccount', legacySmartAccount);
     const permission = await getPermission(
       collectionAddress,
       legacySmartAccount.address as Address,
@@ -60,7 +57,6 @@ export const getOperationalSmartWallet = async ({
     );
     if (BigInt(permission || 0) === BigInt(PERMISSION_BIT_ADMIN)) {
       // Grant canonical admin now so all future calls take the fast path
-      console.log('granting canonical admin', legacySmartAccount.address);
       await sendUserOperation({
         smartAccount: legacySmartAccount,
         network,
