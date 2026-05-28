@@ -30,23 +30,24 @@ beforeEach(() => {
 describe('handleMe', () => {
   describe('artistAddress has a known artist record', () => {
     it('posts the linked email found via privy wallet', async () => {
-      vi.mocked(selectArtists).mockResolvedValue({
-        data: [{ id: ARTIST_UUID }],
-        error: null,
-      } as any);
       vi.mocked(selectWallets)
+        .mockResolvedValueOnce({
+          data: [{ address: ARTIST_ADDRESS, artist_id: ARTIST_UUID }],
+          error: null,
+        } as any)
         .mockResolvedValueOnce({
           data: [{ address: SOCIAL_WALLET }],
           error: null,
-        } as any)
-        .mockResolvedValueOnce({ data: [], error: null } as any);
+        } as any);
       vi.mocked(getEmailByWalletAddress).mockResolvedValue('user@example.com');
 
       const thread = makeThread();
       await handleMe(thread as never, ARTIST_ADDRESS);
 
-      expect(selectArtists).toHaveBeenCalledWith({ address: ARTIST_ADDRESS });
-      expect(selectWallets).toHaveBeenCalledWith({
+      expect(selectWallets).toHaveBeenNthCalledWith(1, {
+        addresses: [ARTIST_ADDRESS],
+      });
+      expect(selectWallets).toHaveBeenNthCalledWith(2, {
         artistIds: [ARTIST_UUID],
         type: 'privy',
       });
@@ -57,14 +58,15 @@ describe('handleMe', () => {
     });
 
     it('tries each privy wallet and returns the first email found', async () => {
-      vi.mocked(selectArtists).mockResolvedValue({
-        data: [{ id: ARTIST_UUID }],
-        error: null,
-      } as any);
-      vi.mocked(selectWallets).mockResolvedValueOnce({
-        data: [{ address: '0xsocial1' }, { address: '0xsocial2' }],
-        error: null,
-      } as any);
+      vi.mocked(selectWallets)
+        .mockResolvedValueOnce({
+          data: [{ address: ARTIST_ADDRESS, artist_id: ARTIST_UUID }],
+          error: null,
+        } as any)
+        .mockResolvedValueOnce({
+          data: [{ address: '0xsocial1' }, { address: '0xsocial2' }],
+          error: null,
+        } as any);
       vi.mocked(getEmailByWalletAddress)
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce('second@example.com');
@@ -173,8 +175,8 @@ describe('handleMe', () => {
   });
 
   describe('error handling', () => {
-    it('rethrows on selectArtists error', async () => {
-      vi.mocked(selectArtists).mockRejectedValue(new Error('db down'));
+    it('rethrows on selectWallets error', async () => {
+      vi.mocked(selectWallets).mockRejectedValue(new Error('db down'));
 
       const thread = makeThread();
       await expect(handleMe(thread as never, ARTIST_ADDRESS)).rejects.toThrow(

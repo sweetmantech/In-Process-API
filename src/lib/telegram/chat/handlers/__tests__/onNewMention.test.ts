@@ -31,7 +31,12 @@ const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 const CHANNEL_ID = 'telegram:1352384640';
 const RAW_CHAT_ID = '1352384640';
 
-const ARTIST = { id: ARTIST_ID, address: ARTIST_ADDRESS, username: 'alice' };
+const ARTIST = {
+  id: ARTIST_ID,
+  address: ARTIST_ADDRESS,
+  username: 'alice',
+  wallets: [{ address: ARTIST_ADDRESS, type: 'external' }],
+};
 
 const makeMessage = (overrides = {}) => ({
   author: { userName: 'testuser' },

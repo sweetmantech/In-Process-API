@@ -23,10 +23,12 @@ import handleMe from '../handleMe';
 import commandsHandler from '../commandsHandler';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
+const ARTIST_UUID = 'uuid-artist-1234';
 const ROOM_ID = 'telegram:5';
 const TG_USERNAME = 'testuser';
 
 const ARTIST = {
+  id: ARTIST_UUID,
   address: ARTIST_ADDRESS,
   username: 'alice',
 };
@@ -98,7 +100,7 @@ describe('commandsHandler', () => {
         ARTIST as never
       );
 
-      expect(handleRemind).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
+      expect(handleRemind).toHaveBeenCalledWith(thread, ARTIST_UUID);
       expect(result).toBe(true);
     });
 
@@ -111,7 +113,7 @@ describe('commandsHandler', () => {
         ARTIST as never
       );
 
-      expect(handleNotify).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
+      expect(handleNotify).toHaveBeenCalledWith(thread, ARTIST_UUID);
       expect(result).toBe(true);
     });
 

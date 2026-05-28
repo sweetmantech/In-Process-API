@@ -9,7 +9,8 @@ import commandsHandler from '../commands/commandsHandler';
 import processMediaThread from '../processMediaThread';
 import youtubeParser from '@/lib/link/youtubeParser';
 import processYoutubeLink from '../processYoutubeLink';
-
+import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
+import { Tables } from '@/lib/supabase/types';
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
 
@@ -25,7 +26,11 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       });
       const artist = data?.[0] ?? null;
       const artistId = artist?.id;
-      
+      const artistAddress = await getPrimaryWallet(
+        artist?.wallets as Tables<'in_process_wallets'>[]
+      );
+      if (!artistAddress) return;
+
       const text = message.text?.trim() ?? '';
 
       if (artistId) {
@@ -43,8 +48,6 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       );
       if (handled) return;
 
-      const artistAddress = artist!.address as Address;
-
       const attachment = message.attachments?.[0];
       if (
         attachment &&
@@ -55,14 +58,14 @@ export function registerOnNewMention(bot: TelegramChatBot) {
           message,
           attachment,
           text,
-          artistAddress
+          artistAddress as Address
         );
         return;
       }
 
       const youtubeUrl = text.match(YOUTUBE_URL_REGEX)?.[0];
       if (youtubeUrl && youtubeParser(youtubeUrl)) {
-        await processYoutubeLink(thread, youtubeUrl, artistAddress);
+        await processYoutubeLink(thread, youtubeUrl, artistAddress as Address);
         return;
       }
 

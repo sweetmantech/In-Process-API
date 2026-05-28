@@ -8,7 +8,9 @@ const handleMe = async (
   thread: Thread<TelegramThreadState>,
   artistAddress: Address
 ) => {
-  const { data: walletRows } = await selectWallets({ addresses: [artistAddress] });
+  const { data: walletRows } = await selectWallets({
+    addresses: [artistAddress],
+  });
   const artistId = walletRows?.[0]?.artist_id;
 
   if (artistId) {
