@@ -12,7 +12,7 @@ const createArtistApiKeyHandler = async ({
 }) => {
   const rawApiKey = generateApiKey('art_sk');
   const keyHash = hashApiKey(rawApiKey, PRIVY_PROJECT_SECRET);
-  
+
   await insertApiKey({
     name: key_name.trim(),
     artist_id: artistId,

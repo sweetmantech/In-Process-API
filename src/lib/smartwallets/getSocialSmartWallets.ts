@@ -1,7 +1,6 @@
 import { Address } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
 import sleep from '@/lib/sleep';
 
@@ -13,8 +12,8 @@ export interface SmartWallet {
 export async function getSocialSmartWallets(
   artistAddress: Address
 ): Promise<SmartWallet[]> {
-  const { data: artists } = await selectArtists({ address: artistAddress });
-  const artistId = artists?.[0]?.id;
+  const { data: wallets } = await selectWallets({ addresses: [artistAddress] });
+  const artistId = wallets?.[0]?.artist_id;
 
   const privyAddresses: Address[] = [];
   if (artistId) {

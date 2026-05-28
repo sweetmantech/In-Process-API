@@ -1,20 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 
-export type ArtistRow = {
-  id: string;
-  address: string | null;
-  username: string | null;
-  bio: string | null;
-  instagram: string | null;
-  telegram: string | null;
-  x: string | null;
-};
-
-const SELECT_FIELDS =
-  'id, username, bio, x, telegram, instagram, in_process_wallets!inner(address)';
-
 const selectArtists = async ({
-  address,
   telegram,
   q,
   type = 'human',
@@ -27,20 +13,15 @@ const selectArtists = async ({
   type?: 'human' | 'bot';
   limit?: number;
   page?: number;
-} = {}): Promise<{
-  data: ArtistRow[];
-  error: null;
-  count: number | null;
-}> => {
+} = {}) => {
   let query = supabase
     .from('in_process_artists')
-    .select(SELECT_FIELDS, { count: 'exact' });
+    .select(
+      'id, username, bio, x, telegram, instagram, wallets:in_process_wallets!inner(*)',
+      { count: 'exact' }
+    );
 
-  if (address) {
-    query = query
-      .eq('in_process_wallets.address', address.toLowerCase())
-      .limit(1);
-  } else if (telegram) {
+  if (telegram) {
     query = query.eq('telegram', telegram.toLowerCase()).limit(1);
   } else if (q?.trim()) {
     query = query.ilike('username', `${q}%`).limit(limit);
@@ -55,10 +36,7 @@ const selectArtists = async ({
   const { data, error, count } = await query;
   if (error) throw error;
   return {
-    data: (data ?? []).map(({ in_process_wallets, ...rest }) => ({
-      ...rest,
-      address: in_process_wallets?.[0]?.address ?? null,
-    })),
+    data: data ?? [],
     error: null,
     count: count ?? null,
   };
