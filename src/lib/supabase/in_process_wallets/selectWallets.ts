@@ -1,7 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
-import type { Database } from '@/lib/supabase/types';
-
-type WalletType = Database['public']['Enums']['wallet_type'];
+import { WalletType } from '@/types/wallets';
 
 const selectWallets = async ({
   addresses,
@@ -17,7 +15,7 @@ const selectWallets = async ({
   let query = supabase
     .from('in_process_wallets')
     .select(
-      'address, artist_id:artist, type, smart_wallet_address, artist:in_process_artists(username)'
+      'address, artist_id:artist, type, smart_wallet_address, artist:in_process_artists(id, username, bio, x, telegram, instagram)'
     );
 
   if (addresses?.length) {
