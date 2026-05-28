@@ -3,23 +3,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
   IS_TESTNET: false,
-  PERMISSION_BIT_ADMIN: 2,
 }));
 
-vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
-  getOrCreateSmartWallet: vi.fn(),
-}));
-
-vi.mock('@/lib/zora/getPermission', () => ({
-  default: vi.fn(),
+vi.mock('@/lib/smartwallets/getOperationalSmartWallet', () => ({
+  getOperationalSmartWallet: vi.fn(),
 }));
 
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
   sendUserOperation: vi.fn(),
 }));
 
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
-import getPermission from '@/lib/zora/getPermission';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { airdropMoment } from '@/lib/moment/airdropMoment';
 
@@ -32,22 +26,26 @@ const COLLECTION =
 const TX_HASH =
   '0xtxhash000000000000000000000000000000000000000000000000000000000000' as `0x${string}`;
 
-const ADMIN = BigInt(2);
-const NO_PERMISSION = BigInt(0);
+const artist = {
+  artistId: 'artist-uuid',
+  primaryWallet: ARTIST,
+  wallets: [ARTIST],
+};
+
+const moment = { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 };
 
 const input = {
-  artistAddress: ARTIST,
+  artist,
   recipients: [RECIPIENT],
-  moment: { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 },
+  moment,
 };
 
 describe('airdropMoment', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
+    vi.mocked(getOperationalSmartWallet).mockResolvedValue({
       address: SMART_WALLET,
     } as any);
-    vi.mocked(getPermission).mockResolvedValue(ADMIN);
     vi.mocked(sendUserOperation).mockResolvedValue({
       transactionHash: TX_HASH,
     } as any);
@@ -60,21 +58,13 @@ describe('airdropMoment', () => {
     expect(result.chainId).toBe(8453);
   });
 
-  it('throws when smart wallet has no admin and artist has no admin', async () => {
-    vi.mocked(getPermission).mockResolvedValue(NO_PERMISSION);
-
-    await expect(airdropMoment(input)).rejects.toThrow(
-      'The account does not have admin permission for this collection.'
+  it('propagates when getOperationalSmartWallet rejects', async () => {
+    vi.mocked(getOperationalSmartWallet).mockRejectedValue(
+      new Error('No authorized smart wallet found')
     );
-  });
-
-  it('throws when smart wallet has no admin but artist has admin', async () => {
-    vi.mocked(getPermission)
-      .mockResolvedValueOnce(NO_PERMISSION)
-      .mockResolvedValueOnce(ADMIN);
 
     await expect(airdropMoment(input)).rejects.toThrow(
-      'Admin permission are not yet granted to smart wallet.'
+      'No authorized smart wallet found'
     );
   });
 
@@ -98,10 +88,10 @@ describe('airdropMoment', () => {
     );
   });
 
-  it('calls getOrCreateSmartWallet with artistAddress', async () => {
+  it('calls getOperationalSmartWallet with artist and moment', async () => {
     await airdropMoment(input);
 
-    expect(getOrCreateSmartWallet).toHaveBeenCalledWith({ address: ARTIST });
+    expect(getOperationalSmartWallet).toHaveBeenCalledWith({ artist, moment });
   });
 
   it('mints to each recipient using moment tokenId', async () => {

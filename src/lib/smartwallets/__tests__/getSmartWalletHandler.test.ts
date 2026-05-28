@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/smartwallets/getSmartWalletAddress', () => ({
-  default: vi.fn(),
+vi.mock('@/lib/coinbase/getCanonicalSmartAccount', () => ({
+  getCanonicalSmartAccount: vi.fn(),
 }));
 
-import getSmartWalletAddress from '@/lib/smartwallets/getSmartWalletAddress';
+import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
 import getSmartWalletHandler from '@/lib/smartwallets/getSmartWalletHandler';
 
-const VALID_WALLET = '0x1234567890123456789012345678901234567890' as const;
+const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+const SMART_ADDRESS = '0xabcdef123456789012345678901234567890abcd';
 
 describe('getSmartWalletHandler', () => {
   beforeEach(() => {
@@ -15,25 +16,25 @@ describe('getSmartWalletHandler', () => {
   });
 
   it('returns smart wallet address lowercased', async () => {
-    vi.mocked(getSmartWalletAddress).mockResolvedValue(
-      '0xabcdef123456789012345678901234567890abcd' as never
-    );
+    vi.mocked(getCanonicalSmartAccount).mockResolvedValue({
+      address: SMART_ADDRESS,
+    } as any);
 
-    const res = await getSmartWalletHandler(VALID_WALLET);
+    const res = await getSmartWalletHandler(ARTIST_ID);
     const json = await res.json();
 
-    expect(json).toEqual({
-      address: '0xabcdef123456789012345678901234567890abcd',
+    expect(json).toEqual({ address: SMART_ADDRESS });
+    expect(getCanonicalSmartAccount).toHaveBeenCalledWith({
+      artistId: ARTIST_ID,
     });
-    expect(getSmartWalletAddress).toHaveBeenCalledWith(VALID_WALLET);
   });
 
-  it('propagates when getSmartWalletAddress rejects', async () => {
-    vi.mocked(getSmartWalletAddress).mockRejectedValue(
+  it('propagates when getCanonicalSmartAccount rejects', async () => {
+    vi.mocked(getCanonicalSmartAccount).mockRejectedValue(
       new Error('CDP unavailable')
     );
 
-    await expect(getSmartWalletHandler(VALID_WALLET)).rejects.toThrow(
+    await expect(getSmartWalletHandler(ARTIST_ID)).rejects.toThrow(
       'CDP unavailable'
     );
   });

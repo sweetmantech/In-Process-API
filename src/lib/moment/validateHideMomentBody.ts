@@ -12,10 +12,7 @@ const validateHideMomentBody = async (req: NextRequest) => {
   const result = validate(hideMomentSchema, body);
   if (!result.success) return result.response;
 
-  return {
-    primaryWallet: authResult.primaryWallet as Address,
-    ...result.data,
-  };
+  return { ...authResult, ...result.data };
 };
 
 export default validateHideMomentBody;

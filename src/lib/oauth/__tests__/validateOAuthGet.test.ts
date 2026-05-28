@@ -20,7 +20,7 @@ describe('validateOAuthGet', () => {
     const result = await validateOAuthGet(makeRequest());
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect(result).toEqual({ artistAddress: '0xabc' });
+    expect(result).toEqual(expect.objectContaining({ primaryWallet: '0xabc' }));
   });
 
   it('returns 403 when auth fails', async () => {

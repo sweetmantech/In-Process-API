@@ -1,7 +1,8 @@
+import type { ArtistContext } from '@/types/artist';
 import { NextResponse } from 'next/server';
 import { Address } from 'viem';
 import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';
 import { baseSepolia } from 'viem/chains';
@@ -9,7 +10,7 @@ import { UpdateSaleBody } from '@/lib/moment/validateUpdateSaleBody';
 
 const updateSaleHandler = async ({
   moment,
-  callerAddress,
+  artist,
   pricePerToken,
   saleStart,
   saleEnd,
@@ -43,9 +44,7 @@ const updateSaleHandler = async ({
 
   const updateSaleCall = getUpdateSaleCall(moment, type, newSale);
 
-  const smartAccount = await getOrCreateSmartWallet({
-    address: callerAddress as Address,
-  });
+  const smartAccount = await getOperationalSmartWallet({ artist, moment });
 
   const transaction = await sendUserOperation({
     smartAccount,

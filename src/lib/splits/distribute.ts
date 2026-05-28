@@ -1,7 +1,7 @@
 import { Address, zeroAddress } from 'viem';
 import { baseSepolia } from 'viem/chains';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
 import isSplitContract from './isSplitContract';
 import { getSplitCall } from './getSplitCall';
 
@@ -21,7 +21,7 @@ export async function distribute({
     );
   }
   try {
-    const smartAccount = await getOrCreateSmartWallet({
+    const smartAccount = await getWalletLinkedSmartAccount({
       address: zeroAddress,
     });
     const splitCall = await getSplitCall({

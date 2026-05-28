@@ -29,6 +29,9 @@ describe('validateAirdropMoment', () => {
     vi.clearAllMocks();
     vi.mocked(authMiddleware).mockResolvedValue({
       primaryWallet: ARTIST,
+      artistId: 'artist-uuid',
+      wallets: [ARTIST],
+      authMethod: 'privy',
     } as any);
   });
 
@@ -36,7 +39,7 @@ describe('validateAirdropMoment', () => {
     const result = await validateAirdropMoment(makeRequest(validBody));
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect((result as any).artistAddress).toBe(ARTIST);
+    expect((result as any).artist.primaryWallet).toBe(ARTIST);
     expect((result as any).recipients).toEqual([RECIPIENT]);
     expect((result as any).moment.collectionAddress).toBe(COLLECTION);
     expect((result as any).moment.tokenId).toBe('1');

@@ -4,7 +4,7 @@ import type {
   TurboSubmitFundTxResponse,
 } from '@ardrive/turbo-sdk/node';
 import type { Address } from 'viem';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
 import turboClient from './turboClient';
 import createTurboWalletAdapter from './createTurboWalletAdapter';
 
@@ -14,7 +14,7 @@ const topUpTurboCredits = async (
 ): Promise<TurboCryptoFundResponse | TurboSubmitFundTxResponse> => {
   try {
     const [smartAccount, ourArweaveAddress] = await Promise.all([
-      getOrCreateSmartWallet({ address: artistAddress }),
+      getWalletLinkedSmartAccount({ address: artistAddress }),
       turboClient.signer.getNativeAddress(),
     ]);
 

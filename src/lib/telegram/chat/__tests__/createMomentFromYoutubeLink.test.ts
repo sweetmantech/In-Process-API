@@ -22,6 +22,11 @@ import { uploadJson } from '@/lib/arweave/uploadJson';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
+const ARTIST_CONTEXT = {
+  id: 'artist-uuid-123',
+  primaryWallet: ARTIST_ADDRESS,
+  wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
+};
 const YOUTUBE_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 const THUMBNAIL_URL = 'https://img.youtube.com/vi/dQw4w9WgXcQ/default.jpg';
 
@@ -71,18 +76,18 @@ describe('createMomentFromYoutubeLink', () => {
     vi.mocked(getYoutubeDetail).mockResolvedValue(null);
 
     await expect(
-      createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS)
+      createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT)
     ).rejects.toThrow('Failed to fetch YouTube details');
   });
 
   it('fetches the thumbnail from detail.images[0]', async () => {
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
     expect(fetch).toHaveBeenCalledWith(THUMBNAIL_URL);
   });
 
   it('uploads thumbnail file to Arweave with the correct content-type', async () => {
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
     expect(uploadToArweave).toHaveBeenCalledOnce();
     const [file] = vi.mocked(uploadToArweave).mock.calls[0];
@@ -97,7 +102,7 @@ describe('createMomentFromYoutubeLink', () => {
       favicons: [faviconUrl],
     });
 
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
     expect(fetch).toHaveBeenCalledWith(faviconUrl);
   });
@@ -105,7 +110,7 @@ describe('createMomentFromYoutubeLink', () => {
   it('skips thumbnail fetch and uses empty imageUri when images[0] is undefined', async () => {
     vi.mocked(getYoutubeDetail).mockResolvedValue({ ...DETAIL, images: [] });
 
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
     expect(fetch).not.toHaveBeenCalled();
     expect(uploadToArweave).not.toHaveBeenCalled();
@@ -120,14 +125,14 @@ describe('createMomentFromYoutubeLink', () => {
   it('falls back to image/jpeg when content-type header is missing', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(makeFetchResponse(null)));
 
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
     const [file] = vi.mocked(uploadToArweave).mock.calls[0];
     expect(file.type).toBe('image/jpeg');
   });
 
   it('uploads JSON metadata with correct fields', async () => {
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
     expect(uploadJson).toHaveBeenCalledWith({
       name: DETAIL.title,
@@ -139,7 +144,7 @@ describe('createMomentFromYoutubeLink', () => {
   });
 
   it('calls createMomentBatch with metadataUri, title, and artistAddress', async () => {
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
     const call = vi.mocked(createMomentBatch).mock.calls[0][0];
     expect(call.contract.uri).toBe('ar://metadata-hash');
@@ -153,7 +158,7 @@ describe('createMomentFromYoutubeLink', () => {
   it('falls back to "Untitled Video" when detail.title is empty', async () => {
     vi.mocked(getYoutubeDetail).mockResolvedValue({ ...DETAIL, title: '' });
 
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
     const call = vi.mocked(createMomentBatch).mock.calls[0][0];
     expect(call.contract.name).toBe('Untitled Video');
@@ -162,7 +167,7 @@ describe('createMomentFromYoutubeLink', () => {
   it('returns contractAddress, tokenId, hash, and chainId', async () => {
     const result = await createMomentFromYoutubeLink(
       YOUTUBE_URL,
-      ARTIST_ADDRESS
+      ARTIST_CONTEXT
     );
 
     expect(result).toEqual(MOMENT_RESULT);
@@ -171,7 +176,7 @@ describe('createMomentFromYoutubeLink', () => {
   it('mints to an existing collection when existingCollectionAddress is provided', async () => {
     const collection = '0x0000000000000000000000000000000000000002' as Address;
 
-    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_ADDRESS, collection);
+    await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT, collection);
 
     const call = vi.mocked(createMomentBatch).mock.calls[0][0];
     expect(call.contract).toEqual({ address: getAddress(collection) });

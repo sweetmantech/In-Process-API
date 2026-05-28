@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
 import getPermission from '@/lib/zora/getPermission';
 
 const getMomentAdmins = async ({
@@ -27,7 +27,7 @@ const getMomentAdmins = async ({
     });
     adminAddresses = admins.map((admin) => admin.artist_address as Address);
   } else if (owner && protocol === 'in_process') {
-    const smartAccount = await getOrCreateSmartWallet({
+    const smartAccount = await getWalletLinkedSmartAccount({
       address: owner as Address,
     });
     const permission = await getPermission(

@@ -5,16 +5,15 @@ import { validate } from '@/lib/schema/validate';
 import { updateSaleSchema } from '@/lib/schema/updateSaleSchema';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
+import type { ArtistContext } from '@/types/artist';
 
-export type UpdateSaleBody = { callerAddress: string } & z.infer<
+export type UpdateSaleBody = { artist: ArtistContext } & z.infer<
   typeof updateSaleSchema
 >;
 
 const validateUpdateSaleBody = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
   if (authResult instanceof Response) return authResult as NextResponse;
-  const { primaryWallet: callerAddress } = authResult;
-
   const body = await req.json();
   const result = validate(updateSaleSchema, body);
   if (!result.success) return result.response;
@@ -37,13 +36,13 @@ const validateUpdateSaleBody = async (req: NextRequest) => {
         token_id: momentRow.token_id,
       },
     ],
-    artist_address: callerAddress,
+    artist_address: authResult.primaryWallet,
   });
   if (admins.length === 0) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
   }
 
-  return { callerAddress, ...result.data };
+  return { artist: authResult, ...result.data };
 };
 
 export default validateUpdateSaleBody;

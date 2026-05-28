@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
-  getOrCreateSmartWallet: vi.fn(),
+vi.mock('@/lib/smartwallets/getOperationalSmartWallet', () => ({
+  getOperationalSmartWallet: vi.fn(),
 }));
 
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
@@ -16,7 +16,7 @@ vi.mock('@/lib/moment/getUpdateCollectionCall', () => ({
   default: vi.fn(),
 }));
 
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateTokenURICall from '@/lib/viem/getUpdateTokenURICall';
 import getUpdateCollectionCall from '@/lib/moment/getUpdateCollectionCall';
@@ -28,18 +28,24 @@ const TX_HASH =
   '0xaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd' as const;
 
 const NEW_COLLECTION = '0x3333333333333333333333333333333333333333' as const;
+const artist = {
+  artistId: 'artist-uuid',
+  primaryWallet: ARTIST,
+  wallets: [ARTIST],
+};
+
 const moment = { collectionAddress: COLLECTION, tokenId: '3', chainId: 8453 };
 const baseInput = {
   moment,
   newUri: 'ar://new-metadata-hash',
-  artistAddress: ARTIST,
+  artist,
 };
 
 describe('updateMomentURI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
+    vi.mocked(getOperationalSmartWallet).mockResolvedValue({
       address: ARTIST,
     } as any);
     vi.mocked(getUpdateTokenURICall).mockReturnValue({

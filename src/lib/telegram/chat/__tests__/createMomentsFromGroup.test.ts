@@ -17,6 +17,11 @@ import sendReadyMessage from '../sendReadyMessage';
 import sendArtistCollage from '../sendArtistCollage';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
+const ARTIST_CONTEXT = {
+  id: 'artist-uuid-123',
+  primaryWallet: ARTIST_ADDRESS,
+  wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
+};
 
 const PENDING_IMAGE = {
   fileId: 'file-1',
@@ -83,7 +88,7 @@ describe('createMomentsFromGroup', () => {
   it('returns early without uploading when list is empty', async () => {
     const thread = makeThread(makeStateAdapter([]));
 
-    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
+    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 
     expect(processAttachmentUpload).not.toHaveBeenCalled();
     expect(createMomentBatch).not.toHaveBeenCalled();
@@ -103,7 +108,7 @@ describe('createMomentsFromGroup', () => {
 
     const thread = makeThread(makeStateAdapter([PENDING_IMAGE, PENDING_VIDEO]));
 
-    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
+    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 
     expect(processAttachmentUpload).toHaveBeenCalledTimes(2);
   });
@@ -111,7 +116,7 @@ describe('createMomentsFromGroup', () => {
   it('builds a fetchData that calls fetchTelegramFile with the correct fileId', async () => {
     const thread = makeThread(makeStateAdapter([PENDING_IMAGE]));
 
-    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
+    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 
     const attachment = vi.mocked(processAttachmentUpload).mock.calls[0][0];
     await attachment.fetchData!();
@@ -121,7 +126,7 @@ describe('createMomentsFromGroup', () => {
   it('passes thumbFileId to processAttachmentUpload', async () => {
     const thread = makeThread(makeStateAdapter([PENDING_VIDEO]));
 
-    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
+    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 
     expect(processAttachmentUpload).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'video', mimeType: 'video/mp4' }),
@@ -135,7 +140,7 @@ describe('createMomentsFromGroup', () => {
   it('calls createMomentBatch with tokens and a new-collection contract from the first asset', async () => {
     const thread = makeThread(makeStateAdapter([PENDING_IMAGE]));
 
-    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
+    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 
     expect(createMomentBatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -180,7 +185,7 @@ describe('createMomentsFromGroup', () => {
     };
     const thread = makeThread(stateAdapter);
 
-    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
+    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 
     expect(createMomentBatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -209,7 +214,7 @@ describe('createMomentsFromGroup', () => {
 
     const thread = makeThread(makeStateAdapter([PENDING_IMAGE, PENDING_VIDEO]));
 
-    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_ADDRESS);
+    await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 
     expect(sendReadyMessage).toHaveBeenCalledTimes(2);
     expect(sendReadyMessage).toHaveBeenCalledWith(

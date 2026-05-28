@@ -21,6 +21,11 @@ import sendReadyMessage from '../sendReadyMessage';
 import sendArtistCollage from '../sendArtistCollage';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
+const ARTIST_CONTEXT = {
+  id: 'artist-uuid-123',
+  primaryWallet: ARTIST_ADDRESS,
+  wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
+};
 const UPLOAD_RESULT = {
   uri: 'ar://meta',
   mimeType: 'image/jpeg',
@@ -65,7 +70,7 @@ describe('processSingleMedia', () => {
       makeAttachment() as never,
       'file-id',
       'My Title',
-      ARTIST_ADDRESS
+      ARTIST_CONTEXT
     );
 
     expect(thread.post).toHaveBeenCalledWith(
@@ -81,7 +86,7 @@ describe('processSingleMedia', () => {
       attachment as never,
       'file-id',
       'My Title',
-      ARTIST_ADDRESS,
+      ARTIST_CONTEXT,
       'thumb-id'
     );
 
@@ -100,7 +105,7 @@ describe('processSingleMedia', () => {
       makeAttachment() as never,
       'file-id',
       'My Title',
-      ARTIST_ADDRESS
+      ARTIST_CONTEXT
     );
 
     const call = vi.mocked(createMomentBatch).mock.calls[0][0];
@@ -119,7 +124,7 @@ describe('processSingleMedia', () => {
       makeAttachment() as never,
       'file-id',
       'My Title',
-      ARTIST_ADDRESS
+      ARTIST_CONTEXT
     );
 
     expect(sendReadyMessage).toHaveBeenCalledWith(
@@ -140,7 +145,7 @@ describe('processSingleMedia', () => {
       makeAttachment() as never,
       'file-id',
       'My Title',
-      ARTIST_ADDRESS
+      ARTIST_CONTEXT
     );
 
     const call = vi.mocked(createMomentBatch).mock.calls[0][0];

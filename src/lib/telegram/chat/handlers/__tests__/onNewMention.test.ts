@@ -28,6 +28,11 @@ import type { TelegramChatBot } from '../../bot';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
 const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+const ARTIST_CONTEXT = {
+  artistId: ARTIST_ID,
+  primaryWallet: ARTIST_ADDRESS,
+  wallets: [ARTIST_ADDRESS],
+};
 const CHANNEL_ID = 'telegram:1352384640';
 const RAW_CHAT_ID = '1352384640';
 
@@ -147,6 +152,6 @@ describe('onNewMention', () => {
 
     await capturedHandler!(thread, makeMessage({ text: `listen ${yt}` }));
 
-    expect(processYoutubeLink).toHaveBeenCalledWith(thread, yt, ARTIST_ADDRESS);
+    expect(processYoutubeLink).toHaveBeenCalledWith(thread, yt, ARTIST_CONTEXT);
   });
 });

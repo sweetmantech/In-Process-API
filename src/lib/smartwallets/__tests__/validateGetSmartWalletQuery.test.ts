@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import validateGetSmartWalletQuery from '@/lib/smartwallets/validateGetSmartWalletQuery';
 
-const VALID_WALLET = '0x1234567890123456789012345678901234567890';
+const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
 const makeRequest = (params: Record<string, string> = {}) => {
   const url = new URL('http://localhost/api/smartwallet');
@@ -11,28 +11,17 @@ const makeRequest = (params: Record<string, string> = {}) => {
 };
 
 describe('validateGetSmartWalletQuery', () => {
-  it('returns validated data when artist_wallet is a valid address', () => {
+  it('returns validated data when artistId is provided', () => {
     const result = validateGetSmartWalletQuery(
-      makeRequest({ artist_wallet: VALID_WALLET })
+      makeRequest({ artistId: ARTIST_ID })
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect((result as { artist_wallet: string }).artist_wallet).toBe(
-      VALID_WALLET.toLowerCase()
-    );
+    expect((result as { artistId: string }).artistId).toBe(ARTIST_ID);
   });
 
-  it('returns 400 when artist_wallet is missing', () => {
+  it('returns 400 when artistId is missing', () => {
     const result = validateGetSmartWalletQuery(makeRequest());
-
-    expect(result).toBeInstanceOf(NextResponse);
-    expect((result as NextResponse).status).toBe(400);
-  });
-
-  it('returns 400 when artist_wallet is not a valid Ethereum address', () => {
-    const result = validateGetSmartWalletQuery(
-      makeRequest({ artist_wallet: '0xabc' })
-    );
 
     expect(result).toBeInstanceOf(NextResponse);
     expect((result as NextResponse).status).toBe(400);

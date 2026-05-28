@@ -15,6 +15,11 @@ import clearSelectedCollectionAddress from '../clearSelectedCollectionAddress';
 import getSelectedCollectionAddress from '../getSelectedCollectionAddress';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
+const ARTIST_CONTEXT = {
+  id: 'artist-uuid-123',
+  primaryWallet: ARTIST_ADDRESS,
+  wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
+};
 const YT_URL = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 const MOMENT = {
   contractAddress: '0xContract' as Address,
@@ -47,7 +52,7 @@ describe('processYoutubeLink', () => {
   it('posts the in-progress message and starts typing before minting', async () => {
     const thread = makeThread();
 
-    await processYoutubeLink(thread as never, YT_URL, ARTIST_ADDRESS);
+    await processYoutubeLink(thread as never, YT_URL, ARTIST_CONTEXT);
 
     expect(getSelectedCollectionAddress).toHaveBeenCalledWith(thread);
     expect(thread.post).toHaveBeenCalledWith(
@@ -60,11 +65,11 @@ describe('processYoutubeLink', () => {
   it('mints with no existing collection when none is selected', async () => {
     vi.mocked(getSelectedCollectionAddress).mockResolvedValue(null);
 
-    await processYoutubeLink(makeThread() as never, YT_URL, ARTIST_ADDRESS);
+    await processYoutubeLink(makeThread() as never, YT_URL, ARTIST_CONTEXT);
 
     expect(createMomentFromYoutubeLink).toHaveBeenCalledWith(
       YT_URL,
-      ARTIST_ADDRESS,
+      ARTIST_CONTEXT,
       undefined
     );
     expect(clearSelectedCollectionAddress).not.toHaveBeenCalled();
@@ -75,11 +80,11 @@ describe('processYoutubeLink', () => {
     const thread = makeThread();
     vi.mocked(getSelectedCollectionAddress).mockResolvedValue(existing);
 
-    await processYoutubeLink(thread as never, YT_URL, ARTIST_ADDRESS);
+    await processYoutubeLink(thread as never, YT_URL, ARTIST_CONTEXT);
 
     expect(createMomentFromYoutubeLink).toHaveBeenCalledWith(
       YT_URL,
-      ARTIST_ADDRESS,
+      ARTIST_CONTEXT,
       existing
     );
     expect(clearSelectedCollectionAddress).toHaveBeenCalledWith(thread);
@@ -88,7 +93,7 @@ describe('processYoutubeLink', () => {
   it('sends ready message and artist collage after mint', async () => {
     const thread = makeThread();
 
-    await processYoutubeLink(thread as never, YT_URL, ARTIST_ADDRESS);
+    await processYoutubeLink(thread as never, YT_URL, ARTIST_CONTEXT);
 
     expect(sendReadyMessage).toHaveBeenCalledWith(
       thread,

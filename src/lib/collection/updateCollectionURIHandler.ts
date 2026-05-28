@@ -1,3 +1,4 @@
+import type { ArtistContext } from '@/types/artist';
 import { Address } from 'viem';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -8,11 +9,11 @@ import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 type UpdateCollectionURIHandlerInput = z.infer<
   typeof updateCollectionURISchema
 > & {
-  artistAddress: string;
+  artist: ArtistContext;
 };
 
 const updateCollectionURIHandler = async ({
-  artistAddress,
+  artist,
   collection,
   newUri,
   newCollectionName,
@@ -21,11 +22,11 @@ const updateCollectionURIHandler = async ({
     collection,
     newUri,
     newCollectionName,
-    artistAddress: artistAddress as Address,
+    artist,
   });
 
   migrateMuxToArweave({
-    artistAddress: artistAddress as Address,
+    artistAddress: artist.primaryWallet,
     moment: {
       collectionAddress: collection.address,
       tokenId: '0',

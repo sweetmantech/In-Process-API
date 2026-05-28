@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../mapCollectionsToSupabase', () => ({
   mapCollectionsToSupabase: vi.fn(),
 }));
-vi.mock('@/lib/artists/ensureArtists', () => ({
-  ensureArtists: vi.fn(),
+vi.mock('@/lib/wallets/ensureWallets', () => ({
+  ensureWallets: vi.fn(),
 }));
 vi.mock('@/lib/supabase/in_process_collections/upsertCollections', () => ({
   upsertCollections: vi.fn(),
@@ -12,11 +12,11 @@ vi.mock('@/lib/supabase/in_process_collections/upsertCollections', () => ({
 
 import { processCollectionsInBatches } from '../processCollectionsInBatches';
 import { mapCollectionsToSupabase } from '../mapCollectionsToSupabase';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 
 const mockMap = vi.mocked(mapCollectionsToSupabase);
-const mockEnsureArtists = vi.mocked(ensureArtists);
+const mockEnsureArtists = vi.mocked(ensureWallets);
 const mockUpsertCollections = vi.mocked(upsertCollections);
 
 const collection = {

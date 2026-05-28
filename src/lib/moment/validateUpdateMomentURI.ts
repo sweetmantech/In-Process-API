@@ -19,7 +19,7 @@ const validateUpdateMomentURI = async (req: NextRequest) => {
     );
   }
 
-  return { artistAddress: authResult.primaryWallet, ...result.data };
+  return { artist: authResult, ...result.data };
 };
 
 export default validateUpdateMomentURI;

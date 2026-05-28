@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 
-vi.mock('@/lib/smartwallets/getSmartWalletsBalances', () => ({
+vi.mock('@/lib/coinbase/getLegacySmartAccount', () => ({
+  getLegacySmartAccount: vi.fn(),
+}));
+vi.mock('@/lib/viem/getWalletBalance', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
@@ -11,20 +14,25 @@ vi.mock('@/lib/smartwallets/getWithdrawalCall', () => ({
   getWithdrawalCall: vi.fn(),
 }));
 
-import getSmartWalletsBalances from '@/lib/smartwallets/getSmartWalletsBalances';
+import { getLegacySmartAccount } from '@/lib/coinbase/getLegacySmartAccount';
+import getWalletBalance from '@/lib/viem/getWalletBalance';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getWithdrawalCall } from '@/lib/smartwallets/getWithdrawalCall';
 import migrateSmartWalletFunds from '@/lib/artists/migrateSmartWalletFunds';
 
-const socialAddr = '0xb234567890123456789012345678901234567891' as const;
-const artistAddr = '0xa123456789012345678901234567890123456789' as const;
-const socialSmartAccount = { address: socialAddr } as any;
+const legacyWalletAddress =
+  '0xc345678901234567890123456789012345678901' as const;
+const legacySmartAccountAddress =
+  '0xb234567890123456789012345678901234567891' as const;
+const canonicalAddr = '0xa123456789012345678901234567890123456789' as const;
+const legacySmartAccount = { address: legacySmartAccountAddress } as any;
 
 const expectedNetwork = IS_TESTNET ? 'base-sepolia' : 'base';
 
 describe('migrateSmartWalletFunds', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getLegacySmartAccount).mockResolvedValue(legacySmartAccount);
     vi.mocked(getWithdrawalCall).mockImplementation(
       (currency, amount, to) => ({ mock: currency, amount, to }) as any
     );
@@ -33,178 +41,139 @@ describe('migrateSmartWalletFunds', () => {
     } as any);
   });
 
-  it('does not send a user operation when balance map has no entry for the social wallet', async () => {
-    vi.mocked(getSmartWalletsBalances).mockResolvedValue({
-      totalEthBalance: 0n,
-      totalUsdcBalance: 0n,
-      walletsBalances: new Map(),
-    });
+  it('skips when legacy smart account matches canonical', async () => {
+    vi.mocked(getLegacySmartAccount).mockResolvedValue({
+      address: canonicalAddr,
+    } as any);
 
     await migrateSmartWalletFunds({
-      socialSmartAccount,
-      artistSmartWalletAddress: artistAddr,
+      legacyWalletAddress,
+      canonicalSmartAccountAddress: canonicalAddr,
     });
 
-    expect(getSmartWalletsBalances).toHaveBeenCalledWith(
-      [
-        {
-          address: socialAddr,
-          smartWallet: socialSmartAccount,
-        },
-      ],
-      CHAIN_ID
-    );
+    expect(getWalletBalance).not.toHaveBeenCalled();
     expect(sendUserOperation).not.toHaveBeenCalled();
-    expect(getWithdrawalCall).not.toHaveBeenCalled();
   });
 
   it('does not send a user operation when ETH and USDC balances are zero', async () => {
-    const map = new Map();
-    map.set(socialAddr, {
+    vi.mocked(getWalletBalance).mockResolvedValue({
       ethBalance: 0n,
       usdcBalance: 0n,
-      smartAccount: socialSmartAccount,
-      address: socialAddr,
-    });
-    vi.mocked(getSmartWalletsBalances).mockResolvedValue({
-      totalEthBalance: 0n,
-      totalUsdcBalance: 0n,
-      walletsBalances: map,
     });
 
     await migrateSmartWalletFunds({
-      socialSmartAccount,
-      artistSmartWalletAddress: artistAddr,
+      legacyWalletAddress,
+      canonicalSmartAccountAddress: canonicalAddr,
     });
 
+    expect(getLegacySmartAccount).toHaveBeenCalledWith({
+      address: legacyWalletAddress,
+    });
+    expect(getWalletBalance).toHaveBeenCalledWith(
+      legacySmartAccountAddress,
+      CHAIN_ID
+    );
     expect(sendUserOperation).not.toHaveBeenCalled();
     expect(getWithdrawalCall).not.toHaveBeenCalled();
   });
 
   it('withdraws ETH only and sends one user operation', async () => {
     const ethAmt = 1n;
-    const map = new Map();
-    map.set(socialAddr, {
+    vi.mocked(getWalletBalance).mockResolvedValue({
       ethBalance: ethAmt,
       usdcBalance: 0n,
-      smartAccount: socialSmartAccount,
-      address: socialAddr,
-    });
-    vi.mocked(getSmartWalletsBalances).mockResolvedValue({
-      totalEthBalance: ethAmt,
-      totalUsdcBalance: 0n,
-      walletsBalances: map,
     });
 
     await migrateSmartWalletFunds({
-      socialSmartAccount,
-      artistSmartWalletAddress: artistAddr,
+      legacyWalletAddress,
+      canonicalSmartAccountAddress: canonicalAddr,
     });
 
     expect(getWithdrawalCall).toHaveBeenCalledTimes(1);
     expect(getWithdrawalCall).toHaveBeenCalledWith(
       'eth',
       ethAmt,
-      artistAddr,
+      canonicalAddr,
       CHAIN_ID
     );
     expect(sendUserOperation).toHaveBeenCalledWith({
-      smartAccount: socialSmartAccount,
+      smartAccount: legacySmartAccount,
       network: expectedNetwork,
-      calls: [{ mock: 'eth', amount: ethAmt, to: artistAddr }],
+      calls: [{ mock: 'eth', amount: ethAmt, to: canonicalAddr }],
     });
   });
 
   it('withdraws USDC only and sends one user operation', async () => {
     const usdcAmt = 5_000_000n;
-    const map = new Map();
-    map.set(socialAddr, {
+    vi.mocked(getWalletBalance).mockResolvedValue({
       ethBalance: 0n,
       usdcBalance: usdcAmt,
-      smartAccount: socialSmartAccount,
-      address: socialAddr,
-    });
-    vi.mocked(getSmartWalletsBalances).mockResolvedValue({
-      totalEthBalance: 0n,
-      totalUsdcBalance: usdcAmt,
-      walletsBalances: map,
     });
 
     await migrateSmartWalletFunds({
-      socialSmartAccount,
-      artistSmartWalletAddress: artistAddr,
+      legacyWalletAddress,
+      canonicalSmartAccountAddress: canonicalAddr,
     });
 
     expect(getWithdrawalCall).toHaveBeenCalledTimes(1);
     expect(getWithdrawalCall).toHaveBeenCalledWith(
       'usdc',
       usdcAmt,
-      artistAddr,
+      canonicalAddr,
       CHAIN_ID
     );
     expect(sendUserOperation).toHaveBeenCalledWith({
-      smartAccount: socialSmartAccount,
+      smartAccount: legacySmartAccount,
       network: expectedNetwork,
-      calls: [{ mock: 'usdc', amount: usdcAmt, to: artistAddr }],
+      calls: [{ mock: 'usdc', amount: usdcAmt, to: canonicalAddr }],
     });
   });
 
   it('batches ETH and USDC into a single user operation when both are non-zero', async () => {
     const ethAmt = 2n;
     const usdcAmt = 1n;
-    const map = new Map();
-    map.set(socialAddr, {
+    vi.mocked(getWalletBalance).mockResolvedValue({
       ethBalance: ethAmt,
       usdcBalance: usdcAmt,
-      smartAccount: socialSmartAccount,
-      address: socialAddr,
-    });
-    vi.mocked(getSmartWalletsBalances).mockResolvedValue({
-      totalEthBalance: ethAmt,
-      totalUsdcBalance: usdcAmt,
-      walletsBalances: map,
     });
 
     await migrateSmartWalletFunds({
-      socialSmartAccount,
-      artistSmartWalletAddress: artistAddr,
+      legacyWalletAddress,
+      canonicalSmartAccountAddress: canonicalAddr,
     });
 
     expect(getWithdrawalCall).toHaveBeenNthCalledWith(
       1,
       'eth',
       ethAmt,
-      artistAddr,
+      canonicalAddr,
       CHAIN_ID
     );
     expect(getWithdrawalCall).toHaveBeenNthCalledWith(
       2,
       'usdc',
       usdcAmt,
-      artistAddr,
+      canonicalAddr,
       CHAIN_ID
     );
     expect(sendUserOperation).toHaveBeenCalledWith({
-      smartAccount: socialSmartAccount,
+      smartAccount: legacySmartAccount,
       network: expectedNetwork,
       calls: [
-        { mock: 'eth', amount: ethAmt, to: artistAddr },
-        { mock: 'usdc', amount: usdcAmt, to: artistAddr },
+        { mock: 'eth', amount: ethAmt, to: canonicalAddr },
+        { mock: 'usdc', amount: usdcAmt, to: canonicalAddr },
       ],
     });
   });
 
-  it('wraps errors from balance fetch or send', async () => {
-    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.mocked(getSmartWalletsBalances).mockRejectedValue(new Error('rpc'));
+  it('returns silently when balance fetch or send fails', async () => {
+    vi.mocked(getWalletBalance).mockRejectedValue(new Error('rpc'));
 
     await expect(
       migrateSmartWalletFunds({
-        socialSmartAccount,
-        artistSmartWalletAddress: artistAddr,
+        legacyWalletAddress,
+        canonicalSmartAccountAddress: canonicalAddr,
       })
-    ).rejects.toThrow(/❌ migrateSmartWalletFunds:/);
-
-    errSpy.mockRestore();
+    ).resolves.toBeUndefined();
   });
 });

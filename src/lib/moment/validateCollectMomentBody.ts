@@ -12,10 +12,7 @@ const validateCollectMomentBody = async (req: NextRequest) => {
   const result = validate(collectSchema, body);
   if (!result.success) return result.response;
 
-  return {
-    artistAddress: authResult.primaryWallet as Address,
-    ...result.data,
-  };
+  return { ...authResult, ...result.data };
 };
 
 export default validateCollectMomentBody;

@@ -145,21 +145,21 @@ export type Database = {
       };
       in_process_artist_phones: {
         Row: {
-          artist_address: string;
+          artist_id: string;
           created_at: string;
           id: string;
           phone_number: string;
           verified: boolean;
         };
         Insert: {
-          artist_address: string;
+          artist_id: string;
           created_at?: string;
           id?: string;
           phone_number: string;
           verified?: boolean;
         };
         Update: {
-          artist_address?: string;
+          artist_id?: string;
           created_at?: string;
           id?: string;
           phone_number?: string;
@@ -167,11 +167,11 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'in_process_artist_phones_artist_address_fkey';
-            columns: ['artist_address'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_wallets';
-            referencedColumns: ['address'];
+            foreignKeyName: 'in_process_artist_phones_artist_id_fkey';
+            columns: ['artist_id'];
+            isOneToOne: true;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -585,19 +585,16 @@ export type Database = {
         Row: {
           address: string;
           artist: string | null;
-          smart_wallet_address: string | null;
           type: Database['public']['Enums']['wallet_type'] | null;
         };
         Insert: {
           address: string;
           artist?: string | null;
-          smart_wallet_address?: string | null;
           type?: Database['public']['Enums']['wallet_type'] | null;
         };
         Update: {
           address?: string;
           artist?: string | null;
-          smart_wallet_address?: string | null;
           type?: Database['public']['Enums']['wallet_type'] | null;
         };
         Relationships: [
@@ -835,7 +832,7 @@ export type Database = {
         | 'catalog'
         | 'sound.xyz'
         | 'zora_media';
-      wallet_type: 'privy' | 'farcaster' | 'external';
+      wallet_type: 'privy' | 'farcaster' | 'external' | 'smart';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -970,7 +967,7 @@ export const Constants = {
   public: {
     Enums: {
       collection_protocol: ['in_process', 'catalog', 'sound.xyz', 'zora_media'],
-      wallet_type: ['privy', 'farcaster', 'external'],
+      wallet_type: ['privy', 'farcaster', 'external', 'smart'],
     },
   },
 } as const;

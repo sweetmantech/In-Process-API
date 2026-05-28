@@ -2,7 +2,7 @@ import type { InProcess_Comments_t } from '@/types/envio';
 import { BATCH_SIZE } from '@/lib/consts';
 import { mapCommentsToSupabase } from './mapCommentsToSupabase';
 import { upsertComments } from '@/lib/supabase/in_process_moment_comments/upsertComments';
-import { ensureArtists } from '@/lib/artists/ensureArtists';
+import { ensureWallets } from '@/lib/wallets/ensureWallets';
 
 export async function processCommentsInBatches(
   comments: InProcess_Comments_t[]
@@ -13,7 +13,7 @@ export async function processCommentsInBatches(
     try {
       const batch = comments.slice(i, i + BATCH_SIZE);
       const mappedComments = await mapCommentsToSupabase(batch);
-      await ensureArtists(mappedComments.map((c) => c.artist_address));
+      await ensureWallets(mappedComments.map((c) => c.artist_address));
       await upsertComments(mappedComments);
       totalProcessed += mappedComments.length;
       console.log(
