@@ -46,7 +46,7 @@ const verifiedPhoneRow = {
   artist: {
     id: 'artist-uuid-123',
     username: 'testartist',
-    wallets: [{ address: PRIMARY_WALLET, type: 'external' }],
+    wallets: [{ address: PRIMARY_WALLET, type: 'external' as const }],
   },
 };
 
@@ -90,7 +90,7 @@ describe('smsWebhookHandler', () => {
         artist: {
           artistId: 'artist-uuid-123',
           primaryWallet: PRIMARY_WALLET,
-          wallets: [PRIMARY_WALLET],
+          wallets: [{ address: PRIMARY_WALLET, type: 'external' as const }],
         },
       },
       media[0],

@@ -31,7 +31,7 @@ const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 const ARTIST_CONTEXT = {
   artistId: ARTIST_ID,
   primaryWallet: ARTIST_ADDRESS,
-  wallets: [ARTIST_ADDRESS],
+  wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
 };
 const CHANNEL_ID = 'telegram:1352384640';
 const RAW_CHAT_ID = '1352384640';

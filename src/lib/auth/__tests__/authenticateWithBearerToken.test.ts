@@ -20,9 +20,13 @@ describe('authenticateWithBearerToken', () => {
   });
 
   it('returns wallets and authMethod when getWalletsByPrivyToken succeeds', async () => {
+    const mockWallets = [
+      { address: PRIMARY_WALLET, type: 'privy' as const },
+      { address: SECONDARY_WALLET, type: 'external' as const },
+    ];
     vi.mocked(getWalletsByPrivyToken).mockResolvedValue({
       primaryWallet: PRIMARY_WALLET,
-      wallets: [PRIMARY_WALLET, SECONDARY_WALLET],
+      wallets: mockWallets,
       artistId: ARTIST_ID,
     });
 
@@ -31,7 +35,7 @@ describe('authenticateWithBearerToken', () => {
     expect(getWalletsByPrivyToken).toHaveBeenCalledWith('token');
     expect(result).toEqual({
       primaryWallet: PRIMARY_WALLET,
-      wallets: [PRIMARY_WALLET, SECONDARY_WALLET],
+      wallets: mockWallets,
       artistId: ARTIST_ID,
       authMethod: AuthMethod.Privy,
     });

@@ -10,6 +10,7 @@ import truncateAddress from '@/lib/truncateAddress';
 import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
 import type { ArtistContext } from '@/types/artist';
 import type { Tables } from '@/lib/supabase/types';
+import type { WalletType } from '@/types/wallets';
 
 const smsWebhookHandler = async (event: InboundMessageWebhookEvent) => {
   if (event.data?.event_type === 'message.received') {
@@ -31,7 +32,10 @@ const smsWebhookHandler = async (event: InboundMessageWebhookEvent) => {
             ? {
                 artistId: artistData.id,
                 primaryWallet,
-                wallets: wallets.map((w) => w.address as Address),
+                wallets: wallets.map((w) => ({
+                  address: w.address as Address,
+                  type: w.type as WalletType,
+                })),
               }
             : null;
 

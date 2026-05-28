@@ -3,10 +3,11 @@ import selectWallets from '../supabase/in_process_wallets/selectWallets';
 import getPrivyLinkedAccount from './getPrivyLinkedAccount';
 import upsertWallets from '../supabase/in_process_wallets/upsertWallets';
 import { upsertArtists } from '../supabase/in_process_artists/upsertArtists';
+import { WalletType } from '@/types/wallets';
 
 export async function getWalletsByPrivyToken(authToken: string): Promise<{
   primaryWallet: Address;
-  wallets: Address[];
+  wallets: { address: Address; type: WalletType }[];
   artistId: string;
 }> {
   const { linkedAccount, type } = await getPrivyLinkedAccount(authToken);
@@ -35,7 +36,10 @@ export async function getWalletsByPrivyToken(authToken: string): Promise<{
   )?.address;
   return {
     primaryWallet: (externalWallet as Address) || linkedAccount,
-    wallets: linkedWallets?.map((w) => w.address as Address) || [linkedAccount],
+    wallets: linkedWallets?.map((w) => ({
+      address: w.address as Address,
+      type: w.type as WalletType,
+    })) || [{ address: linkedAccount, type }],
     artistId,
   };
 }

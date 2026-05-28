@@ -28,7 +28,9 @@ export const getOperationalSmartWallet = async ({
   const { chainId, collectionAddress } = moment;
   const orderedWallets = [
     primaryWallet,
-    ...wallets.filter((w) => w.toLowerCase() !== primaryWallet.toLowerCase()),
+    ...wallets
+      .filter((w) => w.address.toLowerCase() !== primaryWallet.toLowerCase())
+      .map((w) => w.address),
   ];
   const network: 'base' | 'base-sepolia' = IS_TESTNET ? 'base-sepolia' : 'base';
 

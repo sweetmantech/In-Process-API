@@ -12,6 +12,7 @@ import processYoutubeLink from '../processYoutubeLink';
 import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
 import { Tables } from '@/lib/supabase/types';
 import type { ArtistContext } from '@/types/artist';
+import type { WalletType } from '@/types/wallets';
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
 
@@ -34,7 +35,10 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         ? {
             artistId: raw.id,
             primaryWallet: primaryWallet as Address,
-            wallets: wallets.map((w) => w.address as Address),
+            wallets: wallets.map((w) => ({
+              address: w.address as Address,
+              type: w.type as WalletType,
+            })),
           }
         : null;
 

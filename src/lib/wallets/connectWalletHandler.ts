@@ -4,7 +4,6 @@ import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 import { WalletType } from '@/types/wallets';
 import getArtistSmartWallet from '@/lib/smartwallets/getArtistSmartWallet';
 import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
 
 const connectWalletHandler = async ({
   artistId,

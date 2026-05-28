@@ -1,13 +1,20 @@
 import { Address } from 'viem';
+import { WalletType } from '@/types/wallets';
 
 export enum AuthMethod {
   Farcaster = 'farcaster',
   Privy = 'privy',
   ApiKey = 'apiKey',
 }
+
+export interface AuthWallet {
+  address: Address;
+  type: WalletType;
+}
+
 export interface AuthResult {
   primaryWallet: Address;
-  wallets: Address[];
+  wallets: AuthWallet[];
   artistId: string;
   authMethod: AuthMethod;
   isWebRequest?: boolean;

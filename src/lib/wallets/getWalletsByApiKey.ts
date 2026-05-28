@@ -3,6 +3,7 @@ import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import { hashApiKey } from '@/lib/api-keys/hashApiKey';
 import { PRIVY_PROJECT_SECRET } from '@/lib/consts';
 import { Address } from 'viem';
+import { WalletType } from '@/types/wallets';
 
 export async function getWalletsByApiKey(apiKey: string) {
   const keyHash = hashApiKey(apiKey, PRIVY_PROJECT_SECRET);
@@ -32,7 +33,10 @@ export async function getWalletsByApiKey(apiKey: string) {
       (externalWallet as Address) ||
       (privyWallet as Address) ||
       (walletRows[0].address as Address),
-    wallets: walletRows.map((w) => w.address as Address),
+    wallets: walletRows.map((w) => ({
+      address: w.address as Address,
+      type: w.type as WalletType,
+    })),
     artistId: row.artist_id,
   };
 }

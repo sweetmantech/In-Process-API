@@ -6,10 +6,11 @@ import { AuthErrorMessages } from '@/errors';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
+import { WalletType } from '@/types/wallets';
 
 export async function getWalletsByFarcasterToken(token: string): Promise<{
   primaryWallet: Address;
-  wallets: Address[];
+  wallets: { address: Address; type: WalletType }[];
   artistId: string;
 }> {
   const raw = verifyJwt(token, process.env.FARCASTER_JWT_SECRET!);
@@ -52,8 +53,11 @@ export async function getWalletsByFarcasterToken(token: string): Promise<{
   return {
     artistId,
     primaryWallet: normalized as Address,
-    wallets: linkedWallets?.map((w) => w.address as Address) || [
-      normalized as Address,
+    wallets: linkedWallets?.map((w) => ({
+      address: w.address as Address,
+      type: w.type as WalletType,
+    })) || [
+      { address: normalized as Address, type: 'farcaster' as WalletType },
     ],
   };
 }

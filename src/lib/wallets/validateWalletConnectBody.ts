@@ -18,7 +18,7 @@ const validateWalletConnectBody = async (req: NextRequest) => {
     result.data.signature
   );
 
-  if (wallets.some((w) => w.toLowerCase() === address.toLowerCase())) {
+  if (wallets.some((w) => w.address.toLowerCase() === address.toLowerCase())) {
     return NextResponse.json(
       { message: 'Wallet already connected' },
       { status: 400 }

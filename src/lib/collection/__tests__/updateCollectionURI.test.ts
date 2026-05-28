@@ -28,7 +28,7 @@ const MOCK_CALL = { to: COLLECTION_ADDRESS, data: '0x1234' };
 const artist = {
   artistId: 'artist-uuid',
   primaryWallet: ARTIST_ADDRESS,
-  wallets: [ARTIST_ADDRESS],
+  wallets: [{ address: ARTIST_ADDRESS, type: 'privy' as const }],
 };
 
 const baseInput = {

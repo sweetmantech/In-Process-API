@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AuthErrorMessages, AuthErrorTypes } from '@/errors';
-import { AuthMethod } from '@/types/auth';
+import { AuthMethod, AuthWallet } from '@/types/auth';
 import authenticateWithFarcasterToken from '@/lib/auth/authenticateWithFarcasterToken';
 import authenticateWithBearerToken from '@/lib/auth/authenticateWithBearerToken';
 import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
@@ -15,7 +15,7 @@ interface AuthTokens {
 
 interface ResolvedAuth {
   primaryWallet: Address;
-  wallets: Address[];
+  wallets: AuthWallet[];
   artistId: string;
   authMethod: AuthMethod;
 }

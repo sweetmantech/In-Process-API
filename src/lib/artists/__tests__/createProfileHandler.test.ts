@@ -10,7 +10,12 @@ import createProfileHandler from '@/lib/artists/createProfileHandler';
 const ARTIST = {
   artistId: '00000000-0000-0000-0000-000000000001',
   primaryWallet: '0x1234567890123456789012345678901234567890' as const,
-  wallets: ['0x1234567890123456789012345678901234567890' as const],
+  wallets: [
+    {
+      address: '0x1234567890123456789012345678901234567890' as const,
+      type: 'privy' as const,
+    },
+  ],
 };
 
 describe('createProfileHandler', () => {

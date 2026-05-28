@@ -10,7 +10,7 @@ import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
 
 const WALLET_DATA = {
   primaryWallet: '0xabc123' as const,
-  wallets: ['0xabc123' as const],
+  wallets: [{ address: '0xabc123' as const, type: 'privy' as const }],
   artistId: 'artist-uuid',
 };
 
