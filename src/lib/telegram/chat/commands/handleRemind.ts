@@ -3,18 +3,17 @@ import { Card, Actions, Button } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
-import type { Address } from 'viem';
 import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';
 
 const handleRemind = async (
   thread: Thread<TelegramThreadState>,
-  artistAddress: Address
+  artistId: string
 ) => {
-  const data = await selectAccountNotification(artistAddress);
+  const data = await selectAccountNotification(artistId);
 
   const disabled = data?.nudge_period == null;
   await upsertAccountNotification({
-    artist_address: artistAddress,
+    artist_id: artistId,
     nudge_period: disabled ? 3 : null,
   });
 

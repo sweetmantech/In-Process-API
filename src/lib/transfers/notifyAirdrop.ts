@@ -1,5 +1,6 @@
 import { SHORT_CHAIN_NAME, SITE_ORIGINAL_URL } from '@/lib/consts';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import type { Transfers_t } from '@/types/envio';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from './getAirdropOperator';
@@ -10,7 +11,11 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
     if (t.value && t.currency) continue;
     const recipient = t.recipient.toLowerCase();
     try {
-      const data = await selectAccountNotification(recipient);
+      const { data: wallets } = await selectWallets({ addresses: [recipient] });
+      const artistId = wallets?.[0]?.artist_id;
+      if (!artistId) continue;
+
+      const data = await selectAccountNotification(artistId);
       const chatId = data?.telegram_chat_id;
       if (!chatId) continue;
 

@@ -24,11 +24,13 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         telegram: telegramUsername,
       });
       const artist = data?.[0] ?? null;
+      const artistId = artist?.id;
+      
       const text = message.text?.trim() ?? '';
 
-      if (artist) {
+      if (artistId) {
         await upsertAccountNotification({
-          artist_address: artist.address as Address,
+          artist_id: artistId,
           telegram_chat_id: parseTelegramChatId(thread.channelId),
         });
       }

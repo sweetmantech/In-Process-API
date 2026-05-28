@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Address } from 'viem';
 
 vi.mock(
   '@/lib/supabase/account_notifications/selectAccountNotification',
@@ -30,7 +29,7 @@ import selectAccountNotification from '@/lib/supabase/account_notifications/sele
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import handleRemind from '../handleRemind';
 
-const ARTIST_ADDRESS = '0xArtist' as Address;
+const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
@@ -47,7 +46,7 @@ describe('handleRemind', () => {
       nudge_period: null,
     } as any);
 
-    await handleRemind(makeThread() as never, ARTIST_ADDRESS);
+    await handleRemind(makeThread() as never, ARTIST_ID);
 
     expect(upsertAccountNotification).toHaveBeenCalledWith(
       expect.objectContaining({ nudge_period: 3 })
@@ -59,7 +58,7 @@ describe('handleRemind', () => {
       nudge_period: 3,
     } as any);
 
-    await handleRemind(makeThread() as never, ARTIST_ADDRESS);
+    await handleRemind(makeThread() as never, ARTIST_ID);
 
     expect(upsertAccountNotification).toHaveBeenCalledWith(
       expect.objectContaining({ nudge_period: null })
@@ -72,7 +71,7 @@ describe('handleRemind', () => {
     } as any);
     const thread = makeThread();
 
-    await handleRemind(thread as never, ARTIST_ADDRESS);
+    await handleRemind(thread as never, ARTIST_ID);
 
     const message: string = thread.post.mock.calls[0][0];
     expect(message).toContain('ON');
@@ -84,7 +83,7 @@ describe('handleRemind', () => {
     } as any);
     const thread = makeThread();
 
-    await handleRemind(thread as never, ARTIST_ADDRESS);
+    await handleRemind(thread as never, ARTIST_ID);
 
     const message: string = thread.post.mock.calls[0][0];
     expect(message).toContain('OFF');
@@ -99,7 +98,7 @@ describe('handleRemind', () => {
     );
 
     await expect(
-      handleRemind(makeThread() as never, ARTIST_ADDRESS)
+      handleRemind(makeThread() as never, ARTIST_ID)
     ).rejects.toThrow('DB error');
   });
 });

@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Address } from 'viem';
 
 vi.mock(
   '@/lib/supabase/account_notifications/selectAccountNotification',
@@ -18,7 +17,7 @@ import selectAccountNotification from '@/lib/supabase/account_notifications/sele
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import handleNotify from '../handleNotify';
 
-const ARTIST_ADDRESS = '0xArtist' as Address;
+const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
@@ -35,7 +34,7 @@ describe('handleNotify', () => {
       notify_enabled: false,
     } as any);
 
-    await handleNotify(makeThread() as never, ARTIST_ADDRESS);
+    await handleNotify(makeThread() as never, ARTIST_ID);
 
     expect(upsertAccountNotification).toHaveBeenCalledWith(
       expect.objectContaining({ notify_enabled: true })
@@ -47,7 +46,7 @@ describe('handleNotify', () => {
       notify_enabled: true,
     } as any);
 
-    await handleNotify(makeThread() as never, ARTIST_ADDRESS);
+    await handleNotify(makeThread() as never, ARTIST_ID);
 
     expect(upsertAccountNotification).toHaveBeenCalledWith(
       expect.objectContaining({ notify_enabled: false })
@@ -60,7 +59,7 @@ describe('handleNotify', () => {
     } as any);
     const thread = makeThread();
 
-    await handleNotify(thread as never, ARTIST_ADDRESS);
+    await handleNotify(thread as never, ARTIST_ID);
 
     const message: string = thread.post.mock.calls[0][0];
     expect(message).toContain('ON');
@@ -72,7 +71,7 @@ describe('handleNotify', () => {
     } as any);
     const thread = makeThread();
 
-    await handleNotify(thread as never, ARTIST_ADDRESS);
+    await handleNotify(thread as never, ARTIST_ID);
 
     const message: string = thread.post.mock.calls[0][0];
     expect(message).toContain('OFF');
@@ -87,7 +86,7 @@ describe('handleNotify', () => {
     );
 
     await expect(
-      handleNotify(makeThread() as never, ARTIST_ADDRESS)
+      handleNotify(makeThread() as never, ARTIST_ID)
     ).rejects.toThrow('DB error');
   });
 });

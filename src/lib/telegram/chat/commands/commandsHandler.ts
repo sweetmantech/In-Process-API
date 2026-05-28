@@ -1,7 +1,7 @@
 import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
-import type { Tables } from '@/lib/supabase/types';
+import type { ArtistRow } from '@/lib/supabase/in_process_artists/selectArtists';
 import handleWelcome from './handleWelcome';
 import handleStart from './handleStart';
 import handleRemind from './handleRemind';
@@ -13,24 +13,24 @@ const commandsHandler = async (
   text: string,
   thread: Thread<TelegramThreadState>,
   telegramUsername: string,
-  artist: Tables<'in_process_artists'> | null
+  artist: ArtistRow | null
 ): Promise<boolean> => {
   if (!artist) {
     await handleWelcome(thread);
     return true;
   }
 
-  const artistAddress = artist.address as Address;
+  const artistAddress = artist.address! as Address;
 
   switch (text) {
     case '/start':
       await handleStart(thread, artist.username, telegramUsername);
       return true;
     case '/remind':
-      await handleRemind(thread, artistAddress);
+      await handleRemind(thread, artist.id);
       return true;
     case '/notify':
-      await handleNotify(thread, artistAddress);
+      await handleNotify(thread, artist.id);
       return true;
     case '/collections':
       await handleCollections(thread, artistAddress);

@@ -27,10 +27,11 @@ import { registerOnNewMention } from '../onNewMention';
 import type { TelegramChatBot } from '../../bot';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
+const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
 const CHANNEL_ID = 'telegram:1352384640';
 const RAW_CHAT_ID = '1352384640';
 
-const ARTIST = { address: ARTIST_ADDRESS, username: 'alice' };
+const ARTIST = { id: ARTIST_ID, address: ARTIST_ADDRESS, username: 'alice' };
 
 const makeMessage = (overrides = {}) => ({
   author: { userName: 'testuser' },
@@ -72,7 +73,7 @@ beforeEach(() => {
   vi.mocked(commandsHandler).mockResolvedValue(false);
   vi.mocked(processMediaThread).mockResolvedValue(undefined);
   vi.mocked(processYoutubeLink).mockResolvedValue(undefined);
-  vi.mocked(youtubeParser).mockReturnValue(null);
+  vi.mocked(youtubeParser).mockReturnValue(false);
 
   registerOnNewMention(mockBot);
 });
@@ -90,7 +91,7 @@ describe('onNewMention', () => {
 
     expect(upsertAccountNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        artist_address: ARTIST_ADDRESS,
+        artist_id: ARTIST_ID,
         telegram_chat_id: RAW_CHAT_ID,
       })
     );

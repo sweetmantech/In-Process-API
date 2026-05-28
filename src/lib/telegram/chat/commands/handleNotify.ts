@@ -2,17 +2,16 @@ import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
-import type { Address } from 'viem';
 
 const handleNotify = async (
   thread: Thread<TelegramThreadState>,
-  artistAddress: Address
+  artistId: string
 ) => {
-  const data = await selectAccountNotification(artistAddress);
+  const data = await selectAccountNotification(artistId);
 
   const enabled = !(data?.notify_enabled ?? false);
   await upsertAccountNotification({
-    artist_address: artistAddress,
+    artist_id: artistId,
     notify_enabled: enabled,
   });
 
