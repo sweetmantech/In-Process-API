@@ -2,7 +2,7 @@ import { Address, Hash, OneOf } from 'viem';
 import { z } from 'zod';
 import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { getOrCreateSmartWallet } from '../coinbase/getOrCreateSmartWallet';
+import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
 import { collectSchema } from '../schema/collectSchema';
 import getCollectCall from '../viem/getCollectCall';
 import { validateBalanceAndAllowance } from '@/lib/sales/validateBalanceAndAllowance';
@@ -10,7 +10,7 @@ import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
 import { resolveMomentInfo } from './resolveMomentInfo';
 
 export type CollectMomentInput = z.infer<typeof collectSchema> & {
-  artistAddress: Address;
+  primaryWallet: Address;
 };
 
 export interface CollectResult {
@@ -26,11 +26,11 @@ export async function collectMoment({
   moment,
   comment,
   amount,
-  artistAddress,
+  primaryWallet,
 }: CollectMomentInput): Promise<CollectResult> {
   // Get or create a smart account (contract wallet)
-  const smartAccount = await getOrCreateSmartWallet({
-    address: artistAddress,
+  const smartAccount = await getWalletLinkedSmartAccount({
+    address: primaryWallet,
   });
 
   // Get token info and sale config
@@ -51,7 +51,7 @@ export async function collectMoment({
     moment.collectionAddress,
     Number(moment.tokenId),
     saleConfig,
-    artistAddress,
+    primaryWallet,
     comment,
     amount
   );

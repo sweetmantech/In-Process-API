@@ -61,9 +61,8 @@ const getAirdropOperator = async (
   let artistUsername: string | null | undefined;
 
   if (isCb) {
-    const { data: wallets } = await selectWallets({
-      smartWalletAddress: address,
-    });
+    // Smart wallets are now their own rows (type='smart') — query by address directly
+    const { data: wallets } = await selectWallets({ addresses: [address] });
     const wallet = wallets?.[0];
     artistAddress = wallet?.address;
     artistUsername = wallet?.artist?.username;

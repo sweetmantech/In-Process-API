@@ -272,7 +272,7 @@ describe('getAirdropOperator', () => {
     expect(mockSelectCollections).not.toHaveBeenCalled();
     expect(mockSelectArtists).not.toHaveBeenCalled();
     expect(mockSelectWallets).toHaveBeenCalledWith({
-      smartWalletAddress: operatorAddress,
+      addresses: [operatorAddress],
     });
     expect(result).toEqual({
       address: operatorAddress,
