@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { artistAddress } = authResult;
+    const { primaryWallet } = authResult;
 
     const body = await req.json();
     const validationResult = validate(withdrawSchema, body);
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     const result = await withdraw({
       ...validationResult.data,
-      artistAddress: artistAddress as Address,
+      artistAddress: primaryWallet as Address,
     });
 
     return Response.json(result);

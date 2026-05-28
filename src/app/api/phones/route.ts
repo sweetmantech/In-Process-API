@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { artistAddress } = authResult;
+    const { primaryWallet } = authResult;
 
     // Get and validate phone number from request body
     const body = await req.json();
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     // Upsert phone number into Supabase with verified = false
     const { error: insertError } = await upsertPhone({
-      artist_address: artistAddress.toLowerCase(),
+      artist_address: primaryWallet.toLowerCase(),
       phone_number,
       verified: false,
     });
@@ -37,10 +37,10 @@ export async function POST(req: NextRequest) {
     }
 
     const { data: walletRows } = await selectWallets({
-      addresses: [artistAddress.toLowerCase()],
+      addresses: [primaryWallet.toLowerCase()],
     });
     const username = walletRows?.[0]?.artist?.username;
-    const artistName = username || truncateAddress(artistAddress);
+    const artistName = username || truncateAddress(primaryWallet);
 
     // Send SMS verification message
     await sendSms(
@@ -65,10 +65,10 @@ export async function DELETE(req: NextRequest) {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { artistAddress } = authResult;
+    const { primaryWallet } = authResult;
 
     const { error: deleteError } = await deletePhone(
-      artistAddress.toLowerCase()
+      primaryWallet.toLowerCase()
     );
 
     if (deleteError) {

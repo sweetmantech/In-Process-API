@@ -27,7 +27,7 @@ export function registerOnCollectionsLoadMore(bot: TelegramChatBot) {
     if (!artist) return;
 
     const { data, count, error } = await selectCollections({
-      artist: artist.address,
+      artist: artist.address ?? undefined,
       chainId: CHAIN_ID,
       limit: 20,
       page,

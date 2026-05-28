@@ -1,4 +1,3 @@
-/** Omit scalar `recipient` so the joined artist appears only as `collector`. */
 const transferRowFields = `
     id,
     moment,
@@ -6,11 +5,12 @@ const transferRowFields = `
     currency,
     value,
     transaction_hash,
-    transferred_at`;
+    transferred_at,
+    recipient`;
 
 export const paymentTransfersQuery = `
     ${transferRowFields},
-    collector:in_process_artists!inner(address, username),
+    collector:in_process_wallets!recipient(artist:in_process_artists(username)),
     moment:in_process_moments!inner(
       token_id,
       fee_recipients:in_process_moment_fee_recipients!inner(
@@ -21,7 +21,8 @@ export const paymentTransfersQuery = `
         address,
         chain_id,
         protocol,
-        artist:in_process_artists!creator(address, username)
+        creator,
+        collection_artist:in_process_wallets!creator(artist:in_process_artists(username))
       ),
       metadata:in_process_metadata!inner(
         name,
@@ -38,14 +39,15 @@ export const paymentTransfersQuery = `
 
 export const transfersQuery = `
     ${transferRowFields},
-    collector:in_process_artists!inner(address, username),
+    collector:in_process_wallets!recipient(artist:in_process_artists(username)),
     moment:in_process_moments!inner(
       token_id,
       collection:in_process_collections!inner(
         address,
         chain_id,
         protocol,
-        artist:in_process_artists!creator(address, username)
+        creator,
+        collection_artist:in_process_wallets!creator(artist:in_process_artists(username))
       ),
       metadata:in_process_metadata!inner(
         name,

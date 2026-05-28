@@ -2,15 +2,14 @@ import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 
 const handleMe = async (
   thread: Thread<TelegramThreadState>,
   artistAddress: Address
 ) => {
-  const { data: artists } = await selectArtists({ address: artistAddress });
-  const artistId = artists?.[0]?.id;
+  const { data: walletRows } = await selectWallets({ addresses: [artistAddress] });
+  const artistId = walletRows?.[0]?.artist_id;
 
   if (artistId) {
     const { data: privyRows } = await selectWallets({
@@ -27,9 +26,6 @@ const handleMe = async (
   }
 
   // artistAddress may itself be a privy wallet
-  const { data: walletRows } = await selectWallets({
-    addresses: [artistAddress],
-  });
   if (walletRows?.[0]?.type === 'privy') {
     const email = await getEmailByWalletAddress(artistAddress);
     if (email) {

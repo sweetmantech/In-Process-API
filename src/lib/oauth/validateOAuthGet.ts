@@ -7,7 +7,7 @@ const validateOAuthGet = async (
   const authResult = await authMiddleware(req);
   if (authResult instanceof NextResponse)
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
-  return { artistAddress: authResult.artistAddress };
+  return { artistAddress: authResult.primaryWallet };
 };
 
 export default validateOAuthGet;

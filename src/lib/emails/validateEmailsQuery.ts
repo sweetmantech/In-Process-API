@@ -6,7 +6,7 @@ import emailQuerySchema from '@/lib/schema/emailQuerySchema';
 const validateEmailsQuery = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
   if (authResult instanceof Response) return authResult as NextResponse;
-  const { artistAddress: callerAddress } = authResult;
+  const { primaryWallet: callerAddress } = authResult;
 
   const result = validate(
     emailQuerySchema,
