@@ -159,7 +159,7 @@ describe('validateUpdateSaleBody', () => {
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect((result as any).callerAddress).toBe(CALLER);
+    expect((result as any).artist.primaryWallet).toBe(CALLER);
     expect((result as any).pricePerToken).toBe('1000');
     expect((result as any).saleStart).toBeUndefined();
   });
@@ -170,7 +170,7 @@ describe('validateUpdateSaleBody', () => {
     );
 
     expect(result).not.toBeInstanceOf(NextResponse);
-    expect((result as any).callerAddress).toBe(CALLER);
+    expect((result as any).artist.primaryWallet).toBe(CALLER);
     expect((result as any).saleStart).toBe(1748736000);
     expect((result as any).pricePerToken).toBeUndefined();
   });

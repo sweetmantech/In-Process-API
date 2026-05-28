@@ -7,8 +7,6 @@ import { Address } from 'viem';
 const validateAirdropMoment = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
   if (authResult instanceof Response) return authResult as NextResponse;
-  const { primaryWallet } = authResult;
-
   let body: unknown;
   try {
     body = await req.json();
@@ -23,7 +21,7 @@ const validateAirdropMoment = async (req: NextRequest) => {
   }
   const result = validate(airdropMomentSchema, body);
   if (!result.success) return result.response;
-  return { artistAddress: primaryWallet as Address, ...result.data };
+  return { artist: authResult, ...result.data };
 };
 
 export default validateAirdropMoment;

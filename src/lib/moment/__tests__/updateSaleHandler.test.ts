@@ -4,8 +4,8 @@ vi.mock('@/lib/viem/getInProcessMomentInfo', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
-  getOrCreateSmartWallet: vi.fn(),
+vi.mock('@/lib/smartwallets/getOperationalSmartWallet', () => ({
+  getOperationalSmartWallet: vi.fn(),
 }));
 
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
@@ -17,7 +17,7 @@ vi.mock('@/lib/sales/getUpdateSaleCall', () => ({
 }));
 
 import getMomentOnChainInfo from '@/lib/viem/getInProcessMomentInfo';
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';
 import updateSaleHandler from '@/lib/moment/updateSaleHandler';
@@ -27,6 +27,12 @@ const COLLECTION = '0x0000000000000000000000000000000000000001' as const;
 const CALLER = '0xcaller000000000000000000000000000000000' as const;
 const TX_HASH =
   '0xtxhash000000000000000000000000000000000000000000000000000000000000';
+
+const artist = {
+  artistId: 'artist-uuid',
+  primaryWallet: CALLER,
+  wallets: [CALLER],
+};
 
 const moment = { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 };
 
@@ -47,7 +53,7 @@ describe('updateSaleHandler', () => {
     vi.mocked(getMomentOnChainInfo).mockResolvedValue({
       saleConfig: baseOnChainSale,
     } as any);
-    vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
+    vi.mocked(getOperationalSmartWallet).mockResolvedValue({
       address: CALLER,
     } as any);
     vi.mocked(sendUserOperation).mockResolvedValue({
@@ -63,7 +69,7 @@ describe('updateSaleHandler', () => {
 
     const res = await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       pricePerToken: '1000',
     });
     expect(res.status).toBe(404);
@@ -74,7 +80,7 @@ describe('updateSaleHandler', () => {
   it('overrides pricePerToken when provided', async () => {
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       pricePerToken: '9999',
     });
 
@@ -88,7 +94,7 @@ describe('updateSaleHandler', () => {
   it('keeps existing pricePerToken when not provided', async () => {
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       saleStart: 1748736000,
     });
 
@@ -102,7 +108,7 @@ describe('updateSaleHandler', () => {
   it('overrides saleStart when provided', async () => {
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       saleStart: 1748736000,
     });
 
@@ -116,7 +122,7 @@ describe('updateSaleHandler', () => {
   it('keeps existing saleStart when not provided', async () => {
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       pricePerToken: '1000',
     });
 
@@ -138,7 +144,7 @@ describe('updateSaleHandler', () => {
 
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       pricePerToken: '1000',
     });
 
@@ -154,7 +160,7 @@ describe('updateSaleHandler', () => {
 
     await updateSaleHandler({
       moment: sepoliaMoment,
-      callerAddress: CALLER,
+      artist,
       pricePerToken: '1000',
     });
 
@@ -166,7 +172,7 @@ describe('updateSaleHandler', () => {
   it('uses base network for mainnet chainId', async () => {
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       pricePerToken: '1000',
     });
 
@@ -178,7 +184,7 @@ describe('updateSaleHandler', () => {
   it('returns hash and chainId on success', async () => {
     const res = await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       pricePerToken: '1000',
     });
     const json = await res.json();
@@ -190,7 +196,7 @@ describe('updateSaleHandler', () => {
   it('overrides saleEnd when provided', async () => {
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       saleEnd: 1780272000,
     });
 
@@ -204,7 +210,7 @@ describe('updateSaleHandler', () => {
   it('keeps existing saleEnd when not provided', async () => {
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       pricePerToken: '1000',
     });
 
@@ -218,7 +224,7 @@ describe('updateSaleHandler', () => {
   it('overrides maxTokensPerAddress when provided', async () => {
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       maxTokensPerAddress: 10,
     });
 
@@ -234,7 +240,7 @@ describe('updateSaleHandler', () => {
 
     await updateSaleHandler({
       moment,
-      callerAddress: CALLER,
+      artist,
       fundsRecipient: newRecipient,
     });
 
@@ -253,7 +259,7 @@ describe('updateSaleHandler', () => {
     await expect(
       updateSaleHandler({
         moment,
-        callerAddress: CALLER,
+        artist,
         pricePerToken: '1000',
       })
     ).rejects.toThrow('Paymaster failed');

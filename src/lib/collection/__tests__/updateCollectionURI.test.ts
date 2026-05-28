@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/coinbase/getOrCreateSmartWallet', () => ({
-  getOrCreateSmartWallet: vi.fn(),
+vi.mock('@/lib/smartwallets/getOperationalSmartWallet', () => ({
+  getOperationalSmartWallet: vi.fn(),
 }));
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
   sendUserOperation: vi.fn(),
@@ -10,7 +10,7 @@ vi.mock('@/lib/viem/getUpdateCollectionURICall', () => ({
   default: vi.fn(),
 }));
 
-import { getOrCreateSmartWallet } from '@/lib/coinbase/getOrCreateSmartWallet';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateCollectionURICall from '@/lib/viem/getUpdateCollectionURICall';
 import { updateCollectionURI } from '@/lib/collection/updateCollectionURI';
@@ -25,16 +25,22 @@ const TX_HASH = '0xdeadbeef';
 const NEW_URI = 'ar://some-arweave-hash';
 const MOCK_CALL = { to: COLLECTION_ADDRESS, data: '0x1234' };
 
+const artist = {
+  artistId: 'artist-uuid',
+  primaryWallet: ARTIST_ADDRESS,
+  wallets: [ARTIST_ADDRESS],
+};
+
 const baseInput = {
   collection: { address: COLLECTION_ADDRESS, chainId: 8453 },
   newUri: NEW_URI,
   newCollectionName: 'My Collection',
-  artistAddress: ARTIST_ADDRESS,
+  artist,
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getOrCreateSmartWallet).mockResolvedValue({
+  vi.mocked(getOperationalSmartWallet).mockResolvedValue({
     address: SMART_WALLET_ADDRESS,
   } as any);
   vi.mocked(sendUserOperation).mockResolvedValue({
@@ -50,10 +56,15 @@ describe('updateCollectionURI', () => {
     expect(result.chainId).toBe(8453);
   });
 
-  it('creates smart wallet for the artist', async () => {
+  it('resolves the operational smart wallet for the artist', async () => {
     await updateCollectionURI(baseInput);
-    expect(getOrCreateSmartWallet).toHaveBeenCalledWith({
-      address: ARTIST_ADDRESS,
+    expect(getOperationalSmartWallet).toHaveBeenCalledWith({
+      artist,
+      moment: {
+        collectionAddress: COLLECTION_ADDRESS,
+        chainId: 8453,
+        tokenId: '0',
+      },
     });
   });
 
