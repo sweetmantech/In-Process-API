@@ -13,10 +13,12 @@ ALTER TABLE in_process_moment_comments
   DROP CONSTRAINT IF EXISTS in_process_moment_comments_artist_address_fkey,
   ADD CONSTRAINT in_process_moment_comments_artist_address_fkey
     FOREIGN KEY (artist_address) REFERENCES in_process_artists(address)
-    ON DELETE CASCADE;
+    ON DELETE CASCADE
+    NOT VALID;
 
 ALTER TABLE in_process_transfers
   DROP CONSTRAINT IF EXISTS in_process_transfers_recipient_fkey,
   ADD CONSTRAINT in_process_transfers_recipient_fkey
     FOREIGN KEY (recipient) REFERENCES in_process_artists(address)
-    ON DELETE SET NULL;
+    ON DELETE SET NULL
+    NOT VALID;
