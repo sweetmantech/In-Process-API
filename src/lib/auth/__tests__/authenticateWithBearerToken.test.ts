@@ -4,7 +4,7 @@ vi.mock('@/lib/privy/getAddressesByPrivyToken', () => ({
   getAddressesByPrivyToken: vi.fn(),
 }));
 
-import { getAddressesByPrivyToken } from '@/lib/privy/getAddressesByPrivyToken';
+import { getAddressesByPrivyToken } from '@/lib/privy/getWalletsByPrivyToken';
 import { AuthErrorMessages } from '@/errors';
 import { AuthMethod } from '@/types/auth';
 import authenticateWithBearerToken from '@/lib/auth/authenticateWithBearerToken';

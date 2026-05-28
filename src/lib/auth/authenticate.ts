@@ -5,6 +5,7 @@ import authenticateWithFarcasterToken from '@/lib/auth/authenticateWithFarcaster
 import authenticateWithBearerToken from '@/lib/auth/authenticateWithBearerToken';
 import authenticateWithApiKey from '@/lib/auth/authenticateWithApiKey';
 import isAuthError from '@/lib/auth/isAuthError';
+import { Address } from 'viem';
 
 interface AuthTokens {
   farcasterToken: string | null;
@@ -13,7 +14,9 @@ interface AuthTokens {
 }
 
 interface ResolvedAuth {
-  artistAddress: string;
+  primaryWallet: Address;
+  wallets: Address[];
+  artistId: string;
   authMethod: AuthMethod;
 }
 
