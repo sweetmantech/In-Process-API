@@ -24,6 +24,8 @@ const connectWalletHandler = async ({
   });
   const incomingWallet = walletRows?.[0];
 
+  let priorArtistIdToDelete: string | null = null;
+
   if (incomingWallet?.artist_id && incomingWallet.artist_id !== artistId) {
     const priorArtistId = incomingWallet.artist_id;
 
@@ -53,7 +55,7 @@ const connectWalletHandler = async ({
       });
     }
 
-    if (walletRows.length <= 1) await deleteArtist(priorArtistId);
+    if (walletRows.length <= 1) priorArtistIdToDelete = priorArtistId;
   }
 
   await upsertWallets([
@@ -63,6 +65,8 @@ const connectWalletHandler = async ({
       type: clientType,
     },
   ]);
+
+  if (priorArtistIdToDelete) await deleteArtist(priorArtistIdToDelete);
 
   return NextResponse.json({ success: true });
 };
