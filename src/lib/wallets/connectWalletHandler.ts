@@ -7,6 +7,7 @@ import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import { WalletType } from '@/types/wallets';
 import { AuthResult } from '@/types/auth';
+import getPrimaryWallet from './getPrimaryWallet';
 
 const connectWalletHandler = async ({
   artist,
@@ -24,24 +25,19 @@ const connectWalletHandler = async ({
   });
   const existingWallet = existing?.[0];
 
-  let targetArtistId = artistId;
-
   if (existingWallet?.artist_id && existingWallet.artist_id !== artistId) {
     const existingArtistId = existingWallet.artist_id;
-    targetArtistId = existingArtistId;
 
-    const [{ data: profiles }, { data: currentArtistWallets }] =
-      await Promise.all([
-        selectArtists({ ids: [existingArtistId, artistId] }),
-        selectWallets({ artistIds: [artistId] }),
-      ]);
+    const { data: profiles } = await selectArtists({
+      ids: [existingArtistId, artistId],
+    });
 
     const existingProfile = profiles.find((p) => p.id === existingArtistId);
     const artistProfile = profiles.find((p) => p.id === artistId);
 
     if (existingProfile && artistProfile) {
       await upsertArtists({
-        id: existingArtistId,
+        id: artistId,
         username: existingProfile.username ?? artistProfile.username,
         bio: existingProfile.bio ?? artistProfile.bio,
         x: existingProfile.x ?? artistProfile.x,
@@ -50,23 +46,27 @@ const connectWalletHandler = async ({
       });
     }
 
-    if (currentArtistWallets?.length) {
-      await upsertWallets(
-        currentArtistWallets.map((w) => ({
-          address: w.address,
-          artist: existingArtistId,
-          type: w.type,
-        }))
-      );
-    }
+    const isExistingPrimaryWallet =
+      getPrimaryWallet(existingProfile?.wallets) === address.toLowerCase();
 
-    await deleteArtist(artistId);
+    if (existing.length <= 1) {
+      await deleteArtist(existingArtistId);
+    } else if (isExistingPrimaryWallet) {
+      await upsertArtists({
+        id: existingArtistId,
+        username: null,
+        bio: null,
+        x: null,
+        instagram: null,
+        telegram: null,
+      });
+    }
   }
 
   await upsertWallets([
     {
       address: address.toLowerCase(),
-      artist: targetArtistId,
+      artist: artistId,
       type: clientType,
     },
   ]);
