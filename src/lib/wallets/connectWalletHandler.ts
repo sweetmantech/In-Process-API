@@ -20,35 +20,35 @@ const connectWalletHandler = async ({
 }) => {
   const { artistId } = artist;
 
-  const { data: existing } = await selectWallets({
+  const { data: walletRows } = await selectWallets({
     addresses: [address.toLowerCase()],
   });
-  const existingWallet = existing?.[0];
+  const incomingWallet = walletRows?.[0];
 
-  if (existingWallet?.artist_id && existingWallet.artist_id !== artistId) {
-    const existingArtistId = existingWallet.artist_id;
+  if (incomingWallet?.artist_id && incomingWallet.artist_id !== artistId) {
+    const priorOwnerId = incomingWallet.artist_id;
 
     const { data: profiles } = await selectArtists({
-      ids: [existingArtistId, artistId],
+      ids: [priorOwnerId, artistId],
     });
 
-    const existingProfile = profiles.find((p) => p.id === existingArtistId);
+    const priorProfile = profiles.find((p) => p.id === priorOwnerId);
     const artistProfile = profiles.find((p) => p.id === artistId);
 
-    const isExistingPrimaryWallet =
-      getPrimaryWallet(existingProfile?.wallets) === address.toLowerCase();
+    const isIncomingWalletPrimary =
+      getPrimaryWallet(priorProfile?.wallets) === address.toLowerCase();
 
-    if (existingProfile && artistProfile && isExistingPrimaryWallet) {
+    if (priorProfile && artistProfile && isIncomingWalletPrimary) {
       await upsertArtists({
         id: artistId,
-        username: existingProfile.username ?? artistProfile.username,
-        bio: existingProfile.bio ?? artistProfile.bio,
-        x: existingProfile.x ?? artistProfile.x,
-        instagram: existingProfile.instagram ?? artistProfile.instagram,
-        telegram: existingProfile.telegram ?? artistProfile.telegram,
+        username: priorProfile.username ?? artistProfile.username,
+        bio: priorProfile.bio ?? artistProfile.bio,
+        x: priorProfile.x ?? artistProfile.x,
+        instagram: priorProfile.instagram ?? artistProfile.instagram,
+        telegram: priorProfile.telegram ?? artistProfile.telegram,
       });
       await upsertArtists({
-        id: existingArtistId,
+        id: priorOwnerId,
         username: null,
         bio: null,
         x: null,
@@ -57,7 +57,7 @@ const connectWalletHandler = async ({
       });
     }
 
-    if (existing.length <= 1) await deleteArtist(existingArtistId);
+    if (walletRows.length <= 1) await deleteArtist(priorOwnerId);
   }
 
   await upsertWallets([
