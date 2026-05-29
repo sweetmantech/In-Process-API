@@ -14,8 +14,8 @@ const validateWalletConnectBody = async (req: NextRequest) => {
 
   const { wallets } = authResult;
   const { address, clientType } = await verifyWalletConnectAuth(
-    result.data.message,
-    result.data.signature
+    result.data.walletProof.message,
+    result.data.walletProof.signature
   );
 
   if (
