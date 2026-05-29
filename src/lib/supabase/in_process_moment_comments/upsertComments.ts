@@ -9,6 +9,6 @@ export async function upsertComments(
   if (!comments.length) return;
   const { error } = await supabase
     .from('in_process_moment_comments')
-    .upsert(comments, { onConflict: 'id' });
+    .upsert(comments, { onConflict: 'artist_address,commented_at,moment' });
   if (error) throw error;
 }
