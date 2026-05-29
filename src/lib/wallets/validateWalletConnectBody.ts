@@ -18,15 +18,11 @@ const validateWalletConnectBody = async (req: NextRequest) => {
     result.data.walletProof.signature
   );
 
-  if (
-    wallets.some(
-      (w) => w.address.toLowerCase() === address.toLowerCase() && w.type
-    )
-  ) {
+  if (wallets.some((w) => w.address.toLowerCase() === address.toLowerCase())) {
     return NextResponse.json(
       { message: 'Wallet already connected' },
       { status: 400 }
-    );
+
   }
 
   if (wallets.some((w) => w.type === clientType)) {
