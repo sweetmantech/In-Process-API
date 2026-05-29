@@ -35,7 +35,10 @@ const connectWalletHandler = async ({
     const existingProfile = profiles.find((p) => p.id === existingArtistId);
     const artistProfile = profiles.find((p) => p.id === artistId);
 
-    if (existingProfile && artistProfile) {
+    const isExistingPrimaryWallet =
+      getPrimaryWallet(existingProfile?.wallets) === address.toLowerCase();
+
+    if (existingProfile && artistProfile && isExistingPrimaryWallet) {
       await upsertArtists({
         id: artistId,
         username: existingProfile.username ?? artistProfile.username,
@@ -44,14 +47,6 @@ const connectWalletHandler = async ({
         instagram: existingProfile.instagram ?? artistProfile.instagram,
         telegram: existingProfile.telegram ?? artistProfile.telegram,
       });
-    }
-
-    const isExistingPrimaryWallet =
-      getPrimaryWallet(existingProfile?.wallets) === address.toLowerCase();
-
-    if (existing.length <= 1) {
-      await deleteArtist(existingArtistId);
-    } else if (isExistingPrimaryWallet) {
       await upsertArtists({
         id: existingArtistId,
         username: null,
@@ -61,6 +56,8 @@ const connectWalletHandler = async ({
         telegram: null,
       });
     }
+
+    if (existing.length <= 1) await deleteArtist(existingArtistId);
   }
 
   await upsertWallets([
