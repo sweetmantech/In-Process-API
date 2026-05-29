@@ -2,6 +2,8 @@ import type { TelegramChatBot } from '../bot';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';
+import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
+import { Tables } from '@/lib/supabase/types';
 
 export function registerOnNudgePeriod(bot: TelegramChatBot) {
   bot.onAction(NUDGE_PERIOD_ACTION_ID, async (event) => {
@@ -16,10 +18,14 @@ export function registerOnNudgePeriod(bot: TelegramChatBot) {
       telegram: telegramUsername,
     });
     const artist = data?.[0];
-    if (!artist?.id) return;
+    if (!artist) return;
+
+    const wallets = (artist.wallets ?? []) as Tables<'in_process_wallets'>[];
+    const primaryWallet = getPrimaryWallet(wallets);
+    if (!primaryWallet) return;
 
     await upsertAccountNotification({
-      artist_id: artist.id,
+      wallet: primaryWallet,
       nudge_period: period,
     });
 

@@ -7,14 +7,14 @@ export type {
 export interface InProcessNotificationsQuery {
   limit?: number;
   page?: number;
-  artist_id?: string;
+  wallets?: string[];
   viewed?: boolean;
 }
 
 export async function selectNotifications({
   limit = 20,
   page = 1,
-  artist_id,
+  wallets,
   viewed,
 }: InProcessNotificationsQuery = {}) {
   const cappedLimit = Math.min(limit, 100);
@@ -32,13 +32,13 @@ export async function selectNotifications({
          ),
          collector:in_process_wallets!recipient!inner(artist:in_process_artists!inner(username))
        ),
-       artist:in_process_artists(username)`,
+       wallet_owner:in_process_wallets!wallet(artist:in_process_artists(username))`,
       { count: 'exact' }
     )
     .order('created_at', { ascending: false })
     .range((page - 1) * cappedLimit, page * cappedLimit - 1);
 
-  if (artist_id) query = query.eq('artist_id', artist_id);
+  if (wallets?.length) query = query.in('wallet', wallets);
   if (viewed !== undefined) query = query.eq('viewed', viewed);
 
   const { data, count, error } = await query;

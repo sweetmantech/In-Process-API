@@ -5,13 +5,13 @@ import upsertAccountNotification from '@/lib/supabase/account_notifications/upse
 
 const handleNotify = async (
   thread: Thread<TelegramThreadState>,
-  artistId: string
+  wallet: string
 ) => {
-  const data = await selectAccountNotification(artistId);
+  const data = await selectAccountNotification(wallet);
 
   const enabled = !(data?.notify_enabled ?? false);
   await upsertAccountNotification({
-    artist_id: artistId,
+    wallet,
     notify_enabled: enabled,
   });
 

@@ -1,18 +1,18 @@
 import { supabase } from '@/lib/supabase/client';
 
 export interface UpdateNotificationsQuery {
-  artist_id?: string;
+  wallets?: string[];
   viewed?: boolean;
 }
 
 export async function updateNotifications({
-  artist_id,
+  wallets,
   viewed = true,
 }: UpdateNotificationsQuery) {
   let query = supabase.from('in_process_notifications').update({ viewed });
 
-  if (artist_id) {
-    query = query.eq('artist_id', artist_id);
+  if (wallets?.length) {
+    query = query.in('wallet', wallets);
   }
 
   const { data, error } = await query.select('id');

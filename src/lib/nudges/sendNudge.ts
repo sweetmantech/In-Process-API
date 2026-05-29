@@ -3,17 +3,17 @@ import upsertAccountNotification from '@/lib/supabase/account_notifications/upse
 
 const sendNudge = async ({
   chatId,
-  artistId,
+  wallet,
   daysSinceLastMoment,
 }: {
   chatId: string;
-  artistId: string;
+  wallet: string;
   daysSinceLastMoment: number;
 }) => {
   const text = `Hi! It's been ${daysSinceLastMoment} day${daysSinceLastMoment === 1 ? '' : 's'} since you last posted. You've probably been cooking - is there anything you can post on In Process?`;
   await telegramChatBotClient.sendMessage(chatId, text);
   await upsertAccountNotification({
-    artist_id: artistId,
+    wallet,
     last_nudge_sent_at: new Date().toISOString(),
   });
 };
