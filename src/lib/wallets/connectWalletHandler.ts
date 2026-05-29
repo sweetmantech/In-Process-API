@@ -26,13 +26,13 @@ const connectWalletHandler = async ({
   const incomingWallet = walletRows?.[0];
 
   if (incomingWallet?.artist_id && incomingWallet.artist_id !== artistId) {
-    const priorOwnerId = incomingWallet.artist_id;
+    const priorArtistId = incomingWallet.artist_id;
 
     const { data: profiles } = await selectArtists({
-      ids: [priorOwnerId, artistId],
+      ids: [priorArtistId, artistId],
     });
 
-    const priorProfile = profiles.find((p) => p.id === priorOwnerId);
+    const priorProfile = profiles.find((p) => p.id === priorArtistId);
     const artistProfile = profiles.find((p) => p.id === artistId);
 
     const isIncomingWalletPrimary =
@@ -48,7 +48,7 @@ const connectWalletHandler = async ({
         telegram: priorProfile.telegram ?? artistProfile.telegram,
       });
       await upsertArtists({
-        id: priorOwnerId,
+        id: priorArtistId,
         username: null,
         bio: null,
         x: null,
@@ -57,7 +57,7 @@ const connectWalletHandler = async ({
       });
     }
 
-    if (walletRows.length <= 1) await deleteArtist(priorOwnerId);
+    if (walletRows.length <= 1) await deleteArtist(priorArtistId);
   }
 
   await upsertWallets([
