@@ -7,7 +7,6 @@ import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import { WalletType } from '@/types/wallets';
 import { AuthResult } from '@/types/auth';
-import getPrimaryWallet from './getPrimaryWallet';
 
 const connectWalletHandler = async ({
   artist,
