@@ -55,7 +55,10 @@ const connectWalletHandler = async ({
       });
     }
 
-    if (walletRows.length <= 1) priorArtistIdToDelete = priorArtistId;
+    const { data: priorWallets } = await selectWallets({
+      artistIds: [priorArtistId],
+    });
+    if ((priorWallets?.length ?? 0) <= 1) priorArtistIdToDelete = priorArtistId;
   }
 
   await upsertWallets([
