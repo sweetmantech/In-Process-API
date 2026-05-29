@@ -28,39 +28,45 @@ const connectWalletHandler = async ({
 
   if (existingWallet?.artist_id && existingWallet.artist_id !== artistId) {
     const existingArtistId = existingWallet.artist_id;
-    targetArtistId = existingArtistId;
 
-    const [{ data: profiles }, { data: currentArtistWallets }] =
+    const [{ data: profiles }, { data: existingArtistWallets }] =
       await Promise.all([
         selectArtists({ ids: [existingArtistId, artistId] }),
-        selectWallets({ artistIds: [artistId] }),
+        selectWallets({ artistIds: [existingArtistId] }),
       ]);
 
-    const existingProfile = profiles.find((p) => p.id === existingArtistId);
-    const artistProfile = profiles.find((p) => p.id === artistId);
+    const keepCurrent = artist.wallets.some((w) => w.type === 'external');
+    const [keepId, dropId, dropWallets] = keepCurrent
+      ? [artistId, existingArtistId, existingArtistWallets]
+      : [existingArtistId, artistId, artist.wallets];
 
-    if (existingProfile && artistProfile) {
+    targetArtistId = keepId;
+
+    const keepProfile = profiles.find((p) => p.id === keepId);
+    const dropProfile = profiles.find((p) => p.id === dropId);
+
+    if (keepProfile && dropProfile) {
       await upsertArtists({
-        id: existingArtistId,
-        username: existingProfile.username ?? artistProfile.username,
-        bio: existingProfile.bio ?? artistProfile.bio,
-        x: existingProfile.x ?? artistProfile.x,
-        instagram: existingProfile.instagram ?? artistProfile.instagram,
-        telegram: existingProfile.telegram ?? artistProfile.telegram,
+        id: keepId,
+        username: keepProfile.username ?? dropProfile.username,
+        bio: keepProfile.bio ?? dropProfile.bio,
+        x: keepProfile.x ?? dropProfile.x,
+        instagram: keepProfile.instagram ?? dropProfile.instagram,
+        telegram: keepProfile.telegram ?? dropProfile.telegram,
       });
     }
 
-    if (currentArtistWallets?.length) {
+    if (dropWallets?.length) {
       await upsertWallets(
-        currentArtistWallets.map((w) => ({
-          address: w.address,
-          artist: existingArtistId,
+        dropWallets.map((w) => ({
+          address: w.address.toLowerCase(),
+          artist: keepId,
           type: w.type,
         }))
       );
     }
 
-    await deleteArtist(artistId);
+    await deleteArtist(dropId);
   }
 
   await upsertWallets([
