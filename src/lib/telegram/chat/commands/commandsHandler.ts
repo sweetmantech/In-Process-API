@@ -30,10 +30,10 @@ const commandsHandler = async (
       await handleStart(thread, artist.username, telegramUsername);
       return true;
     case '/remind':
-      await handleRemind(thread, artist.id);
+      await handleRemind(thread, artistAddress);
       return true;
     case '/notify':
-      await handleNotify(thread, artist.id);
+      await handleNotify(thread, artistAddress);
       return true;
     case '/collections':
       await handleCollections(thread, artistAddress);

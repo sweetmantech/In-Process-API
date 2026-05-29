@@ -46,7 +46,7 @@ export function registerOnNewMention(bot: TelegramChatBot) {
 
       if (artist) {
         await upsertAccountNotification({
-          artist_id: artist.artistId,
+          wallet: primaryWallet,
           telegram_chat_id: parseTelegramChatId(thread.channelId),
         });
       }

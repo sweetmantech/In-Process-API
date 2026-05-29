@@ -7,13 +7,13 @@ import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';
 
 const handleRemind = async (
   thread: Thread<TelegramThreadState>,
-  artistId: string
+  wallet: string
 ) => {
-  const data = await selectAccountNotification(artistId);
+  const data = await selectAccountNotification(wallet);
 
   const disabled = data?.nudge_period == null;
   await upsertAccountNotification({
-    artist_id: artistId,
+    wallet,
     nudge_period: disabled ? 3 : null,
   });
 

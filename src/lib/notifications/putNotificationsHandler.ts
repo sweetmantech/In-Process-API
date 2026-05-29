@@ -1,9 +1,23 @@
 import { NextResponse } from 'next/server';
 import { updateNotifications } from '@/lib/supabase/in_process_notifications/updateNotifications';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 
 const putNotificationsHandler = async (artist_id?: string) => {
+  let wallets: string[] | undefined;
+  if (artist_id) {
+    const { data } = await selectWallets({ artistIds: [artist_id] });
+    wallets = (data ?? []).map((w) => w.address);
+    if (!wallets.length) {
+      return NextResponse.json({
+        status: 'success',
+        updated: 0,
+        message: 'Marked 0 notifications as viewed',
+      });
+    }
+  }
+
   const { data, error } = await updateNotifications({
-    artist_id,
+    wallets,
     viewed: true,
   });
   if (error)

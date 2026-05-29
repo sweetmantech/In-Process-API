@@ -139,14 +139,14 @@ describe('getNotificationsHandler', () => {
     await getNotificationsHandler({
       limit: 10,
       page: 3,
-      artist: '0xartist',
+      artist_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       viewed: false,
     });
 
     expect(selectNotifications).toHaveBeenCalledWith({
       limit: 10,
       page: 3,
-      artist: '0xartist',
+      artist_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       viewed: false,
     });
   });

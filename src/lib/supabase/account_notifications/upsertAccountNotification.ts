@@ -6,7 +6,7 @@ const upsertAccountNotification = async (
 ): Promise<void> => {
   const { error } = await supabase
     .from('account_notifications')
-    .upsert(data, { onConflict: 'artist_id' });
+    .upsert(data, { onConflict: 'wallet' });
   if (error) throw error;
 };
 

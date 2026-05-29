@@ -16,7 +16,7 @@ import upsertAccountNotification from '@/lib/supabase/account_notifications/upse
 
 const PARAMS = {
   chatId: '1352384640',
-  artistId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+  wallet: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   daysSinceLastMoment: 5,
 };
 
@@ -55,7 +55,7 @@ describe('sendNudge', () => {
 
     expect(upsertAccountNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        artist_id: PARAMS.artistId,
+        wallet: PARAMS.wallet,
         last_nudge_sent_at: expect.any(String),
       })
     );

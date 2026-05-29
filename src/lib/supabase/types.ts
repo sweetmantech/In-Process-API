@@ -36,35 +36,27 @@ export type Database = {
     Tables: {
       account_notifications: {
         Row: {
-          artist_id: string;
           last_nudge_sent_at: string | null;
           notify_enabled: boolean;
           nudge_period: number | null;
           telegram_chat_id: string | null;
+          wallet: string;
         };
         Insert: {
-          artist_id: string;
           last_nudge_sent_at?: string | null;
           notify_enabled?: boolean;
           nudge_period?: number | null;
           telegram_chat_id?: string | null;
+          wallet: string;
         };
         Update: {
-          artist_id?: string;
           last_nudge_sent_at?: string | null;
           notify_enabled?: boolean;
           nudge_period?: number | null;
           telegram_chat_id?: string | null;
+          wallet?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'account_notifications_artist_id_fkey';
-            columns: ['artist_id'];
-            isOneToOne: true;
-            referencedRelation: 'in_process_artists';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       in_process_admins: {
         Row: {
@@ -452,40 +444,40 @@ export type Database = {
       };
       in_process_notifications: {
         Row: {
-          artist_id: string;
           created_at: string | null;
           id: string;
           transfer: string;
           viewed: boolean;
+          wallet: string;
         };
         Insert: {
-          artist_id: string;
           created_at?: string | null;
           id?: string;
           transfer: string;
           viewed?: boolean;
+          wallet: string;
         };
         Update: {
-          artist_id?: string;
           created_at?: string | null;
           id?: string;
           transfer?: string;
           viewed?: boolean;
+          wallet?: string;
         };
         Relationships: [
-          {
-            foreignKeyName: 'in_process_notifications_artist_id_fkey';
-            columns: ['artist_id'];
-            isOneToOne: false;
-            referencedRelation: 'in_process_artists';
-            referencedColumns: ['id'];
-          },
           {
             foreignKeyName: 'in_process_notifications_transfer_fkey';
             columns: ['transfer'];
             isOneToOne: false;
             referencedRelation: 'in_process_transfers';
             referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'in_process_notifications_wallet_fkey';
+            columns: ['wallet'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_wallets';
+            referencedColumns: ['address'];
           },
         ];
       };
@@ -795,10 +787,10 @@ export type Database = {
       get_nudges: {
         Args: never;
         Returns: {
-          artist_id: string;
           chat_id: string;
           days_since_last_moment: number;
           nudge_period: number;
+          wallet: string;
         }[];
       };
       get_weekly_wrap_up_stats: {
