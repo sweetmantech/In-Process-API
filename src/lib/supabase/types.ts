@@ -56,7 +56,15 @@ export type Database = {
           telegram_chat_id?: string | null;
           wallet?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'account_notifications_wallet_fkey';
+            columns: ['wallet'];
+            isOneToOne: true;
+            referencedRelation: 'in_process_wallets';
+            referencedColumns: ['address'];
+          },
+        ];
       };
       in_process_admins: {
         Row: {
