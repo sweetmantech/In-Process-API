@@ -3,8 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/supabase/in_process_notifications/updateNotifications', () => ({
   updateNotifications: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
+  default: vi.fn(),
+}));
 
 import { updateNotifications } from '@/lib/supabase/in_process_notifications/updateNotifications';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import putNotificationsHandler from '@/lib/notifications/putNotificationsHandler';
 
 describe('putNotificationsHandler', () => {
@@ -41,7 +45,11 @@ describe('putNotificationsHandler', () => {
     expect(json.message).toBe('Marked 0 notifications as viewed');
   });
 
-  it('calls updateNotifications with artist_id when provided', async () => {
+  it('calls updateNotifications with wallets resolved from artist_id', async () => {
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ address: '0xwallet1' } as any],
+      error: null,
+    });
     vi.mocked(updateNotifications).mockResolvedValue({
       data: [{ id: '1' }] as any,
       error: null,
@@ -50,10 +58,23 @@ describe('putNotificationsHandler', () => {
     const artistId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
     await putNotificationsHandler(artistId);
 
+    expect(selectWallets).toHaveBeenCalledWith({ artistIds: [artistId] });
     expect(updateNotifications).toHaveBeenCalledWith({
-      artist_id: artistId,
+      wallets: ['0xwallet1'],
       viewed: true,
     });
+  });
+
+  it('returns 0 updated when artist has no wallets', async () => {
+    vi.mocked(selectWallets).mockResolvedValue({ data: [], error: null });
+
+    const res = await putNotificationsHandler(
+      'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+    );
+    const json = await res.json();
+
+    expect(updateNotifications).not.toHaveBeenCalled();
+    expect(json.updated).toBe(0);
   });
 
   it('returns 500 when DB error occurs', async () => {

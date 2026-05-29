@@ -14,6 +14,7 @@ import { registerOnNudgePeriod } from '../onNudgePeriod';
 import { NUDGE_PERIOD_ACTION_ID } from '@/lib/consts';
 
 const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+const ARTIST_WALLET = '0xArtist';
 const TELEGRAM_USERNAME = 'artist_user';
 
 const makeBot = () => {
@@ -38,7 +39,13 @@ const makeEvent = (
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(selectArtists).mockResolvedValue({
-    data: [{ id: ARTIST_ID, address: '0xArtist' }],
+    data: [
+      {
+        id: ARTIST_ID,
+        address: ARTIST_WALLET,
+        wallets: [{ address: ARTIST_WALLET, type: 'external' }],
+      },
+    ],
     error: null,
   } as never);
   vi.mocked(upsertAccountNotification).mockResolvedValue({
@@ -66,7 +73,7 @@ describe('registerOnNudgePeriod', () => {
       registerOnNudgePeriod(bot as never);
       await handler.fn(makeEvent(value));
       expect(upsertAccountNotification).toHaveBeenCalledWith({
-        artist_id: ARTIST_ID,
+        wallet: ARTIST_WALLET,
         nudge_period: Number(value),
       });
     });

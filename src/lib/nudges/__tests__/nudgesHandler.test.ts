@@ -13,12 +13,12 @@ import nudgesHandler from '../nudgesHandler';
 
 const TARGETS = [
   {
-    artist_id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    wallet: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     chat_id: 'telegram:1',
     days_since_last_moment: 3,
   },
   {
-    artist_id: 'ffffffff-gggg-hhhh-iiii-jjjjjjjjjjjj',
+    wallet: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
     chat_id: 'telegram:2',
     days_since_last_moment: 7,
   },
@@ -57,12 +57,12 @@ describe('nudgesHandler', () => {
     expect(sendNudge).toHaveBeenCalledTimes(2);
     expect(sendNudge).toHaveBeenCalledWith({
       chatId: 'telegram:1',
-      artistId: TARGETS[0].artist_id,
+      wallet: TARGETS[0].wallet,
       daysSinceLastMoment: 3,
     });
     expect(sendNudge).toHaveBeenCalledWith({
       chatId: 'telegram:2',
-      artistId: TARGETS[1].artist_id,
+      wallet: TARGETS[1].wallet,
       daysSinceLastMoment: 7,
     });
   });
@@ -93,6 +93,6 @@ describe('nudgesHandler', () => {
 
     const failed = json.results.find((r: { sent: boolean }) => !r.sent);
     expect(failed.error).toBe('telegram error');
-    expect(failed.artist).toBe(TARGETS[1].artist_id);
+    expect(failed.artist).toBe(TARGETS[1].wallet);
   });
 });

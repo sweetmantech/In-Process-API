@@ -109,7 +109,7 @@ describe('commandsHandler', () => {
         ARTIST_ADDRESS
       );
 
-      expect(handleRemind).toHaveBeenCalledWith(thread, ARTIST_UUID);
+      expect(handleRemind).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
       expect(result).toBe(true);
     });
 
@@ -122,7 +122,7 @@ describe('commandsHandler', () => {
         ARTIST_ADDRESS
       );
 
-      expect(handleNotify).toHaveBeenCalledWith(thread, ARTIST_UUID);
+      expect(handleNotify).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
       expect(result).toBe(true);
     });
 
