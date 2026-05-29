@@ -61,8 +61,8 @@ describe('disconnectWalletHandler', () => {
       count: 1,
     });
     vi.mocked(upsertArtists)
-      .mockResolvedValueOnce([{ id: 'new-artist-id' }])
-      .mockResolvedValueOnce([{ id: 'artist-1' }]);
+      .mockResolvedValueOnce([{ id: 'artist-1' }])
+      .mockResolvedValueOnce([{ id: 'new-artist-id' }]);
 
     const res = await disconnectWalletHandler({
       artist: {
@@ -75,19 +75,19 @@ describe('disconnectWalletHandler', () => {
     expect(await res.json()).toEqual({ success: true });
     expect(selectArtists).toHaveBeenCalledWith({ ids: ['artist-1'] });
     expect(upsertArtists).toHaveBeenNthCalledWith(1, {
-      username: 'alice',
-      bio: 'bio',
-      x: 'x_handle',
-      instagram: 'ig',
-      telegram: 'tg',
-    });
-    expect(upsertArtists).toHaveBeenNthCalledWith(2, {
       id: 'artist-1',
       username: null,
       bio: null,
       x: null,
       instagram: null,
       telegram: null,
+    });
+    expect(upsertArtists).toHaveBeenNthCalledWith(2, {
+      username: 'alice',
+      bio: 'bio',
+      x: 'x_handle',
+      instagram: 'ig',
+      telegram: 'tg',
     });
     expect(upsertWallets).toHaveBeenCalledWith([
       { address: '0xabc', artist: 'new-artist-id' },
@@ -100,7 +100,9 @@ describe('disconnectWalletHandler', () => {
       error: null,
       count: 0,
     });
-    vi.mocked(upsertArtists).mockResolvedValueOnce([]);
+    vi.mocked(upsertArtists)
+      .mockResolvedValueOnce([{ id: 'artist-1' }])
+      .mockResolvedValueOnce([]);
 
     await expect(
       disconnectWalletHandler({
