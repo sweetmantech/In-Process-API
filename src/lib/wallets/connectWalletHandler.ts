@@ -36,20 +36,20 @@ const connectWalletHandler = async ({
 
     if (priorProfile && artistProfile && clientType === 'external') {
       await upsertArtists({
-        id: artistId,
-        username: priorProfile.username ?? artistProfile.username,
-        bio: priorProfile.bio ?? artistProfile.bio,
-        x: priorProfile.x ?? artistProfile.x,
-        instagram: priorProfile.instagram ?? artistProfile.instagram,
-        telegram: priorProfile.telegram ?? artistProfile.telegram,
-      });
-      await upsertArtists({
         id: priorArtistId,
         username: null,
         bio: null,
         x: null,
         instagram: null,
         telegram: null,
+      });
+      await upsertArtists({
+        id: artistId,
+        username: priorProfile.username ?? artistProfile.username,
+        bio: priorProfile.bio ?? artistProfile.bio,
+        x: priorProfile.x ?? artistProfile.x,
+        instagram: priorProfile.instagram ?? artistProfile.instagram,
+        telegram: priorProfile.telegram ?? artistProfile.telegram,
       });
     }
 

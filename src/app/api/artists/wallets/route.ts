@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const message =
       e instanceof Error
         ? e.message
-        : (e as any)?.message ?? 'Failed to connect a wallet';
+        : ((e as any)?.message ?? 'Failed to connect a wallet');
     return Response.json({ message }, { status: 500 });
   }
 }
