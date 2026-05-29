@@ -101,7 +101,7 @@ describe('onNewMention', () => {
 
     expect(upsertAccountNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        artist_id: ARTIST_ID,
+        wallet: ARTIST_ADDRESS,
         telegram_chat_id: RAW_CHAT_ID,
       })
     );

@@ -3,8 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/supabase/in_process_notifications/selectNotifications', () => ({
   selectNotifications: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
+  default: vi.fn(),
+}));
 
 import { selectNotifications } from '@/lib/supabase/in_process_notifications/selectNotifications';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import getNotificationsHandler from '@/lib/notifications/getNotificationsHandler';
 
 const BASE_PARAMS = {
@@ -32,18 +36,19 @@ const MOCK_NOTIFICATIONS = [
     id: '1',
     viewed: false,
     transfer: MOCK_NOTIFICATION_TRANSFER,
-    artist: { username: 'artist_user' },
+    wallet_owner: { artist: { username: 'artist_user' } },
   },
   {
     id: '2',
     viewed: true,
     transfer: MOCK_NOTIFICATION_TRANSFER,
-    artist: { username: 'artist_user' },
+    wallet_owner: { artist: { username: 'artist_user' } },
   },
 ];
 
 const MOCK_NOTIFICATIONS_FLATTENED = MOCK_NOTIFICATIONS.map((n) => ({
   ...n,
+  artist: n.wallet_owner?.artist ?? null,
   transfer: {
     ...n.transfer,
     collector: { username: n.transfer.collector.artist?.username ?? null },
@@ -129,7 +134,12 @@ describe('getNotificationsHandler', () => {
     expect(json.pagination.total_pages).toBe(0);
   });
 
-  it('calls selectNotifications with all provided params', async () => {
+  it('calls selectNotifications with wallets resolved from artist_id', async () => {
+    const artistId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ address: '0xwallet1' } as any],
+      error: null,
+    });
     vi.mocked(selectNotifications).mockResolvedValue({
       data: [],
       count: 0,
@@ -139,16 +149,33 @@ describe('getNotificationsHandler', () => {
     await getNotificationsHandler({
       limit: 10,
       page: 3,
-      artist_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      artist_id: artistId,
       viewed: false,
     });
 
+    expect(selectWallets).toHaveBeenCalledWith({ artistIds: [artistId] });
     expect(selectNotifications).toHaveBeenCalledWith({
       limit: 10,
       page: 3,
-      artist_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      artist_id: artistId,
       viewed: false,
+      wallets: ['0xwallet1'],
     });
+  });
+
+  it('returns empty results when artist has no wallets', async () => {
+    vi.mocked(selectWallets).mockResolvedValue({ data: [], error: null });
+
+    const res = await getNotificationsHandler({
+      limit: 20,
+      page: 1,
+      artist_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+    });
+    const json = await res.json();
+
+    expect(selectNotifications).not.toHaveBeenCalled();
+    expect(json.notifications).toEqual([]);
+    expect(json.pagination.total_count).toBe(0);
   });
 
   it('returns 500 when DB error occurs', async () => {
