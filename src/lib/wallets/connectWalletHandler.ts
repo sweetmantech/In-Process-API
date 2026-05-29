@@ -24,34 +24,51 @@ const connectWalletHandler = async ({
   });
   const existingWallet = existing?.[0];
 
+  let targetArtistId = artistId;
+
   if (existingWallet?.artist_id && existingWallet.artist_id !== artistId) {
     const existingArtistId = existingWallet.artist_id;
+    targetArtistId = existingArtistId;
 
-    const [{ data: profiles }, { data: existingWallets }] = await Promise.all([
-      selectArtists({ ids: [existingArtistId, artistId] }),
-      selectWallets({ artistIds: [existingArtistId] }),
-    ]);
+    const [{ data: profiles }, { data: currentArtistWallets }] =
+      await Promise.all([
+        selectArtists({ ids: [existingArtistId, artistId] }),
+        selectWallets({ artistIds: [artistId] }),
+      ]);
 
     const existingProfile = profiles.find((p) => p.id === existingArtistId);
     const artistProfile = profiles.find((p) => p.id === artistId);
 
     if (existingProfile && artistProfile) {
       await upsertArtists({
-        id: artistId,
-        username: artistProfile.username ?? existingProfile.username,
-        bio: artistProfile.bio ?? existingProfile.bio,
-        x: artistProfile.x ?? existingProfile.x,
-        instagram: artistProfile.instagram ?? existingProfile.instagram,
-        telegram: artistProfile.telegram ?? existingProfile.telegram,
+        id: existingArtistId,
+        username: existingProfile.username ?? artistProfile.username,
+        bio: existingProfile.bio ?? artistProfile.bio,
+        x: existingProfile.x ?? artistProfile.x,
+        instagram: existingProfile.instagram ?? artistProfile.instagram,
+        telegram: existingProfile.telegram ?? artistProfile.telegram,
       });
     }
 
-    if ((existingWallets?.length ?? 0) <= 1)
-      await deleteArtist(existingArtistId);
+    if (currentArtistWallets?.length) {
+      await upsertWallets(
+        currentArtistWallets.map((w) => ({
+          address: w.address,
+          artist: existingArtistId,
+          type: w.type,
+        }))
+      );
+    }
+
+    await deleteArtist(artistId);
   }
 
   await upsertWallets([
-    { address: address.toLowerCase(), artist: artistId, type: clientType },
+    {
+      address: address.toLowerCase(),
+      artist: targetArtistId,
+      type: clientType,
+    },
   ]);
 
   return NextResponse.json({ success: true });
