@@ -35,10 +35,7 @@ const connectWalletHandler = async ({
     const priorProfile = profiles.find((p) => p.id === priorArtistId);
     const artistProfile = profiles.find((p) => p.id === artistId);
 
-    const isIncomingWalletPrimary =
-      getPrimaryWallet(priorProfile?.wallets) === address.toLowerCase();
-
-    if (priorProfile && artistProfile && isIncomingWalletPrimary) {
+    if (priorProfile && artistProfile && clientType === 'external') {
       await upsertArtists({
         id: artistId,
         username: priorProfile.username ?? artistProfile.username,
