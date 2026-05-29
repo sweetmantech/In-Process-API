@@ -25,8 +25,11 @@ export async function POST(req: NextRequest) {
     if (validated instanceof NextResponse) return validated;
     return await connectWalletHandler(validated);
   } catch (e: unknown) {
+    console.log(e);
     const message =
-      e instanceof Error ? e.message : 'Failed to connect a wallet';
+      e instanceof Error
+        ? e.message
+        : (e as any)?.message ?? 'Failed to connect a wallet';
     return Response.json({ message }, { status: 500 });
   }
 }
