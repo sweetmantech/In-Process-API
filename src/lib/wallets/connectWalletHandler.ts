@@ -1,32 +1,58 @@
 import { NextResponse } from 'next/server';
 import { Address } from 'viem';
 import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
+import deleteArtist from '@/lib/supabase/in_process_artists/deleteArtist';
+import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
+import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import { WalletType } from '@/types/wallets';
-import getArtistSmartWallet from '@/lib/smartwallets/getArtistSmartWallet';
-import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
+import { AuthResult } from '@/types/auth';
 
 const connectWalletHandler = async ({
-  artistId,
+  artist,
   address,
   clientType,
 }: {
-  artistId: string;
+  artist: AuthResult;
   address: Address;
-  clientType: string;
+  clientType: WalletType;
 }) => {
-  await upsertWallets([
-    {
-      address: address.toLowerCase(),
-      artist: artistId,
-      type: clientType as WalletType,
-    },
-  ]);
+  const { artistId } = artist;
 
-  // Ensure the artist has a canonical smart wallet (creates one if missing)
-  const existing = await getArtistSmartWallet(artistId);
-  if (!existing) {
-    await getCanonicalSmartAccount({ artistId });
+  const { data: existing } = await selectWallets({
+    addresses: [address.toLowerCase()],
+  });
+  const existingWallet = existing?.[0];
+
+  if (existingWallet?.artist_id && existingWallet.artist_id !== artistId) {
+    const existingArtistId = existingWallet.artist_id;
+
+    const [{ data: profiles }, { data: existingWallets }] = await Promise.all([
+      selectArtists({ ids: [existingArtistId, artistId] }),
+      selectWallets({ artistIds: [existingArtistId] }),
+    ]);
+
+    const existingProfile = profiles.find((p) => p.id === existingArtistId);
+    const artistProfile = profiles.find((p) => p.id === artistId);
+
+    if (existingProfile && artistProfile) {
+      await upsertArtists({
+        id: artistId,
+        username: artistProfile.username ?? existingProfile.username,
+        bio: artistProfile.bio ?? existingProfile.bio,
+        x: artistProfile.x ?? existingProfile.x,
+        instagram: artistProfile.instagram ?? existingProfile.instagram,
+        telegram: artistProfile.telegram ?? existingProfile.telegram,
+      });
+    }
+
+    if ((existingWallets?.length ?? 0) <= 1)
+      await deleteArtist(existingArtistId);
   }
+
+  await upsertWallets([
+    { address: address.toLowerCase(), artist: artistId, type: clientType },
+  ]);
 
   return NextResponse.json({ success: true });
 };

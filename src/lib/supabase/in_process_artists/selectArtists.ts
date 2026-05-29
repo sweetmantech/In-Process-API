@@ -1,12 +1,14 @@
 import { supabase } from '@/lib/supabase/client';
 
 const selectArtists = async ({
+  ids,
   telegram,
   q,
   type = 'human',
   limit = 50,
   page = 1,
 }: {
+  ids?: string[];
   telegram?: string;
   q?: string;
   type?: 'human' | 'bot';
@@ -20,7 +22,9 @@ const selectArtists = async ({
       { count: 'exact' }
     );
 
-  if (telegram) {
+  if (ids?.length) {
+    query = query.in('id', ids);
+  } else if (telegram) {
     query = query.eq('telegram', telegram.toLowerCase()).limit(1);
   } else if (q?.trim()) {
     query = query.ilike('username', `${q}%`).limit(limit);
