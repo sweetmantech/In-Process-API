@@ -8,14 +8,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const authResult = await authMiddleware(request);
   if (authResult instanceof Response) return authResult as NextResponse;
 
-  const body = (await request.json()) as HandleUploadBody;
   try {
+    const body = (await request.json()) as HandleUploadBody;
     const jsonResponse = await handleUpload({
       body,
       request,
       onBeforeGenerateToken: async () => ({
         maximumSizeInBytes: 222 * 1024 * 1024,
       }),
+      onUploadCompleted: async () => {},
     });
     return NextResponse.json(jsonResponse);
   } catch (error) {

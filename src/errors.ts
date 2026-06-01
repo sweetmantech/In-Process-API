@@ -1,5 +1,6 @@
 export enum AuthErrorMessages {
   INVALID_AUTH_TOKEN = 'Invalid authentication token',
+  EXPIRED_AUTH_TOKEN = 'Authentication token expired',
   NO_SOCIAL_OR_ARTIST_WALLET = 'No social or artist wallet found',
   INVALID_API_KEY = 'Invalid API key',
   NO_ARTIST_ADDRESS_FOR_API_KEY = 'No artist address found for this API key',
