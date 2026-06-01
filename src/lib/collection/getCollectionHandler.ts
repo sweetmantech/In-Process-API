@@ -18,7 +18,6 @@ const getCollectionHandler = async ({
   });
   const collection = collections?.[0] ?? null;
 
-  console.log('collection', collection);
   if (error) {
     return NextResponse.json(
       { status: 'error', message: error.message },
