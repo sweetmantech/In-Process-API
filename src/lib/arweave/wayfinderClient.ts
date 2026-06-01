@@ -1,16 +1,11 @@
 import {
   createWayfinderClient,
   HashVerificationStrategy,
-  SimpleCacheRoutingStrategy,
-  FastestPingRoutingStrategy,
+  PreferredWithFallbackRoutingStrategy,
+  RoundRobinRoutingStrategy,
   StaticGatewaysProvider,
 } from '@ar.io/wayfinder-core';
 import gateways from './gateways';
-
-// Curated list of reliable, high-quality Arweave gateways
-const gatewaysProvider = new StaticGatewaysProvider({
-  gateways,
-});
 
 const wayfinderClient = createWayfinderClient({
   logger: {
@@ -20,12 +15,15 @@ const wayfinderClient = createWayfinderClient({
     error: console.error,
   },
   routingSettings: {
-    strategy: new SimpleCacheRoutingStrategy({
-      routingStrategy: new FastestPingRoutingStrategy({
-        timeoutMs: 5000,
-        gatewaysProvider,
+    // Prefer arweave.net (canonical, proven to serve data). Fall back to
+    // round-robin across the remaining gateways if arweave.net is unavailable.
+    // FastestPingRoutingStrategy was removed: a gateway that responds to pings
+    // is not guaranteed to serve TX data, causing silent fetch failures.
+    strategy: new PreferredWithFallbackRoutingStrategy({
+      preferredGateway: 'https://turbo-gateway.com',
+      fallbackStrategy: new RoundRobinRoutingStrategy({
+        gatewaysProvider: new StaticGatewaysProvider({ gateways }),
       }),
-      ttlSeconds: 300,
     }),
   },
   verificationSettings: {
