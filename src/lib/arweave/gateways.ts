@@ -1,3 +1,3 @@
-const gateways = ['https://turbo-gateway.com', "https://arweave.net"];
+const gateways = ['https://turbo-gateway.com'];
 
 export default gateways;
