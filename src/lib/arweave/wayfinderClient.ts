@@ -15,10 +15,6 @@ const wayfinderClient = createWayfinderClient({
     error: console.error,
   },
   routingSettings: {
-    // Prefer arweave.net (canonical, proven to serve data). Fall back to
-    // round-robin across the remaining gateways if arweave.net is unavailable.
-    // FastestPingRoutingStrategy was removed: a gateway that responds to pings
-    // is not guaranteed to serve TX data, causing silent fetch failures.
     strategy: new PreferredWithFallbackRoutingStrategy({
       preferredGateway: 'https://turbo-gateway.com',
       fallbackStrategy: new RoundRobinRoutingStrategy({
