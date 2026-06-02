@@ -23,7 +23,7 @@ import createMomentBatch from '@/lib/moment/createMomentBatch';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const ARTIST_CONTEXT = {
-  id: 'artist-uuid-123',
+  artistId: 'artist-uuid-123',
   primaryWallet: ARTIST_ADDRESS,
   wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
 };
@@ -146,13 +146,14 @@ describe('createMomentFromYoutubeLink', () => {
   it('calls createMomentBatch with metadataUri, title, and artistAddress', async () => {
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
-    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
-    expect(call.contract.uri).toBe('ar://metadata-hash');
-    expect(call.contract.name).toBe(DETAIL.title);
-    expect(call.account).toBe(getAddress(ARTIST_ADDRESS));
-    expect(call.channel).toBe('telegram');
-    expect(call.tokens).toHaveLength(1);
-    expect(call.tokens[0].tokenMetadataURI).toBe('ar://metadata-hash');
+    const [input, artist] = vi.mocked(createMomentBatch).mock.calls[0];
+    expect(input.contract.uri).toBe('ar://metadata-hash');
+    expect(input.contract.name).toBe(DETAIL.title);
+    expect(input.account).toBe(getAddress(ARTIST_ADDRESS));
+    expect(input.channel).toBe('telegram');
+    expect(input.tokens).toHaveLength(1);
+    expect(input.tokens[0].tokenMetadataURI).toBe('ar://metadata-hash');
+    expect(artist).toBe(ARTIST_CONTEXT);
   });
 
   it('falls back to "Untitled Video" when detail.title is empty', async () => {
@@ -178,8 +179,9 @@ describe('createMomentFromYoutubeLink', () => {
 
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT, collection);
 
-    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
-    expect(call.contract).toEqual({ address: getAddress(collection) });
-    expect(call.tokens[0].tokenMetadataURI).toBe('ar://metadata-hash');
+    const [input, artist] = vi.mocked(createMomentBatch).mock.calls[0];
+    expect(input.contract).toEqual({ address: getAddress(collection) });
+    expect(input.tokens[0].tokenMetadataURI).toBe('ar://metadata-hash');
+    expect(artist).toBe(ARTIST_CONTEXT);
   });
 });

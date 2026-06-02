@@ -22,7 +22,7 @@ import sendArtistCollage from '../sendArtistCollage';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const ARTIST_CONTEXT = {
-  id: 'artist-uuid-123',
+  artistId: 'artist-uuid-123',
   primaryWallet: ARTIST_ADDRESS,
   wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
 };
@@ -108,12 +108,13 @@ describe('processSingleMedia', () => {
       ARTIST_CONTEXT
     );
 
-    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
-    expect(call.contract.uri).toBe(UPLOAD_RESULT.uri);
-    expect(call.tokens[0].tokenMetadataURI).toBe(UPLOAD_RESULT.uri);
-    expect(call.contract.name).toBe('My Title');
-    expect(call.account).toBe(getAddress(ARTIST_ADDRESS));
-    expect(call.channel).toBe('telegram');
+    const [input, artist] = vi.mocked(createMomentBatch).mock.calls[0];
+    expect(input.contract.uri).toBe(UPLOAD_RESULT.uri);
+    expect(input.tokens[0].tokenMetadataURI).toBe(UPLOAD_RESULT.uri);
+    expect(input.contract.name).toBe('My Title');
+    expect(input.account).toBe(getAddress(ARTIST_ADDRESS));
+    expect(input.channel).toBe('telegram');
+    expect(artist).toBe(ARTIST_CONTEXT);
   });
 
   it('calls sendReadyMessage with the new moment details', async () => {
@@ -148,10 +149,11 @@ describe('processSingleMedia', () => {
       ARTIST_CONTEXT
     );
 
-    const call = vi.mocked(createMomentBatch).mock.calls[0][0];
-    expect(call.contract).toEqual({
+    const [input, artist] = vi.mocked(createMomentBatch).mock.calls[0];
+    expect(input.contract).toEqual({
       address: getAddress(existing).toLowerCase() as Address,
     });
+    expect(artist).toBe(ARTIST_CONTEXT);
     expect(thread._stateAdapter.delete).toHaveBeenCalledWith(
       'selected_collection_address'
     );

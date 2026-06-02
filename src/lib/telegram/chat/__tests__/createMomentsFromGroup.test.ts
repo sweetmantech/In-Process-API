@@ -18,7 +18,7 @@ import sendArtistCollage from '../sendArtistCollage';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const ARTIST_CONTEXT = {
-  id: 'artist-uuid-123',
+  artistId: 'artist-uuid-123',
   primaryWallet: ARTIST_ADDRESS,
   wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
 };
@@ -172,7 +172,8 @@ describe('createMomentsFromGroup', () => {
         account: getAddress(ARTIST_ADDRESS).toLowerCase() as Address,
         channel: 'telegram',
         chainId: CHAIN_ID,
-      })
+      }),
+      ARTIST_CONTEXT
     );
   });
 
@@ -194,7 +195,8 @@ describe('createMomentsFromGroup', () => {
         account: ARTIST_ADDRESS,
         channel: 'telegram',
         chainId: CHAIN_ID,
-      })
+      }),
+      ARTIST_CONTEXT
     );
     expect(stateAdapter.delete).toHaveBeenCalledWith(
       'selected_collection_address'

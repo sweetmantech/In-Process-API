@@ -48,8 +48,10 @@ const createMomentFromYoutubeLink = async (
     channel: 'telegram',
   });
 
-  const { contractAddress, tokenIds, hash, chainId } =
-    await createMomentBatch(batchInput);
+  const { contractAddress, tokenIds, hash, chainId } = await createMomentBatch(
+    batchInput,
+    artist
+  );
 
   return {
     contractAddress,
