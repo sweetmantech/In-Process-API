@@ -6,6 +6,9 @@ import createMomentBatch from '../createMomentBatch';
 vi.mock('@/lib/coinbase/getWalletLinkedSmartAccount', () => ({
   getWalletLinkedSmartAccount: vi.fn(),
 }));
+vi.mock('@/lib/smartwallets/getOperationalSmartWallet', () => ({
+  getOperationalSmartWallet: vi.fn(),
+}));
 vi.mock('../createBatchSetupActions', () => ({ default: vi.fn() }));
 vi.mock('@/lib/viem/createMomentBatchCall', () => ({ default: vi.fn() }));
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
@@ -21,6 +24,7 @@ vi.mock('@/lib/consts', () => ({
 }));
 
 import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import createBatchSetupActions from '../createBatchSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
@@ -40,6 +44,13 @@ const CALL_TO =
   '0x0000000000000000000000000000000000000999'.toLowerCase() as Address;
 const TX_HASH =
   '0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd' as const;
+
+const SMART_ACCOUNT = { address: '0x0000000000000000000000000000000000000bee' };
+const ARTIST_CONTEXT = {
+  artistId: 'artist-uuid-123',
+  primaryWallet: ARTIST,
+  wallets: [{ address: ARTIST, type: 'external' as const }],
+};
 
 const baseToken = {
   tokenMetadataURI: 'ar://token-meta',
@@ -65,9 +76,12 @@ const makeBatchInput = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getWalletLinkedSmartAccount).mockResolvedValue({
-    address: '0x0000000000000000000000000000000000000bee',
-  } as never);
+  vi.mocked(getWalletLinkedSmartAccount).mockResolvedValue(
+    SMART_ACCOUNT as never
+  );
+  vi.mocked(getOperationalSmartWallet).mockResolvedValue(
+    SMART_ACCOUNT as never
+  );
   vi.mocked(createBatchSetupActions).mockResolvedValue({
     tokenSetupActions: ['0x'],
     fundsRecipient: ARTIST,
@@ -127,10 +141,36 @@ describe('createMomentBatch', () => {
     );
   });
 
-  it('gets or creates a smart wallet for the artist', async () => {
+  it('uses getWalletLinkedSmartAccount when no artist is provided', async () => {
     await createMomentBatch(makeBatchInput());
     expect(getWalletLinkedSmartAccount).toHaveBeenCalledWith({
       address: ARTIST,
     });
+    expect(getOperationalSmartWallet).not.toHaveBeenCalled();
+  });
+
+  it('uses getWalletLinkedSmartAccount when artist is provided but contract has no address', async () => {
+    await createMomentBatch(makeBatchInput(), ARTIST_CONTEXT);
+    expect(getWalletLinkedSmartAccount).toHaveBeenCalledWith({
+      address: ARTIST,
+    });
+    expect(getOperationalSmartWallet).not.toHaveBeenCalled();
+  });
+
+  it('uses getOperationalSmartWallet when artist and contract.address are both provided', async () => {
+    const input = createMomentBatchSchema.parse({
+      contract: { address: CONTRACT },
+      tokens: [baseToken],
+      account: ARTIST,
+      channel: 'telegram',
+    });
+
+    await createMomentBatch(input, ARTIST_CONTEXT);
+
+    expect(getOperationalSmartWallet).toHaveBeenCalledWith({
+      artist: ARTIST_CONTEXT,
+      moment: { collectionAddress: CONTRACT, chainId: 8453, tokenId: '0' },
+    });
+    expect(getWalletLinkedSmartAccount).not.toHaveBeenCalled();
   });
 });

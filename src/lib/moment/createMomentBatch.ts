@@ -4,6 +4,8 @@ import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-cre
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
+import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
+import type { ArtistContext } from '@/types/artist';
 import createBatchSetupActions from './createBatchSetupActions';
 import migrateAndIndexMoment from './migrateAndIndexMoment';
 import getCreatedTokenIds from './getCreatedTokenIds';
@@ -19,11 +21,22 @@ export interface CreateMomentBatchResult {
 }
 
 const createMomentBatch = async (
-  input: CreateMomentBatchInput
+  input: CreateMomentBatchInput,
+  artist?: ArtistContext
 ): Promise<CreateMomentBatchResult> => {
-  const smartAccount = await getWalletLinkedSmartAccount({
-    address: input.account as Address,
-  });
+  const smartAccount =
+    artist && input.contract.address
+      ? await getOperationalSmartWallet({
+          artist,
+          moment: {
+            collectionAddress: input.contract.address as Address,
+            chainId: input.chainId,
+            tokenId: '0',
+          },
+        })
+      : await getWalletLinkedSmartAccount({
+          address: input.account as Address,
+        });
 
   const { tokenSetupActions, fundsRecipient } = await createBatchSetupActions({
     input,
