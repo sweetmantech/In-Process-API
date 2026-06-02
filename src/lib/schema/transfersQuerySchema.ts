@@ -10,6 +10,8 @@ const transfersQuerySchema = z
     content_type: z.string().optional(),
     artist: addressSchema.optional(),
     collector: addressSchema.optional(),
+    collection: addressSchema.optional(),
+    token: z.coerce.number().int().min(0).optional(),
     chainId: z.coerce.number().optional(),
     limit: z.coerce.number().int().min(1).max(100).optional().default(20),
     page: z.coerce.number().int().min(1).optional().default(1),
