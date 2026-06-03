@@ -29,18 +29,27 @@ const makeWalletRow = (
   address: walletAddress,
   artist_id: artistId,
   type: walletType,
-  artist: { id: artistId, username, bio: null, x: null, telegram: null, instagram: null },
+  artist: {
+    id: artistId,
+    username,
+    bio: null,
+    x: null,
+    telegram: null,
+    instagram: null,
+  },
 });
 
 const mockSelectWallets = (
   byAddress: ReturnType<typeof makeWalletRow>[],
   byArtistId: ReturnType<typeof makeWalletRow>[]
 ) => {
-  vi.mocked(selectWallets).mockImplementation(async ({ addresses, artistIds }: any) => {
-    if (addresses) return { data: byAddress };
-    if (artistIds) return { data: byArtistId };
-    return { data: [] };
-  });
+  vi.mocked(selectWallets).mockImplementation(
+    async ({ addresses, artistIds }: any) => {
+      if (addresses) return { data: byAddress };
+      if (artistIds) return { data: byArtistId };
+      return { data: [] };
+    }
+  );
 };
 
 beforeEach(() => {
@@ -55,7 +64,10 @@ describe('getOrCreateArtist', () => {
       const newRow = makeWalletRow(CREATED_ID, ADDRESS, 'privy');
       mockSelectWallets([], [newRow]);
 
-      const result = await getOrCreateArtist({ address: ADDRESS, type: 'privy' });
+      const result = await getOrCreateArtist({
+        address: ADDRESS,
+        type: 'privy',
+      });
 
       expect(upsertArtists).toHaveBeenCalledWith({ username: undefined });
       expect(upsertWallets).toHaveBeenCalledWith([
@@ -110,7 +122,10 @@ describe('getOrCreateArtist', () => {
 
       await getOrCreateArtist({ address: ADDRESS, artistName: 'Alice' });
 
-      expect(upsertArtists).toHaveBeenCalledWith({ id: ARTIST_ID, username: 'Alice' });
+      expect(upsertArtists).toHaveBeenCalledWith({
+        id: ARTIST_ID,
+        username: 'Alice',
+      });
       expect(upsertWallets).not.toHaveBeenCalled();
     });
 
