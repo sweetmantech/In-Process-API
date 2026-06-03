@@ -108,13 +108,12 @@ describe('processSingleMedia', () => {
       ARTIST_CONTEXT
     );
 
-    const [input, artist] = vi.mocked(createMomentBatch).mock.calls[0];
+    const [input] = vi.mocked(createMomentBatch).mock.calls[0];
     expect(input.contract.uri).toBe(UPLOAD_RESULT.uri);
     expect(input.tokens[0].tokenMetadataURI).toBe(UPLOAD_RESULT.uri);
     expect(input.contract.name).toBe('My Title');
     expect(input.account).toBe(getAddress(ARTIST_ADDRESS));
     expect(input.channel).toBe('telegram');
-    expect(artist).toBe(ARTIST_CONTEXT);
   });
 
   it('calls sendReadyMessage with the new moment details', async () => {
@@ -149,11 +148,10 @@ describe('processSingleMedia', () => {
       ARTIST_CONTEXT
     );
 
-    const [input, artist] = vi.mocked(createMomentBatch).mock.calls[0];
+    const [input] = vi.mocked(createMomentBatch).mock.calls[0];
     expect(input.contract).toEqual({
       address: getAddress(existing).toLowerCase() as Address,
     });
-    expect(artist).toBe(ARTIST_CONTEXT);
     expect(thread._stateAdapter.delete).toHaveBeenCalledWith(
       'selected_collection_address'
     );

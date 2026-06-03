@@ -60,10 +60,7 @@ const processSingleMedia = async (
       channel: 'telegram',
     });
 
-    const { contractAddress, tokenIds } = await createMomentBatch(
-      batchInput,
-      artist
-    );
+    const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
     const tokenId = tokenIds[0]!;
 
     if (selectedCollection) {

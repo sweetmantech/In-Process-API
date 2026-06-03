@@ -55,10 +55,7 @@ const createMomentsFromGroup = async (
       artist.primaryWallet
     );
 
-    const { contractAddress, tokenIds } = await createMomentBatch(
-      batchInput,
-      artist
-    );
+    const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
     if (selectedCollection) {
       await clearSelectedCollectionAddress(thread);
     }
