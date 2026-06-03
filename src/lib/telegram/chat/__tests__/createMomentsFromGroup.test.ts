@@ -172,8 +172,7 @@ describe('createMomentsFromGroup', () => {
         account: getAddress(ARTIST_ADDRESS).toLowerCase() as Address,
         channel: 'telegram',
         chainId: CHAIN_ID,
-      }),
-      ARTIST_CONTEXT
+      })
     );
   });
 
@@ -195,8 +194,7 @@ describe('createMomentsFromGroup', () => {
         account: ARTIST_ADDRESS,
         channel: 'telegram',
         chainId: CHAIN_ID,
-      }),
-      ARTIST_CONTEXT
+      })
     );
     expect(stateAdapter.delete).toHaveBeenCalledWith(
       'selected_collection_address'

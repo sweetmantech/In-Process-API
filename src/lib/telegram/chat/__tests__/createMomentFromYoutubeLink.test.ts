@@ -146,14 +146,13 @@ describe('createMomentFromYoutubeLink', () => {
   it('calls createMomentBatch with metadataUri, title, and artistAddress', async () => {
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT);
 
-    const [input, artist] = vi.mocked(createMomentBatch).mock.calls[0];
+    const [input] = vi.mocked(createMomentBatch).mock.calls[0];
     expect(input.contract.uri).toBe('ar://metadata-hash');
     expect(input.contract.name).toBe(DETAIL.title);
     expect(input.account).toBe(getAddress(ARTIST_ADDRESS));
     expect(input.channel).toBe('telegram');
     expect(input.tokens).toHaveLength(1);
     expect(input.tokens[0].tokenMetadataURI).toBe('ar://metadata-hash');
-    expect(artist).toBe(ARTIST_CONTEXT);
   });
 
   it('falls back to "Untitled Video" when detail.title is empty', async () => {
@@ -179,9 +178,8 @@ describe('createMomentFromYoutubeLink', () => {
 
     await createMomentFromYoutubeLink(YOUTUBE_URL, ARTIST_CONTEXT, collection);
 
-    const [input, artist] = vi.mocked(createMomentBatch).mock.calls[0];
+    const [input] = vi.mocked(createMomentBatch).mock.calls[0];
     expect(input.contract).toEqual({ address: getAddress(collection) });
     expect(input.tokens[0].tokenMetadataURI).toBe('ar://metadata-hash');
-    expect(artist).toBe(ARTIST_CONTEXT);
   });
 });

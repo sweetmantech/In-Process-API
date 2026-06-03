@@ -3,12 +3,10 @@ import type { Address } from 'viem';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import createMomentBatch from '../createMomentBatch';
 
-vi.mock('@/lib/coinbase/getWalletLinkedSmartAccount', () => ({
-  getWalletLinkedSmartAccount: vi.fn(),
-}));
 vi.mock('@/lib/smartwallets/getOperationalSmartWallet', () => ({
   getOperationalSmartWallet: vi.fn(),
 }));
+vi.mock('@/lib/artists/getOrCreateArtist', () => ({ default: vi.fn() }));
 vi.mock('../createBatchSetupActions', () => ({ default: vi.fn() }));
 vi.mock('@/lib/viem/createMomentBatchCall', () => ({ default: vi.fn() }));
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
@@ -23,8 +21,8 @@ vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
 }));
 
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
 import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
+import getOrCreateArtist from '@/lib/artists/getOrCreateArtist';
 import createBatchSetupActions from '../createBatchSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
@@ -76,9 +74,7 @@ const makeBatchInput = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getWalletLinkedSmartAccount).mockResolvedValue(
-    SMART_ACCOUNT as never
-  );
+  vi.mocked(getOrCreateArtist).mockResolvedValue(ARTIST_CONTEXT as never);
   vi.mocked(getOperationalSmartWallet).mockResolvedValue(
     SMART_ACCOUNT as never
   );
@@ -141,23 +137,16 @@ describe('createMomentBatch', () => {
     );
   });
 
-  it('uses getWalletLinkedSmartAccount when no artist is provided', async () => {
+  it('uses getOperationalSmartWallet with artist from account', async () => {
     await createMomentBatch(makeBatchInput());
-    expect(getWalletLinkedSmartAccount).toHaveBeenCalledWith({
-      address: ARTIST,
+    expect(getOrCreateArtist).toHaveBeenCalledWith({ address: ARTIST });
+    expect(getOperationalSmartWallet).toHaveBeenCalledWith({
+      artist: ARTIST_CONTEXT,
+      moment: { collectionAddress: undefined, chainId: 8453, tokenId: '0' },
     });
-    expect(getOperationalSmartWallet).not.toHaveBeenCalled();
   });
 
-  it('uses getWalletLinkedSmartAccount when artist is provided but contract has no address', async () => {
-    await createMomentBatch(makeBatchInput(), ARTIST_CONTEXT);
-    expect(getWalletLinkedSmartAccount).toHaveBeenCalledWith({
-      address: ARTIST,
-    });
-    expect(getOperationalSmartWallet).not.toHaveBeenCalled();
-  });
-
-  it('uses getOperationalSmartWallet when artist and contract.address are both provided', async () => {
+  it('passes contract.address to getOperationalSmartWallet when minting to existing collection', async () => {
     const input = createMomentBatchSchema.parse({
       contract: { address: CONTRACT },
       tokens: [baseToken],
@@ -165,12 +154,11 @@ describe('createMomentBatch', () => {
       channel: 'telegram',
     });
 
-    await createMomentBatch(input, ARTIST_CONTEXT);
+    await createMomentBatch(input);
 
     expect(getOperationalSmartWallet).toHaveBeenCalledWith({
       artist: ARTIST_CONTEXT,
       moment: { collectionAddress: CONTRACT, chainId: 8453, tokenId: '0' },
     });
-    expect(getWalletLinkedSmartAccount).not.toHaveBeenCalled();
   });
 });
