@@ -11,8 +11,8 @@ const makeRow = (overrides = {}) => ({
   collector: '0xcollector',
   username: 'alice',
   collected_count: 5,
-  eth_spent: 0.01,
-  usdc_spent: 10,
+  eth_spent: '0.01',
+  usdc_spent: '10',
   total_count: 1,
   ...overrides,
 });

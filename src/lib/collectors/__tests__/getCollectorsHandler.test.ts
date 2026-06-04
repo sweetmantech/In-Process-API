@@ -20,8 +20,8 @@ const makeRow = (overrides = {}) => ({
   collector: '0xcollector',
   username: 'alice',
   collected_count: 5,
-  eth_spent: 0.01,
-  usdc_spent: 10,
+  eth_spent: '0.01',
+  usdc_spent: '10',
   ...overrides,
 });
 
@@ -99,15 +99,15 @@ describe('getCollectorsHandler', () => {
 
   it('includes eth_spent and usdc_spent in response', async () => {
     vi.mocked(getCollectorsStats).mockResolvedValue({
-      data: [makeRow({ eth_spent: 0.5, usdc_spent: 25.0 })],
+      data: [makeRow({ eth_spent: '0.5', usdc_spent: '25.0' })],
       totalCount: 1,
     });
 
     const res = await getCollectorsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.data[0].eth_spent).toBe(0.5);
-    expect(json.data[0].usdc_spent).toBe(25.0);
+    expect(json.data[0].eth_spent).toBe('0.5');
+    expect(json.data[0].usdc_spent).toBe('25.0');
   });
 
   it('propagates error when getCollectorsStats throws', async () => {

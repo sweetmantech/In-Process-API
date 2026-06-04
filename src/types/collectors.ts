@@ -14,8 +14,8 @@ export interface CollectorStats {
   collector: string;
   username: string | null;
   collected_count: number;
-  eth_spent: number;
-  usdc_spent: number;
+  eth_spent: string;
+  usdc_spent: string;
 }
 
 export interface CollectorsStatsResponse {
