@@ -3,16 +3,8 @@ import { supabase } from '../client';
 import { transfersQuery } from './queries';
 
 const selectTransfers = async (params: TransfersQueryParams) => {
-  const {
-    artist,
-    collector,
-    collection,
-    token,
-    chainId,
-    content_type,
-    limit,
-    page,
-  } = params;
+  const { artist, collector, momentId, chainId, content_type, limit, page } =
+    params;
 
   let query = supabase
     .from('in_process_transfers')
@@ -28,12 +20,8 @@ const selectTransfers = async (params: TransfersQueryParams) => {
     query = query.eq('recipient', collector);
   }
 
-  if (collection) {
-    query = query.eq('moment.collection.address', collection);
-  }
-
-  if (token !== undefined) {
-    query = query.eq('moment.token_id', token);
+  if (momentId !== undefined) {
+    query = query.eq('moment', momentId);
   }
 
   if (chainId) {
