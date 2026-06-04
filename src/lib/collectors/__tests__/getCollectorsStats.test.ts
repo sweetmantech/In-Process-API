@@ -62,7 +62,7 @@ describe('getCollectorsStats', () => {
       p_period: 'all',
       p_limit: 20,
       p_page: 1,
-      p_artist: null,
+      p_artist: undefined,
       p_sort_by: 'collected_count',
       p_sort_order: 'desc',
     });
@@ -91,7 +91,7 @@ describe('getCollectorsStats', () => {
     expect(result.data).toEqual([]);
   });
 
-  it('passes null for artist when not provided', async () => {
+  it('passes undefined for artist when not provided', async () => {
     vi.mocked(supabase.rpc).mockResolvedValue({
       data: [],
       error: null,
@@ -101,7 +101,7 @@ describe('getCollectorsStats', () => {
 
     expect(supabase.rpc).toHaveBeenCalledWith(
       'get_collectors_stats',
-      expect.objectContaining({ p_artist: null })
+      expect.objectContaining({ p_artist: undefined })
     );
   });
 
