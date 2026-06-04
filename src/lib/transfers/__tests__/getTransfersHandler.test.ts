@@ -5,7 +5,12 @@ vi.mock('@/lib/transfers/getTransfers', () => ({
   default: vi.fn(),
 }));
 
+vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+  default: vi.fn(),
+}));
+
 import getTransfers from '@/lib/transfers/getTransfers';
+import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import getTransfersHandler from '@/lib/transfers/getTransfersHandler';
 
 const BASE_PARAMS = {
@@ -283,6 +288,48 @@ describe('getTransfersHandler', () => {
       expect(getTransfers).toHaveBeenCalledWith(
         expect.objectContaining({ type: Transfer_Type.payment })
       );
+    });
+  });
+
+  describe('moment pre-resolve', () => {
+    it('resolves momentId via selectMoments when collection and tokenId are provided', async () => {
+      vi.mocked(selectMoments).mockResolvedValue({
+        data: [{ id: 'moment-uuid-123' }] as any,
+        error: null,
+      });
+      vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
+
+      await getTransfersHandler({
+        ...BASE_PARAMS,
+        collection: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+        tokenId: 1,
+      });
+
+      expect(getTransfers).toHaveBeenCalledWith(
+        expect.objectContaining({ momentId: 'moment-uuid-123' })
+      );
+    });
+
+    it('does not call selectMoments when collection and tokenId are absent', async () => {
+      vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
+
+      await getTransfersHandler(BASE_PARAMS);
+
+      expect(selectMoments).not.toHaveBeenCalled();
+    });
+
+    it('omits momentId if selectMoments returns no rows', async () => {
+      vi.mocked(selectMoments).mockResolvedValue({ data: [], error: null });
+      vi.mocked(getTransfers).mockResolvedValue({ data: [], count: 0 });
+
+      await getTransfersHandler({
+        ...BASE_PARAMS,
+        collection: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+        tokenId: 1,
+      });
+
+      const call = vi.mocked(getTransfers).mock.calls[0][0] as any;
+      expect(call.momentId).toBeUndefined();
     });
   });
 
