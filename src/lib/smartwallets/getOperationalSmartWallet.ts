@@ -8,7 +8,6 @@ import { addPermissionCall } from '@/lib/zora/addPermissionCall';
 import { IS_TESTNET, PERMISSION_BIT_ADMIN } from '@/lib/consts';
 import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
 import type { ArtistContext } from '@/types/artist';
-import { Moment } from '@/types/moment';
 
 // Returns the smart account authorized to write to the given collection.
 //
@@ -22,10 +21,18 @@ export const getOperationalSmartWallet = async ({
   moment,
 }: {
   artist: ArtistContext;
-  moment: Moment;
+  moment: {
+    collectionAddress: Address | undefined;
+    tokenId: string;
+    chainId: number;
+  };
 }): Promise<EvmSmartAccount> => {
   const { artistId, primaryWallet, wallets } = artist;
   const { chainId, collectionAddress } = moment;
+
+  const canonicalAccount = await getCanonicalSmartAccount({ artistId });
+  if (!collectionAddress) return canonicalAccount;
+
   const orderedWallets = [
     primaryWallet,
     ...wallets
@@ -35,7 +42,6 @@ export const getOperationalSmartWallet = async ({
   const network: 'base' | 'base-sepolia' = IS_TESTNET ? 'base-sepolia' : 'base';
 
   // 1. Canonical smart account — fast path
-  const canonicalAccount = await getCanonicalSmartAccount({ artistId });
   const canonicalPermission = await getPermission(
     collectionAddress,
     canonicalAccount.address as Address,

@@ -3,13 +3,12 @@ import { z } from 'zod';
 import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-create-helper';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
-import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
-import type { ArtistContext } from '@/types/artist';
 import createBatchSetupActions from './createBatchSetupActions';
 import migrateAndIndexMoment from './migrateAndIndexMoment';
 import getCreatedTokenIds from './getCreatedTokenIds';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
+import { getOperationalSmartWallet } from '../smartwallets/getOperationalSmartWallet';
+import getOrCreateArtist from '../artists/getOrCreateArtist';
 
 export type CreateMomentBatchInput = z.infer<typeof createMomentBatchSchema>;
 
@@ -21,22 +20,16 @@ export interface CreateMomentBatchResult {
 }
 
 const createMomentBatch = async (
-  input: CreateMomentBatchInput,
-  artist?: ArtistContext
+  input: CreateMomentBatchInput
 ): Promise<CreateMomentBatchResult> => {
-  const smartAccount =
-    artist && input.contract.address
-      ? await getOperationalSmartWallet({
-          artist,
-          moment: {
-            collectionAddress: input.contract.address as Address,
-            chainId: input.chainId,
-            tokenId: '0',
-          },
-        })
-      : await getWalletLinkedSmartAccount({
-          address: input.account as Address,
-        });
+  const smartAccount = await getOperationalSmartWallet({
+    artist: await getOrCreateArtist({ address: input.account as Address }),
+    moment: {
+      collectionAddress: input.contract.address as Address | undefined,
+      chainId: input.chainId,
+      tokenId: '0',
+    },
+  });
 
   const { tokenSetupActions, fundsRecipient } = await createBatchSetupActions({
     input,
