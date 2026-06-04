@@ -27,7 +27,7 @@ const getCollectorsHandler = async ({
   });
 
   return NextResponse.json({
-    data,
+    collectors: data,
     total_count: totalCount,
     page,
     total_pages: Math.ceil(totalCount / limit),

@@ -40,7 +40,7 @@ describe('getCollectorsHandler', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.data).toHaveLength(1);
+    expect(json.collectors).toHaveLength(1);
     expect(json.total_count).toBe(50);
     expect(json.page).toBe(1);
     expect(json.total_pages).toBe(3);
@@ -93,8 +93,8 @@ describe('getCollectorsHandler', () => {
     const res = await getCollectorsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.data[0].collector).toBe('0xabc');
-    expect(json.data[0].username).toBe('charlie');
+    expect(json.collectors[0].collector).toBe('0xabc');
+    expect(json.collectors[0].username).toBe('charlie');
   });
 
   it('includes eth_spent and usdc_spent in response', async () => {
@@ -106,8 +106,8 @@ describe('getCollectorsHandler', () => {
     const res = await getCollectorsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.data[0].eth_spent).toBe('0.5');
-    expect(json.data[0].usdc_spent).toBe('25.0');
+    expect(json.collectors[0].eth_spent).toBe('0.5');
+    expect(json.collectors[0].usdc_spent).toBe('25.0');
   });
 
   it('propagates error when getCollectorsStats throws', async () => {

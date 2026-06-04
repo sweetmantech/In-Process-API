@@ -19,7 +19,7 @@ export interface CollectorStats {
 }
 
 export interface CollectorsStatsResponse {
-  data: CollectorStats[];
+  collectors: CollectorStats[];
   total_count: number;
   page: number;
   total_pages: number;
