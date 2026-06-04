@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import validateTransfersQuery from '@/lib/transfers/validateTransfersQuery';
-import { IS_TESTNET } from '@/lib/consts';
+import { CHAIN_ID } from '@/lib/consts';
 
 const makeRequest = (params: Record<string, string> = {}) => {
   const url = new URL('http://localhost/api/transfers');
@@ -21,13 +21,9 @@ describe('validateTransfersQuery', () => {
       expect((result as any).page).toBe(1);
     });
 
-    it('sets chainId only when type is omitted in testnet mode', () => {
+    it('defaults chainId to CHAIN_ID', () => {
       const result = validateTransfersQuery(makeRequest());
-      if (IS_TESTNET) {
-        expect(typeof (result as any).chainId).toBe('number');
-        return;
-      }
-      expect((result as any).chainId).toBeUndefined();
+      expect((result as any).chainId).toBe(CHAIN_ID);
     });
 
     it('returns undefined for optional type when not provided', () => {

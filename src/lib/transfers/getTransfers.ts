@@ -5,7 +5,9 @@ import selectAirdrops from '@/lib/supabase/in_process_transfers/selectAirdrops';
 import selectPayments from '@/lib/supabase/in_process_transfers/selectPayments';
 import selectTransfers from '@/lib/supabase/in_process_transfers/selectTransfers';
 
-type TransfersParams = z.infer<typeof transfersQuerySchema>;
+type TransfersParams = z.infer<typeof transfersQuerySchema> & {
+  momentId?: string;
+};
 
 const getTransfers = async (params: TransfersParams) => {
   const { type, ...rest } = params;

@@ -3,7 +3,8 @@ import { supabase } from '../client';
 import { transfersQuery } from './queries';
 
 const selectTransfers = async (params: TransfersQueryParams) => {
-  const { artist, collector, chainId, content_type, limit, page } = params;
+  const { artist, collector, momentId, chainId, content_type, limit, page } =
+    params;
 
   let query = supabase
     .from('in_process_transfers')
@@ -17,6 +18,10 @@ const selectTransfers = async (params: TransfersQueryParams) => {
 
   if (collector) {
     query = query.eq('recipient', collector);
+  }
+
+  if (momentId !== undefined) {
+    query = query.eq('moment', momentId);
   }
 
   if (chainId) {
