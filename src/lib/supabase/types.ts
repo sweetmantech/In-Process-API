@@ -752,6 +752,24 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_collectors_stats: {
+        Args: {
+          p_artist?: string;
+          p_limit?: number;
+          p_page?: number;
+          p_period?: string;
+          p_sort_by?: string;
+          p_sort_order?: string;
+        };
+        Returns: {
+          collected_count: number;
+          collector: string;
+          eth_spent: number;
+          total_count: number;
+          usdc_spent: number;
+          username: string;
+        }[];
+      };
       get_creator_hidden: {
         Args: {
           p_artist_address: string;
