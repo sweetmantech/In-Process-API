@@ -764,9 +764,9 @@ export type Database = {
         Returns: {
           collected_count: number;
           collector: string;
-          eth_spent: number;
+          eth_spent: string;
           total_count: number;
-          usdc_spent: number;
+          usdc_spent: string;
           username: string;
         }[];
       };
