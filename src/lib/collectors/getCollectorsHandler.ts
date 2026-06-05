@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import getCollectorsStats from '@/lib/supabase/in_process_transfers/getCollectorsStats';
-import type { CollectorsSortBy, CollectorsSortOrder } from '@/types/collectors';
+import { z } from 'zod';
+import collectorsQuerySchema from '@/lib/schema/collectorsQuerySchema';
 
 const getCollectorsHandler = async ({
   period,
@@ -9,14 +10,7 @@ const getCollectorsHandler = async ({
   artist,
   sort_by,
   sort_order,
-}: {
-  period: 'day' | 'week' | 'month' | 'all';
-  limit: number;
-  page: number;
-  artist?: string;
-  sort_by: CollectorsSortBy;
-  sort_order: CollectorsSortOrder;
-}) => {
+}: z.infer<typeof collectorsQuerySchema>) => {
   const { data, totalCount } = await getCollectorsStats({
     period,
     limit,
