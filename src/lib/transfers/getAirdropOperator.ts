@@ -1,11 +1,12 @@
-import { zeroAddress, type Hex } from 'viem';
+import { Address, zeroAddress, type Hex } from 'viem';
 import { getPublicClient } from '@/lib/viem/publicClient';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
-import isCoinbaseSmartWallet from '@/lib/smartwallets/isCoinbaseSmartWallet';
 import { FACTORY_ADDRESSES } from '@/lib/protocolSdk/create/factory-addresses';
 import topicToAddress from './topicToAddress';
 import selectCollections from '../supabase/in_process_collections/selectCollections';
 import type { Transfers_t } from '@/types/envio';
+import getPrimaryWallet from '../wallets/getPrimaryWallet';
+import { Tables } from '../supabase/types';
 
 const TRANSFER_SINGLE_TOPIC =
   '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62';
@@ -55,31 +56,21 @@ const getAirdropOperator = async (
     throw new Error('Collection not found');
   }
 
-  const isCb = await isCoinbaseSmartWallet(address, chainId);
+  const { data: wallets } = await selectWallets({ addresses: [address] });
+  const artistAddress = getPrimaryWallet(
+    (wallets ?? []).filter(
+      (w) => w.type !== 'smart'
+    ) as Tables<'in_process_wallets'>[]
+  ) as Address | undefined;
 
-  let artistAddress: string | undefined;
-  let artistUsername: string | null | undefined;
+  const artistUsername = wallets?.[0]?.artist?.username ?? null;
 
-  if (isCb) {
-    // Smart wallets are now their own rows (type='smart') — query by address directly
-    const { data: wallets } = await selectWallets({ addresses: [address] });
-    const wallet = wallets?.[0];
-    artistAddress = wallet?.address;
-    artistUsername = wallet?.artist?.username;
-  } else {
-    const { data: wallets } = await selectWallets({ addresses: [address] });
-    const wallet = wallets?.[0];
-    artistAddress = wallet?.address;
-    artistUsername = wallet?.artist?.username;
-  }
+  if (!artistAddress) throw new Error('Airdrop operator not found');
 
-  if (artistAddress) {
-    return {
-      address: artistAddress,
-      username: artistUsername ?? null,
-    };
-  }
-  throw new Error('Airdrop operator not found');
+  return {
+    address: artistAddress,
+    username: artistUsername,
+  };
 };
 
 export default getAirdropOperator;
