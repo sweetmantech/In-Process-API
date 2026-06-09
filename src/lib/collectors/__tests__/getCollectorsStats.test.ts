@@ -8,8 +8,9 @@ import { supabase } from '@/lib/supabase/client';
 import getCollectorsStats from '@/lib/supabase/in_process_transfers/getCollectorsStats';
 
 const makeRow = (overrides = {}) => ({
-  collector: '0xcollector',
+  artist_id: 'uuid-artist',
   username: 'alice',
+  wallets: [{ address: '0xcollector', type: 'smart' }],
   collected_count: 5,
   eth_spent: '0.01',
   usdc_spent: '10',

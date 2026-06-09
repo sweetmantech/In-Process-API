@@ -25,8 +25,9 @@ describe('getActiveArtistsHandler', () => {
     vi.mocked(getActiveArtistsStats).mockResolvedValue({
       data: [
         {
-          address: '0xartist',
+          artist_id: 'uuid-artist',
           username: 'alice',
+          wallets: [{ address: '0xartist', type: 'smart' }],
           created_count: 10,
           airdropped_count: 5,
           telegram_count: 2,
@@ -37,7 +38,6 @@ describe('getActiveArtistsHandler', () => {
         },
       ] as any,
       totalCount: 33,
-      error: null,
     });
 
     const res = await getActiveArtistsHandler(BASE_PARAMS);
@@ -54,7 +54,6 @@ describe('getActiveArtistsHandler', () => {
     vi.mocked(getActiveArtistsStats).mockResolvedValue({
       data: [],
       totalCount: 0,
-      error: null,
     });
 
     await getActiveArtistsHandler({
@@ -80,7 +79,6 @@ describe('getActiveArtistsHandler', () => {
     vi.mocked(getActiveArtistsStats).mockResolvedValue({
       data: [],
       totalCount: 0,
-      error: null,
     });
 
     const res = await getActiveArtistsHandler(BASE_PARAMS);

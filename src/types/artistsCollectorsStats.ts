@@ -14,8 +14,9 @@ export interface ArtistsCollectorsStatsParams {
 }
 
 export interface ArtistsCollectorsStats {
-  address: string;
+  artist_id: string;
   username: string;
+  wallets: { address: string; type: string }[];
   total_created_count: number;
   total_collected_count: number;
 }

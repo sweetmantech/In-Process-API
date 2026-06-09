@@ -11,8 +11,9 @@ export interface CollectorsStatsParams {
 }
 
 export interface CollectorStats {
-  collector: string;
+  artist_id: string;
   username: string | null;
+  wallets: { address: string; type: string }[];
   collected_count: number;
   eth_spent: string;
   usdc_spent: string;
