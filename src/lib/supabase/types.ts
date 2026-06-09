@@ -708,6 +708,23 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_artists_collectors_stats: {
+        Args: {
+          p_artist?: string;
+          p_limit?: number;
+          p_page?: number;
+          p_period?: string;
+          p_sort_by?: string;
+          p_sort_order?: string;
+        };
+        Returns: {
+          address: string;
+          total_collected_count: number;
+          total_count: number;
+          total_created_count: number;
+          username: string;
+        }[];
+      };
       get_arweave_uploads: {
         Args: {
           p_artist?: string;
