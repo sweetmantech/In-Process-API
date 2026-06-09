@@ -17,8 +17,9 @@ const BASE_PARAMS = {
 };
 
 const makeRow = (overrides = {}) => ({
-  address: '0xartist',
+  artist_id: 'uuid-artist',
   username: 'alice',
+  wallets: [{ address: '0xartist', type: 'smart' }],
   total_created_count: 10,
   total_collected_count: 5,
   ...overrides,
@@ -83,16 +84,25 @@ describe('getArtistsCollectorsStatsHandler', () => {
     expect(json.total_pages).toBe(0);
   });
 
-  it('includes address and username in response', async () => {
+  it('includes artist_id, wallets and username in response', async () => {
     vi.mocked(getArtistsCollectorsStats).mockResolvedValue({
-      data: [makeRow({ address: '0xabc', username: 'charlie' })],
+      data: [
+        makeRow({
+          artist_id: 'uuid-charlie',
+          wallets: [{ address: '0xabc', type: 'smart' }],
+          username: 'charlie',
+        }),
+      ],
       totalCount: 1,
     });
 
     const res = await getArtistsCollectorsStatsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.artists[0].address).toBe('0xabc');
+    expect(json.artists[0].artist_id).toBe('uuid-charlie');
+    expect(json.artists[0].wallets).toEqual([
+      { address: '0xabc', type: 'smart' },
+    ]);
     expect(json.artists[0].username).toBe('charlie');
   });
 

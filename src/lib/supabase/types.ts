@@ -648,14 +648,15 @@ export type Database = {
           p_sort_order?: string;
         };
         Returns: {
-          address: string;
           airdropped_count: number;
           api_count: number;
+          artist_id: string;
           created_count: number;
           sms_count: number;
           telegram_count: number;
           total_count: number;
           username: string;
+          wallets: Json;
           web_count: number;
         }[];
       };
@@ -718,11 +719,12 @@ export type Database = {
           p_sort_order?: string;
         };
         Returns: {
-          address: string;
+          artist_id: string;
           total_collected_count: number;
           total_count: number;
           total_created_count: number;
           username: string;
+          wallets: Json;
         }[];
       };
       get_arweave_uploads: {
@@ -779,12 +781,13 @@ export type Database = {
           p_sort_order?: string;
         };
         Returns: {
+          artist_id: string;
           collected_count: number;
-          collector: string;
           eth_spent: string;
           total_count: number;
           usdc_spent: string;
           username: string;
+          wallets: Json;
         }[];
       };
       get_creator_hidden: {

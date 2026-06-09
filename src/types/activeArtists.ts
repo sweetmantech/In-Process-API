@@ -18,8 +18,9 @@ export interface ActiveArtistsStatsParams {
 }
 
 export interface ActiveArtistStats {
-  address: string;
+  artist_id: string;
   username: string;
+  wallets: { address: string; type: string }[];
   created_count: number;
   airdropped_count: number;
   telegram_count: number;

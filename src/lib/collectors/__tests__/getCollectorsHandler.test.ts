@@ -17,8 +17,9 @@ const BASE_PARAMS = {
 };
 
 const makeRow = (overrides = {}) => ({
-  collector: '0xcollector',
+  artist_id: 'uuid-artist',
   username: 'alice',
+  wallets: [{ address: '0xcollector', type: 'smart' }],
   collected_count: 5,
   eth_spent: '0.01',
   usdc_spent: '10',
@@ -84,16 +85,25 @@ describe('getCollectorsHandler', () => {
     expect(json.total_pages).toBe(0);
   });
 
-  it('includes collector address and username in response', async () => {
+  it('includes artist_id, wallets and username in response', async () => {
     vi.mocked(getCollectorsStats).mockResolvedValue({
-      data: [makeRow({ collector: '0xabc', username: 'charlie' })],
+      data: [
+        makeRow({
+          artist_id: 'uuid-charlie',
+          wallets: [{ address: '0xabc', type: 'smart' }],
+          username: 'charlie',
+        }),
+      ],
       totalCount: 1,
     });
 
     const res = await getCollectorsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.collectors[0].collector).toBe('0xabc');
+    expect(json.collectors[0].artist_id).toBe('uuid-charlie');
+    expect(json.collectors[0].wallets).toEqual([
+      { address: '0xabc', type: 'smart' },
+    ]);
     expect(json.collectors[0].username).toBe('charlie');
   });
 
