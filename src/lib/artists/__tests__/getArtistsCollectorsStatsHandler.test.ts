@@ -39,7 +39,7 @@ describe('getArtistsCollectorsStatsHandler', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.data).toHaveLength(1);
+    expect(json.artists).toHaveLength(1);
     expect(json.total_count).toBe(50);
     expect(json.page).toBe(1);
     expect(json.total_pages).toBe(3);
@@ -92,8 +92,8 @@ describe('getArtistsCollectorsStatsHandler', () => {
     const res = await getArtistsCollectorsStatsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.data[0].address).toBe('0xabc');
-    expect(json.data[0].username).toBe('charlie');
+    expect(json.artists[0].address).toBe('0xabc');
+    expect(json.artists[0].username).toBe('charlie');
   });
 
   it('includes total_created_count and total_collected_count in response', async () => {
@@ -105,8 +105,8 @@ describe('getArtistsCollectorsStatsHandler', () => {
     const res = await getArtistsCollectorsStatsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.data[0].total_created_count).toBe(42);
-    expect(json.data[0].total_collected_count).toBe(7);
+    expect(json.artists[0].total_created_count).toBe(42);
+    expect(json.artists[0].total_collected_count).toBe(7);
   });
 
   it('propagates error when getArtistsCollectorsStats throws', async () => {
