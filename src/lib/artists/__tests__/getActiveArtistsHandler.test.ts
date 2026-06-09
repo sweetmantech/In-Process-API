@@ -44,7 +44,7 @@ describe('getActiveArtistsHandler', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.data).toHaveLength(1);
+    expect(json.artists).toHaveLength(1);
     expect(json.total_count).toBe(33);
     expect(json.page).toBe(1);
     expect(json.total_pages).toBe(2);
