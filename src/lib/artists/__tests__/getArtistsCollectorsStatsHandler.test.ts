@@ -114,8 +114,8 @@ describe('getArtistsCollectorsStatsHandler', () => {
       new Error('DB failed')
     );
 
-    await expect(
-      getArtistsCollectorsStatsHandler(BASE_PARAMS)
-    ).rejects.toThrow('DB failed');
+    await expect(getArtistsCollectorsStatsHandler(BASE_PARAMS)).rejects.toThrow(
+      'DB failed'
+    );
   });
 });

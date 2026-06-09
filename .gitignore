@@ -43,4 +43,5 @@ next-env.d.ts
 /src/lib/supabase/snippets
 contracts
 
+#claude
 .claude
