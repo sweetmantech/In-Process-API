@@ -30,7 +30,7 @@ const getActiveArtistsHandler = async ({
   });
 
   return NextResponse.json({
-    data,
+    artists: data,
     total_count: totalCount,
     page,
     total_pages: Math.ceil(totalCount / limit),
