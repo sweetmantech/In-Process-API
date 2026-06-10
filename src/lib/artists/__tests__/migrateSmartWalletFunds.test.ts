@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 
-vi.mock('@/lib/coinbase/getLegacySmartAccount', () => ({
-  getLegacySmartAccount: vi.fn(),
+vi.mock('@/lib/coinbase/getWalletSmartAccount', () => ({
+  getWalletSmartAccount: vi.fn(),
 }));
 vi.mock('@/lib/viem/getWalletBalance', () => ({
   default: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock('@/lib/smartwallets/getWithdrawalCall', () => ({
   getWithdrawalCall: vi.fn(),
 }));
 
-import { getLegacySmartAccount } from '@/lib/coinbase/getLegacySmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import getWalletBalance from '@/lib/viem/getWalletBalance';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getWithdrawalCall } from '@/lib/smartwallets/getWithdrawalCall';
@@ -32,7 +32,7 @@ const expectedNetwork = IS_TESTNET ? 'base-sepolia' : 'base';
 describe('migrateSmartWalletFunds', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getLegacySmartAccount).mockResolvedValue(legacySmartAccount);
+    vi.mocked(getWalletSmartAccount).mockResolvedValue(legacySmartAccount);
     vi.mocked(getWithdrawalCall).mockImplementation(
       (currency, amount, to) => ({ mock: currency, amount, to }) as any
     );
@@ -42,7 +42,7 @@ describe('migrateSmartWalletFunds', () => {
   });
 
   it('skips when legacy smart account matches canonical', async () => {
-    vi.mocked(getLegacySmartAccount).mockResolvedValue({
+    vi.mocked(getWalletSmartAccount).mockResolvedValue({
       address: canonicalAddr,
     } as any);
 
@@ -66,7 +66,7 @@ describe('migrateSmartWalletFunds', () => {
       canonicalSmartAccountAddress: canonicalAddr,
     });
 
-    expect(getLegacySmartAccount).toHaveBeenCalledWith({
+    expect(getWalletSmartAccount).toHaveBeenCalledWith({
       address: legacyWalletAddress,
     });
     expect(getWalletBalance).toHaveBeenCalledWith(

@@ -2,7 +2,7 @@ import { type Address } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import { getCanonicalSmartAccount } from './getCanonicalSmartAccount';
-import { getLegacySmartAccount } from './getLegacySmartAccount';
+import { getWalletSmartAccount } from './getWalletSmartAccount';
 
 // Use when only a wallet address is available (split recipients, distribute, legacy paths).
 // For known artists, prefer getCanonicalSmartAccount({ artistId }) directly.
@@ -17,5 +17,5 @@ export async function getWalletLinkedSmartAccount({
 
   if (artistId) return getCanonicalSmartAccount({ artistId });
 
-  return getLegacySmartAccount({ address: lowercased });
+  return getWalletSmartAccount({ address: lowercased });
 }

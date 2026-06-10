@@ -1,7 +1,7 @@
 import { Address } from 'viem';
 import { baseSepolia } from 'viem/chains';
 import { CHAIN_ID } from '@/lib/consts';
-import { getLegacySmartAccount } from '@/lib/coinbase/getLegacySmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import getWalletBalance from '@/lib/viem/getWalletBalance';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getWithdrawalCall } from '@/lib/smartwallets/getWithdrawalCall';
@@ -17,7 +17,7 @@ const migrateSmartWalletFunds = async ({
 }) => {
   const network = chainId === baseSepolia.id ? 'base-sepolia' : 'base';
   try {
-    const legacySmartAccount = await getLegacySmartAccount({
+    const legacySmartAccount = await getWalletSmartAccount({
       address: legacyWalletAddress,
     });
     const legacySmartAccountAddress =

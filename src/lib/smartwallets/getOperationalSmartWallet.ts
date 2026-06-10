@@ -1,7 +1,7 @@
 import { Address, OneOf } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
 import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
-import { getLegacySmartAccount } from '@/lib/coinbase/getLegacySmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import getPermission from '@/lib/zora/getPermission';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { addPermissionCall } from '@/lib/zora/addPermissionCall';
@@ -56,7 +56,7 @@ export const getOperationalSmartWallet = async ({
 
   // 2. Legacy path: find the wallet-based account that still has on-chain admin
   for (const walletAddress of orderedWallets) {
-    const legacySmartAccount = await getLegacySmartAccount({
+    const legacySmartAccount = await getWalletSmartAccount({
       address: walletAddress,
     });
     const permission = await getPermission(
