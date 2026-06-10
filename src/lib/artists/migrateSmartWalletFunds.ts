@@ -8,11 +8,11 @@ import { getWithdrawalCall } from '@/lib/smartwallets/getWithdrawalCall';
 
 const migrateSmartWalletFunds = async ({
   legacyWalletAddress,
-  canonicalSmartAccountAddress,
+  primarySmartAccountAddress,
   chainId = CHAIN_ID,
 }: {
   legacyWalletAddress: Address;
-  canonicalSmartAccountAddress: Address;
+  primarySmartAccountAddress: Address;
   chainId?: number;
 }) => {
   const network = chainId === baseSepolia.id ? 'base-sepolia' : 'base';
@@ -23,7 +23,7 @@ const migrateSmartWalletFunds = async ({
     const legacySmartAccountAddress =
       legacySmartAccount.address.toLowerCase() as Address;
     if (
-      legacySmartAccountAddress === canonicalSmartAccountAddress.toLowerCase()
+      legacySmartAccountAddress === primarySmartAccountAddress.toLowerCase()
     ) {
       return;
     }
@@ -40,7 +40,7 @@ const migrateSmartWalletFunds = async ({
         getWithdrawalCall(
           'eth',
           ethBalance,
-          canonicalSmartAccountAddress,
+          primarySmartAccountAddress,
           chainId
         )
       );
@@ -51,7 +51,7 @@ const migrateSmartWalletFunds = async ({
         getWithdrawalCall(
           'usdc',
           usdcBalance,
-          canonicalSmartAccountAddress,
+          primarySmartAccountAddress,
           chainId
         )
       );
@@ -65,7 +65,7 @@ const migrateSmartWalletFunds = async ({
       calls,
     });
     console.log(
-      `✅ migrated ETH and USDC from legacy smart wallet to canonical: ${transaction.transactionHash}`
+      `✅ migrated ETH and USDC from legacy smart wallet to primary: ${transaction.transactionHash}`
     );
   } catch {
     return;

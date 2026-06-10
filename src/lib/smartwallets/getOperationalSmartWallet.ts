@@ -1,21 +1,13 @@
-import { Address, OneOf } from 'viem';
+import { Address } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
-import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
 import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import getPermission from '@/lib/zora/getPermission';
-import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { addPermissionCall } from '@/lib/zora/addPermissionCall';
-import { IS_TESTNET, PERMISSION_BIT_ADMIN } from '@/lib/consts';
-import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
+import { PERMISSION_BIT_ADMIN } from '@/lib/consts';
 import type { ArtistContext } from '@/types/artist';
 
 // Returns the smart account authorized to write to the given collection.
-//
-// Fast path: canonical (artistId-based) account already has collection-level admin.
-//
-// Legacy path: finds the old wallet-based CDP account that has on-chain admin,
-// grants the canonical account admin synchronously via that legacy account,
-// then returns canonical so all future calls take the fast path.
+// Iterates all linked wallets (primary first) and returns the smart account
+// whose on-chain admin permission matches the collection.
 export const getOperationalSmartWallet = async ({
   artist,
   moment,
@@ -27,11 +19,8 @@ export const getOperationalSmartWallet = async ({
     chainId: number;
   };
 }): Promise<EvmSmartAccount> => {
-  const { artistId, primaryWallet, wallets } = artist;
+  const { primaryWallet, wallets } = artist;
   const { chainId, collectionAddress } = moment;
-
-  const canonicalAccount = await getCanonicalSmartAccount({ artistId });
-  if (!collectionAddress) return canonicalAccount;
 
   const orderedWallets = [
     primaryWallet,
@@ -39,51 +28,23 @@ export const getOperationalSmartWallet = async ({
       .filter((w) => w.address.toLowerCase() !== primaryWallet.toLowerCase())
       .map((w) => w.address),
   ];
-  const network: 'base' | 'base-sepolia' = IS_TESTNET ? 'base-sepolia' : 'base';
 
-  // 1. Canonical smart account — fast path
-  const canonicalPermission = await getPermission(
-    collectionAddress,
-    canonicalAccount.address as Address,
-    chainId
-  );
-  if (
-    (BigInt(canonicalPermission || 0) & BigInt(PERMISSION_BIT_ADMIN)) !==
-    BigInt(0)
-  ) {
-    return canonicalAccount;
-  }
-
-  // 2. Legacy path: find the wallet-based account that still has on-chain admin
   for (const walletAddress of orderedWallets) {
-    const legacySmartAccount = await getWalletSmartAccount({
+    const smartAccount = await getWalletSmartAccount({
       address: walletAddress,
     });
+    if (!collectionAddress) return smartAccount;
+
     const permission = await getPermission(
       collectionAddress,
-      legacySmartAccount.address as Address,
+      smartAccount.address as Address,
       chainId
     );
     if (
       (BigInt(permission || 0) & BigInt(PERMISSION_BIT_ADMIN)) !==
       BigInt(0)
     ) {
-      await sendUserOperation({
-        smartAccount: legacySmartAccount,
-        network,
-        calls: [
-          {
-            to: collectionAddress,
-            data: addPermissionCall(
-              canonicalAccount.address as Address,
-              BigInt(0)
-            ),
-          },
-        ] as unknown as readonly OneOf<
-          Call<unknown, { [key: string]: unknown }>
-        >[],
-      });
-      return legacySmartAccount;
+      return smartAccount;
     }
   }
 

@@ -24,7 +24,7 @@ const legacyWalletAddress =
   '0xc345678901234567890123456789012345678901' as const;
 const legacySmartAccountAddress =
   '0xb234567890123456789012345678901234567891' as const;
-const canonicalAddr = '0xa123456789012345678901234567890123456789' as const;
+const primaryAddr = '0xa123456789012345678901234567890123456789' as const;
 const legacySmartAccount = { address: legacySmartAccountAddress } as any;
 
 const expectedNetwork = IS_TESTNET ? 'base-sepolia' : 'base';
@@ -41,14 +41,14 @@ describe('migrateSmartWalletFunds', () => {
     } as any);
   });
 
-  it('skips when legacy smart account matches canonical', async () => {
+  it('skips when legacy smart account matches primary', async () => {
     vi.mocked(getWalletSmartAccount).mockResolvedValue({
-      address: canonicalAddr,
+      address: primaryAddr,
     } as any);
 
     await migrateSmartWalletFunds({
       legacyWalletAddress,
-      canonicalSmartAccountAddress: canonicalAddr,
+      primarySmartAccountAddress: primaryAddr,
     });
 
     expect(getWalletBalance).not.toHaveBeenCalled();
@@ -63,7 +63,7 @@ describe('migrateSmartWalletFunds', () => {
 
     await migrateSmartWalletFunds({
       legacyWalletAddress,
-      canonicalSmartAccountAddress: canonicalAddr,
+      primarySmartAccountAddress: primaryAddr,
     });
 
     expect(getWalletSmartAccount).toHaveBeenCalledWith({
@@ -86,20 +86,20 @@ describe('migrateSmartWalletFunds', () => {
 
     await migrateSmartWalletFunds({
       legacyWalletAddress,
-      canonicalSmartAccountAddress: canonicalAddr,
+      primarySmartAccountAddress: primaryAddr,
     });
 
     expect(getWithdrawalCall).toHaveBeenCalledTimes(1);
     expect(getWithdrawalCall).toHaveBeenCalledWith(
       'eth',
       ethAmt,
-      canonicalAddr,
+      primaryAddr,
       CHAIN_ID
     );
     expect(sendUserOperation).toHaveBeenCalledWith({
       smartAccount: legacySmartAccount,
       network: expectedNetwork,
-      calls: [{ mock: 'eth', amount: ethAmt, to: canonicalAddr }],
+      calls: [{ mock: 'eth', amount: ethAmt, to: primaryAddr }],
     });
   });
 
@@ -112,20 +112,20 @@ describe('migrateSmartWalletFunds', () => {
 
     await migrateSmartWalletFunds({
       legacyWalletAddress,
-      canonicalSmartAccountAddress: canonicalAddr,
+      primarySmartAccountAddress: primaryAddr,
     });
 
     expect(getWithdrawalCall).toHaveBeenCalledTimes(1);
     expect(getWithdrawalCall).toHaveBeenCalledWith(
       'usdc',
       usdcAmt,
-      canonicalAddr,
+      primaryAddr,
       CHAIN_ID
     );
     expect(sendUserOperation).toHaveBeenCalledWith({
       smartAccount: legacySmartAccount,
       network: expectedNetwork,
-      calls: [{ mock: 'usdc', amount: usdcAmt, to: canonicalAddr }],
+      calls: [{ mock: 'usdc', amount: usdcAmt, to: primaryAddr }],
     });
   });
 
@@ -139,29 +139,29 @@ describe('migrateSmartWalletFunds', () => {
 
     await migrateSmartWalletFunds({
       legacyWalletAddress,
-      canonicalSmartAccountAddress: canonicalAddr,
+      primarySmartAccountAddress: primaryAddr,
     });
 
     expect(getWithdrawalCall).toHaveBeenNthCalledWith(
       1,
       'eth',
       ethAmt,
-      canonicalAddr,
+      primaryAddr,
       CHAIN_ID
     );
     expect(getWithdrawalCall).toHaveBeenNthCalledWith(
       2,
       'usdc',
       usdcAmt,
-      canonicalAddr,
+      primaryAddr,
       CHAIN_ID
     );
     expect(sendUserOperation).toHaveBeenCalledWith({
       smartAccount: legacySmartAccount,
       network: expectedNetwork,
       calls: [
-        { mock: 'eth', amount: ethAmt, to: canonicalAddr },
-        { mock: 'usdc', amount: usdcAmt, to: canonicalAddr },
+        { mock: 'eth', amount: ethAmt, to: primaryAddr },
+        { mock: 'usdc', amount: usdcAmt, to: primaryAddr },
       ],
     });
   });
@@ -172,7 +172,7 @@ describe('migrateSmartWalletFunds', () => {
     await expect(
       migrateSmartWalletFunds({
         legacyWalletAddress,
-        canonicalSmartAccountAddress: canonicalAddr,
+        primarySmartAccountAddress: primaryAddr,
       })
     ).resolves.toBeUndefined();
   });

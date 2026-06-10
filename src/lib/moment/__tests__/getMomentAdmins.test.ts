@@ -4,8 +4,8 @@ vi.mock('@/lib/supabase/in_process_admins/selectAdmins', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('@/lib/coinbase/getWalletLinkedSmartAccount', () => ({
-  getWalletLinkedSmartAccount: vi.fn(),
+vi.mock('@/lib/coinbase/getWalletSmartAccount', () => ({
+  getWalletSmartAccount: vi.fn(),
 }));
 
 vi.mock('@/lib/zora/getPermission', () => ({
@@ -13,7 +13,7 @@ vi.mock('@/lib/zora/getPermission', () => ({
 }));
 
 import selectAdmins from '@/lib/supabase/in_process_admins/selectAdmins';
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import getPermission from '@/lib/zora/getPermission';
 import getMomentAdmins from '@/lib/moment/getMomentAdmins';
 
@@ -52,7 +52,7 @@ describe('getMomentAdmins', () => {
       expect(selectAdmins).toHaveBeenCalledWith({
         moments: [{ collectionId: 'collection-uuid', token_id: 5 }],
       });
-      expect(getWalletLinkedSmartAccount).not.toHaveBeenCalled();
+      expect(getWalletSmartAccount).not.toHaveBeenCalled();
       expect(result).toEqual([
         '0xcccccccccccccccccccccccccccccccccccccccc',
         '0xdddddddddddddddddddddddddddddddddddddddd',
@@ -95,7 +95,7 @@ describe('getMomentAdmins', () => {
 
   describe('without collection, in_process protocol (onchain path)', () => {
     beforeEach(() => {
-      vi.mocked(getWalletLinkedSmartAccount).mockResolvedValue({
+      vi.mocked(getWalletSmartAccount).mockResolvedValue({
         address: SMART_ACCOUNT,
       } as any);
     });
@@ -110,7 +110,7 @@ describe('getMomentAdmins', () => {
         protocol: 'in_process',
       });
 
-      expect(getWalletLinkedSmartAccount).toHaveBeenCalledWith({
+      expect(getWalletSmartAccount).toHaveBeenCalledWith({
         address: OWNER,
       });
       expect(getPermission).toHaveBeenCalledWith(
@@ -137,7 +137,7 @@ describe('getMomentAdmins', () => {
     });
 
     it('deduplicates when smart account equals owner', async () => {
-      vi.mocked(getWalletLinkedSmartAccount).mockResolvedValue({
+      vi.mocked(getWalletSmartAccount).mockResolvedValue({
         address: OWNER as any,
       } as any);
       vi.mocked(getPermission).mockResolvedValue(true as any);
@@ -161,7 +161,7 @@ describe('getMomentAdmins', () => {
         protocol: 'in_process',
       });
 
-      expect(getWalletLinkedSmartAccount).not.toHaveBeenCalled();
+      expect(getWalletSmartAccount).not.toHaveBeenCalled();
       expect(result).toEqual([]);
     });
   });
@@ -175,7 +175,7 @@ describe('getMomentAdmins', () => {
         protocol: 'catalog',
       });
 
-      expect(getWalletLinkedSmartAccount).not.toHaveBeenCalled();
+      expect(getWalletSmartAccount).not.toHaveBeenCalled();
       expect(result).toEqual([]);
     });
 
@@ -187,7 +187,7 @@ describe('getMomentAdmins', () => {
         protocol: 'sound',
       });
 
-      expect(getWalletLinkedSmartAccount).not.toHaveBeenCalled();
+      expect(getWalletSmartAccount).not.toHaveBeenCalled();
       expect(result).toEqual([]);
     });
 
@@ -199,7 +199,7 @@ describe('getMomentAdmins', () => {
         protocol: null,
       });
 
-      expect(getWalletLinkedSmartAccount).not.toHaveBeenCalled();
+      expect(getWalletSmartAccount).not.toHaveBeenCalled();
       expect(result).toEqual([]);
     });
   });
