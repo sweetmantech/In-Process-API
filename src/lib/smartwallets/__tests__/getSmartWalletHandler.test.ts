@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/coinbase/getCanonicalSmartAccount', () => ({
-  getCanonicalSmartAccount: vi.fn(),
+vi.mock('@/lib/coinbase/getArtistSmartAccount', () => ({
+  getArtistSmartAccount: vi.fn(),
 }));
 
-import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
+import { getArtistSmartAccount } from '@/lib/coinbase/getArtistSmartAccount';
 import getSmartWalletHandler from '@/lib/smartwallets/getSmartWalletHandler';
 
 const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
@@ -16,7 +16,7 @@ describe('getSmartWalletHandler', () => {
   });
 
   it('returns smart wallet address lowercased', async () => {
-    vi.mocked(getCanonicalSmartAccount).mockResolvedValue({
+    vi.mocked(getArtistSmartAccount).mockResolvedValue({
       address: SMART_ADDRESS,
     } as any);
 
@@ -24,13 +24,13 @@ describe('getSmartWalletHandler', () => {
     const json = await res.json();
 
     expect(json).toEqual({ address: SMART_ADDRESS });
-    expect(getCanonicalSmartAccount).toHaveBeenCalledWith({
+    expect(getArtistSmartAccount).toHaveBeenCalledWith({
       artistId: ARTIST_ID,
     });
   });
 
-  it('propagates when getCanonicalSmartAccount rejects', async () => {
-    vi.mocked(getCanonicalSmartAccount).mockRejectedValue(
+  it('propagates when getArtistSmartAccount rejects', async () => {
+    vi.mocked(getArtistSmartAccount).mockRejectedValue(
       new Error('CDP unavailable')
     );
 

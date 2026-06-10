@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/coinbase/getWalletLinkedSmartAccount', () => ({
-  getWalletLinkedSmartAccount: vi.fn(),
+vi.mock('@/lib/coinbase/getWalletSmartAccount', () => ({
+  getWalletSmartAccount: vi.fn(),
 }));
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
   sendUserOperation: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock('viem', async (importOriginal) => {
   return { ...actual, parseEventLogs: vi.fn() };
 });
 
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import prepareCreateCollectionCall from '@/lib/collection/prepareCreateCollectionCall';
 import { parseEventLogs } from 'viem';
@@ -37,7 +37,7 @@ const baseInput = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getWalletLinkedSmartAccount).mockResolvedValue(SMART_WALLET as any);
+  vi.mocked(getWalletSmartAccount).mockResolvedValue(SMART_WALLET as any);
   vi.mocked(prepareCreateCollectionCall).mockResolvedValue({
     to: '0xfactory' as `0x${string}`,
     data: '0xencoded' as `0x${string}`,
@@ -77,9 +77,9 @@ describe('createCollection', () => {
     );
   });
 
-  it('calls getWalletLinkedSmartAccount with the top-level account', async () => {
+  it('calls getWalletSmartAccount with the top-level account', async () => {
     await createCollection(baseInput);
-    expect(getWalletLinkedSmartAccount).toHaveBeenCalledWith({
+    expect(getWalletSmartAccount).toHaveBeenCalledWith({
       address: ACCOUNT,
     });
   });

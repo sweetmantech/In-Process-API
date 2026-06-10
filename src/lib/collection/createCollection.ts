@@ -4,7 +4,7 @@ import { baseSepolia } from 'viem/chains';
 import { createCollectionSchema } from '@/lib/schema/createCollectionSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { zoraCreator1155FactoryImplABI } from '@zoralabs/protocol-deployments';
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 
 export interface CreateCollectionResult {
   contractAddress: Address;
@@ -20,7 +20,7 @@ export async function createCollection(
 ): Promise<CreateCollectionResult> {
   const accountAddress = input.account as Address;
 
-  const smartAccount = await getWalletLinkedSmartAccount({
+  const smartAccount = await getWalletSmartAccount({
     address: accountAddress,
   });
 

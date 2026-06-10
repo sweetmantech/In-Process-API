@@ -4,7 +4,7 @@ import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import uploadBodySchema from '@/lib/schema/uploadBodySchema';
 import getBlob from '@/lib/getBlob';
-import getSmartWalletAddress from '@/lib/smartwallets/getSmartWalletAddress';
+import getArtistSmartWallet from '@/lib/smartwallets/getArtistSmartWallet';
 import getSmartWalletUsdcBalance from '@/lib/smartwallets/getSmartWalletUsdcBalance';
 import getUploadType from './getUploadType';
 
@@ -23,13 +23,12 @@ const validateUpload = async (req: NextRequest) => {
   if (!parsed.success) return parsed.response;
 
   const { url } = parsed.data;
-  const artistAddress = authResult.primaryWallet;
 
   const { blob, type } = await getBlob(url);
 
   if (authResult.isWebRequest) {
     return {
-      artistAddress,
+      artist: authResult,
       blob,
       type,
       uploadType: 'free' as const,
@@ -37,7 +36,10 @@ const validateUpload = async (req: NextRequest) => {
     };
   }
 
-  const uploadTypeResult = await getUploadType(artistAddress, blob.size);
+  const uploadTypeResult = await getUploadType(
+    authResult.primaryWallet,
+    blob.size
+  );
   if ('error' in uploadTypeResult) {
     return NextResponse.json(
       { message: uploadTypeResult.error },
@@ -46,12 +48,8 @@ const validateUpload = async (req: NextRequest) => {
   }
 
   if (uploadTypeResult.uploadType === 'paid') {
-    let smartWalletAddress: Address;
-    try {
-      smartWalletAddress = await getSmartWalletAddress(
-        artistAddress as Address
-      );
-    } catch {
+    const smartWalletAddress = await getArtistSmartWallet(authResult.artistId);
+    if (!smartWalletAddress) {
       return NextResponse.json(
         { message: 'Failed to resolve smart wallet' },
         { status: 500 }
@@ -72,7 +70,7 @@ const validateUpload = async (req: NextRequest) => {
     }
   }
 
-  return { artistAddress, blob, type, ...uploadTypeResult };
+  return { artist: authResult, blob, type, ...uploadTypeResult };
 };
 
 export default validateUpload;

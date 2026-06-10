@@ -6,15 +6,8 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateUpload(req);
     if (validated instanceof Response) return validated;
-    const { artistAddress, blob, type, uploadType, usdcAmountMicros } =
-      validated;
-    return uploadHandler(
-      artistAddress,
-      blob,
-      type,
-      uploadType,
-      usdcAmountMicros
-    );
+    const { artist, blob, type, uploadType, usdcAmountMicros } = validated;
+    return uploadHandler(artist, blob, type, uploadType, usdcAmountMicros);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Failed';
     return Response.json({ message }, { status: 500 });
