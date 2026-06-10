@@ -1,6 +1,6 @@
 import { Address, getAddress } from 'viem';
 import { SplitRecipient } from '@0xsplits/splits-sdk';
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import sleep from '@/lib/sleep';
 
 export interface SplitAdminAddresses {
@@ -31,7 +31,7 @@ export async function getSplitAdminAddresses(
     // Throttle to avoid CDP rate limits when many recipients are present.
     for (let i = 0; i < resolvedAddresses.length; i++) {
       const address = resolvedAddresses[i];
-      const smartAccount = await getWalletLinkedSmartAccount({ address });
+      const smartAccount = await getWalletSmartAccount({ address });
       smartWallets.push(getAddress(smartAccount.address));
       if (i < resolvedAddresses.length - 1) await sleep(200);
     }

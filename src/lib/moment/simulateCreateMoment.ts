@@ -4,7 +4,7 @@ import {
   type CreateMomentContractInput,
 } from '@/lib/schema/createMomentSchema';
 import type { CreateMomentBatchInput } from '@/lib/moment/createMomentBatch';
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import createBatchSetupActions from './createBatchSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { publicClient } from '@/lib/viem/publicClient';
@@ -26,7 +26,7 @@ export interface SimulateCreateMomentResult {
 export async function simulateCreateMomentBatch(
   input: CreateMomentBatchInput
 ): Promise<SimulateCreateMomentResult> {
-  const smartAccount = await getWalletLinkedSmartAccount({
+  const smartAccount = await getWalletSmartAccount({
     address: input.account as Address,
   });
 

@@ -5,6 +5,7 @@ import logArweaveUpload from '@/lib/arweave/logArweaveUpload';
 import topUpTurboCredits from '@/lib/arweave/topUpTurboCredits';
 
 const uploadHandler = async (
+  artistId: string,
   artistAddress: string,
   blob: Blob,
   contentType: string,
@@ -12,7 +13,7 @@ const uploadHandler = async (
   usdcAmountMicros: bigint
 ) => {
   if (uploadType === 'paid') {
-    await topUpTurboCredits(artistAddress as Address, usdcAmountMicros);
+    await topUpTurboCredits(artistId, usdcAmountMicros);
   }
 
   const file = new File([blob], 'upload', { type: contentType });

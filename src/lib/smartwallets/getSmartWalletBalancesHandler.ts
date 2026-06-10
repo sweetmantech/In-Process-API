@@ -2,7 +2,7 @@ import { Address, formatEther, formatUnits } from 'viem';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import migrateSmartWalletFunds from '@/lib/artists/migrateSmartWalletFunds';
-import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
+import { getArtistSmartAccount } from '@/lib/coinbase/getArtistSmartAccount';
 import { getSmartWalletBalancesSchema } from '@/lib/schema/getSmartWalletBalancesSchema';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import { Tables } from '@/lib/supabase/types';
@@ -16,7 +16,7 @@ const getSmartWalletBalancesHandler = async ({
   chainId,
 }: GetSmartWalletBalancesInput) => {
   const [canonicalAccount, { data: wallets }] = await Promise.all([
-    getCanonicalSmartAccount({ artistId }),
+    getArtistSmartAccount({ artistId }),
     selectWallets({ artistIds: [artistId] }),
   ]);
 

@@ -4,7 +4,7 @@ import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import uploadBodySchema from '@/lib/schema/uploadBodySchema';
 import getBlob from '@/lib/getBlob';
-import getSmartWalletAddress from '@/lib/smartwallets/getSmartWalletAddress';
+import { getArtistSmartAccount } from '@/lib/coinbase/getArtistSmartAccount';
 import getSmartWalletUsdcBalance from '@/lib/smartwallets/getSmartWalletUsdcBalance';
 import getUploadType from './getUploadType';
 
@@ -24,11 +24,13 @@ const validateUpload = async (req: NextRequest) => {
 
   const { url } = parsed.data;
   const artistAddress = authResult.primaryWallet;
+  const { artistId } = authResult;
 
   const { blob, type } = await getBlob(url);
 
   if (authResult.isWebRequest) {
     return {
+      artistId,
       artistAddress,
       blob,
       type,
@@ -48,9 +50,8 @@ const validateUpload = async (req: NextRequest) => {
   if (uploadTypeResult.uploadType === 'paid') {
     let smartWalletAddress: Address;
     try {
-      smartWalletAddress = await getSmartWalletAddress(
-        artistAddress as Address
-      );
+      const smartAccount = await getArtistSmartAccount({ artistId });
+      smartWalletAddress = smartAccount.address.toLowerCase() as Address;
     } catch {
       return NextResponse.json(
         { message: 'Failed to resolve smart wallet' },
@@ -72,7 +73,7 @@ const validateUpload = async (req: NextRequest) => {
     }
   }
 
-  return { artistAddress, blob, type, ...uploadTypeResult };
+  return { artistId, artistAddress, blob, type, ...uploadTypeResult };
 };
 
 export default validateUpload;

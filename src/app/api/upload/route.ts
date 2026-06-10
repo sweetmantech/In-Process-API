@@ -6,9 +6,10 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateUpload(req);
     if (validated instanceof Response) return validated;
-    const { artistAddress, blob, type, uploadType, usdcAmountMicros } =
+    const { artistId, artistAddress, blob, type, uploadType, usdcAmountMicros } =
       validated;
     return uploadHandler(
+      artistId,
       artistAddress,
       blob,
       type,

@@ -4,7 +4,7 @@ import { deterministicAccountName } from './deterministricAccountName';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import upsertWallets from '@/lib/supabase/in_process_wallets/upsertWallets';
 
-export async function getCanonicalSmartAccount({
+export async function getArtistSmartAccount({
   artistId,
 }: {
   artistId: string;

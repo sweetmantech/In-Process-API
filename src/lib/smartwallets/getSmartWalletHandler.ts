@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
+import { getArtistSmartAccount } from '@/lib/coinbase/getArtistSmartAccount';
 
 const getSmartWalletHandler = async (artistId: string) => {
-  const smartAccount = await getCanonicalSmartAccount({ artistId });
+  const smartAccount = await getArtistSmartAccount({ artistId });
   return NextResponse.json({
     address: smartAccount.address.toLowerCase(),
   });
