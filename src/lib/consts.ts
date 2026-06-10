@@ -1,4 +1,4 @@
-import { base, baseSepolia, mainnet } from 'viem/chains';
+import { base, baseSepolia, mainnet, sepolia } from 'viem/chains';
 import { Address } from 'viem';
 
 export const INPROCESS_GROUP_CHAT_ID = '-1002592953370';
@@ -82,3 +82,15 @@ export const NUDGE_PERIODS: Record<
 
 export const FREE_TIER_MAX_BYTES = 5 * 1024 * 1024;
 export const FREE_UPLOADS_PER_MONTH = 11;
+
+// Nouns DAO
+export const NOUNS_GOVERNOR_ADDRESS: Record<number, Address> = {
+  [mainnet.id]: '0x6f3e6272a167e8accb32072d08e0957f9c79223d',
+  [sepolia.id]: '0x35d2670d7c8931aacdd37c89ddcb0638c3c44a57',
+};
+
+export const NOUNS_EXECUTOR_ADDRESS: Record<number, Address> = {
+  [mainnet.id]: '0xb1a32fc9f9d8b2cf86c068cae13108809547ef71',
+  [sepolia.id]: '0x07e5d6a1550ad5e597a9b0698a474aa080a2fb28',
+};
+

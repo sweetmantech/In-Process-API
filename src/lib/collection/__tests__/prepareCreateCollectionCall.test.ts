@@ -49,16 +49,12 @@ beforeEach(() => {
 
 describe('prepareCreateCollectionCall', () => {
   it('returns to and data', async () => {
-    const result = await prepareCreateCollectionCall(
-      validItem,
-      smartAccount,
-      ACCOUNT
-    );
+    const result = await prepareCreateCollectionCall(validItem, smartAccount, ACCOUNT, 8453);
     expect(result).toEqual({ to: FACTORY_ADDRESS, data: '0xencoded' });
   });
 
   it('uses account address as royaltyRecipient when no splits', async () => {
-    await prepareCreateCollectionCall(validItem, smartAccount, ACCOUNT);
+    await prepareCreateCollectionCall(validItem, smartAccount, ACCOUNT, 8453);
 
     const args = vi.mocked(makeContractParameters).mock.calls[0][0]
       .args as any[];
