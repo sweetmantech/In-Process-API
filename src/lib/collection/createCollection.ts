@@ -27,7 +27,8 @@ export async function createCollection(
   const call = await prepareCreateCollectionCall(
     input.collection,
     smartAccount,
-    accountAddress
+    accountAddress,
+    input.chainId
   );
 
   const transaction = await sendUserOperation({
