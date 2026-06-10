@@ -6,15 +6,14 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateUpload(req);
     if (validated instanceof Response) return validated;
-    const { artistId, artistAddress, blob, type, uploadType, usdcAmountMicros } =
+    const { artist, blob, type, uploadType, usdcAmountMicros } =
       validated;
     return uploadHandler(
-      artistId,
-      artistAddress,
+      artist,
       blob,
       type,
       uploadType,
-      usdcAmountMicros
+      usdcAmountMicros,
     );
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'Failed';

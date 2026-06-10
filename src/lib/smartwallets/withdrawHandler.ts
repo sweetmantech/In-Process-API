@@ -15,11 +15,11 @@ const withdrawHandler = async ({
   to,
   chainId,
 }: WithdrawValidatedInput) => {
-  const canonicalAccount = await getArtistSmartAccount({ artistId });
-  const canonicalAddress = canonicalAccount.address.toLowerCase() as Address;
+  const artistAccount = await getArtistSmartAccount({ artistId });
+  const artistAddress = artistAccount.address.toLowerCase() as Address;
 
   const { ethBalance, usdcBalance } = await getWalletBalance(
-    canonicalAddress,
+    artistAddress,
     chainId
   );
 
@@ -32,7 +32,7 @@ const withdrawHandler = async ({
 
   const network = chainId === baseSepolia.id ? 'base-sepolia' : 'base';
   const transaction = await sendUserOperation({
-    smartAccount: canonicalAccount,
+    smartAccount: artistAccount,
     network,
     calls: [getWithdrawalCall(currency, withdrawAmount, to, chainId)],
   });
@@ -44,7 +44,7 @@ const withdrawHandler = async ({
 
   return NextResponse.json({
     hash: transaction.transactionHash as Hash,
-    address: canonicalAddress,
+    address: artistAddress,
     withdrawn_amount:
       currency === 'eth'
         ? formatEther(withdrawAmount)

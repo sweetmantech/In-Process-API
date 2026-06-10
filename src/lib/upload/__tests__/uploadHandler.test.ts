@@ -8,8 +8,15 @@ import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import logArweaveUpload from '@/lib/arweave/logArweaveUpload';
 import topUpTurboCredits from '@/lib/arweave/topUpTurboCredits';
 import uploadHandler from '@/lib/upload/uploadHandler';
+import type { ArtistContext } from '@/types/artist';
+import type { EvmSmartAccount } from '@coinbase/cdp-sdk';
 
-const ARTIST = '0xabc';
+const ARTIST: ArtistContext = {
+  artistId: 'artist-1',
+  primaryWallet: '0xabc' as `0x${string}`,
+  wallets: [],
+};
+const SMART_ACCOUNT = { address: '0xsmart' } as unknown as EvmSmartAccount;
 const BLOB = new Blob(['data'], { type: 'image/png' });
 const CONTENT_TYPE = 'image/png';
 const UPLOAD_RESULT = { arweave_uri: 'ar://test123', winc_cost: '500' };
@@ -40,10 +47,23 @@ describe('uploadHandler', () => {
     expect(topUpTurboCredits).not.toHaveBeenCalled();
   });
 
-  it('calls topUpTurboCredits with usdcAmountMicros for paid upload', async () => {
+  it('calls topUpTurboCredits with smartAccount and usdcAmountMicros for paid upload', async () => {
+    await uploadHandler(
+      ARTIST,
+      BLOB,
+      CONTENT_TYPE,
+      'paid',
+      USDC,
+      SMART_ACCOUNT
+    );
+
+    expect(topUpTurboCredits).toHaveBeenCalledWith(SMART_ACCOUNT, USDC);
+  });
+
+  it('skips topUpTurboCredits when paid but smartAccount is missing', async () => {
     await uploadHandler(ARTIST, BLOB, CONTENT_TYPE, 'paid', USDC);
 
-    expect(topUpTurboCredits).toHaveBeenCalledWith(ARTIST, USDC);
+    expect(topUpTurboCredits).not.toHaveBeenCalled();
   });
 
   it('always calls uploadToArweave with a File built from blob', async () => {
@@ -62,7 +82,7 @@ describe('uploadHandler', () => {
     expect(logArweaveUpload).toHaveBeenCalledWith(UPLOAD_RESULT, {
       file_size_bytes: BLOB.size,
       content_type: CONTENT_TYPE,
-      artist_address: ARTIST,
+      artist_address: ARTIST.primaryWallet,
     });
   });
 });

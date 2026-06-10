@@ -3,9 +3,9 @@ import type {
   TurboCryptoFundResponse,
   TurboSubmitFundTxResponse,
 } from '@ardrive/turbo-sdk/node';
-import { getArtistSmartAccount } from '@/lib/coinbase/getArtistSmartAccount';
 import turboClient from './turboClient';
 import createTurboWalletAdapter from './createTurboWalletAdapter';
+import { getArtistSmartAccount } from '../coinbase/getArtistSmartAccount';
 
 const topUpTurboCredits = async (
   artistId: string,

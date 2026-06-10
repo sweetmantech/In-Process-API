@@ -1,19 +1,18 @@
 import { NextResponse } from 'next/server';
-import type { Address } from 'viem';
+import type { ArtistContext } from '@/types/artist';
 import uploadToArweave from '@/lib/arweave/uploadToArweave';
 import logArweaveUpload from '@/lib/arweave/logArweaveUpload';
 import topUpTurboCredits from '@/lib/arweave/topUpTurboCredits';
 
 const uploadHandler = async (
-  artistId: string,
-  artistAddress: string,
+  artist: ArtistContext,
   blob: Blob,
   contentType: string,
   uploadType: 'free' | 'paid',
   usdcAmountMicros: bigint
 ) => {
-  if (uploadType === 'paid') {
-    await topUpTurboCredits(artistId, usdcAmountMicros);
+  if (uploadType === 'paid' && artist.artistId) {
+    await topUpTurboCredits(artist.artistId, usdcAmountMicros);
   }
 
   const file = new File([blob], 'upload', { type: contentType });
@@ -21,7 +20,7 @@ const uploadHandler = async (
   logArweaveUpload(uploadResult, {
     file_size_bytes: blob.size,
     content_type: contentType,
-    artist_address: artistAddress,
+    artist_address: artist.primaryWallet,
   });
 
   return NextResponse.json({ uri: uploadResult.arweave_uri });

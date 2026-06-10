@@ -30,7 +30,9 @@ export const getOperationalSmartWallet = async ({
   ];
 
   for (const walletAddress of orderedWallets) {
-    const smartAccount = await getWalletSmartAccount({ address: walletAddress });
+    const smartAccount = await getWalletSmartAccount({
+      address: walletAddress,
+    });
     if (!collectionAddress) return smartAccount;
 
     const permission = await getPermission(
@@ -38,7 +40,10 @@ export const getOperationalSmartWallet = async ({
       smartAccount.address as Address,
       chainId
     );
-    if ((BigInt(permission || 0) & BigInt(PERMISSION_BIT_ADMIN)) !== BigInt(0)) {
+    if (
+      (BigInt(permission || 0) & BigInt(PERMISSION_BIT_ADMIN)) !==
+      BigInt(0)
+    ) {
       return smartAccount;
     }
   }
