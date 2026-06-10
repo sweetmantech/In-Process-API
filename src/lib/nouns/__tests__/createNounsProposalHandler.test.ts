@@ -1,19 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_wallets/selectWallets', () => ({
-  default: vi.fn(),
-}));
-
-vi.mock('@/lib/artists/getOrCreateArtist', () => ({
-  default: vi.fn(),
-}));
-
-vi.mock('@/lib/smartwallets/getOperationalSmartWallet', () => ({
-  getOperationalSmartWallet: vi.fn(),
-}));
-
-vi.mock('@/lib/coinbase/getLegacySmartAccount', () => ({
-  getLegacySmartAccount: vi.fn(),
+vi.mock('@/lib/coinbase/getWalletSmartAccount', () => ({
+  getWalletSmartAccount: vi.fn(),
 }));
 
 vi.mock('@/lib/moment/createBatchSetupActions', () => ({
@@ -32,10 +20,7 @@ vi.mock('../getNounsProposalThreshold', () => ({
   getNounsProposalThreshold: vi.fn(),
 }));
 
-import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
-import getOrCreateArtist from '@/lib/artists/getOrCreateArtist';
-import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
-import { getLegacySmartAccount } from '@/lib/coinbase/getLegacySmartAccount';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import createBatchSetupActions from '@/lib/moment/createBatchSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { getNounsProposalCalldata } from '../getNounsProposalCalldata';
@@ -53,23 +38,21 @@ const baseInput: CreateNounsProposalInput = {
   contract: { address: CONTRACT },
   tokens: [
     {
-      name: 'Test Token',
-      description: 'desc',
-      animationUrl: 'https://example.com/animation',
-      price: '0',
-      maxSupply: '100',
+      tokenMetadataURI: 'ipfs://bafytest',
+      createReferral: ACCOUNT,
+      salesConfig: {
+        type: 'ZoraTimedSaleStrategy',
+        pricePerToken: BigInt(0),
+        saleStart: BigInt(0),
+        saleEnd: BigInt('18446744073709551615'),
+      },
+      mintToCreatorCount: 1,
     },
   ],
   proposal: {
     title: 'Test Proposal',
     description: 'Do something onchain.',
   },
-};
-
-const artistContext = {
-  artistId: 'artist-uuid',
-  primaryWallet: ACCOUNT,
-  wallets: [{ address: ACCOUNT, type: 'external' as const }],
 };
 
 const mockTransaction = {
@@ -81,6 +64,7 @@ const mockTransaction = {
 describe('createNounsProposalHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getWalletSmartAccount).mockResolvedValue(SMART_ACCOUNT as any);
     vi.mocked(createBatchSetupActions).mockResolvedValue({
       tokenSetupActions: [],
       fundsRecipient: CONTRACT,
@@ -93,64 +77,23 @@ describe('createNounsProposalHandler', () => {
     vi.mocked(getNounsProposalThreshold).mockResolvedValue(1);
   });
 
-  describe('smart account selection', () => {
-    it('uses getOperationalSmartWallet when artistId is found', async () => {
-      vi.mocked(selectWallets).mockResolvedValue({
-        data: [{ artist_id: 'artist-uuid' }],
-      } as any);
-      vi.mocked(getOrCreateArtist).mockResolvedValue(artistContext as any);
-      vi.mocked(getOperationalSmartWallet).mockResolvedValue(
-        SMART_ACCOUNT as any
+  describe('smart account', () => {
+    it('resolves smart account from the caller address', async () => {
+      await createNounsProposalHandler(baseInput);
+
+      expect(getWalletSmartAccount).toHaveBeenCalledWith({ address: ACCOUNT });
+    });
+
+    it('passes smart account to createBatchSetupActions', async () => {
+      await createNounsProposalHandler(baseInput);
+
+      expect(createBatchSetupActions).toHaveBeenCalledWith(
+        expect.objectContaining({ smartAccount: SMART_ACCOUNT })
       );
-
-      await createNounsProposalHandler(baseInput);
-
-      expect(getOperationalSmartWallet).toHaveBeenCalledWith({
-        artist: artistContext,
-        moment: {
-          collectionAddress: CONTRACT,
-          chainId: 1,
-          tokenId: '0',
-        },
-      });
-      expect(getLegacySmartAccount).not.toHaveBeenCalled();
-    });
-
-    it('uses getLegacySmartAccount when no artistId is found', async () => {
-      vi.mocked(selectWallets).mockResolvedValue({ data: [] } as any);
-      vi.mocked(getLegacySmartAccount).mockResolvedValue(SMART_ACCOUNT as any);
-
-      await createNounsProposalHandler(baseInput);
-
-      expect(getLegacySmartAccount).toHaveBeenCalledWith({ address: ACCOUNT });
-      expect(getOperationalSmartWallet).not.toHaveBeenCalled();
-      expect(getOrCreateArtist).not.toHaveBeenCalled();
-    });
-
-    it('uses getLegacySmartAccount when wallet has no artist_id', async () => {
-      vi.mocked(selectWallets).mockResolvedValue({
-        data: [{ artist_id: null }],
-      } as any);
-      vi.mocked(getLegacySmartAccount).mockResolvedValue(SMART_ACCOUNT as any);
-
-      await createNounsProposalHandler(baseInput);
-
-      expect(getLegacySmartAccount).toHaveBeenCalledWith({ address: ACCOUNT });
-      expect(getOperationalSmartWallet).not.toHaveBeenCalled();
     });
   });
 
   describe('proposal construction', () => {
-    beforeEach(() => {
-      vi.mocked(selectWallets).mockResolvedValue({
-        data: [{ artist_id: 'artist-uuid' }],
-      } as any);
-      vi.mocked(getOrCreateArtist).mockResolvedValue(artistContext as any);
-      vi.mocked(getOperationalSmartWallet).mockResolvedValue(
-        SMART_ACCOUNT as any
-      );
-    });
-
     it('formats description as markdown with title and body', async () => {
       await createNounsProposalHandler(baseInput);
 
@@ -168,27 +111,9 @@ describe('createNounsProposalHandler', () => {
         expect.objectContaining({ chainId: 1 })
       );
     });
-
-    it('passes smart account to createBatchSetupActions', async () => {
-      await createNounsProposalHandler(baseInput);
-
-      expect(createBatchSetupActions).toHaveBeenCalledWith(
-        expect.objectContaining({ smartAccount: SMART_ACCOUNT })
-      );
-    });
   });
 
   describe('response', () => {
-    beforeEach(() => {
-      vi.mocked(selectWallets).mockResolvedValue({
-        data: [{ artist_id: 'artist-uuid' }],
-      } as any);
-      vi.mocked(getOrCreateArtist).mockResolvedValue(artistContext as any);
-      vi.mocked(getOperationalSmartWallet).mockResolvedValue(
-        SMART_ACCOUNT as any
-      );
-    });
-
     it('returns transaction and proposalThreshold in JSON response', async () => {
       vi.mocked(getNounsProposalThreshold).mockResolvedValue(5);
 
