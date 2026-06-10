@@ -21,7 +21,10 @@ const getSmartWalletBalancesHandler = async ({
   ]);
 
   if (!smartWalletAddress) {
-    return NextResponse.json({ message: 'Smart wallet not found' }, { status: 404 });
+    return NextResponse.json(
+      { message: 'Smart wallet not found' },
+      { status: 404 }
+    );
   }
 
   const primaryWallet = getPrimaryWallet(
@@ -37,7 +40,10 @@ const getSmartWalletBalancesHandler = async ({
     });
   }
 
-  const { ethBalance, usdcBalance } = await getWalletBalance(smartWalletAddress, chainId);
+  const { ethBalance, usdcBalance } = await getWalletBalance(
+    smartWalletAddress,
+    chainId
+  );
 
   return NextResponse.json({
     address: smartWalletAddress,

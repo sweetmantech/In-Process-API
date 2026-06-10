@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 vi.mock('@/authMiddleware', () => ({ authMiddleware: vi.fn() }));
 vi.mock('@/lib/getBlob', () => ({ default: vi.fn() }));
 vi.mock('@/lib/upload/getUploadType', () => ({ default: vi.fn() }));
-vi.mock('@/lib/coinbase/getArtistSmartAccount', () => ({
-  getArtistSmartAccount: vi.fn(),
+vi.mock('@/lib/smartwallets/getArtistSmartWallet', () => ({
+  default: vi.fn(),
 }));
 vi.mock('@/lib/smartwallets/getSmartWalletUsdcBalance', () => ({
   default: vi.fn(),
@@ -14,13 +14,12 @@ vi.mock('@/lib/smartwallets/getSmartWalletUsdcBalance', () => ({
 import { authMiddleware } from '@/authMiddleware';
 import getBlob from '@/lib/getBlob';
 import getUploadType from '@/lib/upload/getUploadType';
-import { getArtistSmartAccount } from '@/lib/coinbase/getArtistSmartAccount';
+import getArtistSmartWallet from '@/lib/smartwallets/getArtistSmartWallet';
 import getSmartWalletUsdcBalance from '@/lib/smartwallets/getSmartWalletUsdcBalance';
 import validateUpload from '@/lib/upload/validateUpload';
 
 const ARTIST_ADDRESS = '0xartist' as `0x${string}`;
-const SMART_WALLET = '0xwallet';
-const MOCK_SMART_ACCOUNT = { address: SMART_WALLET };
+const SMART_WALLET = '0xwallet' as `0x${string}`;
 const BLOB = new Blob(['data'], { type: 'image/png' });
 const USDC = BigInt(1000);
 
@@ -96,7 +95,7 @@ describe('validateUpload', () => {
     expect(result).not.toBeInstanceOf(NextResponse);
     expect((result as any).uploadType).toBe('free');
     expect((result as any).usdcAmountMicros).toBe(BigInt(0));
-    expect(getArtistSmartAccount).not.toHaveBeenCalled();
+    expect(getArtistSmartWallet).not.toHaveBeenCalled();
   });
 
   it('returns 500 when smart wallet resolution fails for paid upload', async () => {
@@ -104,7 +103,7 @@ describe('validateUpload', () => {
       uploadType: 'paid',
       usdcAmountMicros: USDC,
     });
-    vi.mocked(getArtistSmartAccount).mockRejectedValue(new Error('rpc error'));
+    vi.mocked(getArtistSmartWallet).mockResolvedValue(null);
 
     const result = await validateUpload(makeRequest());
     const body = await (result as NextResponse).json();
@@ -118,9 +117,7 @@ describe('validateUpload', () => {
       uploadType: 'paid',
       usdcAmountMicros: USDC,
     });
-    vi.mocked(getArtistSmartAccount).mockResolvedValue(
-      MOCK_SMART_ACCOUNT as any
-    );
+    vi.mocked(getArtistSmartWallet).mockResolvedValue(SMART_WALLET);
     vi.mocked(getSmartWalletUsdcBalance).mockResolvedValue(BigInt(100));
 
     const result = await validateUpload(makeRequest());
@@ -132,14 +129,12 @@ describe('validateUpload', () => {
     expect(body.smart_wallet).toBe(SMART_WALLET.toLowerCase());
   });
 
-  it('returns validated data with artist and smartAccount when USDC balance is sufficient', async () => {
+  it('returns validated data with artist when USDC balance is sufficient', async () => {
     vi.mocked(getUploadType).mockResolvedValue({
       uploadType: 'paid',
       usdcAmountMicros: USDC,
     });
-    vi.mocked(getArtistSmartAccount).mockResolvedValue(
-      MOCK_SMART_ACCOUNT as any
-    );
+    vi.mocked(getArtistSmartWallet).mockResolvedValue(SMART_WALLET);
     vi.mocked(getSmartWalletUsdcBalance).mockResolvedValue(BigInt(9999));
 
     const result = await validateUpload(makeRequest());
@@ -148,6 +143,5 @@ describe('validateUpload', () => {
     expect((result as any).uploadType).toBe('paid');
     expect((result as any).usdcAmountMicros).toBe(USDC);
     expect((result as any).artist.primaryWallet).toBe(ARTIST_ADDRESS);
-    expect((result as any).smartAccount).toBe(MOCK_SMART_ACCOUNT);
   });
 });
