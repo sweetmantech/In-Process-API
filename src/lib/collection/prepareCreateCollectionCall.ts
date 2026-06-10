@@ -1,5 +1,5 @@
 import { Address, encodeFunctionData, getAddress } from 'viem';
-import { CHAIN_ID, ROYALTY_BPS_DEFAULT } from '@/lib/consts';
+import { ROYALTY_BPS_DEFAULT } from '@/lib/consts';
 import { CollectionItem } from '@/lib/schema/createCollectionSchema';
 import { zoraCreator1155FactoryImplABI } from '@zoralabs/protocol-deployments';
 import { getFactoryAddress } from '@/lib/protocolSdk/create/factory-addresses';
@@ -10,12 +10,13 @@ import { addPermissionCall } from '../zora/addPermissionCall';
 
 const prepareCreateCollectionCall = async (
   item: CollectionItem,
-  smartAccount: any,
-  accountAddress: Address
+  chainId: number,
+  account: Address,
+  smartAccount: any
 ) => {
   const resolvedSplits = await normalizeSplitRecipients(item.splits || []);
 
-  let royaltyRecipient: Address = accountAddress;
+  let royaltyRecipient: Address = account;
   if (resolvedSplits && resolvedSplits.length >= 2) {
     const result = await processSplits(resolvedSplits, smartAccount);
     if (result.splitAddress) {
@@ -27,7 +28,7 @@ const prepareCreateCollectionCall = async (
     abi: zoraCreator1155FactoryImplABI,
     functionName: 'createContract',
     account: smartAccount.address,
-    address: getFactoryAddress(CHAIN_ID),
+    address: getFactoryAddress(chainId),
     args: [
       item.uri,
       item.name,
@@ -36,7 +37,7 @@ const prepareCreateCollectionCall = async (
         royaltyBPS: ROYALTY_BPS_DEFAULT,
         royaltyRecipient,
       },
-      accountAddress,
+      account,
       [addPermissionCall(smartAccount.address, BigInt(0))],
     ],
   });

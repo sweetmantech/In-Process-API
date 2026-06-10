@@ -31,6 +31,7 @@ const SMART_WALLET_ADDRESS =
   '0xcccccccccccccccccccccccccccccccccccccccc' as `0x${string}`;
 const FACTORY_ADDRESS = '0xfactory' as `0x${string}`;
 
+const CHAIN_ID = 8453;
 const smartAccount = { address: SMART_WALLET_ADDRESS };
 const validItem = { uri: 'ipfs://test', name: 'Test Collection' };
 
@@ -51,14 +52,20 @@ describe('prepareCreateCollectionCall', () => {
   it('returns to and data', async () => {
     const result = await prepareCreateCollectionCall(
       validItem,
-      smartAccount,
-      ACCOUNT
+      CHAIN_ID,
+      ACCOUNT,
+      smartAccount
     );
     expect(result).toEqual({ to: FACTORY_ADDRESS, data: '0xencoded' });
   });
 
   it('uses account address as royaltyRecipient when no splits', async () => {
-    await prepareCreateCollectionCall(validItem, smartAccount, ACCOUNT);
+    await prepareCreateCollectionCall(
+      validItem,
+      CHAIN_ID,
+      ACCOUNT,
+      smartAccount
+    );
 
     const args = vi.mocked(makeContractParameters).mock.calls[0][0]
       .args as any[];
@@ -91,8 +98,9 @@ describe('prepareCreateCollectionCall', () => {
           },
         ],
       },
-      smartAccount,
-      ACCOUNT
+      CHAIN_ID,
+      ACCOUNT,
+      smartAccount
     );
 
     const args = vi.mocked(makeContractParameters).mock.calls[0][0]
@@ -107,7 +115,12 @@ describe('prepareCreateCollectionCall', () => {
       { address: ACCOUNT, percentAllocation: 100 },
     ] as any);
 
-    await prepareCreateCollectionCall(validItem, smartAccount, ACCOUNT);
+    await prepareCreateCollectionCall(
+      validItem,
+      CHAIN_ID,
+      ACCOUNT,
+      smartAccount
+    );
 
     expect(processSplits).not.toHaveBeenCalled();
   });
@@ -115,8 +128,9 @@ describe('prepareCreateCollectionCall', () => {
   it('passes uri and name to makeContractParameters', async () => {
     await prepareCreateCollectionCall(
       { uri: 'ipfs://my-uri', name: 'My Collection' },
-      smartAccount,
-      ACCOUNT
+      CHAIN_ID,
+      ACCOUNT,
+      smartAccount
     );
 
     const args = vi.mocked(makeContractParameters).mock.calls[0][0]

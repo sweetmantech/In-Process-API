@@ -4,30 +4,32 @@ import { baseSepolia } from 'viem/chains';
 import { createCollectionSchema } from '@/lib/schema/createCollectionSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { zoraCreator1155FactoryImplABI } from '@zoralabs/protocol-deployments';
-import { getWalletLinkedSmartAccount } from '@/lib/coinbase/getWalletLinkedSmartAccount';
+import prepareCreateCollectionCall from './prepareCreateCollectionCall';
+import getOrCreateArtist from '@/lib/artists/getOrCreateArtist';
+import { getCanonicalSmartAccount } from '@/lib/coinbase/getCanonicalSmartAccount';
 
 export interface CreateCollectionResult {
   contractAddress: Address;
   hash: Hash;
   chainId: number;
 }
-import prepareCreateCollectionCall from './prepareCreateCollectionCall';
 
 type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
 
 export async function createCollection(
   input: CreateCollectionInput
 ): Promise<CreateCollectionResult> {
-  const accountAddress = input.account as Address;
-
-  const smartAccount = await getWalletLinkedSmartAccount({
-    address: accountAddress,
+  const { artistId } = await getOrCreateArtist({
+    address: input.account,
   });
+
+  const smartAccount = await getCanonicalSmartAccount({ artistId });
 
   const call = await prepareCreateCollectionCall(
     input.collection,
-    smartAccount,
-    accountAddress
+    input.chainId,
+    input.account,
+    smartAccount
   );
 
   const transaction = await sendUserOperation({
