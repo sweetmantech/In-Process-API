@@ -3,7 +3,7 @@ import { EvmSmartAccount } from '@coinbase/cdp-sdk';
 import cdp from '@/lib/coinbase/client';
 import { deterministicAccountName } from './deterministricAccountName';
 
-export async function getLegacySmartAccount({
+export async function getWalletSmartAccount({
   address,
 }: {
   address: Address;
