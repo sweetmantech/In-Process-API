@@ -93,4 +93,3 @@ export const NOUNS_EXECUTOR_ADDRESS: Record<number, Address> = {
   [mainnet.id]: '0xb1a32fc9f9d8b2cf86c068cae13108809547ef71',
   [sepolia.id]: '0x07e5d6a1550ad5e597a9b0698a474aa080a2fb28',
 };
-

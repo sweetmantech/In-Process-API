@@ -1,32 +1,60 @@
 import { z } from 'zod';
-import { mainnet, sepolia } from 'viem/chains';
 import addressSchema from './addressSchema';
+import { contractSchema, splitSchema, tokenSchema } from './createMomentSchema';
+import { validateSplitAddress } from '@/lib/splits/validateSplitAddress';
+import { calculateTotalPercentage } from '@/lib/splits/calculateTotalPercentage';
+import nounsChainIdSchema from './nounsChainIdSchema';
 
-const NOUNS_CHAIN_IDS = [mainnet.id, sepolia.id] as const;
-
-const nounsChainIdSchema = z.coerce
-  .number()
-  .refine((id): id is (typeof NOUNS_CHAIN_IDS)[number] =>
-    (NOUNS_CHAIN_IDS as readonly number[]).includes(id), {
-    message: `chainId must be ${mainnet.id} (mainnet) or ${sepolia.id} (sepolia)`,
+export const createNounsProposalSchema = z
+  .object({
+    chainId: nounsChainIdSchema,
+    account: addressSchema,
+    contract: contractSchema,
+    tokens: z.array(tokenSchema).min(1, 'At least one token is required'),
+    splits: z.array(splitSchema).optional(),
+    proposal: z.object({
+      title: z.string().min(1),
+      description: z.string().min(1),
+    }),
   })
-  .default(mainnet.id);
+  .superRefine((data, ctx) => {
+    if (!data.splits || data.splits.length === 0) {
+      return;
+    }
 
-export const createNounsProposalSchema = z.object({
-  chainId: nounsChainIdSchema,
-  account: addressSchema,
-  collection: z.object({
-    name: z.string().min(1),
-    uri: z.string().min(1),
-  }),
-  token: z.object({
-    uri: z.string().min(1),
-    maxSupply: z.number().int().nonnegative().default(0),
-  }),
-  proposal: z.object({
-    title: z.string().min(1),
-    description: z.string().min(1),
-  }),
-});
+    if (data.splits.length < 2) {
+      ctx.addIssue({
+        code: 'custom',
+        input: data,
+        message: 'Splits must have at least 2 recipients',
+        path: ['splits'],
+      });
+      return;
+    }
 
-export type CreateNounsProposalInput = z.infer<typeof createNounsProposalSchema>;
+    for (let i = 0; i < data.splits.length; i++) {
+      const addressError = validateSplitAddress(data.splits[i].address);
+      if (addressError) {
+        ctx.addIssue({
+          code: 'custom',
+          input: data,
+          message: `Split ${i + 1}: ${addressError}`,
+          path: ['splits', i, 'address'],
+        });
+        return;
+      }
+    }
+
+    if (calculateTotalPercentage(data.splits) !== 100) {
+      ctx.addIssue({
+        code: 'custom',
+        input: data,
+        message: 'Splits total percentage must equal 100%',
+        path: ['splits'],
+      });
+    }
+  });
+
+export type CreateNounsProposalInput = z.infer<
+  typeof createNounsProposalSchema
+>;

@@ -49,7 +49,12 @@ beforeEach(() => {
 
 describe('prepareCreateCollectionCall', () => {
   it('returns to and data', async () => {
-    const result = await prepareCreateCollectionCall(validItem, smartAccount, ACCOUNT, 8453);
+    const result = await prepareCreateCollectionCall(
+      validItem,
+      smartAccount,
+      ACCOUNT,
+      8453
+    );
     expect(result).toEqual({ to: FACTORY_ADDRESS, data: '0xencoded' });
   });
 
