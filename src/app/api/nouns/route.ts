@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import validateCreateNounsProposalBody from '@/lib/nouns/validateCreateNounsProposalBody';
-import createNounsProposalHandler from '@/lib/nouns/createNounsProposalHandler';
+import validateGetNounsProposalActionBody from '@/lib/nouns/validateGetNounsProposalActionBody';
+import getNounsProposalActionHandler from '@/lib/nouns/getNounsProposalActionHandler';
 
 export async function POST(req: NextRequest) {
   try {
-    const validated = await validateCreateNounsProposalBody(req);
+    const validated = await validateGetNounsProposalActionBody(req);
     if (validated instanceof NextResponse) return validated;
-    return createNounsProposalHandler(validated);
+    return getNounsProposalActionHandler(validated);
   } catch (e: any) {
     return NextResponse.json(
-      { message: e?.message ?? 'Failed to create Nouns proposal' },
+      {
+        message: e?.message ?? 'Failed to get Nouns proposal action',
+      },
       { status: 500 }
     );
   }

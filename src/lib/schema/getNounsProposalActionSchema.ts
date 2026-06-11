@@ -5,7 +5,7 @@ import { validateSplitAddress } from '@/lib/splits/validateSplitAddress';
 import { calculateTotalPercentage } from '@/lib/splits/calculateTotalPercentage';
 import nounsChainIdSchema from './nounsChainIdSchema';
 
-export const createNounsProposalSchema = z
+export const getNounsProposalActionSchema = z
   .object({
     chainId: nounsChainIdSchema,
     account: addressSchema,
@@ -55,6 +55,6 @@ export const createNounsProposalSchema = z
     }
   });
 
-export type CreateNounsProposalInput = z.infer<
-  typeof createNounsProposalSchema
+export type GetNounsProposalActionInput = z.infer<
+  typeof getNounsProposalActionSchema
 >;
