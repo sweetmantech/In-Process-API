@@ -8,7 +8,7 @@ import sendReadyMessage from './sendReadyMessage';
 import sendArtistCollage from './sendArtistCollage';
 import type { PendingMediaGroupAsset } from '@/types/telegram';
 import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
-import getSelectedCollectionAddress from './getSelectedCollectionAddress';
+import getCollectionAddress from './getCollectionAddress';
 import getStateAdapter from './stateAdapter';
 import buildCreateBatchInput from './buildCreateBatchInput';
 import type { Attachment } from 'chat';
@@ -25,7 +25,10 @@ const createMomentsFromGroup = async (
 
   if (pending.length === 0) return;
 
-  const selectedCollection = await getSelectedCollectionAddress(thread);
+  const { collectionAddress, explicitSelection } = await getCollectionAddress(
+    thread,
+    artist.primaryWallet
+  );
 
   await thread.startTyping();
   const typingInterval = setInterval(() => void thread.startTyping(), 4000);
@@ -51,12 +54,12 @@ const createMomentsFromGroup = async (
     const batchInput = buildCreateBatchInput(
       pending,
       uploaded,
-      selectedCollection,
+      collectionAddress,
       artist.primaryWallet
     );
 
     const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
-    if (selectedCollection) {
+    if (explicitSelection) {
       await clearSelectedCollectionAddress(thread);
     }
     await Promise.all(

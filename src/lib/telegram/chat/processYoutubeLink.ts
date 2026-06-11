@@ -5,7 +5,7 @@ import createMomentFromYoutubeLink from '@/lib/telegram/chat/createMomentFromYou
 import sendReadyMessage from '@/lib/telegram/chat/sendReadyMessage';
 import sendArtistCollage from '@/lib/telegram/chat/sendArtistCollage';
 import clearSelectedCollectionAddress from '@/lib/telegram/chat/clearSelectedCollectionAddress';
-import getSelectedCollectionAddress from '@/lib/telegram/chat/getSelectedCollectionAddress';
+import getCollectionAddress from '@/lib/telegram/chat/getCollectionAddress';
 import postMomentPending from '@/lib/telegram/chat/postMomentPending';
 
 const processYoutubeLink = async (
@@ -14,15 +14,18 @@ const processYoutubeLink = async (
   artist: ArtistContext | null
 ): Promise<void> => {
   if (!artist) return;
-  const selectedCollection = await getSelectedCollectionAddress(thread);
+  const { collectionAddress, explicitSelection } = await getCollectionAddress(
+    thread,
+    artist.primaryWallet
+  );
   await postMomentPending(thread);
   await thread.startTyping();
   const { contractAddress, tokenId } = await createMomentFromYoutubeLink(
     youtubeUrl,
     artist,
-    selectedCollection ?? undefined
+    collectionAddress ?? undefined
   );
-  if (selectedCollection) {
+  if (explicitSelection) {
     await clearSelectedCollectionAddress(thread);
   }
   await sendReadyMessage(thread, contractAddress, tokenId);

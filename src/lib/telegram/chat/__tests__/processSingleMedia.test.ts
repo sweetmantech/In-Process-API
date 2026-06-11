@@ -6,6 +6,8 @@ vi.mock('../processAttachmentUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/moment/createMomentBatch', () => ({ default: vi.fn() }));
 vi.mock('../sendReadyMessage', () => ({ default: vi.fn() }));
 vi.mock('../sendArtistCollage', () => ({ default: vi.fn() }));
+vi.mock('../getCollectionAddress', () => ({ default: vi.fn() }));
+vi.mock('../clearSelectedCollectionAddress', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
   REFERRAL_RECIPIENT: '0x1111111111111111111111111111111111111111',
@@ -19,6 +21,8 @@ import processAttachmentUpload from '../processAttachmentUpload';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 import sendReadyMessage from '../sendReadyMessage';
 import sendArtistCollage from '../sendArtistCollage';
+import getCollectionAddress from '../getCollectionAddress';
+import clearSelectedCollectionAddress from '../clearSelectedCollectionAddress';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const ARTIST_CONTEXT = {
@@ -50,6 +54,10 @@ const makeAttachment = () => ({ type: 'image', size: 500 });
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(getCollectionAddress).mockResolvedValue({
+    collectionAddress: null,
+    explicitSelection: false,
+  });
   vi.mocked(processAttachmentUpload).mockResolvedValue(UPLOAD_RESULT as never);
   vi.mocked(createMomentBatch).mockResolvedValue({
     contractAddress: MOMENT_RESULT.contractAddress,
@@ -138,7 +146,10 @@ describe('processSingleMedia', () => {
   it('mints to a stored collection and clears the selection on success', async () => {
     const existing = '0x0000000000000000000000000000000000000abc' as const;
     const thread = makeThread();
-    thread._stateAdapter.get = vi.fn().mockResolvedValue(existing);
+    vi.mocked(getCollectionAddress).mockResolvedValue({
+      collectionAddress: getAddress(existing),
+      explicitSelection: true,
+    });
 
     await processSingleMedia(
       thread as never,
@@ -152,8 +163,28 @@ describe('processSingleMedia', () => {
     expect(input.contract).toEqual({
       address: getAddress(existing).toLowerCase() as Address,
     });
-    expect(thread._stateAdapter.delete).toHaveBeenCalledWith(
-      'selected_collection_address'
+    expect(clearSelectedCollectionAddress).toHaveBeenCalledWith(thread);
+  });
+
+  it('mints to the default collection when none is explicitly selected', async () => {
+    const defaultCollection =
+      '0x0000000000000000000000000000000000000def' as const;
+    vi.mocked(getCollectionAddress).mockResolvedValue({
+      collectionAddress: getAddress(defaultCollection),
+      explicitSelection: false,
+    });
+
+    await processSingleMedia(
+      makeThread() as never,
+      makeAttachment() as never,
+      'file-id',
+      'My Title',
+      ARTIST_CONTEXT
     );
+
+    const [input] = vi.mocked(createMomentBatch).mock.calls[0];
+    expect(input.contract).toEqual({
+      address: getAddress(defaultCollection).toLowerCase() as Address,
+    });
   });
 });
