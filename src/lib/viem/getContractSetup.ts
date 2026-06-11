@@ -34,7 +34,7 @@ const getContractSetup = async ({
       })) as any;
 
     return {
-      nextTokenId: BigInt(nextTokenIdValue.result),
+      nextTokenId: nextTokenIdValue.result as bigint,
       contractVersion: contractVersionValue.result as string,
       collectionName: nameValue.result as string,
     };

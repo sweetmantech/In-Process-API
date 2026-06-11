@@ -20,7 +20,7 @@ const getTokenSetupActions = async ({
     });
 
   const tokenSetupActions = input.tokens.flatMap((token, index) => {
-    const tokenId = BigInt(nextTokenId) + BigInt(index);
+    const tokenId = nextTokenId + BigInt(index);
     const { setupActions: perTokenActions } = constructCreate1155TokenCalls({
       chainId: input.chainId,
       ownerAddress: input.account as Address,
