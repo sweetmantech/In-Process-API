@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mainnet } from 'viem/chains';
 
 vi.mock('@/lib/coinbase/getWalletSmartAccount', () => ({
   getWalletSmartAccount: vi.fn(),
@@ -12,28 +13,19 @@ vi.mock('@/lib/viem/createMomentBatchCall', () => ({
   default: vi.fn(),
 }));
 
-vi.mock('../getNounsProposalCalldata', () => ({
-  getNounsProposalCalldata: vi.fn(),
-}));
-
-vi.mock('../getNounsProposalThreshold', () => ({
-  getNounsProposalThreshold: vi.fn(),
-}));
-
 import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
 import createBatchSetupActions from '@/lib/moment/createBatchSetupActions';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
-import { getNounsProposalCalldata } from '../getNounsProposalCalldata';
-import { getNounsProposalThreshold } from '../getNounsProposalThreshold';
-import createNounsProposalHandler from '../createNounsProposalHandler';
-import type { CreateNounsProposalInput } from '@/lib/schema/createNounsProposalSchema';
+import getNounsProposalActionHandler from '../getNounsProposalActionHandler';
+import type { GetNounsProposalActionInput } from '@/lib/schema/getNounsProposalActionSchema';
 
 const ACCOUNT = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const;
 const CONTRACT = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const;
 const SMART_ACCOUNT = { address: '0xcccccccccccccccccccccccccccccccccccccccc' };
+const MAINNET_GOVERNOR = '0x6f3e6272a167e8accb32072d08e0957f9c79223d';
 
-const baseInput: CreateNounsProposalInput = {
-  chainId: 1,
+const baseInput: GetNounsProposalActionInput = {
+  chainId: mainnet.id,
   account: ACCOUNT,
   contract: { address: CONTRACT },
   tokens: [
@@ -55,13 +47,7 @@ const baseInput: CreateNounsProposalInput = {
   },
 };
 
-const mockTransaction = {
-  to: '0xgovernor',
-  data: '0xencodedpropose',
-  value: '0',
-};
-
-describe('createNounsProposalHandler', () => {
+describe('getNounsProposalActionHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getWalletSmartAccount).mockResolvedValue(SMART_ACCOUNT as any);
@@ -73,19 +59,17 @@ describe('createNounsProposalHandler', () => {
       to: CONTRACT,
       data: '0xbatchcall',
     } as any);
-    vi.mocked(getNounsProposalCalldata).mockReturnValue(mockTransaction as any);
-    vi.mocked(getNounsProposalThreshold).mockResolvedValue(1);
   });
 
   describe('smart account', () => {
     it('resolves smart account from the caller address', async () => {
-      await createNounsProposalHandler(baseInput);
+      await getNounsProposalActionHandler(baseInput);
 
       expect(getWalletSmartAccount).toHaveBeenCalledWith({ address: ACCOUNT });
     });
 
     it('passes smart account to createBatchSetupActions', async () => {
-      await createNounsProposalHandler(baseInput);
+      await getNounsProposalActionHandler(baseInput);
 
       expect(createBatchSetupActions).toHaveBeenCalledWith(
         expect.objectContaining({ smartAccount: SMART_ACCOUNT })
@@ -93,35 +77,20 @@ describe('createNounsProposalHandler', () => {
     });
   });
 
-  describe('proposal construction', () => {
-    it('formats description as markdown with title and body', async () => {
-      await createNounsProposalHandler(baseInput);
-
-      expect(getNounsProposalCalldata).toHaveBeenCalledWith(
-        expect.objectContaining({
-          description: '# Test Proposal\n\nDo something onchain.',
-        })
-      );
-    });
-
-    it('passes chainId to getNounsProposalCalldata', async () => {
-      await createNounsProposalHandler(baseInput);
-
-      expect(getNounsProposalCalldata).toHaveBeenCalledWith(
-        expect.objectContaining({ chainId: 1 })
-      );
-    });
-  });
-
-  describe('response', () => {
-    it('returns transaction and proposalThreshold in JSON response', async () => {
-      vi.mocked(getNounsProposalThreshold).mockResolvedValue(5);
-
-      const res = await createNounsProposalHandler(baseInput);
+  describe('governor propose args', () => {
+    it('returns governor address, propose args, and tx value', async () => {
+      const res = await getNounsProposalActionHandler(baseInput);
       const json = await res.json();
 
-      expect(json.transaction).toEqual(mockTransaction);
-      expect(json.proposalThreshold).toBe(5);
+      expect(json.governor).toBe(MAINNET_GOVERNOR);
+      expect(json.args).toEqual([
+        [CONTRACT],
+        ['0'],
+        [''],
+        ['0xbatchcall'],
+        '# Test Proposal\n\nDo something onchain.',
+      ]);
+      expect(json.value).toBe('0');
     });
   });
 });
