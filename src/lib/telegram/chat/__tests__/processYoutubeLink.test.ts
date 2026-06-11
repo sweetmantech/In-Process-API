@@ -6,13 +6,13 @@ vi.mock('../createMomentFromYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('../sendReadyMessage', () => ({ default: vi.fn() }));
 vi.mock('../sendArtistCollage', () => ({ default: vi.fn() }));
 vi.mock('../clearSelectedCollectionAddress', () => ({ default: vi.fn() }));
-vi.mock('../getSelectedCollectionAddress', () => ({ default: vi.fn() }));
+vi.mock('../getCollectionAddress', () => ({ default: vi.fn() }));
 
 import createMomentFromYoutubeLink from '../createMomentFromYoutubeLink';
 import sendReadyMessage from '../sendReadyMessage';
 import sendArtistCollage from '../sendArtistCollage';
 import clearSelectedCollectionAddress from '../clearSelectedCollectionAddress';
-import getSelectedCollectionAddress from '../getSelectedCollectionAddress';
+import getCollectionAddress from '../getCollectionAddress';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const ARTIST_CONTEXT = {
@@ -38,7 +38,10 @@ const makeThread = () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getSelectedCollectionAddress).mockResolvedValue(null);
+  vi.mocked(getCollectionAddress).mockResolvedValue({
+    collectionAddress: null,
+    explicitSelection: false,
+  });
   vi.mocked(createMomentFromYoutubeLink).mockResolvedValue({
     contractAddress: MOMENT.contractAddress,
     tokenId: MOMENT.tokenId,
@@ -54,7 +57,7 @@ describe('processYoutubeLink', () => {
 
     await processYoutubeLink(thread as never, YT_URL, ARTIST_CONTEXT);
 
-    expect(getSelectedCollectionAddress).toHaveBeenCalledWith(thread);
+    expect(getCollectionAddress).toHaveBeenCalledWith(thread, ARTIST_ADDRESS);
     expect(thread.post).toHaveBeenCalledWith(
       'Posting your moment to In Process, this may take a minute...'
     );
@@ -62,8 +65,11 @@ describe('processYoutubeLink', () => {
     expect(createMomentFromYoutubeLink).toHaveBeenCalled();
   });
 
-  it('mints with no existing collection when none is selected', async () => {
-    vi.mocked(getSelectedCollectionAddress).mockResolvedValue(null);
+  it('mints with no existing collection when none is selected and artist has no collections', async () => {
+    vi.mocked(getCollectionAddress).mockResolvedValue({
+      collectionAddress: null,
+      explicitSelection: false,
+    });
 
     await processYoutubeLink(makeThread() as never, YT_URL, ARTIST_CONTEXT);
 
@@ -78,7 +84,10 @@ describe('processYoutubeLink', () => {
   it('mints into the selected collection and clears the selection', async () => {
     const existing = '0x0000000000000000000000000000000000000abc' as Address;
     const thread = makeThread();
-    vi.mocked(getSelectedCollectionAddress).mockResolvedValue(existing);
+    vi.mocked(getCollectionAddress).mockResolvedValue({
+      collectionAddress: existing,
+      explicitSelection: true,
+    });
 
     await processYoutubeLink(thread as never, YT_URL, ARTIST_CONTEXT);
 

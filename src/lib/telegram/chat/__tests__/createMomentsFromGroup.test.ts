@@ -9,12 +9,14 @@ vi.mock('../processAttachmentUpload', () => ({ default: vi.fn() }));
 vi.mock('@/lib/moment/createMomentBatch', () => ({ default: vi.fn() }));
 vi.mock('../sendReadyMessage', () => ({ default: vi.fn() }));
 vi.mock('../sendArtistCollage', () => ({ default: vi.fn() }));
+vi.mock('../getCollectionAddress', () => ({ default: vi.fn() }));
 
 import fetchTelegramFile from '../fetchTelegramFile';
 import processAttachmentUpload from '../processAttachmentUpload';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 import sendReadyMessage from '../sendReadyMessage';
 import sendArtistCollage from '../sendArtistCollage';
+import getCollectionAddress from '../getCollectionAddress';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
 const ARTIST_CONTEXT = {
@@ -67,6 +69,10 @@ const makeThread = (stateAdapter = makeStateAdapter()) => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(getCollectionAddress).mockResolvedValue({
+    collectionAddress: null,
+    explicitSelection: false,
+  });
   vi.mocked(fetchTelegramFile).mockResolvedValue({
     buffer: Buffer.from(''),
     mimeType: 'image/jpeg',
@@ -180,10 +186,14 @@ describe('createMomentsFromGroup', () => {
     const collection = '0x0000000000000000000000000000000000000003' as Address;
     const stateAdapter = {
       getList: vi.fn().mockResolvedValue([PENDING_IMAGE]),
-      get: vi.fn().mockResolvedValue(collection),
+      get: vi.fn().mockResolvedValue(null),
       delete: vi.fn().mockResolvedValue(undefined),
     };
     const thread = makeThread(stateAdapter);
+    vi.mocked(getCollectionAddress).mockResolvedValue({
+      collectionAddress: getAddress(collection),
+      explicitSelection: true,
+    });
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 

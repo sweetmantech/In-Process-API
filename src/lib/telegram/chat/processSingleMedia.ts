@@ -10,7 +10,7 @@ import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
 import clearSelectedCollectionAddress from './clearSelectedCollectionAddress';
-import getSelectedCollectionAddress from './getSelectedCollectionAddress';
+import getCollectionAddress from './getCollectionAddress';
 import postMomentPending from './postMomentPending';
 
 const processSingleMedia = async (
@@ -25,7 +25,10 @@ const processSingleMedia = async (
   await thread.startTyping();
   let typingInterval: ReturnType<typeof setInterval> | undefined;
   try {
-    const selectedCollection = await getSelectedCollectionAddress(thread);
+    const { collectionAddress, explicitSelection } = await getCollectionAddress(
+      thread,
+      artist.primaryWallet
+    );
     typingInterval = setInterval(() => void thread.startTyping(), 4000);
     const uploaded = await processAttachmentUpload(
       attachment,
@@ -35,8 +38,8 @@ const processSingleMedia = async (
       thumbFileId
     );
 
-    const contract = selectedCollection
-      ? { address: selectedCollection }
+    const contract = collectionAddress
+      ? { address: collectionAddress }
       : { name, uri: uploaded.uri };
 
     const batchInput = createMomentBatchSchema.parse({
@@ -63,7 +66,7 @@ const processSingleMedia = async (
     const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
     const tokenId = tokenIds[0]!;
 
-    if (selectedCollection) {
+    if (explicitSelection) {
       await clearSelectedCollectionAddress(thread);
     }
 
