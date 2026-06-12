@@ -16,7 +16,7 @@ vi.mock('@/lib/protocolSdk/create/1155-create-helper', () => ({
   getContractAddressFromReceipt: vi.fn(),
 }));
 vi.mock('../getCreatedTokenIds', () => ({ default: vi.fn() }));
-vi.mock('../indexMomentBatch', () => ({ default: vi.fn() }));
+vi.mock('../indexMoment', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
 }));
@@ -28,7 +28,7 @@ import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-create-helper';
 import getCreatedTokenIds from '../getCreatedTokenIds';
-import indexMomentBatch from '../indexMomentBatch';
+import indexMoment from '../indexMoment';
 
 const ARTIST =
   '0x0000000000000000000000000000000000000123'.toLowerCase() as Address;
@@ -91,8 +91,8 @@ beforeEach(() => {
     transactionHash: TX_HASH,
   } as never);
   vi.mocked(getContractAddressFromReceipt).mockReturnValue(CONTRACT);
-  vi.mocked(getCreatedTokenIds).mockReturnValue(['1'] as never);
-  vi.mocked(indexMomentBatch).mockResolvedValue(undefined);
+  vi.mocked(getCreatedTokenIds).mockReturnValue(['1']);
+  vi.mocked(indexMoment).mockResolvedValue(undefined);
 });
 
 describe('createMomentBatch', () => {
@@ -106,8 +106,8 @@ describe('createMomentBatch', () => {
     });
   });
 
-  it('calls indexMomentBatch with tokenIds, tokens, and blockNumber', async () => {
-    vi.mocked(getCreatedTokenIds).mockReturnValue(['10', '11'] as never);
+  it('calls indexMoment once per minted token', async () => {
+    vi.mocked(getCreatedTokenIds).mockReturnValue(['10', '11']);
     const input = createMomentBatchSchema.parse({
       contract: { name: 'My Album', uri: 'ar://collection-meta' },
       tokens: [baseToken, { ...baseToken, tokenMetadataURI: 'ar://token-2' }],
@@ -117,14 +117,22 @@ describe('createMomentBatch', () => {
 
     await createMomentBatch(input);
 
-    expect(indexMomentBatch).toHaveBeenCalledWith(
+    expect(indexMoment).toHaveBeenCalledTimes(2);
+    expect(indexMoment).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
         contractAddress: CONTRACT,
-        tokenIds: ['10', '11'],
-        account: ARTIST,
+        tokenId: '10',
+        artistAddress: ARTIST,
         channel: 'web',
-        tokens: input.tokens,
-        chainId: 8453,
+        token: input.tokens[0],
+      })
+    );
+    expect(indexMoment).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        tokenId: '11',
+        token: input.tokens[1],
       })
     );
   });
