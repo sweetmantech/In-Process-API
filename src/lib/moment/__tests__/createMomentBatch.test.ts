@@ -16,7 +16,7 @@ vi.mock('@/lib/protocolSdk/create/1155-create-helper', () => ({
   getContractAddressFromReceipt: vi.fn(),
 }));
 vi.mock('../getCreatedTokenIds', () => ({ default: vi.fn() }));
-vi.mock('../migrateAndIndexMoment', () => ({ default: vi.fn() }));
+vi.mock('../indexMoment', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
 }));
@@ -28,7 +28,7 @@ import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-create-helper';
 import getCreatedTokenIds from '../getCreatedTokenIds';
-import migrateAndIndexMoment from '../migrateAndIndexMoment';
+import indexMoment from '../indexMoment';
 
 const ARTIST =
   '0x0000000000000000000000000000000000000123'.toLowerCase() as Address;
@@ -92,7 +92,7 @@ beforeEach(() => {
   } as never);
   vi.mocked(getContractAddressFromReceipt).mockReturnValue(CONTRACT);
   vi.mocked(getCreatedTokenIds).mockReturnValue(['1']);
-  vi.mocked(migrateAndIndexMoment).mockResolvedValue(undefined);
+  vi.mocked(indexMoment).mockResolvedValue(undefined);
 });
 
 describe('createMomentBatch', () => {
@@ -106,7 +106,7 @@ describe('createMomentBatch', () => {
     });
   });
 
-  it('calls migrateAndIndexMoment once per minted token', async () => {
+  it('calls indexMoment once per minted token', async () => {
     vi.mocked(getCreatedTokenIds).mockReturnValue(['10', '11']);
     const input = createMomentBatchSchema.parse({
       contract: { name: 'My Album', uri: 'ar://collection-meta' },
@@ -117,8 +117,8 @@ describe('createMomentBatch', () => {
 
     await createMomentBatch(input);
 
-    expect(migrateAndIndexMoment).toHaveBeenCalledTimes(2);
-    expect(migrateAndIndexMoment).toHaveBeenNthCalledWith(
+    expect(indexMoment).toHaveBeenCalledTimes(2);
+    expect(indexMoment).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         contractAddress: CONTRACT,
@@ -128,7 +128,7 @@ describe('createMomentBatch', () => {
         token: input.tokens[0],
       })
     );
-    expect(migrateAndIndexMoment).toHaveBeenNthCalledWith(
+    expect(indexMoment).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
         tokenId: '11',

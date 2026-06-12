@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/collection/getCollectionIdMap', () => ({
-  getCollectionIdMap: vi.fn(),
+vi.mock('@/lib/collection/getCollectionInfoMap', () => ({
+  getCollectionInfoMap: vi.fn(),
 }));
 
 import { mapAdminsForDeletion } from '../mapAdminsForDeletion';
-import { getCollectionIdMap } from '@/lib/collection/getCollectionIdMap';
+import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
 
-const mockGetCollectionIdMap = vi.mocked(getCollectionIdMap);
+const mockGetCollectionIdMap = vi.mocked(getCollectionInfoMap);
 
 const admin = {
   id: '1',
@@ -30,7 +30,9 @@ describe('mapAdminsForDeletion', () => {
 
   it('maps admin to delete criteria with lowercase address', async () => {
     mockGetCollectionIdMap.mockResolvedValue(
-      new Map([['0xcol1:8453', 'collection-uuid']])
+      new Map([
+        ['0xcol1:8453', { id: 'collection-uuid', creator: '0xcreator' }],
+      ])
     );
     const result = await mapAdminsForDeletion([admin]);
     expect(result).toEqual([
@@ -48,7 +50,7 @@ describe('mapAdminsForDeletion', () => {
     expect(result).toEqual([]);
   });
 
-  it('passes correct collection pairs to getCollectionIdMap', async () => {
+  it('passes correct collection pairs to getCollectionInfoMap', async () => {
     mockGetCollectionIdMap.mockResolvedValue(new Map());
     await mapAdminsForDeletion([admin]);
     expect(mockGetCollectionIdMap).toHaveBeenCalledWith([['0xCOL1', 8453]]);

@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/collection/getCollectionIdMap', () => ({
-  getCollectionIdMap: vi.fn(),
+vi.mock('@/lib/collection/getCollectionInfoMap', () => ({
+  getCollectionInfoMap: vi.fn(),
 }));
 
 import { mapAdminsToSupabase } from '../mapAdminsToSupabase';
-import { getCollectionIdMap } from '@/lib/collection/getCollectionIdMap';
+import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
 
-const mockGetCollectionIdMap = vi.mocked(getCollectionIdMap);
+const mockGetCollectionIdMap = vi.mocked(getCollectionInfoMap);
 
 const admin = {
   id: '1',
@@ -30,7 +30,9 @@ describe('mapAdminsToSupabase', () => {
 
   it('maps admin to supabase insert shape', async () => {
     mockGetCollectionIdMap.mockResolvedValue(
-      new Map([['0xcol1:8453', 'collection-uuid']])
+      new Map([
+        ['0xcol1:8453', { id: 'collection-uuid', creator: '0xcreator' }],
+      ])
     );
     const result = await mapAdminsToSupabase([admin]);
     expect(result).toEqual([
@@ -51,7 +53,7 @@ describe('mapAdminsToSupabase', () => {
 
   it('lowercases artist_address', async () => {
     mockGetCollectionIdMap.mockResolvedValue(
-      new Map([['0xcol1:8453', 'col-id']])
+      new Map([['0xcol1:8453', { id: 'col-id', creator: '0xcreator' }]])
     );
     const result = await mapAdminsToSupabase([{ ...admin, admin: '0xAbCdEf' }]);
     expect(result[0].artist_address).toBe('0xabcdef');

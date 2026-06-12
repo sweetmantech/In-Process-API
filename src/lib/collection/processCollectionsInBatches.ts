@@ -7,6 +7,7 @@ import { BATCH_SIZE } from '@/lib/consts';
 import { mapCollectionsToSupabase } from './mapCollectionsToSupabase';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
+import triggerCollectionMigrations from './triggerCollectionMigrations';
 
 export async function processCollectionsInBatches(
   collections:
@@ -21,6 +22,9 @@ export async function processCollectionsInBatches(
       const mappedCollections = mapCollectionsToSupabase(batch);
       await ensureWallets(mappedCollections.map((c) => c.creator));
       await upsertCollections(mappedCollections);
+
+      triggerCollectionMigrations(batch);
+
       totalProcessed += mappedCollections.length;
       console.log(
         `📚 Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processing ${batch.length} collections`

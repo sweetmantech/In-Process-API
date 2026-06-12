@@ -4,7 +4,7 @@ import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-cre
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import createBatchSetupActions from './createBatchSetupActions';
-import migrateAndIndexMoment from './migrateAndIndexMoment';
+import indexMoment from './indexMoment';
 import getCreatedTokenIds from './getCreatedTokenIds';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { getOperationalSmartWallet } from '../smartwallets/getOperationalSmartWallet';
@@ -59,7 +59,7 @@ const createMomentBatch = async (
 
   await Promise.all(
     tokenIds.map((tokenId, index) =>
-      migrateAndIndexMoment({
+      indexMoment({
         artistAddress: input.account as Address,
         contractAddress,
         tokenId,
