@@ -20,7 +20,10 @@ const getAirdropOperator = async (
 
   const factoryAddress =
     FACTORY_ADDRESSES[chainId as keyof typeof FACTORY_ADDRESSES];
-  if (factoryAddress && factoryAddress.toLowerCase() === address.toLowerCase()) {
+  if (
+    factoryAddress &&
+    factoryAddress.toLowerCase() === address.toLowerCase()
+  ) {
     const { data: collections } = await selectCollections({
       addresses: [t.collection],
       chainId,
@@ -35,14 +38,19 @@ const getAirdropOperator = async (
     throw new Error('Collection not found');
   }
 
-  const isCbSmartWallet = await isCoinbaseSmartWallet(address as Address, chainId);
+  const isCbSmartWallet = await isCoinbaseSmartWallet(
+    address as Address,
+    chainId
+  );
   const lookupAddresses = isCbSmartWallet
     ? await getSmartWalletOwnerAddresses(address as Address)
     : [address];
 
   const { data: wallets } = await selectWallets({ addresses: lookupAddresses });
   const artistAddress = getPrimaryWallet(
-    (wallets ?? []).filter((w) => w.type !== 'smart') as Tables<'in_process_wallets'>[]
+    (wallets ?? []).filter(
+      (w) => w.type !== 'smart'
+    ) as Tables<'in_process_wallets'>[]
   ) as Address | undefined;
   const artistUsername = wallets?.[0]?.artist?.username ?? null;
 

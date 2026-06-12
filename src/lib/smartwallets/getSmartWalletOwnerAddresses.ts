@@ -3,7 +3,7 @@ import { coinbaseSmartWalletAbi } from '@/lib/abi/coinbaseSmartWalletAbi';
 import { getPublicClient } from '../viem/publicClient';
 
 const getSmartWalletOwnerAddresses = async (
-  smartWalletAddress: Address,
+  smartWalletAddress: Address
 ): Promise<Address[]> => {
   const publicClient = getPublicClient();
   const ownerCount = await publicClient.readContract({
