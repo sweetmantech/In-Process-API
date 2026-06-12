@@ -3,7 +3,7 @@ const toFile = (buffer: Buffer, name: string, mimeType: string): File => {
     buffer.byteOffset,
     buffer.byteOffset + buffer.byteLength
   ) as ArrayBuffer;
-  return new File([arrayBuffer], name, { type: mimeType });
+  return new File([arrayBuffer], name || 'upload', { type: mimeType });
 };
 
 export default toFile;
