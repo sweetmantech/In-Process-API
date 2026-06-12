@@ -6,19 +6,12 @@ const processAttachmentUpload = async (
   attachment: Attachment,
   fileId: string,
   name: string,
-  artistAddress: string,
   thumbFileId?: string
 ) => {
   if (attachment.type === 'image') {
-    return uploadPhotoAttachment(attachment, fileId, name, artistAddress);
+    return uploadPhotoAttachment(attachment, fileId, name);
   }
-  return uploadVideoAttachment(
-    attachment,
-    fileId,
-    name,
-    artistAddress,
-    thumbFileId
-  );
+  return uploadVideoAttachment(attachment, fileId, name, thumbFileId);
 };
 
 export default processAttachmentUpload;

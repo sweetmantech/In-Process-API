@@ -5,7 +5,7 @@ import type {
   ZoraMedia_Moments_t,
 } from '@/types/envio';
 import type { CollectionInfo } from '@/lib/collection/getCollectionInfoMap';
-import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
+import migrateAssetToArweave from '@/workflows/migrateAssetToArweave';
 import type { Address } from 'viem';
 
 export default function triggerMomentMigrations(
@@ -24,7 +24,7 @@ export default function triggerMomentMigrations(
       `${m.collection.toLowerCase()}:${m.chain_id}`
     );
     if (!info?.creator) continue;
-    migrateMuxToArweave({
+    migrateAssetToArweave({
       artistAddress: info.creator as Address,
       moment: {
         collectionAddress: m.collection as Address,

@@ -1,7 +1,6 @@
 import type { Attachment } from 'chat';
-import uploadToArweave from '@/lib/arweave/uploadToArweave';
-import { uploadJson } from '@/lib/arweave/uploadJson';
-import logArweaveUpload from '@/lib/arweave/logArweaveUpload';
+import uploadFileToSupabase from '@/lib/supabase/storage/uploadFileToSupabase';
+import uploadJsonToSupabase from '@/lib/supabase/storage/uploadJsonToSupabase';
 import getTelegramFilePath from './getTelegramFilePath';
 import getMimeTypeFromFilePath from './getMimeTypeFromFilePath';
 import toFile from './toFile';
@@ -9,8 +8,7 @@ import toFile from './toFile';
 const uploadPhotoAttachment = async (
   attachment: Attachment,
   fileId: string,
-  name: string,
-  artistAddress: string
+  name: string
 ) => {
   if (!attachment.fetchData) throw new Error('Attachment has no fetchData');
 
@@ -20,30 +18,16 @@ const uploadPhotoAttachment = async (
   ]);
   const mimeType = attachment.mimeType ?? getMimeTypeFromFilePath(filePath);
   const photoFile = toFile(buffer, name, mimeType);
-  const photoResult = await uploadToArweave(photoFile);
-  logArweaveUpload(photoResult, {
-    file_size_bytes: buffer.byteLength,
-    content_type: mimeType,
-    artist_address: artistAddress,
-  });
+  const photoUri = await uploadFileToSupabase(photoFile);
 
   const jsonObject = {
     name,
-    image: photoResult.arweave_uri,
-    content: { mime: mimeType, uri: photoResult.arweave_uri },
+    image: photoUri,
+    content: { mime: mimeType, uri: photoUri },
   };
-  const jsonResult = await uploadJson(jsonObject);
-  logArweaveUpload(jsonResult, {
-    file_size_bytes: Buffer.byteLength(JSON.stringify(jsonObject)),
-    content_type: 'application/json',
-    artist_address: artistAddress,
-  });
+  const uri = await uploadJsonToSupabase(jsonObject);
 
-  return {
-    uri: jsonResult.arweave_uri,
-    mimeType,
-    mediaUri: photoResult.arweave_uri,
-  };
+  return { uri, mimeType, mediaUri: photoUri };
 };
 
 export default uploadPhotoAttachment;

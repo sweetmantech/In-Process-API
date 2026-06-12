@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
 
 const validateCreateMuxUpload = async (req: NextRequest) => {
-  const authResult = await authMiddleware(req);
-  if (authResult instanceof Response) return authResult as NextResponse;
-  return authResult;
+  const uploadKey = req.headers.get('x-upload-key');
+  if (uploadKey === process.env.IN_PROCESS_UPLOAD_KEY) return;
+  return authMiddleware(req);
 };
 
 export default validateCreateMuxUpload;

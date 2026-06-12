@@ -8,17 +8,15 @@ import uploadPhotoAttachment from '../uploadPhotoAttachment';
 import uploadVideoAttachment from '../uploadVideoAttachment';
 
 const PHOTO_RESULT = {
-  uri: 'ar://photo',
+  uri: 'https://supabase.co/photo',
   mimeType: 'image/jpeg',
-  mediaUri: 'ar://photo',
+  mediaUri: 'https://supabase.co/photo',
 };
 const VIDEO_RESULT = {
-  uri: 'ar://video',
+  uri: 'https://supabase.co/meta',
   mimeType: 'video/mp4',
   mediaUri: 'https://mux.com/play',
 };
-
-const ARTIST = '0xartist';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -33,15 +31,13 @@ describe('processAttachmentUpload', () => {
     const result = await processAttachmentUpload(
       attachment as never,
       'file-id',
-      'My Photo',
-      ARTIST
+      'My Photo'
     );
 
     expect(uploadPhotoAttachment).toHaveBeenCalledWith(
       attachment,
       'file-id',
-      'My Photo',
-      ARTIST
+      'My Photo'
     );
     expect(uploadVideoAttachment).not.toHaveBeenCalled();
     expect(result).toEqual(PHOTO_RESULT);
@@ -54,7 +50,6 @@ describe('processAttachmentUpload', () => {
       attachment as never,
       'file-id',
       'My Video',
-      ARTIST,
       'thumb-id'
     );
 
@@ -62,7 +57,6 @@ describe('processAttachmentUpload', () => {
       attachment,
       'file-id',
       'My Video',
-      ARTIST,
       'thumb-id'
     );
     expect(uploadPhotoAttachment).not.toHaveBeenCalled();
@@ -76,7 +70,6 @@ describe('processAttachmentUpload', () => {
       attachment as never,
       'file-id',
       'My Video',
-      ARTIST,
       'thumb-123'
     );
 
@@ -84,7 +77,6 @@ describe('processAttachmentUpload', () => {
       attachment,
       'file-id',
       'My Video',
-      ARTIST,
       'thumb-123'
     );
   });
@@ -92,12 +84,7 @@ describe('processAttachmentUpload', () => {
   it('calls uploadVideoAttachment for non-image types', async () => {
     const attachment = { type: 'document', size: 200 };
 
-    await processAttachmentUpload(
-      attachment as never,
-      'file-id',
-      'Doc',
-      ARTIST
-    );
+    await processAttachmentUpload(attachment as never, 'file-id', 'Doc');
 
     expect(uploadVideoAttachment).toHaveBeenCalled();
     expect(uploadPhotoAttachment).not.toHaveBeenCalled();

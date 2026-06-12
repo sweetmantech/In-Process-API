@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/workflows/migrateMuxToArweave', () => ({
+vi.mock('@/workflows/migrateAssetToArweave', () => ({
   default: vi.fn(),
 }));
 
 import triggerCollectionMigrations from '../triggerCollectionMigrations';
-import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
+import migrateAssetToArweave from '@/workflows/migrateAssetToArweave';
 
-const mockMigrate = vi.mocked(migrateMuxToArweave);
+const mockMigrate = vi.mocked(migrateAssetToArweave);
 
 const inProcessCollection = {
   id: '1',

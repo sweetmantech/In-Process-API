@@ -102,7 +102,6 @@ describe('processSingleMedia', () => {
       attachment,
       'file-id',
       'My Title',
-      ARTIST_ADDRESS,
       'thumb-id'
     );
   });

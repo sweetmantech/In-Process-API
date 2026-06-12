@@ -34,7 +34,6 @@ const processSingleMedia = async (
       attachment,
       fileId,
       name,
-      artist.primaryWallet,
       thumbFileId
     );
 

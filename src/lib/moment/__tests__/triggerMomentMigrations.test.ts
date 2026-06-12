@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/workflows/migrateMuxToArweave', () => ({
+vi.mock('@/workflows/migrateAssetToArweave', () => ({
   default: vi.fn(),
 }));
 
 import triggerMomentMigrations from '../triggerMomentMigrations';
-import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
+import migrateAssetToArweave from '@/workflows/migrateAssetToArweave';
 import type { CollectionInfo } from '@/lib/collection/getCollectionInfoMap';
 
-const mockMigrate = vi.mocked(migrateMuxToArweave);
+const mockMigrate = vi.mocked(migrateAssetToArweave);
 
 const COLLECTION = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 const CREATOR = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
