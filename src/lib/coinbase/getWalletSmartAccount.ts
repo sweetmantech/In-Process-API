@@ -1,7 +1,8 @@
-import { type Address } from 'viem';
+import { type Address, zeroAddress } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
 import cdp from '@/lib/coinbase/client';
 import { deterministicAccountName } from './deterministricAccountName';
+import ensureSmartWalletOwnerAddress from '@/lib/smartwallets/ensureSmartWalletOwnerAddress';
 
 export async function getWalletSmartAccount({
   address,
@@ -12,8 +13,14 @@ export async function getWalletSmartAccount({
   const evmAccount = await cdp.evm.getOrCreateAccount({
     name: deterministicAccountName(lowercased),
   });
-  return cdp.evm.getOrCreateSmartAccount({
+  const smartAccount = await cdp.evm.getOrCreateSmartAccount({
     name: evmAccount.name as string,
     owner: evmAccount,
   });
+
+  if (lowercased !== zeroAddress) {
+    await ensureSmartWalletOwnerAddress(smartAccount, lowercased);
+  }
+
+  return smartAccount;
 }
