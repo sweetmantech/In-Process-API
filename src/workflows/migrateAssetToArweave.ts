@@ -6,6 +6,7 @@ import downloadAndUploadStep from './steps/downloadAndUploadStep';
 import uploadMigratedMetadataStep from './steps/uploadMigratedMetadataStep';
 import updateOnChainStep from './steps/updateOnChainStep';
 import deleteMuxAssetStep from './steps/deleteMuxAssetStep';
+import deleteSupabaseFilesStep from './steps/deleteSupabaseFilesStep';
 import waitMuxMp4ReadyStep from './steps/waitMuxMp4ReadyStep';
 import getMigrationTargets from '@/lib/arweave/getMigrationTargets';
 import buildUrlMapFromResults from '@/lib/arweave/buildUrlMapFromResults';
@@ -52,7 +53,7 @@ async function migrateAssetToArweave(p: MigrateAssetToArweavePayload) {
 
   const metadataUri = await uploadMigratedMetadataStep(metadata, urlMap);
 
-  await sleep('10 minutes');
+  await sleep(hlsAnimationUrl ? '10 minutes' : '5 minutes');
 
   await updateOnChainStep({
     moment,
@@ -62,6 +63,11 @@ async function migrateAssetToArweave(p: MigrateAssetToArweavePayload) {
   });
 
   if (hlsAnimationUrl) await deleteMuxAssetStep(hlsAnimationUrl);
+
+  const supabaseUrls = [
+    ...new Set([uri, ...downloadCandidates.map((c) => c.value)]),
+  ];
+  await deleteSupabaseFilesStep(supabaseUrls);
 
   return { success: true, tokenId: moment.tokenId, metadataUri };
 }
