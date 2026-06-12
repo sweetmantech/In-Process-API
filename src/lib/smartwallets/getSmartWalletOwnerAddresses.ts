@@ -1,6 +1,6 @@
 import { type Address } from 'viem';
 import { coinbaseSmartWalletAbi } from '@/lib/abi/coinbaseSmartWalletAbi';
-import { getPublicClient } from '../viem/publicClient';
+import { getPublicClient } from '@/lib/viem/publicClient';
 
 const getSmartWalletOwnerAddresses = async (
   smartWalletAddress: Address
