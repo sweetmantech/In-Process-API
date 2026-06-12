@@ -4,8 +4,8 @@ import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-cre
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import createBatchSetupActions from './createBatchSetupActions';
-import indexMoment from './indexMoment';
 import getCreatedTokenIds from './getCreatedTokenIds';
+import indexMoment from './indexMoment';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { getOperationalSmartWallet } from '../smartwallets/getOperationalSmartWallet';
 import getOrCreateArtist from '../artists/getOrCreateArtist';

@@ -91,7 +91,7 @@ beforeEach(() => {
     transactionHash: TX_HASH,
   } as never);
   vi.mocked(getContractAddressFromReceipt).mockReturnValue(CONTRACT);
-  vi.mocked(getCreatedTokenIds).mockReturnValue(['1']);
+  vi.mocked(getCreatedTokenIds).mockReturnValue(['1'] as never);
   vi.mocked(indexMoment).mockResolvedValue(undefined);
 });
 
@@ -106,8 +106,8 @@ describe('createMomentBatch', () => {
     });
   });
 
-  it('calls indexMoment once per minted token', async () => {
-    vi.mocked(getCreatedTokenIds).mockReturnValue(['10', '11']);
+  it('calls indexMoment for each token with correct params', async () => {
+    vi.mocked(getCreatedTokenIds).mockReturnValue(['10', '11'] as never);
     const input = createMomentBatchSchema.parse({
       contract: { name: 'My Album', uri: 'ar://collection-meta' },
       tokens: [baseToken, { ...baseToken, tokenMetadataURI: 'ar://token-2' }],
@@ -118,23 +118,22 @@ describe('createMomentBatch', () => {
     await createMomentBatch(input);
 
     expect(indexMoment).toHaveBeenCalledTimes(2);
-    expect(indexMoment).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        contractAddress: CONTRACT,
-        tokenId: '10',
-        artistAddress: ARTIST,
-        channel: 'web',
-        token: input.tokens[0],
-      })
-    );
-    expect(indexMoment).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        tokenId: '11',
-        token: input.tokens[1],
-      })
-    );
+    expect(indexMoment).toHaveBeenCalledWith({
+      artistAddress: ARTIST,
+      contractAddress: CONTRACT,
+      tokenId: '10',
+      channel: 'web',
+      token: input.tokens[0],
+      chainId: 8453,
+    });
+    expect(indexMoment).toHaveBeenCalledWith({
+      artistAddress: ARTIST,
+      contractAddress: CONTRACT,
+      tokenId: '11',
+      channel: 'web',
+      token: input.tokens[1],
+      chainId: 8453,
+    });
   });
 
   it('uses getOperationalSmartWallet with artist from account', async () => {

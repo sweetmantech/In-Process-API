@@ -61,11 +61,7 @@ const createMomentsFromGroup = async (
     if (explicitSelection) {
       await clearSelectedCollectionAddress(thread);
     }
-    await Promise.all(
-      tokenIds.map((tokenId) =>
-        sendReadyMessage(thread, contractAddress.toString(), tokenId)
-      )
-    );
+    await sendReadyMessage(thread, contractAddress.toString(), tokenIds);
     await sendArtistCollage(thread, artist.primaryWallet);
   } finally {
     clearInterval(typingInterval);
