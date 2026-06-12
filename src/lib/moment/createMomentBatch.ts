@@ -4,11 +4,11 @@ import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-cre
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import createBatchSetupActions from './createBatchSetupActions';
-import indexMoment from './indexMoment';
 import getCreatedTokenIds from './getCreatedTokenIds';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { getOperationalSmartWallet } from '../smartwallets/getOperationalSmartWallet';
 import getOrCreateArtist from '../artists/getOrCreateArtist';
+import indexMomentBatch from './indexMomentBatch';
 
 export type CreateMomentBatchInput = z.infer<typeof createMomentBatchSchema>;
 
@@ -57,18 +57,15 @@ const createMomentBatch = async (
     tokens: input.tokens,
   });
 
-  await Promise.all(
-    tokenIds.map((tokenId, index) =>
-      indexMoment({
-        artistAddress: input.account as Address,
-        contractAddress,
-        tokenId,
-        channel: input.channel,
-        token: input.tokens[index],
-        chainId: input.chainId,
-      })
-    )
-  );
+  await indexMomentBatch({
+    contractAddress,
+    tokenIds,
+    tokens: input.tokens,
+    account: input.account as Address,
+    channel: input.channel,
+    chainId: input.chainId,
+    blockNumber: transaction.blockNumber,
+  });
 
   return {
     contractAddress,
