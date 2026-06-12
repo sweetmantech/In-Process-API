@@ -4,7 +4,7 @@ import type {
   Sound_Admins_t,
   ZoraMedia_Admins_t,
 } from '@/types/envio';
-import { getCollectionIdMap } from '@/lib/collection/getCollectionIdMap';
+import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
 import type { DeleteAdminCriteria } from '@/types/indexerSupabase';
 
 export async function mapAdminsForDeletion(
@@ -18,13 +18,13 @@ export async function mapAdminsForDeletion(
   const collectionPairs: Array<[string, number]> = admins.map(
     (a) => [a.collection, a.chain_id] as [string, number]
   );
-  const collectionIdMap = await getCollectionIdMap(collectionPairs);
+  const collectionIdMap = await getCollectionInfoMap(collectionPairs);
 
   return admins
     .map((admin) => {
       const collectionId = collectionIdMap.get(
         `${admin.collection.toLowerCase()}:${admin.chain_id}`
-      );
+      )?.id;
       if (!collectionId) return undefined;
       return {
         collection: collectionId,

@@ -6,27 +6,21 @@ import type {
   ZoraMedia_Moments_t,
 } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
-import { getCollectionIdMap } from '@/lib/collection/getCollectionIdMap';
+import type { CollectionInfo } from '@/lib/collection/getCollectionInfoMap';
 
-export async function mapMomentsToSupabase(
+export function mapMomentsToSupabase(
   moments:
     | InProcess_Moments_t[]
     | Catalog_Moments_t[]
     | Sound_Moments_t[]
-    | ZoraMedia_Moments_t[]
-): Promise<
-  Array<Database['public']['Tables']['in_process_moments']['Insert']>
-> {
-  const collectionPairs: Array<[string, number]> = moments.map(
-    (m) => [m.collection, m.chain_id] as [string, number]
-  );
-  const collectionIdMap = await getCollectionIdMap(collectionPairs);
-
+    | ZoraMedia_Moments_t[],
+  collectionInfoMap: Map<string, CollectionInfo>
+): Array<Database['public']['Tables']['in_process_moments']['Insert']> {
   return moments
     .map((moment) => {
-      const collectionId = collectionIdMap.get(
+      const collectionId = collectionInfoMap.get(
         `${moment.collection.toLowerCase()}:${moment.chain_id}`
-      );
+      )?.id;
       if (!collectionId) return undefined;
       const uri =
         'metadata_uri' in moment

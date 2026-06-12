@@ -6,7 +6,7 @@ import type {
   ZoraMedia_Admins_t,
 } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
-import { getCollectionIdMap } from '@/lib/collection/getCollectionIdMap';
+import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
 
 export async function mapAdminsToSupabase(
   admins: (
@@ -19,13 +19,13 @@ export async function mapAdminsToSupabase(
   const collectionPairs: Array<[string, number]> = admins.map(
     (a) => [a.collection, a.chain_id] as [string, number]
   );
-  const collectionIdMap = await getCollectionIdMap(collectionPairs);
+  const collectionIdMap = await getCollectionInfoMap(collectionPairs);
 
   return admins
     .map((admin) => {
       const collectionId = collectionIdMap.get(
         `${admin.collection.toLowerCase()}:${admin.chain_id}`
-      );
+      )?.id;
       if (!collectionId) return undefined;
       return {
         collection: collectionId,

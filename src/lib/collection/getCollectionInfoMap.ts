@@ -1,8 +1,10 @@
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 
-export async function getCollectionIdMap(
+export type CollectionInfo = { id: string; creator: string };
+
+export async function getCollectionInfoMap(
   pairs: Array<[string, number]>
-): Promise<Map<string, string>> {
+): Promise<Map<string, CollectionInfo>> {
   if (!pairs.length) return new Map();
 
   const { data, error } = await selectCollections({
@@ -13,11 +15,14 @@ export async function getCollectionIdMap(
   const requestedPairs = new Set(
     pairs.map(([address, chainId]) => `${address.toLowerCase()}:${chainId}`)
   );
-  const collectionMap = new Map<string, string>();
+  const collectionMap = new Map<string, CollectionInfo>();
   for (const collection of data ?? []) {
     const key = `${collection.address.toLowerCase()}:${collection.chain_id}`;
     if (requestedPairs.has(key)) {
-      collectionMap.set(key, collection.id);
+      collectionMap.set(key, {
+        id: collection.id,
+        creator: collection.creator,
+      });
     }
   }
 
