@@ -17,7 +17,6 @@ export interface AuthResult {
   wallets: AuthWallet[];
   artistId: string;
   authMethod: AuthMethod;
-  isWebRequest?: boolean;
 }
 
 export type PrivyPasswordlessAuthenticateResult = {

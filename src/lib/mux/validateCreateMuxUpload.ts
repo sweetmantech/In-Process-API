@@ -1,10 +1,9 @@
-import { NextRequest } from 'next/server';
-import { authMiddleware } from '@/authMiddleware';
+import { NextRequest, NextResponse } from 'next/server';
 
-const validateCreateMuxUpload = async (req: NextRequest) => {
+const validateCreateMuxUpload = (req: NextRequest) => {
   const uploadKey = req.headers.get('x-upload-key');
   if (uploadKey === process.env.IN_PROCESS_UPLOAD_KEY) return;
-  return authMiddleware(req);
+  return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 };
 
 export default validateCreateMuxUpload;

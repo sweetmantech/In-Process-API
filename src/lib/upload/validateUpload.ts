@@ -26,16 +26,6 @@ const validateUpload = async (req: NextRequest) => {
 
   const { blob, type } = await getBlob(url);
 
-  if (authResult.isWebRequest) {
-    return {
-      artist: authResult,
-      blob,
-      type,
-      uploadType: 'free' as const,
-      usdcAmountMicros: BigInt(0),
-    };
-  }
-
   const uploadTypeResult = await getUploadType(
     authResult.primaryWallet,
     blob.size
