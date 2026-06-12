@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
         'Access-Control-Allow-Methods':
           'GET, POST, PUT, PATCH, DELETE, OPTIONS',
         'Access-Control-Allow-Headers':
-          'Content-Type, Authorization, x-api-key, x-recaptcha-token, x-upload-key',
+          'Content-Type, Authorization, x-api-key, x-upload-key',
       },
     });
   }
