@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import uploadPhotoAttachment from '../uploadPhotoAttachment';
 
-vi.mock('@/lib/supabase/storage/uploadBufferToSupabase', () => ({
+vi.mock('@/lib/supabase/storage/uploadFileToSupabase', () => ({
   default: vi.fn(),
 }));
 vi.mock('@/lib/supabase/storage/uploadJsonToSupabase', () => ({
@@ -9,7 +9,7 @@ vi.mock('@/lib/supabase/storage/uploadJsonToSupabase', () => ({
 }));
 vi.mock('../getTelegramFilePath', () => ({ default: vi.fn() }));
 
-import uploadBufferToSupabase from '@/lib/supabase/storage/uploadBufferToSupabase';
+import uploadFileToSupabase from '@/lib/supabase/storage/uploadFileToSupabase';
 import uploadJsonToSupabase from '@/lib/supabase/storage/uploadJsonToSupabase';
 import getTelegramFilePath from '../getTelegramFilePath';
 
@@ -22,7 +22,7 @@ const META_URL =
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getTelegramFilePath).mockResolvedValue('photos/file.jpg');
-  vi.mocked(uploadBufferToSupabase).mockResolvedValue(PHOTO_URL);
+  vi.mocked(uploadFileToSupabase).mockResolvedValue(PHOTO_URL);
   vi.mocked(uploadJsonToSupabase).mockResolvedValue(META_URL);
 });
 
@@ -75,22 +75,26 @@ describe('uploadPhotoAttachment', () => {
     expect(result.mimeType).toBe('image/webp');
   });
 
-  it('uploads image buffer to Supabase with correct mimeType', async () => {
+  it('uploads image file to Supabase with correct name and mimeType', async () => {
     await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
       'My Photo'
     );
 
-    expect(uploadBufferToSupabase).toHaveBeenCalledOnce();
-    expect(uploadBufferToSupabase).toHaveBeenCalledWith(BUFFER, 'image/jpeg');
+    expect(uploadFileToSupabase).toHaveBeenCalledOnce();
+    const [file] = vi.mocked(uploadFileToSupabase).mock.calls[0];
+    expect(file.name).toBe('My Photo');
+    expect(file.type).toBe('image/jpeg');
   });
 
-  it('uploads image buffer when name is empty (no caption)', async () => {
+  it('uploads image file when name is empty (no caption)', async () => {
     await uploadPhotoAttachment(makeAttachment() as never, 'file-id', '');
 
-    expect(uploadBufferToSupabase).toHaveBeenCalledOnce();
-    expect(uploadBufferToSupabase).toHaveBeenCalledWith(BUFFER, 'image/jpeg');
+    expect(uploadFileToSupabase).toHaveBeenCalledOnce();
+    const [file] = vi.mocked(uploadFileToSupabase).mock.calls[0];
+    expect(file.name).toBe('');
+    expect(file.type).toBe('image/jpeg');
   });
 
   it('uploads JSON metadata to Supabase with the image URI and content', async () => {

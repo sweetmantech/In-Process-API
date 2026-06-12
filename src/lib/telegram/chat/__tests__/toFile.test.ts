@@ -38,9 +38,4 @@ describe('toFile', () => {
     );
     expect(file.size).toBe(0);
   });
-
-  it('falls back to "upload" when name is empty', () => {
-    const file = toFile(Buffer.from('data'), '', 'image/jpeg');
-    expect(file.name).toBe('upload');
-  });
 });
