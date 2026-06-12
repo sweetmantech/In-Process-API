@@ -11,6 +11,8 @@ import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
 import { mapMetadataToSupabase } from './mapMetadataToSupabase';
 import { upsertMetadata } from '@/lib/supabase/in_process_metadata/upsertMetadata';
 import { upsertArtistNames } from '@/lib/supabase/in_process_artists/upsertArtistNames';
+import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
+import triggerMomentMigrations from './triggerMomentMigrations';
 
 export async function processMomentsInBatches(
   moments:
@@ -24,8 +26,13 @@ export async function processMomentsInBatches(
   for (let i = 0; i < moments.length; i += BATCH_SIZE) {
     try {
       const batch = moments.slice(i, i + BATCH_SIZE);
+      const pairs = batch.map(
+        (m) => [m.collection, m.chain_id] as [string, number]
+      );
+      const collectionInfoMap = await getCollectionInfoMap(pairs);
+
       const momentUris = getMomentUris(batch);
-      const mappedMoments = await mapMomentsToSupabase(batch);
+      const mappedMoments = mapMomentsToSupabase(batch, collectionInfoMap);
       const upsertedMoments = await upsertMoments(mappedMoments);
 
       const momentsWithUris = upsertedMoments.map((m) => ({
@@ -37,6 +44,8 @@ export async function processMomentsInBatches(
         await mapMetadataToSupabase(momentsWithUris);
       await upsertMetadata(metadataRecords);
       await upsertArtistNames(artistNamesByAddresses);
+
+      triggerMomentMigrations(batch, collectionInfoMap);
 
       totalProcessed += mappedMoments.length;
       console.log(

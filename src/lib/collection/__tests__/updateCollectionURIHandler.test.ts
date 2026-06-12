@@ -4,12 +4,8 @@ import { NextResponse } from 'next/server';
 vi.mock('@/lib/collection/updateCollectionURI', () => ({
   updateCollectionURI: vi.fn(),
 }));
-vi.mock('@/workflows/migrateMuxToArweave', () => ({
-  default: vi.fn(),
-}));
 
 import { updateCollectionURI } from '@/lib/collection/updateCollectionURI';
-import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
 import updateCollectionURIHandler from '@/lib/collection/updateCollectionURIHandler';
 
 const ARTIST_ADDRESS =
@@ -23,7 +19,7 @@ const baseInput = {
   artist: {
     artistId: 'artist-uuid',
     primaryWallet: ARTIST_ADDRESS,
-    wallets: [ARTIST_ADDRESS],
+    wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
   },
   collection: { address: COLLECTION_ADDRESS, chainId: 8453 },
   newUri: NEW_URI,
@@ -36,7 +32,6 @@ beforeEach(() => {
     hash: TX_HASH as `0x${string}`,
     chainId: 8453,
   });
-  vi.mocked(migrateMuxToArweave).mockResolvedValue(undefined as never);
 });
 
 describe('updateCollectionURIHandler', () => {
@@ -55,20 +50,6 @@ describe('updateCollectionURIHandler', () => {
       newCollectionName: 'My Collection',
       artist: baseInput.artist,
     });
-  });
-
-  it('starts migrate workflow with collection location', async () => {
-    await updateCollectionURIHandler(baseInput);
-    expect(migrateMuxToArweave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        moment: expect.objectContaining({
-          collectionAddress: COLLECTION_ADDRESS,
-          tokenId: '0',
-          chainId: 8453,
-        }),
-        artistAddress: ARTIST_ADDRESS,
-      })
-    );
   });
 
   it('returns a NextResponse', async () => {
