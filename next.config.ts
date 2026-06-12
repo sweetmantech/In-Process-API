@@ -20,7 +20,8 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, x-api-key, x-recaptcha-token',
+            value:
+              'Content-Type, Authorization, x-api-key, x-recaptcha-token, x-upload-key',
           },
         ],
       },

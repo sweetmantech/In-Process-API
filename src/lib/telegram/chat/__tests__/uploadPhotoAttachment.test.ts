@@ -14,8 +14,10 @@ import uploadJsonToSupabase from '@/lib/supabase/storage/uploadJsonToSupabase';
 import getTelegramFilePath from '../getTelegramFilePath';
 
 const BUFFER = Buffer.from('image data');
-const PHOTO_URL = 'https://supabase.co/storage/v1/object/public/bucket/photo.jpg';
-const META_URL = 'https://supabase.co/storage/v1/object/public/bucket/meta.json';
+const PHOTO_URL =
+  'https://supabase.co/storage/v1/object/public/bucket/photo.jpg';
+const META_URL =
+  'https://supabase.co/storage/v1/object/public/bucket/meta.json';
 
 beforeEach(() => {
   vi.clearAllMocks();

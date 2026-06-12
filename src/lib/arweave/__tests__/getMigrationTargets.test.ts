@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest';
 import getMigrationTargets from '../getMigrationTargets';
 import type { TokenMetadataJson } from '@/lib/protocolSdk/ipfs/types';
 
-const SUPABASE_IMAGE = 'https://abc.supabase.co/storage/v1/object/public/bucket/photo.jpg';
-const SUPABASE_META = 'https://abc.supabase.co/storage/v1/object/public/bucket/meta.json';
+const SUPABASE_IMAGE =
+  'https://abc.supabase.co/storage/v1/object/public/bucket/photo.jpg';
+const SUPABASE_META =
+  'https://abc.supabase.co/storage/v1/object/public/bucket/meta.json';
 const MUX_HLS = 'https://stream.mux.com/abc.m3u8';
 const MUX_MP4 = 'https://stream.mux.com/abc/highest.mp4';
 const AR_URI = 'ar://abc123';
@@ -65,7 +67,9 @@ describe('getMigrationTargets', () => {
 
     it('excludes HLS animation_url from download candidates', () => {
       const { downloadCandidates } = getMigrationTargets(metadata);
-      expect(downloadCandidates.find((c) => c.key === 'animation_url')).toBeUndefined();
+      expect(
+        downloadCandidates.find((c) => c.key === 'animation_url')
+      ).toBeUndefined();
     });
 
     it('includes image and content.uri in download candidates', () => {

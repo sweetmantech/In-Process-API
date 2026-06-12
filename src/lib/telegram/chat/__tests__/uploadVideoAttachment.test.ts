@@ -19,8 +19,10 @@ import fetchTelegramFile from '../fetchTelegramFile';
 
 const BUFFER = Buffer.from('video data');
 const THUMB_BUFFER = Buffer.from('thumb data');
-const THUMB_URL = 'https://supabase.co/storage/v1/object/public/bucket/thumb.jpg';
-const META_URL = 'https://supabase.co/storage/v1/object/public/bucket/meta.json';
+const THUMB_URL =
+  'https://supabase.co/storage/v1/object/public/bucket/thumb.jpg';
+const META_URL =
+  'https://supabase.co/storage/v1/object/public/bucket/meta.json';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -134,7 +136,8 @@ describe('uploadVideoAttachment', () => {
         'file-id',
         'My Video'
       );
-      const callArg = vi.mocked(uploadJsonToSupabase).mock.calls[0][0] as Record<string, unknown>;
+      const callArg = vi.mocked(uploadJsonToSupabase).mock
+        .calls[0][0] as Record<string, unknown>;
       expect(callArg).not.toHaveProperty('image');
     });
   });
