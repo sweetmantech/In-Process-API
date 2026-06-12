@@ -3,7 +3,7 @@ import type {
   InProcess_Collections_t,
   Sound_Editions_t,
 } from '@/types/envio';
-import migrateMuxToArweave from '@/workflows/migrateMuxToArweave';
+import migrateAssetToArweave from '@/workflows/migrateAssetToArweave';
 import type { Address } from 'viem';
 
 export default function triggerCollectionMigrations(
@@ -16,7 +16,7 @@ export default function triggerCollectionMigrations(
     (c): c is InProcess_Collections_t => 'default_admin' in c
   );
   for (const c of inProcessBatch) {
-    migrateMuxToArweave({
+    migrateAssetToArweave({
       artistAddress: c.default_admin as Address,
       moment: {
         collectionAddress: c.address as Address,

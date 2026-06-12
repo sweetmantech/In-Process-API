@@ -87,3 +87,5 @@ export const NOUNS_GOVERNOR_ADDRESS: Record<number, Address> = {
   [mainnet.id]: '0x6f3e6272a167e8accb32072d08e0957f9c79223d',
   [sepolia.id]: '0x35d2670d7c8931aacdd37c89ddcb0638c3c44a57',
 };
+
+export const SUPABASE_STORAGE_BUCKET = 'in_process_files';

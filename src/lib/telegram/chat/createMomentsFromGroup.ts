@@ -45,7 +45,6 @@ const createMomentsFromGroup = async (
           attachment,
           asset.fileId,
           asset.name,
-          artist.primaryWallet,
           asset.thumbFileId
         );
       })

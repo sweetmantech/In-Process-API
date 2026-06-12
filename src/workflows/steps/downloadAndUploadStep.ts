@@ -13,23 +13,32 @@ export default async function downloadAndUploadStep(
   'use step';
 
   console.log('downloadAndUploadStep: downloading', { downloadUrl });
-  const videoFile = await downloadVideo(downloadUrl);
+  let file: File;
+  if (downloadUrl.includes('mux.com')) {
+    file = await downloadVideo(downloadUrl);
+  } else {
+    const res = await fetch(downloadUrl);
+    const blob = await res.blob();
+    const ct = res.headers.get('content-type') || 'application/octet-stream';
+    const ext = ct.split('/')[1]?.split(';')[0] || 'bin';
+    file = new File([blob], `upload.${ext}`, { type: ct });
+  }
   console.log('downloadAndUploadStep: downloaded', {
-    name: videoFile.name,
-    sizeMB: (videoFile.size / (1024 * 1024)).toFixed(2),
+    name: file.name,
+    sizeMB: (file.size / (1024 * 1024)).toFixed(2),
   });
 
-  const result = await uploadToArweave(videoFile);
+  const result = await uploadToArweave(file);
 
   unauthTurboClient
-    .getTokenPriceForBytes({ byteCount: videoFile.size })
+    .getTokenPriceForBytes({ byteCount: file.size })
     .then(({ tokenPrice }) =>
       insertArweaveUpload({
         arweave_uri: result.arweave_uri,
         winc_cost: result.winc_cost,
         usdc_cost: Number(tokenPrice),
-        file_size_bytes: videoFile.size,
-        content_type: videoFile.type || 'video/mp4',
+        file_size_bytes: file.size,
+        content_type: file.type || 'application/octet-stream',
         artist_address: artistAddress,
       })
     )

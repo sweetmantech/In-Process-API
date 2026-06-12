@@ -138,7 +138,6 @@ describe('createMomentsFromGroup', () => {
       expect.objectContaining({ type: 'video', mimeType: 'video/mp4' }),
       PENDING_VIDEO.fileId,
       PENDING_VIDEO.name,
-      ARTIST_ADDRESS,
       PENDING_VIDEO.thumbFileId
     );
   });

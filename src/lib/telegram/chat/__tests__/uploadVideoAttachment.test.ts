@@ -1,42 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import uploadVideoAttachment from '../uploadVideoAttachment';
 
-vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
-vi.mock('@/lib/arweave/uploadJson', () => ({ uploadJson: vi.fn() }));
-vi.mock('@/lib/arweave/logArweaveUpload', () => ({ default: vi.fn() }));
+vi.mock('@/lib/supabase/storage/uploadFileToSupabase', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/supabase/storage/uploadJsonToSupabase', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/mux/uploadVideoToMux', () => ({ default: vi.fn() }));
 vi.mock('../getTelegramFilePath', () => ({ default: vi.fn() }));
 vi.mock('../fetchTelegramFile', () => ({ default: vi.fn() }));
 
-import uploadToArweave from '@/lib/arweave/uploadToArweave';
-import { uploadJson } from '@/lib/arweave/uploadJson';
+import uploadFileToSupabase from '@/lib/supabase/storage/uploadFileToSupabase';
+import uploadJsonToSupabase from '@/lib/supabase/storage/uploadJsonToSupabase';
 import uploadVideoToMux from '@/lib/mux/uploadVideoToMux';
 import getTelegramFilePath from '../getTelegramFilePath';
 import fetchTelegramFile from '../fetchTelegramFile';
 
 const BUFFER = Buffer.from('video data');
 const THUMB_BUFFER = Buffer.from('thumb data');
-const ARTIST = '0xartist';
+const THUMB_URL = 'https://supabase.co/storage/v1/object/public/bucket/thumb.jpg';
+const META_URL = 'https://supabase.co/storage/v1/object/public/bucket/meta.json';
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getTelegramFilePath).mockResolvedValue('videos/file.mp4');
   vi.mocked(uploadVideoToMux).mockResolvedValue({
-    playbackUrl: 'https://mux.com/play/abc',
-    downloadUrl: 'https://mux.com/download/abc',
+    playbackUrl: 'https://stream.mux.com/abc.m3u8',
+    downloadUrl: 'https://stream.mux.com/abc/highest.mp4',
   } as never);
   vi.mocked(fetchTelegramFile).mockResolvedValue({
     buffer: THUMB_BUFFER,
     mimeType: 'image/jpeg',
   });
-  vi.mocked(uploadToArweave).mockResolvedValue({
-    arweave_uri: 'ar://thumb-hash',
-    winc_cost: '100',
-  });
-  vi.mocked(uploadJson).mockResolvedValue({
-    arweave_uri: 'ar://metadata-hash',
-    winc_cost: '100',
-  });
+  vi.mocked(uploadFileToSupabase).mockResolvedValue(THUMB_URL);
+  vi.mocked(uploadJsonToSupabase).mockResolvedValue(META_URL);
 });
 
 const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
@@ -48,12 +46,7 @@ const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
 describe('uploadVideoAttachment', () => {
   it('throws when attachment has no fetchData', async () => {
     await expect(
-      uploadVideoAttachment(
-        { type: 'video' } as never,
-        'file-id',
-        'Video',
-        ARTIST
-      )
+      uploadVideoAttachment({ type: 'video' } as never, 'file-id', 'Video')
     ).rejects.toThrow('Attachment has no fetchData');
   });
 
@@ -62,14 +55,13 @@ describe('uploadVideoAttachment', () => {
       makeAttachment() as never,
       'file-id',
       'My Video',
-      ARTIST,
       'thumb-id'
     );
 
     expect(result).toEqual({
-      uri: 'ar://metadata-hash',
+      uri: META_URL,
       mimeType: 'video/mp4',
-      mediaUri: 'https://mux.com/play/abc',
+      mediaUri: 'https://stream.mux.com/abc.m3u8',
     });
   });
 
@@ -77,8 +69,7 @@ describe('uploadVideoAttachment', () => {
     const result = await uploadVideoAttachment(
       makeAttachment({ mimeType: 'video/quicktime' }) as never,
       'file-id',
-      'My Video',
-      ARTIST
+      'My Video'
     );
 
     expect(result.mimeType).toBe('video/quicktime');
@@ -90,21 +81,19 @@ describe('uploadVideoAttachment', () => {
         makeAttachment() as never,
         'file-id',
         'My Video',
-        ARTIST,
         'thumb-id'
       );
       expect(fetchTelegramFile).toHaveBeenCalledWith('thumb-id');
     });
 
-    it('uploads thumbnail to Arweave', async () => {
+    it('uploads thumbnail to Supabase', async () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
         'My Video',
-        ARTIST,
         'thumb-id'
       );
-      expect(uploadToArweave).toHaveBeenCalledOnce();
+      expect(uploadFileToSupabase).toHaveBeenCalledOnce();
     });
 
     it('includes image in metadata', async () => {
@@ -112,11 +101,10 @@ describe('uploadVideoAttachment', () => {
         makeAttachment() as never,
         'file-id',
         'My Video',
-        ARTIST,
         'thumb-id'
       );
-      expect(uploadJson).toHaveBeenCalledWith(
-        expect.objectContaining({ image: 'ar://thumb-hash' })
+      expect(uploadJsonToSupabase).toHaveBeenCalledWith(
+        expect.objectContaining({ image: THUMB_URL })
       );
     });
   });
@@ -126,33 +114,27 @@ describe('uploadVideoAttachment', () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video',
-        ARTIST
+        'My Video'
       );
       expect(fetchTelegramFile).not.toHaveBeenCalled();
     });
 
-    it('does not upload to Arweave', async () => {
+    it('does not upload any file to Supabase', async () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video',
-        ARTIST
+        'My Video'
       );
-      expect(uploadToArweave).not.toHaveBeenCalled();
+      expect(uploadFileToSupabase).not.toHaveBeenCalled();
     });
 
     it('omits image from metadata', async () => {
       await uploadVideoAttachment(
         makeAttachment() as never,
         'file-id',
-        'My Video',
-        ARTIST
+        'My Video'
       );
-      const callArg = vi.mocked(uploadJson).mock.calls[0][0] as Record<
-        string,
-        unknown
-      >;
+      const callArg = vi.mocked(uploadJsonToSupabase).mock.calls[0][0] as Record<string, unknown>;
       expect(callArg).not.toHaveProperty('image');
     });
   });
@@ -161,17 +143,16 @@ describe('uploadVideoAttachment', () => {
     await uploadVideoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Video',
-      ARTIST
+      'My Video'
     );
 
-    expect(uploadJson).toHaveBeenCalledWith(
+    expect(uploadJsonToSupabase).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'My Video',
-        animation_url: 'https://mux.com/play/abc',
+        animation_url: 'https://stream.mux.com/abc.m3u8',
         content: {
           mime: 'video/mp4',
-          uri: 'https://mux.com/download/abc',
+          uri: 'https://stream.mux.com/abc/highest.mp4',
         },
       })
     );

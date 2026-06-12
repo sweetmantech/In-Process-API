@@ -1,29 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import uploadPhotoAttachment from '../uploadPhotoAttachment';
 
-vi.mock('@/lib/arweave/uploadToArweave', () => ({ default: vi.fn() }));
-vi.mock('@/lib/arweave/uploadJson', () => ({ uploadJson: vi.fn() }));
-vi.mock('@/lib/arweave/logArweaveUpload', () => ({ default: vi.fn() }));
+vi.mock('@/lib/supabase/storage/uploadFileToSupabase', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/supabase/storage/uploadJsonToSupabase', () => ({
+  default: vi.fn(),
+}));
 vi.mock('../getTelegramFilePath', () => ({ default: vi.fn() }));
 
-import uploadToArweave from '@/lib/arweave/uploadToArweave';
-import { uploadJson } from '@/lib/arweave/uploadJson';
+import uploadFileToSupabase from '@/lib/supabase/storage/uploadFileToSupabase';
+import uploadJsonToSupabase from '@/lib/supabase/storage/uploadJsonToSupabase';
 import getTelegramFilePath from '../getTelegramFilePath';
 
 const BUFFER = Buffer.from('image data');
-const ARTIST = '0xartist';
+const PHOTO_URL = 'https://supabase.co/storage/v1/object/public/bucket/photo.jpg';
+const META_URL = 'https://supabase.co/storage/v1/object/public/bucket/meta.json';
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getTelegramFilePath).mockResolvedValue('photos/file.jpg');
-  vi.mocked(uploadToArweave).mockResolvedValue({
-    arweave_uri: 'ar://image-hash',
-    winc_cost: '100',
-  });
-  vi.mocked(uploadJson).mockResolvedValue({
-    arweave_uri: 'ar://metadata-hash',
-    winc_cost: '100',
-  });
+  vi.mocked(uploadFileToSupabase).mockResolvedValue(PHOTO_URL);
+  vi.mocked(uploadJsonToSupabase).mockResolvedValue(META_URL);
 });
 
 const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
@@ -35,12 +33,7 @@ const makeAttachment = (overrides: Record<string, unknown> = {}) => ({
 describe('uploadPhotoAttachment', () => {
   it('throws when attachment has no fetchData', async () => {
     await expect(
-      uploadPhotoAttachment(
-        { type: 'image' } as never,
-        'file-id',
-        'Photo',
-        ARTIST
-      )
+      uploadPhotoAttachment({ type: 'image' } as never, 'file-id', 'Photo')
     ).rejects.toThrow('Attachment has no fetchData');
   });
 
@@ -48,14 +41,13 @@ describe('uploadPhotoAttachment', () => {
     const result = await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Photo',
-      ARTIST
+      'My Photo'
     );
 
     expect(result).toEqual({
-      uri: 'ar://metadata-hash',
+      uri: META_URL,
       mimeType: 'image/jpeg',
-      mediaUri: 'ar://image-hash',
+      mediaUri: PHOTO_URL,
     });
   });
 
@@ -63,8 +55,7 @@ describe('uploadPhotoAttachment', () => {
     const result = await uploadPhotoAttachment(
       makeAttachment({ mimeType: 'image/png' }) as never,
       'file-id',
-      'My Photo',
-      ARTIST
+      'My Photo'
     );
 
     expect(result.mimeType).toBe('image/png');
@@ -76,39 +67,36 @@ describe('uploadPhotoAttachment', () => {
     const result = await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Photo',
-      ARTIST
+      'My Photo'
     );
 
     expect(result.mimeType).toBe('image/webp');
   });
 
-  it('uploads image buffer to Arweave with the correct name and mimeType', async () => {
+  it('uploads image file to Supabase with correct name and mimeType', async () => {
     await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Photo',
-      ARTIST
+      'My Photo'
     );
 
-    expect(uploadToArweave).toHaveBeenCalledOnce();
-    const [file] = vi.mocked(uploadToArweave).mock.calls[0];
+    expect(uploadFileToSupabase).toHaveBeenCalledOnce();
+    const [file] = vi.mocked(uploadFileToSupabase).mock.calls[0];
     expect(file.name).toBe('My Photo');
     expect(file.type).toBe('image/jpeg');
   });
 
-  it('uploads JSON metadata with the image URI and content', async () => {
+  it('uploads JSON metadata to Supabase with the image URI and content', async () => {
     await uploadPhotoAttachment(
       makeAttachment() as never,
       'file-id',
-      'My Photo',
-      ARTIST
+      'My Photo'
     );
 
-    expect(uploadJson).toHaveBeenCalledWith({
+    expect(uploadJsonToSupabase).toHaveBeenCalledWith({
       name: 'My Photo',
-      image: 'ar://image-hash',
-      content: { mime: 'image/jpeg', uri: 'ar://image-hash' },
+      image: PHOTO_URL,
+      content: { mime: 'image/jpeg', uri: PHOTO_URL },
     });
   });
 });
