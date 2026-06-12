@@ -1,9 +1,8 @@
 import type { Attachment } from 'chat';
-import uploadFileToSupabase from '@/lib/supabase/storage/uploadFileToSupabase';
+import uploadBufferToSupabase from '@/lib/supabase/storage/uploadBufferToSupabase';
 import uploadJsonToSupabase from '@/lib/supabase/storage/uploadJsonToSupabase';
 import getTelegramFilePath from './getTelegramFilePath';
 import getMimeTypeFromFilePath from './getMimeTypeFromFilePath';
-import toFile from './toFile';
 
 const uploadPhotoAttachment = async (
   attachment: Attachment,
@@ -17,8 +16,7 @@ const uploadPhotoAttachment = async (
     getTelegramFilePath(fileId),
   ]);
   const mimeType = attachment.mimeType ?? getMimeTypeFromFilePath(filePath);
-  const photoFile = toFile(buffer, name, mimeType);
-  const photoUri = await uploadFileToSupabase(photoFile);
+  const photoUri = await uploadBufferToSupabase(buffer, mimeType);
 
   const jsonObject = {
     name,
