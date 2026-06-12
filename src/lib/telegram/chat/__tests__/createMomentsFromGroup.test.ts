@@ -210,7 +210,7 @@ describe('createMomentsFromGroup', () => {
     );
   });
 
-  it('calls sendReadyMessage once with all tokenIds as an array', async () => {
+  it('calls sendReadyMessage for each minted moment', async () => {
     vi.mocked(processAttachmentUpload)
       .mockResolvedValueOnce(UPLOAD_RESULT_1 as never)
       .mockResolvedValueOnce(UPLOAD_RESULT_2 as never);
@@ -225,11 +225,16 @@ describe('createMomentsFromGroup', () => {
 
     await createMomentsFromGroup(thread as never, 'grp-1', ARTIST_CONTEXT);
 
-    expect(sendReadyMessage).toHaveBeenCalledTimes(1);
+    expect(sendReadyMessage).toHaveBeenCalledTimes(2);
     expect(sendReadyMessage).toHaveBeenCalledWith(
       thread,
       MOMENT_1.contractAddress.toString(),
-      [MOMENT_1.tokenId, MOMENT_2.tokenId]
+      MOMENT_1.tokenId
+    );
+    expect(sendReadyMessage).toHaveBeenCalledWith(
+      thread,
+      MOMENT_1.contractAddress.toString(),
+      MOMENT_2.tokenId
     );
   });
 });
