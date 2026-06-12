@@ -16,17 +16,35 @@ vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
 vi.mock('@/lib/supabase/in_process_moments/upsertMoments', () => ({
   upsertMoments: vi.fn(),
 }));
+vi.mock('@/lib/supabase/in_process_metadata/upsertMetadata', () => ({
+  upsertMetadata: vi.fn(),
+}));
+vi.mock('@/lib/metadata/getMetadataHandler', () => ({
+  default: vi.fn(),
+}));
 
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
+import { upsertMetadata } from '@/lib/supabase/in_process_metadata/upsertMetadata';
+import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
 
 const CONTRACT = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Address;
 const ARTIST = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Address;
 const TOKEN_ID = '1';
 const COLLECTION_ID = 'col-uuid';
+const MOMENT_ID = 'moment-uuid';
+
+const MOCK_METADATA = {
+  name: 'Test Moment',
+  description: 'A test',
+  image: 'ar://image',
+  animation_url: null,
+  external_url: null,
+  content: { mime: 'image/jpeg', uri: 'ar://image' },
+};
 
 const baseParams = {
   contractAddress: CONTRACT,
@@ -50,7 +68,9 @@ beforeEach(() => {
     data: null,
     error: null,
   } as never);
-  vi.mocked(upsertMoments).mockResolvedValue([] as never);
+  vi.mocked(upsertMoments).mockResolvedValue([{ id: MOMENT_ID }] as never);
+  vi.mocked(getMetadataHandler).mockResolvedValue(MOCK_METADATA as never);
+  vi.mocked(upsertMetadata).mockResolvedValue(undefined);
 });
 
 describe('indexMoment', () => {
@@ -144,5 +164,75 @@ describe('indexMoment', () => {
     await indexMoment(baseParams);
 
     expect(upsertMoments).not.toHaveBeenCalled();
+  });
+
+  it('fetches and upserts metadata after moment is created', async () => {
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [{ id: COLLECTION_ID }],
+      count: 1,
+      error: null,
+    } as never);
+
+    await indexMoment(baseParams);
+
+    expect(getMetadataHandler).toHaveBeenCalledWith({
+      uri: baseParams.token.tokenMetadataURI,
+    });
+    expect(upsertMetadata).toHaveBeenCalledWith([
+      {
+        moment: MOMENT_ID,
+        name: MOCK_METADATA.name,
+        description: MOCK_METADATA.description,
+        image: MOCK_METADATA.image,
+        animation_url: null,
+        external_url: null,
+        content: MOCK_METADATA.content,
+      },
+    ]);
+  });
+
+  it('upserts metadata using existing moment id when moment already exists', async () => {
+    const existingId = 'existing-moment-id';
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [{ id: COLLECTION_ID }],
+      count: 1,
+      error: null,
+    } as never);
+    vi.mocked(selectMoments).mockResolvedValue({
+      data: [{ id: existingId }],
+      error: null,
+    } as never);
+
+    await indexMoment(baseParams);
+
+    expect(upsertMetadata).toHaveBeenCalledWith([
+      expect.objectContaining({ moment: existingId }),
+    ]);
+  });
+
+  it('logs error but does not throw when getMetadataHandler fails', async () => {
+    vi.mocked(selectCollections).mockResolvedValue({
+      data: [{ id: COLLECTION_ID }],
+      count: 1,
+      error: null,
+    } as never);
+    vi.mocked(getMetadataHandler).mockRejectedValue(new Error('fetch failed'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(indexMoment(baseParams)).resolves.toBeUndefined();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[indexMoment] failed to upsert metadata:',
+      expect.any(Error)
+    );
+
+    consoleSpy.mockRestore();
+  });
+
+  it('skips metadata upsert when momentId cannot be resolved', async () => {
+    vi.mocked(upsertCollections).mockResolvedValue([] as never);
+
+    await indexMoment(baseParams);
+
+    expect(upsertMetadata).not.toHaveBeenCalled();
   });
 });
