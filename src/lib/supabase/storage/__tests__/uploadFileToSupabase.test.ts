@@ -46,20 +46,19 @@ describe('uploadFileToSupabase', () => {
     );
   });
 
-  it('normalizes empty file name to "upload" before uploading', async () => {
-    const file = new File(['data'], '', { type: 'image/jpeg' });
+  it('uses uuid as path regardless of file name', async () => {
+    const file = new File(['data'], 'खुशहाल ज़िंदगी', { type: 'image/jpeg' });
     await uploadFileToSupabase(file);
 
-    const [, uploadedFile] = mockUpload.mock.calls[0];
-    expect(uploadedFile.name).toBe('upload');
-    expect(uploadedFile.type).toBe('image/jpeg');
+    const [path] = mockUpload.mock.calls[0];
+    expect(path).toBe('test-uuid');
   });
 
-  it('preserves non-empty file names', async () => {
-    const file = new File(['data'], 'my-photo.jpg', { type: 'image/jpeg' });
+  it('passes file.type as contentType', async () => {
+    const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
     await uploadFileToSupabase(file);
 
-    const [, uploadedFile] = mockUpload.mock.calls[0];
-    expect(uploadedFile.name).toBe('my-photo.jpg');
+    const [, , options] = mockUpload.mock.calls[0];
+    expect(options.contentType).toBe('image/jpeg');
   });
 });
