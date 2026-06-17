@@ -8,6 +8,7 @@ vi.mock('@/lib/supabase/storage/uploadJsonToSupabase', () => ({
   default: vi.fn(),
 }));
 vi.mock('../getTelegramFilePath', () => ({ default: vi.fn() }));
+vi.mock('uuid', () => ({ v4: () => 'mock-uuid-1234' }));
 
 import uploadFileToSupabase from '@/lib/supabase/storage/uploadFileToSupabase';
 import uploadJsonToSupabase from '@/lib/supabase/storage/uploadJsonToSupabase';
@@ -93,7 +94,7 @@ describe('uploadPhotoAttachment', () => {
 
     expect(uploadFileToSupabase).toHaveBeenCalledOnce();
     const [file] = vi.mocked(uploadFileToSupabase).mock.calls[0];
-    expect(file.name).toBe('');
+    expect(file.name).toBe('mock-uuid-1234');
     expect(file.type).toBe('image/jpeg');
   });
 
