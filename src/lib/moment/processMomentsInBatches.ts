@@ -2,6 +2,7 @@ import type {
   Catalog_Moments_t,
   InProcess_Moments_t,
   Sound_Moments_t,
+  Zora_Moments_t,
   ZoraMedia_Moments_t,
 } from '@/types/envio';
 import { BATCH_SIZE } from '@/lib/consts';
@@ -19,6 +20,7 @@ export async function processMomentsInBatches(
     | InProcess_Moments_t[]
     | Catalog_Moments_t[]
     | Sound_Moments_t[]
+    | Zora_Moments_t[]
     | ZoraMedia_Moments_t[]
 ): Promise<void> {
   let totalProcessed = 0;

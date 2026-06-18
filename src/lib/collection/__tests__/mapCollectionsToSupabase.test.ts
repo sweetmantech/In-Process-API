@@ -44,31 +44,40 @@ const soundEdition: Sound_Editions_t = {
 
 describe('mapCollectionsToSupabase', () => {
   it('maps InProcess_Collections_t with protocol=in_process and creator=default_admin', () => {
-    const result = mapCollectionsToSupabase([inProcessCollection]);
+    const result = mapCollectionsToSupabase(
+      [inProcessCollection],
+      'in_process'
+    );
     expect(result[0].protocol).toBe('in_process');
     expect(result[0].creator).toBe('0xCREATOR');
   });
 
   it('maps Catalog_Collections_t with protocol=catalog and creator=creator field', () => {
-    const result = mapCollectionsToSupabase([catalogCollection]);
+    const result = mapCollectionsToSupabase([catalogCollection], 'catalog');
     expect(result[0].protocol).toBe('catalog');
     expect(result[0].creator).toBe('0xCATCREATOR');
   });
 
   it('maps Sound_Editions_t with protocol=sound.xyz and creator=owner', () => {
-    const result = mapCollectionsToSupabase([soundEdition]);
+    const result = mapCollectionsToSupabase([soundEdition], 'sound.xyz');
     expect(result[0].protocol).toBe('sound.xyz');
     expect(result[0].creator).toBe('0xOWNER');
   });
 
   it('converts timestamps to ISO strings', () => {
-    const result = mapCollectionsToSupabase([inProcessCollection]);
+    const result = mapCollectionsToSupabase(
+      [inProcessCollection],
+      'in_process'
+    );
     expect(result[0].created_at).toBe(new Date(1000 * 1000).toISOString());
     expect(result[0].updated_at).toBe(new Date(2000 * 1000).toISOString());
   });
 
   it('maps address, name, uri and chain_id', () => {
-    const result = mapCollectionsToSupabase([inProcessCollection]);
+    const result = mapCollectionsToSupabase(
+      [inProcessCollection],
+      'in_process'
+    );
     expect(result[0].address).toBe('0xADDR');
     expect(result[0].name).toBe('My Collection');
     expect(result[0].uri).toBe('ipfs://uri');
@@ -76,6 +85,6 @@ describe('mapCollectionsToSupabase', () => {
   });
 
   it('returns empty array for empty input', () => {
-    expect(mapCollectionsToSupabase([])).toEqual([]);
+    expect(mapCollectionsToSupabase([], 'in_process')).toEqual([]);
   });
 });
