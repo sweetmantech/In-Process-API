@@ -4,7 +4,8 @@ import { validate } from '@/lib/schema/validate';
 
 const validateGetSmartWalletQuery = (req: NextRequest) => {
   const queryParams = {
-    artistId: req.nextUrl.searchParams.get('artistId'),
+    accountId: req.nextUrl.searchParams.get('accountId') ?? undefined,
+    walletAddress: req.nextUrl.searchParams.get('walletAddress') ?? undefined,
   };
   const result = validate(getSmartWalletSchema, queryParams);
   if (!result.success) return result.response;
