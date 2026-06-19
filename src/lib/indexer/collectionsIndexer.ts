@@ -4,7 +4,7 @@ import type { InProcess_Collections_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 
 export const collectionsIndexer: IndexConfig<InProcess_Collections_t> = {
-  processBatchFn: processCollectionsInBatches,
+  processBatchFn: (items) => processCollectionsInBatches(items, 'in_process'),
   selectMaxTimestampFn: selectMaxUpdatedAt,
   indexName: 'collections',
   dataPath: 'InProcess_Collections',

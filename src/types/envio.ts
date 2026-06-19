@@ -166,6 +166,30 @@ export type Sound_Admins_t = {
   readonly updated_at: number;
 };
 
+export type Zora_Collections_t = {
+  readonly id: string;
+  readonly address: string;
+  readonly name: string;
+  readonly uri: string;
+  readonly default_admin: string;
+  readonly chain_id: number;
+  readonly created_at: number;
+  readonly updated_at: number;
+  readonly transaction_hash: string;
+};
+
+export type Zora_Moments_t = {
+  readonly id: string;
+  readonly collection: string;
+  readonly token_id: string; // BigInt from GraphQL comes as string
+  readonly uri: string;
+  readonly max_supply: string | null;
+  readonly chain_id: number;
+  readonly created_at: number | null;
+  readonly updated_at: number;
+  readonly transaction_hash: string;
+};
+
 export type ZoraMedia_Moments_t = {
   readonly id: string;
   readonly collection: string;

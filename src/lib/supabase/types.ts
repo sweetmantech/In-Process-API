@@ -871,7 +871,8 @@ export type Database = {
         | 'in_process'
         | 'catalog'
         | 'sound.xyz'
-        | 'zora_media';
+        | 'zora_media'
+        | 'zora';
       wallet_type: 'privy' | 'farcaster' | 'external' | 'smart';
     };
     CompositeTypes: {
@@ -1006,7 +1007,13 @@ export const Constants = {
   },
   public: {
     Enums: {
-      collection_protocol: ['in_process', 'catalog', 'sound.xyz', 'zora_media'],
+      collection_protocol: [
+        'in_process',
+        'catalog',
+        'sound.xyz',
+        'zora_media',
+        'zora',
+      ],
       wallet_type: ['privy', 'farcaster', 'external', 'smart'],
     },
   },

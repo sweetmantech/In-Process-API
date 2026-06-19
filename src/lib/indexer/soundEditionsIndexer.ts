@@ -4,7 +4,7 @@ import type { Sound_Editions_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 
 export const soundEditionsIndexer: IndexConfig<Sound_Editions_t> = {
-  processBatchFn: processCollectionsInBatches,
+  processBatchFn: (items) => processCollectionsInBatches(items, 'sound.xyz'),
   selectMaxTimestampFn: selectMaxUpdatedAt,
   indexName: 'sound_editions',
   dataPath: 'Sound_Editions',

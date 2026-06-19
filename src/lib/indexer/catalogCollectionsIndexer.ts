@@ -4,7 +4,7 @@ import type { Catalog_Collections_t } from '@/types/envio';
 import type { IndexConfig } from '@/types/indexerFactory';
 
 export const catalogCollectionsIndexer: IndexConfig<Catalog_Collections_t> = {
-  processBatchFn: processCollectionsInBatches,
+  processBatchFn: (items) => processCollectionsInBatches(items, 'catalog'),
   selectMaxTimestampFn: selectMaxUpdatedAt,
   indexName: 'catalog_collections',
   dataPath: 'Catalog_Collections',

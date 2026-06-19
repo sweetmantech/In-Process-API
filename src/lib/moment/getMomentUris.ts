@@ -2,6 +2,7 @@ import type {
   Catalog_Moments_t,
   InProcess_Moments_t,
   Sound_Moments_t,
+  Zora_Moments_t,
   ZoraMedia_Moments_t,
 } from '@/types/envio';
 
@@ -9,6 +10,7 @@ type AnyMoment =
   | InProcess_Moments_t
   | Catalog_Moments_t
   | Sound_Moments_t
+  | Zora_Moments_t
   | ZoraMedia_Moments_t;
 
 export type MomentUriEntry = {

@@ -12,12 +12,15 @@ import { soundMomentsIndexer } from './soundMomentsIndexer';
 import { soundAdminsIndexer } from './soundAdminsIndexer';
 import { zoraMomentsIndexer } from './zoraMomentsIndexer';
 import { zoraAdminsIndexer } from './zoraAdminsIndexer';
+import { zoraCollectionsIndexer } from './zoraCollectionsIndexer';
+import { zora1155MomentsIndexer } from './zora1155MomentsIndexer';
 import type { IndexConfig } from '@/types/indexerFactory';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const indexers: IndexConfig<any>[] = [
   // collections
   collectionsIndexer,
+  zoraCollectionsIndexer,
   catalogCollectionsIndexer,
   soundEditionsIndexer,
   // moments
@@ -25,6 +28,7 @@ export const indexers: IndexConfig<any>[] = [
   momentsIndexer,
   catalogMomentsIndexer,
   zoraMomentsIndexer,
+  zora1155MomentsIndexer,
   // admins
   adminsIndexer,
   catalogAdminsIndexer,
