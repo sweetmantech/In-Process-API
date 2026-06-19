@@ -16,7 +16,7 @@ const getMomentHandler = async (moment: Moment) => {
   const collection = collections?.[0] ?? null;
   const protocol = collection?.protocol ?? null;
 
-  const { uri, contentUri, owner, saleConfig, id } =
+  const { uri, contentUri, owner, saleConfig, soldOut, id } =
     await resolveMomentInfo(moment);
 
   if (!uri) {
@@ -26,15 +26,15 @@ const getMomentHandler = async (moment: Moment) => {
     );
   }
 
-  const [metadata, momentAdmins] = await Promise.all([
+  const [metadata, admins] = await Promise.all([
     getMetadata(id, uri),
     getMomentAdmins({ collection, owner, moment, protocol }),
   ]);
 
   let resolvedOwner = owner;
   if (protocol === 'zora_media') {
-    if (momentAdmins[0]) {
-      resolvedOwner = momentAdmins[0];
+    if (admins[0]) {
+      resolvedOwner = admins[0];
     } else {
       const { owner: onChainOwner } = await getZoraMediaInfo(moment);
       resolvedOwner = onChainOwner ?? owner;
@@ -56,9 +56,10 @@ const getMomentHandler = async (moment: Moment) => {
     uri,
     contentUri,
     owner: resolvedOwner,
-    saleConfig,
+    sale: saleConfig,
+    soldOut,
     protocol,
-    momentAdmins,
+    admins,
     metadata: normalizedMetadata,
   });
 };

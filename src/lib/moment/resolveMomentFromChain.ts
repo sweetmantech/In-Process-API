@@ -25,6 +25,7 @@ const resolveMomentFromChain = async (
       contentUri: contentUri ?? null,
       owner,
       saleConfig: null,
+      soldOut: false,
     };
   }
 
@@ -36,6 +37,7 @@ const resolveMomentFromChain = async (
       contentUri: null,
       owner,
       saleConfig: null,
+      soldOut: false,
     };
   }
 
@@ -47,16 +49,19 @@ const resolveMomentFromChain = async (
       contentUri: null,
       owner,
       saleConfig: null,
+      soldOut: false,
     };
   }
 
-  const { saleConfig, owner, tokenUri } = await getInProcessMomentInfo(moment);
+  const { saleConfig, owner, tokenUri, soldOut } =
+    await getInProcessMomentInfo(moment);
   return {
     id: null,
     uri: tokenUri,
     contentUri: null,
     owner,
     saleConfig: convertOnChainSaleToApi(saleConfig),
+    soldOut,
   };
 };
 
