@@ -138,6 +138,7 @@ export type MomentAdvancedInfo = {
   contentUri: string | null;
   owner: string | null;
   saleConfig: MomentSaleConfig | null;
+  soldOut: boolean;
 };
 
 export interface UpdateMomentURIInput {

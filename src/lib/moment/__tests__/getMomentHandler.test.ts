@@ -71,6 +71,7 @@ const mockResolved = {
   contentUri: 'ar://content-hash',
   owner: OWNER,
   saleConfig: mockSaleConfig,
+  soldOut: false,
 };
 
 const rawMetadata = {
@@ -113,9 +114,10 @@ describe('getMomentHandler', () => {
       uri: 'ar://meta-hash',
       contentUri: 'ar://content-hash',
       owner: OWNER,
-      saleConfig: mockSaleConfig,
+      sale: mockSaleConfig,
+      soldOut: false,
       protocol: 'in_process',
-      momentAdmins: [ADMIN],
+      admins: [ADMIN],
       metadata: normalizedMetadata,
     });
   });
@@ -135,6 +137,7 @@ describe('getMomentHandler', () => {
       contentUri: null,
       owner: null,
       saleConfig: null,
+      soldOut: false,
     } as any);
 
     const res = await getMomentHandler(moment);
