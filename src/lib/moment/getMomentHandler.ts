@@ -51,13 +51,17 @@ const getMomentHandler = async (moment: Moment) => {
     }
   }
 
+  const timeSoldOut = saleConfig
+    ? saleConfig.saleEnd > 0 && saleConfig.saleEnd * 1000 < Date.now()
+    : false;
+
   return NextResponse.json({
     id,
     uri,
     contentUri,
     owner: resolvedOwner,
     sale: saleConfig,
-    soldOut,
+    soldOut: soldOut || timeSoldOut,
     protocol,
     admins,
     metadata: normalizedMetadata,
