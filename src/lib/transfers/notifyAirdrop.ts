@@ -3,6 +3,7 @@ import selectAccountNotification from '@/lib/supabase/account_notifications/sele
 import type { Transfers_t } from '@/types/envio';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from './getAirdropOperator';
+import isSameArtist from './isSameArtist';
 
 /** One Telegram per airdrop transfer in `batch` (`value` and `currency` not both set). */
 const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
@@ -16,7 +17,8 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
 
       const { address, username } = await getAirdropOperator(t);
 
-      if ((!address && !username) || address === recipient) continue;
+      if (!address && !username) continue;
+      if (await isSameArtist(address, recipient)) continue;
       const text = `${username || address} airdropped a moment to you. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
 
       await telegramChatBotClient.sendMessage(chatId, text);

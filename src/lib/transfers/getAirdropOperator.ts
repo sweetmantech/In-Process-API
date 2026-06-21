@@ -47,15 +47,16 @@ const getAirdropOperator = async (
     : [address];
 
   const { data: wallets } = await selectWallets({ addresses: lookupAddresses });
+  const nonSmartWallets = (wallets ?? []).filter((w) => w.type !== 'smart');
   const artistAddress = getPrimaryWallet(
-    (wallets ?? []).filter(
-      (w) => w.type !== 'smart'
-    ) as Tables<'in_process_wallets'>[]
-  ) as Address | undefined;
-  const artistUsername = wallets?.[0]?.artist?.username ?? null;
-
+    nonSmartWallets as Tables<'in_process_wallets'>[]
+  );
   if (!artistAddress) throw new Error('Airdrop operator not found');
-  return { address: artistAddress, username: artistUsername };
+  const artistWallet = nonSmartWallets.find((w) => w.address === artistAddress);
+  return {
+    address: artistAddress,
+    username: artistWallet?.artist?.username ?? null,
+  };
 };
 
 export default getAirdropOperator;
