@@ -11,6 +11,7 @@ vi.mock('@/lib/telegram/client', () => ({
   telegramChatBotClient: { sendMessage: vi.fn() },
 }));
 vi.mock('../getAirdropOperator', () => ({ default: vi.fn() }));
+vi.mock('../isSameArtist', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
   SHORT_CHAIN_NAME: { 8453: 'base' },
   SITE_ORIGINAL_URL: 'https://inprocess.world',
@@ -19,6 +20,7 @@ vi.mock('@/lib/consts', () => ({
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from '../getAirdropOperator';
+import isSameArtist from '../isSameArtist';
 import notifyAirdrop from '../notifyAirdrop';
 
 const RECIPIENT = '0xrecipient0000000000000000000000000000000';
@@ -46,6 +48,7 @@ beforeEach(() => {
     address: SENDER,
     username: 'alice',
   });
+  vi.mocked(isSameArtist).mockResolvedValue(false);
   vi.mocked(telegramChatBotClient.sendMessage).mockResolvedValue(
     undefined as never
   );
@@ -71,11 +74,8 @@ describe('notifyAirdrop', () => {
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
   });
 
-  it('skips notification when operator is the recipient', async () => {
-    vi.mocked(getAirdropOperator).mockResolvedValue({
-      address: RECIPIENT,
-      username: null,
-    });
+  it('skips notification when operator and recipient are the same artist', async () => {
+    vi.mocked(isSameArtist).mockResolvedValue(true);
     await notifyAirdrop([makeTransfer()]);
     expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
   });
