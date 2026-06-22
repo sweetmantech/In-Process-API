@@ -1,19 +1,9 @@
-import type {
-  Catalog_Admins_t,
-  InProcess_Admins_t,
-  Sound_Admins_t,
-  ZoraMedia_Admins_t,
-} from '@/types/envio';
+import type { InProcess_Admins_t } from '@/types/envio';
 import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
 import type { DeleteAdminCriteria } from '@/types/indexerSupabase';
 
 export async function mapAdminsForDeletion(
-  admins: (
-    | InProcess_Admins_t
-    | Catalog_Admins_t
-    | Sound_Admins_t
-    | ZoraMedia_Admins_t
-  )[]
+  admins: InProcess_Admins_t[]
 ): Promise<DeleteAdminCriteria[]> {
   const collectionPairs: Array<[string, number]> = admins.map(
     (a) => [a.collection, a.chain_id] as [string, number]

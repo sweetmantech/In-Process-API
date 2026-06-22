@@ -1,4 +1,3 @@
-import { catalogAdminsIndexer } from './catalogAdminsIndexer';
 import { catalogCollectionsIndexer } from './catalogCollectionsIndexer';
 import { catalogMomentsIndexer } from './catalogMomentsIndexer';
 import { collectionsIndexer } from './collectionsIndexer';
@@ -9,9 +8,7 @@ import { salesIndexer } from './salesIndexer';
 import { transfersIndexer } from './transfersIndexer';
 import { soundEditionsIndexer } from './soundEditionsIndexer';
 import { soundMomentsIndexer } from './soundMomentsIndexer';
-import { soundAdminsIndexer } from './soundAdminsIndexer';
 import { zoraMomentsIndexer } from './zoraMomentsIndexer';
-import { zoraAdminsIndexer } from './zoraAdminsIndexer';
 import { zoraCollectionsIndexer } from './zoraCollectionsIndexer';
 import { zora1155MomentsIndexer } from './zora1155MomentsIndexer';
 import type { IndexConfig } from '@/types/indexerFactory';
@@ -31,9 +28,6 @@ export const indexers: IndexConfig<any>[] = [
   zora1155MomentsIndexer,
   // admins
   adminsIndexer,
-  catalogAdminsIndexer,
-  soundAdminsIndexer,
-  zoraAdminsIndexer,
 
   commentsIndexer,
   salesIndexer,

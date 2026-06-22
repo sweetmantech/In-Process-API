@@ -1,20 +1,10 @@
 import blockTsToISOString from '@/lib/blockTsToISOString';
-import type {
-  Catalog_Admins_t,
-  InProcess_Admins_t,
-  Sound_Admins_t,
-  ZoraMedia_Admins_t,
-} from '@/types/envio';
+import type { InProcess_Admins_t } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
 import { getCollectionInfoMap } from '@/lib/collection/getCollectionInfoMap';
 
 export async function mapAdminsToSupabase(
-  admins: (
-    | InProcess_Admins_t
-    | Catalog_Admins_t
-    | Sound_Admins_t
-    | ZoraMedia_Admins_t
-  )[]
+  admins: InProcess_Admins_t[]
 ): Promise<Database['public']['Tables']['in_process_admins']['Insert'][]> {
   const collectionPairs: Array<[string, number]> = admins.map(
     (a) => [a.collection, a.chain_id] as [string, number]

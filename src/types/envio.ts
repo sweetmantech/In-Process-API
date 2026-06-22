@@ -111,16 +111,6 @@ export type Catalog_Moments_t = {
   readonly transaction_hash: string;
 };
 
-export type Catalog_Admins_t = {
-  readonly id: string;
-  readonly admin: string;
-  readonly collection: string;
-  readonly token_id: string;
-  readonly chain_id: number;
-  readonly auth_scope: number;
-  readonly updated_at: number;
-};
-
 export type Catalog_Sales_t = {
   readonly id: string;
   readonly collection: string;
@@ -154,16 +144,6 @@ export type Sound_Moments_t = {
   readonly created_at: number;
   readonly updated_at: number;
   readonly transaction_hash: string;
-};
-
-export type Sound_Admins_t = {
-  readonly id: string;
-  readonly collection: string;
-  readonly token_id: string;
-  readonly admin: string;
-  readonly roles: number;
-  readonly chain_id: number;
-  readonly updated_at: number;
 };
 
 export type Zora_Collections_t = {
@@ -201,14 +181,4 @@ export type ZoraMedia_Moments_t = {
   readonly created_at: number;
   readonly updated_at: number;
   readonly transaction_hash: string;
-};
-
-export type ZoraMedia_Admins_t = {
-  readonly id: string;
-  readonly admin: string;
-  readonly collection: string;
-  readonly token_id: string; // BigInt from GraphQL comes as string
-  readonly chain_id: number;
-  readonly permission: number;
-  readonly updated_at: number;
 };
