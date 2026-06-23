@@ -1,8 +1,7 @@
 import { z } from 'zod';
-import { momentSchema } from '@/lib/schema/momentSchema';
 
 const hideMomentSchema = z.object({
-  moment: momentSchema,
+  momentId: z.uuid(),
 });
 
 export default hideMomentSchema;

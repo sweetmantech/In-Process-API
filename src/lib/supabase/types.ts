@@ -287,6 +287,42 @@ export type Database = {
           },
         ];
       };
+      in_process_hidden: {
+        Row: {
+          artist: string;
+          hidden_at: string;
+          id: string;
+          moment: string;
+        };
+        Insert: {
+          artist: string;
+          hidden_at?: string;
+          id?: string;
+          moment: string;
+        };
+        Update: {
+          artist?: string;
+          hidden_at?: string;
+          id?: string;
+          moment?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'in_process_hidden_artist_fkey';
+            columns: ['artist'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_artists';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'in_process_hidden_moment_fkey';
+            columns: ['moment'];
+            isOneToOne: false;
+            referencedRelation: 'in_process_moments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       in_process_metadata: {
         Row: {
           animation_url: string | null;
