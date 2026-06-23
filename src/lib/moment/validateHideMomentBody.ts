@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authMiddleware } from '@/authMiddleware';
 import { validate } from '@/lib/schema/validate';
 import hideMomentSchema from '@/lib/schema/hideMomentSchema';
-import type { Address } from 'viem';
 
 const validateHideMomentBody = async (req: NextRequest) => {
   const authResult = await authMiddleware(req);
