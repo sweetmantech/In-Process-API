@@ -71,7 +71,6 @@ export type Database = {
           artist_address: string;
           collection: string;
           granted_at: string;
-          hidden: boolean;
           id: string;
           token_id: number;
         };
@@ -79,7 +78,6 @@ export type Database = {
           artist_address: string;
           collection: string;
           granted_at: string;
-          hidden?: boolean;
           id?: string;
           token_id: number;
         };
@@ -87,7 +85,6 @@ export type Database = {
           artist_address?: string;
           collection?: string;
           granted_at?: string;
-          hidden?: boolean;
           id?: string;
           token_id?: number;
         };
@@ -655,7 +652,6 @@ export type Database = {
           p_collection: string;
           p_created_at: string;
           p_creator: string;
-          p_creator_hidden: boolean;
           p_creator_username: string;
           p_id: string;
           p_metadata: Json;
@@ -826,14 +822,6 @@ export type Database = {
           wallets: Json;
         }[];
       };
-      get_creator_hidden: {
-        Args: {
-          p_artist_address: string;
-          p_collection: string;
-          p_token_id: number;
-        };
-        Returns: boolean;
-      };
       get_in_process_timeline: {
         Args: {
           p_chainid?: number;
@@ -885,10 +873,6 @@ export type Database = {
           username: string;
           web_count: number;
         }[];
-      };
-      moment_is_visible: {
-        Args: { p_collection: string; p_hidden: boolean; p_token_id: number };
-        Returns: boolean;
       };
       moment_matches_channel: {
         Args: { p_channel: string; p_moment_id: string };
