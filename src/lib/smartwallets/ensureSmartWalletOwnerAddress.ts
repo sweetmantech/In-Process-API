@@ -1,19 +1,27 @@
 import { type Address, encodeFunctionData } from 'viem';
 import { EvmSmartAccount } from '@coinbase/cdp-sdk';
-import { IS_TESTNET } from '@/lib/consts';
+import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { coinbaseSmartWalletAbi } from '@/lib/abi/coinbaseSmartWalletAbi';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
+import isCoinbaseSmartWallet from './isCoinbaseSmartWallet';
 import isSmartWalletOwnerAddress from './isSmartWalletOwnerAddress';
 
 const ensureSmartWalletOwnerAddress = async (
   smartAccount: EvmSmartAccount,
   ownerAddress: Address
 ): Promise<void> => {
-  const isOwner = await isSmartWalletOwnerAddress(
+  const isDeployed = await isCoinbaseSmartWallet(
     smartAccount.address as Address,
-    ownerAddress
+    CHAIN_ID
   );
-  if (isOwner) return;
+
+  if (isDeployed) {
+    const isOwner = await isSmartWalletOwnerAddress(
+      smartAccount.address as Address,
+      ownerAddress
+    );
+    if (isOwner) return;
+  }
 
   const network = IS_TESTNET ? 'base-sepolia' : 'base';
   await sendUserOperation({
