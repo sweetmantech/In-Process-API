@@ -12,7 +12,7 @@ const selectAdmins = async ({
 }) => {
   let query = supabase
     .from('in_process_admins')
-    .select('artist_address, token_id, hidden, granted_at');
+    .select('artist_address, token_id, granted_at');
 
   if (moments && moments.length > 0) {
     const orConditions = moments
