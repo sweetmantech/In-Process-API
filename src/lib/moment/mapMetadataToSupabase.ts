@@ -2,6 +2,9 @@ import type { Database } from '@/lib/supabase/types';
 import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
 import getMimeType from '@/lib/arweave/getMimeType';
 import { retriesGeneric } from '@/lib/protocolSdk/retries';
+import getFarcasterUsernameByAddress from '@/lib/farcaster/getFarcasterUsernameByAddress';
+import resolveAddressToEns from '@/lib/ens/resolveAddressToEns';
+import type { Address } from 'viem';
 
 export type MapMetadataResult = {
   records: Array<Database['public']['Tables']['in_process_metadata']['Insert']>;
@@ -42,8 +45,17 @@ export async function mapMetadataToSupabase(
               data.animation_url = contentUri;
             }
             const creatorAddress = owner ?? collection.creator;
-            if (data?.artist)
+            if (data?.artist) {
               artistNamesByAddresses.set(creatorAddress, data.artist);
+            } else if (!artistNamesByAddresses.has(creatorAddress)) {
+              const farcasterName =
+                await getFarcasterUsernameByAddress(creatorAddress);
+              const resolvedName =
+                farcasterName ??
+                (await resolveAddressToEns(creatorAddress as Address));
+              if (resolvedName)
+                artistNamesByAddresses.set(creatorAddress, resolvedName);
+            }
             records.push({
               moment: id,
               name: data.name ?? null,
