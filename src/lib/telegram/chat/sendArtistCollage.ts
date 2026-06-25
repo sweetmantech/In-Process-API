@@ -18,7 +18,7 @@ const sendArtistCollage = async (
   );
   formData.append(
     'caption',
-    `See your latest moments at https://inprocess.world/${artistAddress}`
+    `See your latest moments at https://inprocess.world`
   );
   await (thread.adapter as any).telegramFetch('sendPhoto', formData);
 };
