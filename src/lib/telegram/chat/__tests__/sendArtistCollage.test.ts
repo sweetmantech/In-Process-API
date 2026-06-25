@@ -47,7 +47,7 @@ describe('sendArtistCollage', () => {
       .calls[0][1] as FormData;
     expect(form.get('chat_id')).toBe('1352384640');
     expect(form.get('caption')).toBe(
-      `See your latest moments at https://inprocess.world/${ARTIST}`
+      `See your latest moments at https://inprocess.world`
     );
     const photo = form.get('photo');
     expect(photo).toBeInstanceOf(Blob);
