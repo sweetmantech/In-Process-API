@@ -36,6 +36,15 @@ export enum MomentType {
   FixedPriceMint = 'fixedPrice',
 }
 
+export type MomentSaleConfig = {
+  pricePerToken: string;
+  saleStart: number;
+  saleEnd: number;
+  maxTokensPerAddress: number;
+  fundsRecipient: Address;
+  type: MomentType;
+};
+
 export interface TimelineMoment {
   address: string;
   token_id: string;
@@ -48,8 +57,10 @@ export interface TimelineMoment {
     username: string | null;
   };
   admins: string[];
+  hidden: string[];
   created_at: string;
   metadata: MomentMetadata | null;
+  sale: MomentSaleConfig | null;
 }
 
 export interface TimelinePagination {
@@ -109,15 +120,6 @@ export interface GetCollectionTimelineResponse {
   moments: TimelineMoment[];
   pagination: TimelinePagination;
 }
-
-export type MomentSaleConfig = {
-  pricePerToken: string;
-  saleStart: number;
-  saleEnd: number;
-  maxTokensPerAddress: number;
-  fundsRecipient: Address;
-  type: MomentType;
-};
 
 export type MomentResponse = {
   uri: string | null;

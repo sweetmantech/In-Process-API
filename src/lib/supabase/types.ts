@@ -656,6 +656,7 @@ export type Database = {
           p_id: string;
           p_metadata: Json;
           p_protocol: string;
+          p_sale?: Json;
           p_token_id: number;
           p_uri: string;
         };
