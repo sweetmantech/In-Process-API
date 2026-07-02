@@ -61,6 +61,7 @@ export interface TimelineMoment {
   created_at: string;
   metadata: MomentMetadata | null;
   sale: MomentSaleConfig | null;
+  comments: number;
 }
 
 export interface TimelinePagination {
