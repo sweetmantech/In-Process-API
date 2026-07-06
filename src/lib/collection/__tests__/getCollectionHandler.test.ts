@@ -34,11 +34,7 @@ const mockAdmins = [
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(selectCollections).mockResolvedValue({
-    data: [mockCollection] as any,
-    count: 1,
-    error: null,
-  });
+  vi.mocked(selectCollections).mockResolvedValue([mockCollection] as any);
   vi.mocked(selectAdmins).mockResolvedValue(mockAdmins as any);
   vi.mocked(fetchTokenMetadata).mockResolvedValue(mockMetadata as any);
 });
@@ -84,34 +80,20 @@ describe('getCollectionHandler', () => {
     });
   });
 
-  it('returns 404 when collection is not found', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [],
-      count: 0,
-      error: null,
-    });
+  it('throws when collection is not found', async () => {
+    vi.mocked(selectCollections).mockResolvedValue([]);
 
-    const res = await getCollectionHandler(baseInput);
-    const body = await res.json();
-
-    expect(res.status).toBe(404);
-    expect(body.status).toBe('error');
-    expect(body.message).toBe('Collection not found');
+    await expect(getCollectionHandler(baseInput)).rejects.toThrow(
+      'Collection not found'
+    );
   });
 
-  it('returns 500 when selectCollections returns an error', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: null,
-      count: null,
-      error: { message: 'db error' },
+  it('throws when selectCollections fails', async () => {
+    vi.mocked(selectCollections).mockRejectedValue({ message: 'db error' });
+
+    await expect(getCollectionHandler(baseInput)).rejects.toEqual({
+      message: 'db error',
     });
-
-    const res = await getCollectionHandler(baseInput);
-    const body = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(body.status).toBe('error');
-    expect(body.message).toBe('db error');
   });
 
   it('returns null metadata when fetchTokenMetadata throws', async () => {

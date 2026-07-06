@@ -32,7 +32,7 @@ const getOgMomentHandler = async ({
   let uri: string | null = null;
   let customGateway: string | undefined;
 
-  const { data: collections } = await selectCollections({
+  const collections = await selectCollections({
     addresses: [moment.collectionAddress],
     chainId: moment.chainId,
   });

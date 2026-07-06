@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+vi.mock('@/lib/supabase/in_process_collections/getCollectionsRpc', () => ({
   default: vi.fn(),
 }));
 
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import getCollectionsRpc from '@/lib/supabase/in_process_collections/getCollectionsRpc';
 import getCollectionsHandler from '@/lib/collection/getCollectionsHandler';
 
 const baseInput = { limit: 10, page: 1, chain_id: 8453 };
@@ -13,7 +13,7 @@ const mockCollection = { id: 'c1', address: '0xabc', chain_id: 8453 };
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(selectCollections).mockResolvedValue({
+  vi.mocked(getCollectionsRpc).mockResolvedValue({
     data: [mockCollection] as any,
     count: 1,
     error: null,
@@ -31,10 +31,10 @@ describe('getCollectionsHandler', () => {
     expect(body.pagination).toEqual({ page: 1, limit: 10, total_pages: 1 });
   });
 
-  it('calls selectCollections with correct args', async () => {
+  it('calls getCollectionsRpc with correct args', async () => {
     await getCollectionsHandler({ ...baseInput, artist: '0xartist' });
 
-    expect(selectCollections).toHaveBeenCalledWith({
+    expect(getCollectionsRpc).toHaveBeenCalledWith({
       artist: '0xartist',
       limit: 10,
       page: 1,
@@ -45,13 +45,13 @@ describe('getCollectionsHandler', () => {
   it('passes undefined artist when artist is not provided', async () => {
     await getCollectionsHandler(baseInput);
 
-    expect(selectCollections).toHaveBeenCalledWith(
+    expect(getCollectionsRpc).toHaveBeenCalledWith(
       expect.objectContaining({ artist: undefined })
     );
   });
 
   it('calculates total_pages from count', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: [] as any,
       count: 25,
       error: null,
@@ -63,8 +63,8 @@ describe('getCollectionsHandler', () => {
     expect(body.pagination.total_pages).toBe(3);
   });
 
-  it('returns 500 when selectCollections returns an error', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+  it('returns 500 when getCollectionsRpc returns an error', async () => {
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: null,
       count: null,
       error: { message: 'db error' } as any,

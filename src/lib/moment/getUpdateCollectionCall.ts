@@ -20,15 +20,14 @@ const getUpdateCollectionCall = async ({
   contract,
   artistAddress,
 }: UpdateCollectionCallInput) => {
-  const [{ saleConfig }, { data: collections }, { data: dbMoments }] =
-    await Promise.all([
-      getInProcessMomentInfo(moment),
-      selectCollections({
-        addresses: [contract.address],
-        chainId: moment.chainId,
-      }),
-      selectMoments({ moments: [moment] }),
-    ]);
+  const [{ saleConfig }, collections, { data: dbMoments }] = await Promise.all([
+    getInProcessMomentInfo(moment),
+    selectCollections({
+      addresses: [contract.address],
+      chainId: moment.chainId,
+    }),
+    selectMoments({ moments: [moment] }),
+  ]);
 
   const dbMoment = dbMoments?.[0];
   const collection = collections?.[0] ?? null;

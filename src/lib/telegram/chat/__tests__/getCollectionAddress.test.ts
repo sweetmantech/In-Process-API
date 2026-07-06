@@ -21,11 +21,9 @@ const makeThread = () => ({ channelId: 'telegram:chat-1' });
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getSelectedCollectionAddress).mockResolvedValue(null);
-  vi.mocked(selectCollections).mockResolvedValue({
-    data: [{ address: DEFAULT_COLLECTION, name: 'Default' } as never],
-    count: 1,
-    error: null,
-  });
+  vi.mocked(selectCollections).mockResolvedValue([
+    { address: DEFAULT_COLLECTION, name: 'Default' } as never,
+  ]);
 });
 
 describe('getCollectionAddress', () => {
@@ -56,7 +54,6 @@ describe('getCollectionAddress', () => {
       artist: ARTIST_ADDRESS,
       chainId: expect.any(Number),
       limit: 1,
-      page: 1,
     });
     expect(result).toEqual({
       collectionAddress: getAddress(DEFAULT_COLLECTION),
@@ -65,11 +62,7 @@ describe('getCollectionAddress', () => {
   });
 
   it('returns null when the artist has no collections', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [],
-      count: 0,
-      error: null,
-    });
+    vi.mocked(selectCollections).mockResolvedValue([]);
 
     const result = await getCollectionAddress(
       makeThread() as never,
@@ -82,12 +75,8 @@ describe('getCollectionAddress', () => {
     });
   });
 
-  it('throws when selectCollections returns an error', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: null,
-      count: null,
-      error: { message: 'db error' },
-    });
+  it('throws when selectCollections fails', async () => {
+    vi.mocked(selectCollections).mockRejectedValue({ message: 'db error' });
 
     await expect(
       getCollectionAddress(makeThread() as never, ARTIST_ADDRESS)

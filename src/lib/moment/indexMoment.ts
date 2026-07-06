@@ -7,8 +7,7 @@ import selectCollections from '@/lib/supabase/in_process_collections/selectColle
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
-import { upsertMetadata } from '@/lib/supabase/in_process_metadata/upsertMetadata';
-import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
+import upsertMomentMetadataFromUri from './upsertMomentMetadataFromUri';
 
 type CreateMomentContractInput = z.infer<typeof createMomentSchema>;
 
@@ -16,99 +15,83 @@ export type IndexMomentParams = {
   contractAddress: Address;
   tokenId: string;
   artistAddress: string;
-  channel?: CreateMomentContractInput['channel'];
-  token: Pick<
-    CreateMomentContractInput['token'],
-    'tokenMetadataURI' | 'maxSupply'
-  >;
+  uri: string;
   chainId?: number;
+  channel?: CreateMomentContractInput['channel'];
+  maxSupply?: number;
 };
 
 const indexMoment = async ({
   contractAddress,
   tokenId,
   artistAddress,
+  uri,
   channel,
-  token,
-  chainId,
+  maxSupply,
+  chainId = CHAIN_ID,
 }: IndexMomentParams) => {
-  const resolvedChainId = chainId ?? CHAIN_ID;
   const artist = getAddress(artistAddress).toLowerCase();
   const normalizedAddress = getAddress(contractAddress).toLowerCase();
-  await ensureWallets([artist]);
 
-  const { data: collections } = await selectCollections({
+  const collections = await selectCollections({
     addresses: [normalizedAddress],
-    chainId: resolvedChainId,
+    chainId,
   });
-  const existingCollection = collections?.[0] ?? null;
-
-  let collectionId = existingCollection?.id ?? '';
-  if (!existingCollection?.id) {
-    const placeholder = new Date(0).toISOString();
-    const upserted = await upsertCollections([
-      {
-        address: normalizedAddress,
-        chain_id: resolvedChainId,
-        creator: artist,
-        protocol: 'in_process',
-        created_at: placeholder,
-        updated_at: placeholder,
-        uri: '',
-        name: '',
-      },
-    ]);
-    collectionId = upserted[0]?.id ?? '';
-  }
-  if (!collectionId) return;
 
   const { data: existingMoments } = await selectMoments({
     moments: [
       {
         collectionAddress: normalizedAddress as Address,
         tokenId,
-        chainId: resolvedChainId,
+        chainId,
       },
     ],
-    chainId: resolvedChainId,
+    chainId,
     limit: 1,
   });
+  const existingMoment = existingMoments?.[0];
 
-  let momentId = existingMoments?.[0]?.id;
-  if (!momentId) {
+  let collectionId: string | undefined =
+    collections?.[0]?.id ?? existingMoment?.collection.id;
+
+  if (!collectionId) {
+    await ensureWallets([artist]);
     const timestamp = new Date().toISOString();
-    const upserted = await upsertMoments([
+    const upserted = await upsertCollections([
       {
-        collection: collectionId,
-        token_id: Number(tokenId),
-        uri: token.tokenMetadataURI,
-        max_supply: token.maxSupply ?? 0,
+        address: normalizedAddress,
+        chain_id: chainId,
+        creator: artist,
+        protocol: 'in_process',
         created_at: timestamp,
         updated_at: timestamp,
-        ...(channel && { channel }),
+        uri: '',
+        name: '',
       },
     ]);
-    momentId = upserted[0]?.id;
+    collectionId = upserted[0]?.id;
   }
+
+  if (!collectionId) return;
+
+  const timestamp = new Date().toISOString();
+  const upserted = await upsertMoments([
+    {
+      collection: collectionId,
+      token_id: Number(tokenId),
+      uri,
+      max_supply: existingMoment ? existingMoment.max_supply : (maxSupply ?? 0),
+      created_at: existingMoment ? existingMoment.created_at : timestamp,
+      updated_at: timestamp,
+      ...(!existingMoment && channel && { channel }),
+    },
+  ]);
+
+  const momentId = existingMoment?.id ?? upserted[0]?.id;
 
   if (!momentId) return;
 
-  try {
-    const data = await getMetadataHandler({ uri: token.tokenMetadataURI });
-    await upsertMetadata([
-      {
-        moment: momentId,
-        name: data.name ?? null,
-        description: data.description ?? null,
-        image: data.image ?? null,
-        animation_url: data.animation_url ?? null,
-        external_url: data.external_url ?? null,
-        content: data.content ?? null,
-      },
-    ]);
-  } catch (e) {
-    console.error('[indexMoment] failed to upsert metadata:', e);
-  }
+  await upsertMomentMetadataFromUri(momentId, uri);
 };
 
 export default indexMoment;

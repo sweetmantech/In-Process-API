@@ -9,7 +9,7 @@ import getZoraMediaInfo from '@/lib/viem/getZoraMediaInfo';
 import { Moment } from '@/types/moment';
 
 const getMomentHandler = async (moment: Moment) => {
-  const { data: collections } = await selectCollections({
+  const collections = await selectCollections({
     addresses: [moment.collectionAddress],
     chainId: moment.chainId,
   });

@@ -92,11 +92,7 @@ const normalizedMetadata = {
 describe('getMomentHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [mockCollection],
-      count: 1,
-      error: null,
-    } as any);
+    vi.mocked(selectCollections).mockResolvedValue([mockCollection] as any);
     vi.mocked(resolveMomentInfo).mockResolvedValue(mockResolved as any);
     vi.mocked(getMetadata).mockResolvedValue(rawMetadata as any);
     vi.mocked(getMomentAdmins).mockResolvedValue([ADMIN] as any);
@@ -164,11 +160,7 @@ describe('getMomentHandler', () => {
   });
 
   it('falls back to null collection when selectCollections returns null', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [],
-      count: 0,
-      error: null,
-    } as any);
+    vi.mocked(selectCollections).mockResolvedValue([] as any);
 
     const res = await getMomentHandler(moment);
     const json = await res.json();
@@ -227,11 +219,9 @@ describe('getMomentHandler', () => {
     const ON_CHAIN_OWNER = '0x000000000000000000000000000000000000bbbb';
 
     beforeEach(() => {
-      vi.mocked(selectCollections).mockResolvedValue({
-        data: [{ ...mockCollection, protocol: 'zora_media' }],
-        count: 1,
-        error: null,
-      } as any);
+      vi.mocked(selectCollections).mockResolvedValue([
+        { ...mockCollection, protocol: 'zora_media' },
+      ] as any);
       vi.mocked(resolveMomentInfo).mockResolvedValue({
         ...mockResolved,
         owner: CREATOR,

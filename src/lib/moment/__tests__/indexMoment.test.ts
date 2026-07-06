@@ -16,10 +16,7 @@ vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
 vi.mock('@/lib/supabase/in_process_moments/upsertMoments', () => ({
   upsertMoments: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_metadata/upsertMetadata', () => ({
-  upsertMetadata: vi.fn(),
-}));
-vi.mock('@/lib/metadata/getMetadataHandler', () => ({
+vi.mock('../upsertMomentMetadataFromUri', () => ({
   default: vi.fn(),
 }));
 
@@ -28,8 +25,7 @@ import selectCollections from '@/lib/supabase/in_process_collections/selectColle
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { upsertMoments } from '@/lib/supabase/in_process_moments/upsertMoments';
-import { upsertMetadata } from '@/lib/supabase/in_process_metadata/upsertMetadata';
-import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
+import upsertMomentMetadataFromUri from '../upsertMomentMetadataFromUri';
 
 const CONTRACT = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Address;
 const ARTIST = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Address;
@@ -37,30 +33,18 @@ const TOKEN_ID = '1';
 const COLLECTION_ID = 'col-uuid';
 const MOMENT_ID = 'moment-uuid';
 
-const MOCK_METADATA = {
-  name: 'Test Moment',
-  description: 'A test',
-  image: 'ar://image',
-  animation_url: null,
-  external_url: null,
-  content: { mime: 'image/jpeg', uri: 'ar://image' },
-};
-
 const baseParams = {
   contractAddress: CONTRACT,
   tokenId: TOKEN_ID,
   artistAddress: ARTIST,
-  token: { tokenMetadataURI: 'ar://token-meta', maxSupply: 100 },
+  uri: 'ar://token-meta',
+  maxSupply: 100,
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(selectCollections).mockResolvedValue([] as never);
   vi.mocked(ensureWallets).mockResolvedValue(undefined as never);
-  vi.mocked(selectCollections).mockResolvedValue({
-    data: [],
-    count: 0,
-    error: null,
-  } as never);
   vi.mocked(upsertCollections).mockResolvedValue([
     { id: COLLECTION_ID },
   ] as never);
@@ -69,11 +53,29 @@ beforeEach(() => {
     error: null,
   } as never);
   vi.mocked(upsertMoments).mockResolvedValue([{ id: MOMENT_ID }] as never);
-  vi.mocked(getMetadataHandler).mockResolvedValue(MOCK_METADATA as never);
-  vi.mocked(upsertMetadata).mockResolvedValue(undefined);
+  vi.mocked(upsertMomentMetadataFromUri).mockResolvedValue(undefined);
 });
 
 describe('indexMoment', () => {
+  it('queries selectCollections by address and chainId first', async () => {
+    await indexMoment(baseParams);
+
+    expect(selectCollections).toHaveBeenCalledWith({
+      addresses: [getAddress(CONTRACT).toLowerCase()],
+      chainId: 8453,
+    });
+  });
+
+  it('skips collection upsert when selectCollections finds the collection', async () => {
+    vi.mocked(selectCollections).mockResolvedValue([
+      { id: COLLECTION_ID },
+    ] as never);
+
+    await indexMoment(baseParams);
+
+    expect(upsertCollections).not.toHaveBeenCalled();
+  });
+
   it('ensures artist exists with normalized address', async () => {
     await indexMoment(baseParams);
     expect(ensureWallets).toHaveBeenCalledWith([
@@ -81,7 +83,7 @@ describe('indexMoment', () => {
     ]);
   });
 
-  it('creates a new collection when none exists', async () => {
+  it('creates a new collection when moment does not exist', async () => {
     await indexMoment(baseParams);
     expect(upsertCollections).toHaveBeenCalledWith(
       expect.arrayContaining([
@@ -97,10 +99,20 @@ describe('indexMoment', () => {
     );
   });
 
-  it('skips collection upsert when collection already exists', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [{ id: COLLECTION_ID }],
-      count: 1,
+  it('skips collection upsert when moment already exists', async () => {
+    vi.mocked(selectCollections).mockResolvedValue([
+      { id: COLLECTION_ID },
+    ] as never);
+    vi.mocked(selectMoments).mockResolvedValue({
+      data: [
+        {
+          id: MOMENT_ID,
+          uri: 'ar://old-metadata',
+          max_supply: 50,
+          created_at: '2024-01-01T00:00:00.000Z',
+          collection: { id: COLLECTION_ID },
+        },
+      ],
       error: null,
     } as never);
 
@@ -110,12 +122,6 @@ describe('indexMoment', () => {
   });
 
   it('upserts moment with channel when provided', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [{ id: COLLECTION_ID }],
-      count: 1,
-      error: null,
-    } as never);
-
     await indexMoment({ ...baseParams, channel: 'sms' });
 
     expect(upsertMoments).toHaveBeenCalledWith(
@@ -130,32 +136,44 @@ describe('indexMoment', () => {
   });
 
   it('omits channel from upsert when not provided', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [{ id: COLLECTION_ID }],
-      count: 1,
-      error: null,
-    } as never);
-
     await indexMoment(baseParams);
 
     const call = vi.mocked(upsertMoments).mock.calls[0][0][0];
     expect(call).not.toHaveProperty('channel');
   });
 
-  it('skips moment upsert when moment already exists', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [{ id: COLLECTION_ID }],
-      count: 1,
-      error: null,
-    } as never);
+  it('updates uri and metadata when moment already exists', async () => {
+    const existingId = 'existing-moment-id';
     vi.mocked(selectMoments).mockResolvedValue({
-      data: [{ id: 'existing-moment-id' }],
+      data: [
+        {
+          id: existingId,
+          uri: 'ar://old-metadata',
+          max_supply: 50,
+          created_at: '2024-01-01T00:00:00.000Z',
+          collection: { id: COLLECTION_ID },
+        },
+      ],
       error: null,
     } as never);
 
     await indexMoment(baseParams);
 
-    expect(upsertMoments).not.toHaveBeenCalled();
+    expect(ensureWallets).not.toHaveBeenCalled();
+    expect(upsertCollections).not.toHaveBeenCalled();
+    expect(upsertMoments).toHaveBeenCalledWith([
+      expect.objectContaining({
+        collection: COLLECTION_ID,
+        token_id: Number(TOKEN_ID),
+        uri: baseParams.uri,
+        max_supply: 50,
+        created_at: '2024-01-01T00:00:00.000Z',
+      }),
+    ]);
+    expect(upsertMomentMetadataFromUri).toHaveBeenCalledWith(
+      existingId,
+      baseParams.uri
+    );
   });
 
   it('returns early without upserting moment when collectionId cannot be resolved', async () => {
@@ -166,66 +184,13 @@ describe('indexMoment', () => {
     expect(upsertMoments).not.toHaveBeenCalled();
   });
 
-  it('fetches and upserts metadata after moment is created', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [{ id: COLLECTION_ID }],
-      count: 1,
-      error: null,
-    } as never);
-
+  it('upserts metadata after moment is created', async () => {
     await indexMoment(baseParams);
 
-    expect(getMetadataHandler).toHaveBeenCalledWith({
-      uri: baseParams.token.tokenMetadataURI,
-    });
-    expect(upsertMetadata).toHaveBeenCalledWith([
-      {
-        moment: MOMENT_ID,
-        name: MOCK_METADATA.name,
-        description: MOCK_METADATA.description,
-        image: MOCK_METADATA.image,
-        animation_url: null,
-        external_url: null,
-        content: MOCK_METADATA.content,
-      },
-    ]);
-  });
-
-  it('upserts metadata using existing moment id when moment already exists', async () => {
-    const existingId = 'existing-moment-id';
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [{ id: COLLECTION_ID }],
-      count: 1,
-      error: null,
-    } as never);
-    vi.mocked(selectMoments).mockResolvedValue({
-      data: [{ id: existingId }],
-      error: null,
-    } as never);
-
-    await indexMoment(baseParams);
-
-    expect(upsertMetadata).toHaveBeenCalledWith([
-      expect.objectContaining({ moment: existingId }),
-    ]);
-  });
-
-  it('logs error but does not throw when getMetadataHandler fails', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
-      data: [{ id: COLLECTION_ID }],
-      count: 1,
-      error: null,
-    } as never);
-    vi.mocked(getMetadataHandler).mockRejectedValue(new Error('fetch failed'));
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(indexMoment(baseParams)).resolves.toBeUndefined();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[indexMoment] failed to upsert metadata:',
-      expect.any(Error)
+    expect(upsertMomentMetadataFromUri).toHaveBeenCalledWith(
+      MOMENT_ID,
+      baseParams.uri
     );
-
-    consoleSpy.mockRestore();
   });
 
   it('skips metadata upsert when momentId cannot be resolved', async () => {
@@ -233,6 +198,6 @@ describe('indexMoment', () => {
 
     await indexMoment(baseParams);
 
-    expect(upsertMetadata).not.toHaveBeenCalled();
+    expect(upsertMomentMetadataFromUri).not.toHaveBeenCalled();
   });
 });

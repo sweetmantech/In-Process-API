@@ -1,7 +1,7 @@
 import type { TelegramChatBot } from '../bot';
 import { Card, Actions, Button } from 'chat';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import getCollectionsRpc from '@/lib/supabase/in_process_collections/getCollectionsRpc';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTIONS_LOAD_MORE_ACTION_ID,
@@ -32,7 +32,7 @@ export function registerOnCollectionsLoadMore(bot: TelegramChatBot) {
       artist.wallets as Tables<'in_process_wallets'>[]
     );
 
-    const { data, count, error } = await selectCollections({
+    const { data, count, error } = await getCollectionsRpc({
       artist: artistAddress,
       chainId: CHAIN_ID,
       limit: 20,

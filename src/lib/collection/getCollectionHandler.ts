@@ -12,25 +12,13 @@ const getCollectionHandler = async ({
   collectionAddress,
   chainId,
 }: GetCollectionInput): Promise<NextResponse> => {
-  const { data: collections, error } = await selectCollections({
+  const collections = await selectCollections({
     addresses: [collectionAddress],
     chainId,
   });
   const collection = collections?.[0] ?? null;
 
-  if (error) {
-    return NextResponse.json(
-      { status: 'error', message: error.message },
-      { status: 500 }
-    );
-  }
-
-  if (!collection) {
-    return NextResponse.json(
-      { status: 'error', message: 'Collection not found' },
-      { status: 404 }
-    );
-  }
+  if (!collection) throw new Error('Collection not found');
 
   let metadata = null;
   try {
@@ -47,7 +35,14 @@ const getCollectionHandler = async ({
     new Set(admins.map((admin) => admin.artist_address))
   ).sort((b, a) => b.localeCompare(a));
 
-  return NextResponse.json({ ...collection, metadata, admins: uniqueAdmins });
+  const { creator_wallet, ...collectionFields } = collection;
+
+  return NextResponse.json({
+    ...collectionFields,
+    creator_username: creator_wallet?.artist?.username ?? null,
+    metadata,
+    admins: uniqueAdmins,
+  });
 };
 
 export default getCollectionHandler;

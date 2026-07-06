@@ -68,9 +68,12 @@ describe('getAirdropOperator', () => {
     });
 
     it('returns collection creator when operator is factory', async () => {
-      mockSelectCollections.mockResolvedValue({
-        data: [{ creator: creatorAddress, creator_username: 'factoryCreator' }],
-      } as never);
+      mockSelectCollections.mockResolvedValue([
+        {
+          creator: creatorAddress,
+          creator_wallet: { artist: { username: 'factoryCreator' } },
+        },
+      ] as never);
 
       const result = await getAirdropOperator(transferFixture());
 
@@ -86,14 +89,14 @@ describe('getAirdropOperator', () => {
     });
 
     it('throws Collection not found when selectCollections returns empty', async () => {
-      mockSelectCollections.mockResolvedValue({ data: [] } as never);
+      mockSelectCollections.mockResolvedValue([] as never);
       await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
         'Collection not found'
       );
     });
 
     it('throws Collection not found when selectCollections returns null', async () => {
-      mockSelectCollections.mockResolvedValue({ data: null } as never);
+      mockSelectCollections.mockResolvedValue(null as never);
       await expect(getAirdropOperator(transferFixture())).rejects.toThrow(
         'Collection not found'
       );

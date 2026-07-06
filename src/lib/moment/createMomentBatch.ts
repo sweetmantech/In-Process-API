@@ -64,7 +64,8 @@ const createMomentBatch = async (
         contractAddress,
         tokenId,
         channel: input.channel,
-        token: input.tokens[index],
+        uri: input.tokens[index].tokenMetadataURI,
+        maxSupply: input.tokens[index].maxSupply,
         chainId: input.chainId,
       })
     )
