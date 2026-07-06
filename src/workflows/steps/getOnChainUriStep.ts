@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
+import getInProcessMomentUri from '@/lib/viem/getInProcessMomentUri';
 
 export default async function getOnChainUriStep(moment: {
   collectionAddress: Address;
@@ -7,6 +7,5 @@ export default async function getOnChainUriStep(moment: {
   chainId: number;
 }): Promise<string> {
   'use step';
-  const { tokenUri } = await getInProcessMomentInfo(moment);
-  return tokenUri;
+  return getInProcessMomentUri(moment);
 }
