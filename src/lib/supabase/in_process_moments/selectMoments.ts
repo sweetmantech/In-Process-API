@@ -1,5 +1,18 @@
 import { supabase } from '../client';
 import { Moment } from '@/types/moment';
+import type { Database } from '@/lib/supabase/types';
+
+type MomentRow = Database['public']['Tables']['in_process_moments']['Row'];
+
+export type MomentWithCollection = Omit<MomentRow, 'collection'> & {
+  collection: {
+    id: string;
+    address: string;
+    chain_id: number;
+    creator: string;
+    protocol: string;
+  };
+};
 
 const selectMoments = async ({
   moments,
@@ -11,7 +24,10 @@ const selectMoments = async ({
   artists?: string[];
   chainId?: number;
   limit?: number;
-} = {}) => {
+} = {}): Promise<{
+  data: MomentWithCollection[] | null;
+  error: { message: string } | null;
+}> => {
   let query = supabase
     .from('in_process_moments')
     .select(
@@ -37,7 +53,7 @@ const selectMoments = async ({
 
   const { data, error } = await query;
   if (error) return { data: null, error };
-  return { data: data ?? [], error: null };
+  return { data: (data ?? []) as MomentWithCollection[], error: null };
 };
 
 export default selectMoments;

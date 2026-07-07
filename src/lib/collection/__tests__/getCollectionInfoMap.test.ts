@@ -19,18 +19,14 @@ describe('getCollectionInfoMap', () => {
   });
 
   it('returns map keyed by lowercase address:chainId with id and creator', async () => {
-    mockSelectCollections.mockResolvedValue({
-      data: [
-        {
-          id: 'col-uuid',
-          address: '0xABC',
-          chain_id: 8453,
-          creator: '0xcreator',
-        },
-      ],
-      count: 1,
-      error: null,
-    } as any);
+    mockSelectCollections.mockResolvedValue([
+      {
+        id: 'col-uuid',
+        address: '0xABC',
+        chain_id: 8453,
+        creator: '0xcreator',
+      },
+    ] as any);
 
     const result = await getCollectionInfoMap([['0xABC', 8453]]);
     expect(result.get('0xabc:8453')).toEqual({
@@ -40,36 +36,28 @@ describe('getCollectionInfoMap', () => {
   });
 
   it('ignores collections not in the requested pairs', async () => {
-    mockSelectCollections.mockResolvedValue({
-      data: [
-        {
-          id: 'col-1',
-          address: '0xaaa',
-          chain_id: 8453,
-          creator: '0xcreator1',
-        },
-        {
-          id: 'col-2',
-          address: '0xbbb',
-          chain_id: 8453,
-          creator: '0xcreator2',
-        },
-      ],
-      count: 2,
-      error: null,
-    } as any);
+    mockSelectCollections.mockResolvedValue([
+      {
+        id: 'col-1',
+        address: '0xaaa',
+        chain_id: 8453,
+        creator: '0xcreator1',
+      },
+      {
+        id: 'col-2',
+        address: '0xbbb',
+        chain_id: 8453,
+        creator: '0xcreator2',
+      },
+    ] as any);
 
     const result = await getCollectionInfoMap([['0xaaa', 8453]]);
     expect(result.size).toBe(1);
     expect(result.has('0xbbb:8453')).toBe(false);
   });
 
-  it('throws when selectCollections returns an error', async () => {
-    mockSelectCollections.mockResolvedValue({
-      data: null,
-      count: null,
-      error: new Error('db error'),
-    } as any);
+  it('throws when selectCollections fails', async () => {
+    mockSelectCollections.mockRejectedValue(new Error('db error'));
 
     await expect(getCollectionInfoMap([['0xabc', 8453]])).rejects.toThrow(
       'db error'
@@ -77,11 +65,7 @@ describe('getCollectionInfoMap', () => {
   });
 
   it('passes the correct query to selectCollections', async () => {
-    mockSelectCollections.mockResolvedValue({
-      data: [],
-      count: 0,
-      error: null,
-    } as any);
+    mockSelectCollections.mockResolvedValue([] as any);
     await getCollectionInfoMap([['0xABC', 8453]]);
     expect(mockSelectCollections).toHaveBeenCalledWith({
       addresses: ['0xABC'],

@@ -33,7 +33,7 @@ export async function getMomentIdMap(
   );
   const momentMap = new Map<string, string>();
   for (const moment of data ?? []) {
-    const col = moment.collection as { address: string; chain_id: number };
+    const col = moment.collection;
     const key = `${col.address.toLowerCase()}:${col.chain_id}:${moment.token_id}`;
     if (requestedTriplets.has(key)) {
       momentMap.set(key, moment.id);

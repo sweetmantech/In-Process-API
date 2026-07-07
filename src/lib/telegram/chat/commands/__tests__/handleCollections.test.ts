@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Address } from 'viem';
 import { Card, Actions, Button } from 'chat';
 
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+vi.mock('@/lib/supabase/in_process_collections/getCollectionsRpc', () => ({
   default: vi.fn(),
 }));
 
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import getCollectionsRpc from '@/lib/supabase/in_process_collections/getCollectionsRpc';
 import handleCollections from '../handleCollections';
 import {
   COLLECTION_SELECT_ACTION_ID,
@@ -27,7 +27,7 @@ beforeEach(() => {
 
 describe('handleCollections', () => {
   it('posts empty state when the artist has no collections', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: [],
       count: 0,
       error: null,
@@ -36,7 +36,7 @@ describe('handleCollections', () => {
     const thread = makeThread();
     await handleCollections(thread as never, ARTIST_ADDRESS);
 
-    expect(selectCollections).toHaveBeenCalledWith({
+    expect(getCollectionsRpc).toHaveBeenCalledWith({
       artist: ARTIST_ADDRESS,
       limit: 20,
       chainId: CHAIN_ID,
@@ -48,7 +48,7 @@ describe('handleCollections', () => {
   });
 
   it('posts a card with one button per collection', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: [
         { address: '0xc1', name: 'First Drop' },
         { address: '0xc2', name: 'Second Drop' },
@@ -84,7 +84,7 @@ describe('handleCollections', () => {
   });
 
   it('adds a Load more button when total exceeds the fetched page', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: [{ address: '0xc1', name: 'First Drop' }] as never,
       count: 50,
       error: null,
@@ -117,7 +117,7 @@ describe('handleCollections', () => {
   });
 
   it('rethrows on select error', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: null,
       count: null,
       error: { message: 'db down' } as never,

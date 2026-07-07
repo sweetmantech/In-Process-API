@@ -123,7 +123,8 @@ describe('createMomentBatch', () => {
       contractAddress: CONTRACT,
       tokenId: '10',
       channel: 'web',
-      token: input.tokens[0],
+      uri: input.tokens[0].tokenMetadataURI,
+      maxSupply: input.tokens[0].maxSupply,
       chainId: 8453,
     });
     expect(indexMoment).toHaveBeenCalledWith({
@@ -131,7 +132,8 @@ describe('createMomentBatch', () => {
       contractAddress: CONTRACT,
       tokenId: '11',
       channel: 'web',
-      token: input.tokens[1],
+      uri: input.tokens[1].tokenMetadataURI,
+      maxSupply: input.tokens[1].maxSupply,
       chainId: 8453,
     });
   });

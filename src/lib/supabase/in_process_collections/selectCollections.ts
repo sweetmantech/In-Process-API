@@ -1,56 +1,44 @@
 import { supabase } from '../client';
 
-type Collection = {
-  id: string;
-  address: string;
-  name: string;
-  chain_id: number;
-  created_at: string;
-  uri: string;
-  protocol: string;
-  creator: string;
-  creator_username: string | null;
-  admins: { artist_address: string; token_id: number }[];
-};
-
-type RpcResult = {
-  collections: Collection[];
-  total_count: number;
-};
-
 const selectCollections = async ({
+  addresses,
   artist,
   chainId,
-  limit = 20,
-  page = 1,
-  addresses,
+  limit,
 }: {
+  addresses?: string[];
   artist?: string;
   chainId?: number;
   limit?: number;
-  page?: number;
-  addresses?: string[];
-} = {}): Promise<{
-  data: Collection[] | null;
-  count: number | null;
-  error: { message: string } | null;
-}> => {
-  const { data: rawData, error } = await supabase.rpc('get_collections', {
-    p_artist: artist?.toLowerCase(),
-    p_chainid: chainId,
-    p_limit: limit,
-    p_page: page,
-    p_addresses: addresses?.map((a) => a.toLowerCase()) ?? undefined,
-  });
+} = {}) => {
+  let query = supabase.from('in_process_collections').select(
+    `*,
+      creator_wallet:in_process_wallets!creator(
+        artist:in_process_artists(username)
+      )`
+  );
 
-  if (error) return { data: null, count: null, error };
+  if (addresses?.length) {
+    query = query.in(
+      'address',
+      addresses.map((address) => address.toLowerCase())
+    );
+  }
 
-  const result = rawData as unknown as RpcResult;
-  return {
-    data: result.collections ?? [],
-    count: result.total_count ?? 0,
-    error: null,
-  };
+  if (artist) {
+    query = query
+      .eq('creator', artist.toLowerCase())
+      .eq('protocol', 'in_process');
+  }
+
+  if (chainId) query = query.eq('chain_id', chainId);
+  if (limit) query = query.limit(limit);
+
+  query = query.order('created_at', { ascending: false });
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
 };
 
 export default selectCollections;

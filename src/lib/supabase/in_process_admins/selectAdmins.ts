@@ -3,16 +3,18 @@ import { supabase } from '../client';
 const selectAdmins = async ({
   moments,
   artist_address,
+  collectionIds,
 }: {
   moments?: Array<{
     collectionId: string;
     token_id: number;
   }>;
   artist_address?: string;
+  collectionIds?: string[];
 }) => {
   let query = supabase
     .from('in_process_admins')
-    .select('artist_address, token_id, granted_at');
+    .select('artist_address, token_id, granted_at, collection');
 
   if (moments && moments.length > 0) {
     const orConditions = moments
@@ -22,6 +24,10 @@ const selectAdmins = async ({
       )
       .join(',');
     query = query.or(orConditions);
+  }
+
+  if (collectionIds?.length) {
+    query = query.in('collection', collectionIds);
   }
 
   if (artist_address) {

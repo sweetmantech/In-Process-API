@@ -16,10 +16,20 @@ vi.mock('@/lib/moment/getUpdateCollectionCall', () => ({
   default: vi.fn(),
 }));
 
+vi.mock('@/lib/moment/indexMoment', () => ({
+  default: vi.fn(),
+}));
+
+vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
+  default: vi.fn(),
+}));
+
 import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateTokenURICall from '@/lib/viem/getUpdateTokenURICall';
 import getUpdateCollectionCall from '@/lib/moment/getUpdateCollectionCall';
+import indexMoment from '@/lib/moment/indexMoment';
+import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import { updateMomentURI } from '@/lib/moment/updateMomentURI';
 
 const COLLECTION = '0x1111111111111111111111111111111111111111' as const;
@@ -55,6 +65,11 @@ describe('updateMomentURI', () => {
     vi.mocked(sendUserOperation).mockResolvedValue({
       transactionHash: TX_HASH,
     } as any);
+    vi.mocked(selectMoments).mockResolvedValue({
+      data: [{ max_supply: 100 }],
+      error: null,
+    } as any);
+    vi.mocked(indexMoment).mockResolvedValue(undefined);
   });
 
   it('returns hash, chainId, contractAddress, tokenId', async () => {
@@ -74,6 +89,20 @@ describe('updateMomentURI', () => {
         calls: [{ to: COLLECTION, data: '0xcalldata' }],
       })
     );
+  });
+
+  it('indexes updated metadata after the transaction', async () => {
+    await updateMomentURI(baseInput);
+
+    expect(selectMoments).not.toHaveBeenCalled();
+    expect(indexMoment).toHaveBeenCalledWith({
+      contractAddress: COLLECTION,
+      tokenId: '3',
+      uri: baseInput.newUri,
+      chainId: 8453,
+      artistAddress: ARTIST,
+    });
+    expect(indexMoment).toHaveBeenCalledTimes(1);
   });
 
   it('propagates errors from sendUserOperation', async () => {
@@ -124,6 +153,38 @@ describe('updateMomentURI', () => {
           ],
         })
       );
+    });
+
+    it('indexes new and redirect moments after the transaction', async () => {
+      vi.mocked(getUpdateCollectionCall).mockResolvedValue({
+        call: { to: NEW_COLLECTION, data: '0xcreatedata' },
+        resetUri: 'ar://redirect-hash',
+        contractAddress: NEW_COLLECTION,
+        tokenId: '1',
+      } as any);
+
+      await updateMomentURI({
+        ...baseInput,
+        newCollectionAddress: NEW_COLLECTION,
+      });
+
+      expect(selectMoments).toHaveBeenCalledTimes(1);
+      expect(indexMoment).toHaveBeenCalledWith({
+        contractAddress: NEW_COLLECTION,
+        tokenId: '1',
+        uri: baseInput.newUri,
+        chainId: 8453,
+        artistAddress: ARTIST,
+        maxSupply: 100,
+      });
+      expect(indexMoment).toHaveBeenCalledWith({
+        contractAddress: COLLECTION,
+        tokenId: '3',
+        uri: 'ar://redirect-hash',
+        chainId: 8453,
+        artistAddress: ARTIST,
+      });
+      expect(indexMoment).toHaveBeenCalledTimes(2);
     });
   });
 });

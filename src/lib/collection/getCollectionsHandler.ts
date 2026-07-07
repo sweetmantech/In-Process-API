@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import getCollectionsRpc from '@/lib/supabase/in_process_collections/getCollectionsRpc';
 
 interface GetCollectionsInput {
   limit: number;
@@ -18,7 +18,7 @@ const getCollectionsHandler = async ({
     data: collections,
     count: collectionsCount,
     error,
-  } = await selectCollections({
+  } = await getCollectionsRpc({
     artist,
     chainId: chain_id,
     limit,

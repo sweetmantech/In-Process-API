@@ -24,7 +24,7 @@ const getAirdropOperator = async (
     factoryAddress &&
     factoryAddress.toLowerCase() === address.toLowerCase()
   ) {
-    const { data: collections } = await selectCollections({
+    const collections = await selectCollections({
       addresses: [t.collection],
       chainId,
     });
@@ -32,7 +32,7 @@ const getAirdropOperator = async (
     if (collection) {
       return {
         address: collection.creator,
-        username: collection.creator_username ?? null,
+        username: collection.creator_wallet?.artist?.username ?? null,
       };
     }
     throw new Error('Collection not found');

@@ -19,13 +19,11 @@ async function getCollectionAddress(
     return { collectionAddress: selected, explicitSelection: true };
   }
 
-  const { data, error } = await selectCollections({
+  const data = await selectCollections({
     artist: artistAddress,
     chainId: CHAIN_ID,
     limit: 1,
-    page: 1,
   });
-  if (error) throw error;
 
   const first = data?.[0]?.address;
   if (first && isAddress(first)) {

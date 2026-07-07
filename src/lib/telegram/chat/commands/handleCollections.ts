@@ -2,7 +2,7 @@ import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import { Card, Actions, Button } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import getCollectionsRpc from '@/lib/supabase/in_process_collections/getCollectionsRpc';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTIONS_LOAD_MORE_ACTION_ID,
@@ -14,7 +14,7 @@ const handleCollections = async (
   thread: Thread<TelegramThreadState>,
   artistAddress: Address
 ) => {
-  const { data, count, error } = await selectCollections({
+  const { data, count, error } = await getCollectionsRpc({
     artist: artistAddress,
     chainId: CHAIN_ID,
     limit: 20,

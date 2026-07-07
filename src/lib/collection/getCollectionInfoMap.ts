@@ -7,10 +7,9 @@ export async function getCollectionInfoMap(
 ): Promise<Map<string, CollectionInfo>> {
   if (!pairs.length) return new Map();
 
-  const { data, error } = await selectCollections({
+  const data = await selectCollections({
     addresses: pairs.map(([address]) => address),
   });
-  if (error) throw error;
 
   const requestedPairs = new Set(
     pairs.map(([address, chainId]) => `${address.toLowerCase()}:${chainId}`)

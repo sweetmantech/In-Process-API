@@ -23,16 +23,28 @@ import { convertOnChainSaleToApi } from '@/lib/sales/convertOnChainSaleToApi';
 import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
 import getInProcessSoldOut from '@/lib/viem/getInProcessSoldOut';
 import resolveMomentFromDb from '@/lib/moment/resolveMomentFromDb';
+import type { MomentWithCollection } from '@/lib/supabase/in_process_moments/selectMoments';
 
 const COLLECTION = '0x0000000000000000000000000000000000000001' as const;
 const CREATOR = '0xcreator000000000000000000000000000000000' as const;
 
 const moment = { collectionAddress: COLLECTION, tokenId: '1', chainId: 8453 };
 
-const makeDbMoment = (protocol: string) => ({
+const makeDbMoment = (protocol: string): MomentWithCollection => ({
   id: 'moment-uuid',
   uri: 'ar://metadata-hash',
-  collection: { creator: CREATOR, protocol },
+  token_id: 1,
+  max_supply: 0,
+  created_at: '2024-01-01T00:00:00.000Z',
+  updated_at: '2024-01-01T00:00:00.000Z',
+  channel: null,
+  collection: {
+    id: 'col-uuid',
+    address: COLLECTION,
+    chain_id: 8453,
+    creator: CREATOR,
+    protocol,
+  },
 });
 
 const mockSaleConfig = {

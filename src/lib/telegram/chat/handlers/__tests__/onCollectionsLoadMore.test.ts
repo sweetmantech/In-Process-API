@@ -4,12 +4,12 @@ import { Card, Actions, Button } from 'chat';
 vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+vi.mock('@/lib/supabase/in_process_collections/getCollectionsRpc', () => ({
   default: vi.fn(),
 }));
 
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import getCollectionsRpc from '@/lib/supabase/in_process_collections/getCollectionsRpc';
 import { registerOnCollectionsLoadMore } from '../onCollectionsLoadMore';
 import {
   COLLECTION_SELECT_ACTION_ID,
@@ -52,7 +52,7 @@ beforeEach(() => {
     data: [{ wallets: [{ address: ARTIST_ADDRESS, type: 'external' }] }],
     error: null,
   } as never);
-  vi.mocked(selectCollections).mockResolvedValue({
+  vi.mocked(getCollectionsRpc).mockResolvedValue({
     data: [],
     count: 0,
     error: null,
@@ -73,14 +73,14 @@ describe('registerOnCollectionsLoadMore', () => {
     const { bot, handler } = makeBot();
     registerOnCollectionsLoadMore(bot as never);
     await handler.fn({ ...makeEvent(), thread: null });
-    expect(selectCollections).not.toHaveBeenCalled();
+    expect(getCollectionsRpc).not.toHaveBeenCalled();
   });
 
   it('exits when value is empty', async () => {
     const { bot, handler } = makeBot();
     registerOnCollectionsLoadMore(bot as never);
     await handler.fn({ ...makeEvent(), value: '' });
-    expect(selectCollections).not.toHaveBeenCalled();
+    expect(getCollectionsRpc).not.toHaveBeenCalled();
   });
 
   it('does not post when the page has no collections', async () => {
@@ -92,7 +92,7 @@ describe('registerOnCollectionsLoadMore', () => {
   });
 
   it('posts a card with collection buttons for the requested page', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: [{ address: '0xc3', name: 'Third Drop' }] as never,
       count: 21,
       error: null,
@@ -103,7 +103,7 @@ describe('registerOnCollectionsLoadMore', () => {
     const event = makeEvent({ value: '2' });
     await handler.fn(event);
 
-    expect(selectCollections).toHaveBeenCalledWith({
+    expect(getCollectionsRpc).toHaveBeenCalledWith({
       artist: ARTIST_ADDRESS,
       limit: 20,
       chainId: CHAIN_ID,
@@ -126,7 +126,7 @@ describe('registerOnCollectionsLoadMore', () => {
   });
 
   it('appends another Load more button when more pages remain', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: [{ address: '0xc3', name: 'Third Drop' }] as never,
       count: 100,
       error: null,
@@ -161,7 +161,7 @@ describe('registerOnCollectionsLoadMore', () => {
   });
 
   it('rethrows on select error', async () => {
-    vi.mocked(selectCollections).mockResolvedValue({
+    vi.mocked(getCollectionsRpc).mockResolvedValue({
       data: null,
       count: null,
       error: { message: 'db down' } as never,

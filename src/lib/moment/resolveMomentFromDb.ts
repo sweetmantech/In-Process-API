@@ -4,11 +4,11 @@ import { convertDatabaseSaleToApi } from '@/lib/sales/convertDatabaseSaleToApi';
 import { convertOnChainSaleToApi } from '@/lib/sales/convertOnChainSaleToApi';
 import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
 import getInProcessSoldOut from '@/lib/viem/getInProcessSoldOut';
-import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
+import selectMoments, {
+  type MomentWithCollection,
+} from '@/lib/supabase/in_process_moments/selectMoments';
 
-type DbMoment = NonNullable<
-  Awaited<ReturnType<typeof selectMoments>>['data']
->[number];
+type DbMoment = MomentWithCollection;
 
 const resolveMomentFromDb = async (
   moment: Moment,
