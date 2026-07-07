@@ -2,16 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Address } from 'viem';
 import processMediaThread from '../processMediaThread';
 
-vi.mock('../processSingleMedia', () => ({ default: vi.fn() }));
 vi.mock('../processGroupMedia', () => ({ default: vi.fn() }));
+vi.mock('../getOrCreateUngroupedBurstId', () => ({ default: vi.fn() }));
 vi.mock('../extractTelegramFileIds', () => ({ default: vi.fn() }));
 vi.mock('../isTooBigForTelegram', () => ({
   default: vi.fn(),
   TOO_BIG_MESSAGE: '⚠️ Too big',
 }));
 
-import processSingleMedia from '../processSingleMedia';
 import processGroupMedia from '../processGroupMedia';
+import getOrCreateUngroupedBurstId from '../getOrCreateUngroupedBurstId';
 import extractTelegramFileIds from '../extractTelegramFileIds';
 import isTooBigForTelegram from '../isTooBigForTelegram';
 
@@ -34,8 +34,8 @@ beforeEach(() => {
     thumbFileId: 'thumb-456',
   });
   vi.mocked(isTooBigForTelegram).mockReturnValue(false);
-  vi.mocked(processSingleMedia).mockResolvedValue(undefined);
   vi.mocked(processGroupMedia).mockResolvedValue(undefined);
+  vi.mocked(getOrCreateUngroupedBurstId).mockResolvedValue('burst-1');
 });
 
 describe('processMediaThread', () => {
@@ -53,13 +53,13 @@ describe('processMediaThread', () => {
       );
 
       expect(thread.post).toHaveBeenCalledWith('⚠️ Too big');
-      expect(processSingleMedia).not.toHaveBeenCalled();
+      expect(getOrCreateUngroupedBurstId).not.toHaveBeenCalled();
       expect(processGroupMedia).not.toHaveBeenCalled();
     });
   });
 
   describe('single attachment (no media_group_id)', () => {
-    it('calls processSingleMedia with the correct arguments', async () => {
+    it('synthesizes a burst id and calls processGroupMedia with it', async () => {
       const thread = makeThread();
       const attachment = { type: 'image', size: 500 };
 
@@ -71,12 +71,15 @@ describe('processMediaThread', () => {
         ARTIST_ADDRESS
       );
 
-      expect(processSingleMedia).toHaveBeenCalledWith(
+      expect(getOrCreateUngroupedBurstId).toHaveBeenCalledWith(thread);
+      expect(processGroupMedia).toHaveBeenCalledWith(
         thread,
         attachment,
         'file-123',
         'My Title',
         ARTIST_ADDRESS,
+        'burst-1',
+        undefined,
         'thumb-456'
       );
     });
@@ -92,13 +95,13 @@ describe('processMediaThread', () => {
         ARTIST_ADDRESS
       );
 
-      const [, , , title] = vi.mocked(processSingleMedia).mock.calls[0];
+      const [, , , title] = vi.mocked(processGroupMedia).mock.calls[0];
       expect(title).toBe('');
     });
   });
 
   describe('media group messages (media_group_id present)', () => {
-    it('calls processGroupMedia with the correct arguments', async () => {
+    it('calls processGroupMedia with the real media_group_id, skipping burst synthesis', async () => {
       const thread = makeThread();
       const attachment = { type: 'image', size: 500 };
       const date = Math.floor(Date.now() / 1000) - 10;
@@ -111,6 +114,7 @@ describe('processMediaThread', () => {
         ARTIST_ADDRESS
       );
 
+      expect(getOrCreateUngroupedBurstId).not.toHaveBeenCalled();
       expect(processGroupMedia).toHaveBeenCalledWith(
         thread,
         attachment,
@@ -121,18 +125,6 @@ describe('processMediaThread', () => {
         date,
         'thumb-456'
       );
-    });
-
-    it('does not call processSingleMedia for media group messages', async () => {
-      await processMediaThread(
-        makeThread() as never,
-        makeMessage({ media_group_id: 'grp-1' }) as never,
-        { type: 'image', size: 500 } as never,
-        'My Title',
-        ARTIST_ADDRESS
-      );
-
-      expect(processSingleMedia).not.toHaveBeenCalled();
     });
   });
 });

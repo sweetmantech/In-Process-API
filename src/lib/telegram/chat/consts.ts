@@ -9,3 +9,6 @@ export const COLLECTIONS_LOAD_MORE_ACTION_ID = 'load_more_collections';
 
 /** In-memory state key (namespaced to the thread by the chat runtime). */
 export const TELEGRAM_SELECTED_COLLECTION_KEY = 'selected_collection_address';
+
+/** Debounce window for batching media (real Telegram albums and synthesized ungrouped bursts). */
+export const MEDIA_GROUP_WINDOW_MS = 5_000;

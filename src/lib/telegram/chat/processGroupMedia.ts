@@ -5,11 +5,11 @@ import type { ArtistContext } from '@/types/artist';
 import createMomentsFromGroup from './createMomentsFromGroup';
 import getStateAdapter from './stateAdapter';
 import postMomentPending from './postMomentPending';
+import { MEDIA_GROUP_WINDOW_MS } from './consts';
 
 import type { PendingMediaGroupAsset } from '@/types/telegram';
 
 const ASSETS_TTL_MS = 5 * 60 * 1_000;
-const MEDIA_GROUP_WINDOW_MS = 5_000;
 
 const processGroupMedia = async (
   thread: Thread<TelegramThreadState>,

@@ -3,8 +3,8 @@ import type { TelegramThreadState } from './telegramThreadState';
 import type { ArtistContext } from '@/types/artist';
 import extractTelegramFileIds from './extractTelegramFileIds';
 import isTooBigForTelegram, { TOO_BIG_MESSAGE } from './isTooBigForTelegram';
-import processSingleMedia from './processSingleMedia';
 import processGroupMedia from './processGroupMedia';
+import getOrCreateUngroupedBurstId from './getOrCreateUngroupedBurstId';
 
 const processMediaThread = async (
   thread: Thread<TelegramThreadState>,
@@ -22,19 +22,8 @@ const processMediaThread = async (
   const { fileId, thumbFileId } = extractTelegramFileIds(message);
   const title = text || '';
   const raw = message.raw as { media_group_id?: string; date?: number };
-  const mediaGroupId = raw.media_group_id;
-
-  if (!mediaGroupId) {
-    await processSingleMedia(
-      thread,
-      attachment,
-      fileId,
-      title,
-      artist,
-      thumbFileId
-    );
-    return;
-  }
+  const groupId =
+    raw.media_group_id ?? (await getOrCreateUngroupedBurstId(thread));
 
   await processGroupMedia(
     thread,
@@ -42,7 +31,7 @@ const processMediaThread = async (
     fileId,
     title,
     artist,
-    mediaGroupId,
+    groupId,
     raw.date,
     thumbFileId
   );
