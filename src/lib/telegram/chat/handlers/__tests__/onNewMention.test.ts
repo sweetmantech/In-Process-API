@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Address } from 'viem';
 
-vi.mock('@/lib/supabase/in_process_artists/selectArtists', () => ({
-  default: vi.fn(),
-}));
 vi.mock(
   '@/lib/supabase/account_notifications/upsertAccountNotification',
   () => ({
@@ -15,33 +12,30 @@ vi.mock('../../commands/commandsHandler', () => ({ default: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
 vi.mock('../../processYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('@/lib/link/youtubeParser', () => ({ default: vi.fn() }));
+vi.mock('../../connectHandler', () => ({ default: vi.fn() }));
+vi.mock('../getArtistByTelegram', () => ({ default: vi.fn() }));
 
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import commandsHandler from '../../commands/commandsHandler';
 import processMediaThread from '../../processMediaThread';
 import processYoutubeLink from '../../processYoutubeLink';
 import youtubeParser from '@/lib/link/youtubeParser';
+import connectHandler from '../../connectHandler';
+import getArtistByTelegram from '../getArtistByTelegram';
 import { registerOnNewMention } from '../onNewMention';
 import type { TelegramChatBot } from '../../bot';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
 const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
-const ARTIST_CONTEXT = {
+const ARTIST = {
   artistId: ARTIST_ID,
+  username: 'alice',
   primaryWallet: ARTIST_ADDRESS,
   wallets: [{ address: ARTIST_ADDRESS, type: 'external' as const }],
 };
 const CHANNEL_ID = 'telegram:1352384640';
 const RAW_CHAT_ID = '1352384640';
-
-const ARTIST = {
-  id: ARTIST_ID,
-  address: ARTIST_ADDRESS,
-  username: 'alice',
-  wallets: [{ address: ARTIST_ADDRESS, type: 'external' }],
-};
 
 const makeMessage = (overrides = {}) => ({
   author: { userName: 'testuser' },
@@ -72,10 +66,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   capturedHandler = undefined;
   vi.mocked(parseTelegramChatId).mockReturnValue(RAW_CHAT_ID);
-  vi.mocked(selectArtists).mockResolvedValue({
-    data: [ARTIST],
-    error: null,
-  } as never);
+  vi.mocked(getArtistByTelegram).mockResolvedValue(ARTIST as never);
   vi.mocked(upsertAccountNotification).mockResolvedValue({
     data: null,
     error: null,
@@ -84,6 +75,7 @@ beforeEach(() => {
   vi.mocked(processMediaThread).mockResolvedValue(undefined);
   vi.mocked(processYoutubeLink).mockResolvedValue(undefined);
   vi.mocked(youtubeParser).mockReturnValue(false);
+  vi.mocked(connectHandler).mockResolvedValue(undefined);
 
   registerOnNewMention(mockBot);
 });
@@ -91,9 +83,10 @@ beforeEach(() => {
 describe('onNewMention', () => {
   it('returns early when telegramUsername is missing', async () => {
     const message = makeMessage({ author: { userName: undefined } });
+
     await capturedHandler!(makeThread(), message);
 
-    expect(selectArtists).not.toHaveBeenCalled();
+    expect(getArtistByTelegram).not.toHaveBeenCalled();
   });
 
   it('saves telegram_chat_id for known artist', async () => {
@@ -107,15 +100,26 @@ describe('onNewMention', () => {
     );
   });
 
-  it('does not save telegram_chat_id for unknown artist', async () => {
-    vi.mocked(selectArtists).mockResolvedValue({
-      data: [],
-      error: null,
-    } as never);
+  it('does not save telegram_chat_id for unconnected telegram', async () => {
+    vi.mocked(getArtistByTelegram).mockResolvedValue(null);
 
     await capturedHandler!(makeThread(), makeMessage());
 
     expect(upsertAccountNotification).not.toHaveBeenCalled();
+  });
+
+  it('delegates to connectHandler when telegram has no connected artist', async () => {
+    vi.mocked(getArtistByTelegram).mockResolvedValue(null);
+    const thread = makeThread();
+
+    await capturedHandler!(thread, makeMessage({ text: 'me@example.com' }));
+
+    expect(connectHandler).toHaveBeenCalledWith(
+      'me@example.com',
+      thread,
+      'testuser'
+    );
+    expect(commandsHandler).not.toHaveBeenCalled();
   });
 
   it('delegates to commandsHandler and returns when handled', async () => {
@@ -152,6 +156,6 @@ describe('onNewMention', () => {
 
     await capturedHandler!(thread, makeMessage({ text: `listen ${yt}` }));
 
-    expect(processYoutubeLink).toHaveBeenCalledWith(thread, yt, ARTIST_CONTEXT);
+    expect(processYoutubeLink).toHaveBeenCalledWith(thread, yt, ARTIST);
   });
 });
