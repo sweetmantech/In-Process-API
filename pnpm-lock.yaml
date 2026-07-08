@@ -17,9 +17,9 @@ importers:
       '@ardrive/turbo-sdk':
         specifier: ^1.41.0
         version: 1.41.2(@solana/sysvars@5.5.1(typescript@5.9.3))(@tanstack/query-core@5.100.9)(@tanstack/react-query@5.100.9(react@18.3.1))(@types/react@19.2.9)(@vercel/blob@2.3.3)(@vercel/functions@3.5.0(@aws-sdk/credential-provider-web-identity@3.972.13))(bufferutil@4.1.0)(react@18.3.1)(typescript@5.9.3)(utf-8-validate@6.0.6)
-      '@chat-adapter/state-memory':
-        specifier: ^4.20.2
-        version: 4.27.0
+      '@chat-adapter/state-redis':
+        specifier: 4.27.0
+        version: 4.27.0(@opentelemetry/api@1.9.1)
       '@chat-adapter/telegram':
         specifier: ^4.20.2
         version: 4.27.0
@@ -398,8 +398,8 @@ packages:
   '@chat-adapter/shared@4.27.0':
     resolution: {integrity: sha512-Wz+YZ8Mp2/qcxxJ+rU0ofZQSEtOF/4toEh7wbA+q+uLlPrLue+7hImWluJpQUZqGjSwsUoXhjSNwgFv3hz20aQ==}
 
-  '@chat-adapter/state-memory@4.27.0':
-    resolution: {integrity: sha512-kl6LilKa6pBGQroIDQy79CPfgkVcUS2Qr13JGvunU/gA1gtLpleoxXHOye9PTRvpv6URCN54Yy5UmgAI9uzXKg==}
+  '@chat-adapter/state-redis@4.27.0':
+    resolution: {integrity: sha512-kmfCzNUQOCZ6MxBmd0azdJAmbAbgJ87JkW0/kQWEZ9vmlf8F5VlmRSfvn9jWhh4R90ThpLeflmIaHX8iK4x2dA==}
 
   '@chat-adapter/telegram@4.27.0':
     resolution: {integrity: sha512-taRZAPw5Sw7G4BtsGCIV5QqaXrKUlmLWoX04NZxGUC0Gn7MuYPwh7P7wMk04LvQ2lZfhjVCr22UlvayloUPSfg==}
@@ -7906,10 +7906,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@chat-adapter/state-memory@4.27.0':
+  '@chat-adapter/state-redis@4.27.0(@opentelemetry/api@1.9.1)':
     dependencies:
       chat: 4.27.0
+      redis: 5.12.1(@opentelemetry/api@1.9.1)
     transitivePeerDependencies:
+      - '@node-rs/xxhash'
+      - '@opentelemetry/api'
       - supports-color
 
   '@chat-adapter/telegram@4.27.0':

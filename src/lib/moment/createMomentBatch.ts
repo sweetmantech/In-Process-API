@@ -9,6 +9,7 @@ import indexMoment from './indexMoment';
 import createMomentBatchCall from '@/lib/viem/createMomentBatchCall';
 import { getOperationalSmartWallet } from '../smartwallets/getOperationalSmartWallet';
 import getOrCreateArtist from '../artists/getOrCreateArtist';
+import { withSmartWalletMintLock } from './withSmartWalletMintLock';
 
 export type CreateMomentBatchInput = z.infer<typeof createMomentBatchSchema>;
 
@@ -31,22 +32,29 @@ const createMomentBatch = async (
     },
   });
 
-  const { tokenSetupActions, fundsRecipient } = await createBatchSetupActions({
-    input,
-    smartAccount,
-  });
+  // The lock must start before createBatchSetupActions: for an existing
+  // collection it reads the contract's live nextTokenId, and that read has
+  // to be atomic with the send below, or a queued concurrent mint predicts a
+  // tokenId another mint already claimed.
+  const transaction = await withSmartWalletMintLock(
+    smartAccount.address as Address,
+    async () => {
+      const { tokenSetupActions, fundsRecipient } =
+        await createBatchSetupActions({ input, smartAccount });
 
-  const { to: callTo, data: functionCallData } = createMomentBatchCall({
-    input,
-    tokenSetupActions,
-    fundsRecipient,
-  });
+      const { to: callTo, data: functionCallData } = createMomentBatchCall({
+        input,
+        tokenSetupActions,
+        fundsRecipient,
+      });
 
-  const transaction = await sendUserOperation({
-    smartAccount,
-    network: input.chainId === 84532 ? 'base-sepolia' : 'base',
-    calls: [{ to: callTo, data: functionCallData }],
-  });
+      return sendUserOperation({
+        smartAccount,
+        network: input.chainId === 84532 ? 'base-sepolia' : 'base',
+        calls: [{ to: callTo, data: functionCallData }],
+      });
+    }
+  );
 
   const contractAddress =
     input.contract.address || getContractAddressFromReceipt(transaction);

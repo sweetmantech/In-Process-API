@@ -21,7 +21,7 @@
     "@0xsplits/splits-sdk": "^6.4.1",
     "@ar.io/wayfinder-core": "^1.9.1",
     "@ardrive/turbo-sdk": "^1.41.0",
-    "@chat-adapter/state-memory": "^4.20.2",
+    "@chat-adapter/state-redis": "4.27.0",
     "@chat-adapter/telegram": "^4.20.2",
     "@coinbase/cdp-sdk": "^1.43.1",
     "@coinbase/coinbase-sdk": "^0.25.0",
