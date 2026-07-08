@@ -4,6 +4,7 @@ import getOrCreateUngroupedBurstId from '../getOrCreateUngroupedBurstId';
 const makeThread = (stateAdapter: {
   setIfNotExists: ReturnType<typeof vi.fn>;
   get: ReturnType<typeof vi.fn>;
+  set?: ReturnType<typeof vi.fn>;
 }) => ({
   channelId: 'telegram:chat-abc',
   _stateAdapter: stateAdapter,
@@ -25,29 +26,37 @@ describe('getOrCreateUngroupedBurstId', () => {
     expect(setIfNotExists).toHaveBeenCalledWith(
       'ungrouped_burst:telegram:chat-abc',
       burstId,
-      5_000
+      10_000
     );
     expect(get).not.toHaveBeenCalled();
   });
 
-  it('reuses the active burst id when one already exists', async () => {
+  it('reuses the active burst id and slides its TTL forward when one already exists', async () => {
     const setIfNotExists = vi.fn().mockResolvedValue(false);
     const get = vi.fn().mockResolvedValue('telegram:chat-abc:existing-burst');
-    const thread = makeThread({ setIfNotExists, get });
+    const set = vi.fn().mockResolvedValue(undefined);
+    const thread = makeThread({ setIfNotExists, get, set });
 
     const burstId = await getOrCreateUngroupedBurstId(thread as never);
 
     expect(burstId).toBe('telegram:chat-abc:existing-burst');
     expect(get).toHaveBeenCalledWith('ungrouped_burst:telegram:chat-abc');
+    expect(set).toHaveBeenCalledWith(
+      'ungrouped_burst:telegram:chat-abc',
+      'telegram:chat-abc:existing-burst',
+      10_000
+    );
   });
 
-  it('falls back to the candidate id if the existing value is missing/invalid', async () => {
+  it('falls back to the candidate id if the existing value is missing/invalid, without sliding the TTL', async () => {
     const setIfNotExists = vi.fn().mockResolvedValue(false);
     const get = vi.fn().mockResolvedValue(null);
-    const thread = makeThread({ setIfNotExists, get });
+    const set = vi.fn().mockResolvedValue(undefined);
+    const thread = makeThread({ setIfNotExists, get, set });
 
     const burstId = await getOrCreateUngroupedBurstId(thread as never);
 
     expect(burstId).toContain('telegram:chat-abc');
+    expect(set).not.toHaveBeenCalled();
   });
 });

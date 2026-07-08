@@ -17,6 +17,9 @@ vi.mock('@/lib/protocolSdk/create/1155-create-helper', () => ({
 }));
 vi.mock('../getCreatedTokenIds', () => ({ default: vi.fn() }));
 vi.mock('../indexMoment', () => ({ default: vi.fn() }));
+vi.mock('../withSmartWalletMintLock', () => ({
+  withSmartWalletMintLock: vi.fn((_address, fn) => fn()),
+}));
 vi.mock('@/lib/consts', () => ({
   CHAIN_ID: 8453,
 }));
@@ -29,6 +32,7 @@ import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import { getContractAddressFromReceipt } from '@/lib/protocolSdk/create/1155-create-helper';
 import getCreatedTokenIds from '../getCreatedTokenIds';
 import indexMoment from '../indexMoment';
+import { withSmartWalletMintLock } from '../withSmartWalletMintLock';
 
 const ARTIST =
   '0x0000000000000000000000000000000000000123'.toLowerCase() as Address;
@@ -145,6 +149,16 @@ describe('createMomentBatch', () => {
       artist: ARTIST_CONTEXT,
       moment: { collectionAddress: undefined, chainId: 8453, tokenId: '0' },
     });
+  });
+
+  it('serializes sendUserOperation behind a per-wallet mint lock', async () => {
+    await createMomentBatch(makeBatchInput());
+
+    expect(withSmartWalletMintLock).toHaveBeenCalledWith(
+      SMART_ACCOUNT.address,
+      expect.any(Function)
+    );
+    expect(sendUserOperation).toHaveBeenCalledTimes(1);
   });
 
   it('passes contract.address to getOperationalSmartWallet when minting to existing collection', async () => {

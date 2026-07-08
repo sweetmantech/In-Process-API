@@ -11,4 +11,4 @@ export const COLLECTIONS_LOAD_MORE_ACTION_ID = 'load_more_collections';
 export const TELEGRAM_SELECTED_COLLECTION_KEY = 'selected_collection_address';
 
 /** Debounce window for batching media (real Telegram albums and synthesized ungrouped bursts). */
-export const MEDIA_GROUP_WINDOW_MS = 5_000;
+export const MEDIA_GROUP_WINDOW_MS = 10_000;

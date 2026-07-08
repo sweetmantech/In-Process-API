@@ -79,7 +79,6 @@ describe('processMediaThread', () => {
         'My Title',
         ARTIST_ADDRESS,
         'burst-1',
-        undefined,
         'thumb-456'
       );
     });
@@ -122,7 +121,6 @@ describe('processMediaThread', () => {
         'My Title',
         ARTIST_ADDRESS,
         'grp-1',
-        date,
         'thumb-456'
       );
     });

@@ -18,10 +18,10 @@ const processGroupMedia = async (
   name: string,
   artist: ArtistContext,
   mediaGroupId: string,
-  date: number | undefined,
   thumbFileId?: string
 ): Promise<void> => {
   const stateAdapter = getStateAdapter(thread);
+  const activityKey = `media_group_activity:${mediaGroupId}`;
 
   const isFirst = await stateAdapter.setIfNotExists(
     `media_group:${mediaGroupId}`,
@@ -42,12 +42,21 @@ const processGroupMedia = async (
     { ttlMs: ASSETS_TTL_MS }
   );
 
-  const deadline =
-    (date ?? Math.floor(Date.now() / 1000)) * 1000 + MEDIA_GROUP_WINDOW_MS;
+  // Every arrival slides the quiet-period deadline forward.
+  await stateAdapter.set(activityKey, Date.now(), ASSETS_TTL_MS);
+
   after(async () => {
-    await new Promise<void>((resolve) =>
-      setTimeout(resolve, Math.max(0, deadline - Date.now()))
-    );
+    // Wait until no new attachment has landed for MEDIA_GROUP_WINDOW_MS.
+    for (;;) {
+      const lastActivity = (await stateAdapter.get(activityKey)) as
+        | number
+        | null;
+      const wait =
+        (lastActivity ?? Date.now()) + MEDIA_GROUP_WINDOW_MS - Date.now();
+      if (wait <= 0) break;
+      await new Promise<void>((resolve) => setTimeout(resolve, wait));
+    }
+
     const acquired = await stateAdapter.setIfNotExists(
       `media_group_processed:${mediaGroupId}`,
       true,

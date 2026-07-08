@@ -25,7 +25,12 @@ async function getOrCreateUngroupedBurstId(
   if (created) return candidateBurstId;
 
   const existing = await stateAdapter.get(burstKey);
-  return typeof existing === 'string' ? existing : candidateBurstId;
+  if (typeof existing !== 'string') return candidateBurstId;
+
+  // Slide the window forward: as long as photos keep arriving within
+  // MEDIA_GROUP_WINDOW_MS of each other, the burst stays alive.
+  await stateAdapter.set(burstKey, existing, MEDIA_GROUP_WINDOW_MS);
+  return existing;
 }
 
 export default getOrCreateUngroupedBurstId;

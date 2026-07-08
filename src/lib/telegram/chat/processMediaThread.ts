@@ -21,7 +21,7 @@ const processMediaThread = async (
 
   const { fileId, thumbFileId } = extractTelegramFileIds(message);
   const title = text || '';
-  const raw = message.raw as { media_group_id?: string; date?: number };
+  const raw = message.raw as { media_group_id?: string };
   const groupId =
     raw.media_group_id ?? (await getOrCreateUngroupedBurstId(thread));
 
@@ -32,7 +32,6 @@ const processMediaThread = async (
     title,
     artist,
     groupId,
-    raw.date,
     thumbFileId
   );
 };
