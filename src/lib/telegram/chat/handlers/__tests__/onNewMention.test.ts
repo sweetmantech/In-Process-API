@@ -139,6 +139,49 @@ describe('onNewMention', () => {
     expect(processMediaThread).toHaveBeenCalled();
   });
 
+  it('processes an image sent as a Telegram document', async () => {
+    const attachment = { type: 'file', mimeType: 'image/jpeg' };
+    const message = makeMessage({ attachments: [attachment] });
+
+    await capturedHandler!(makeThread(), message);
+
+    expect(processMediaThread).toHaveBeenCalledWith(
+      expect.anything(),
+      message,
+      expect.objectContaining({ type: 'image', mimeType: 'image/jpeg' }),
+      '',
+      ARTIST
+    );
+  });
+
+  it('processes a video sent as a Telegram document', async () => {
+    const attachment = { type: 'file', mimeType: 'video/mp4' };
+    const message = makeMessage({ attachments: [attachment] });
+
+    await capturedHandler!(makeThread(), message);
+
+    expect(processMediaThread).toHaveBeenCalledWith(
+      expect.anything(),
+      message,
+      expect.objectContaining({ type: 'video', mimeType: 'video/mp4' }),
+      '',
+      ARTIST
+    );
+  });
+
+  it('rejects a non-media document (e.g. PDF) with the fallback message', async () => {
+    const attachment = { type: 'file', mimeType: 'application/pdf' };
+    const thread = makeThread();
+    const message = makeMessage({ attachments: [attachment] });
+
+    await capturedHandler!(thread, message);
+
+    expect(processMediaThread).not.toHaveBeenCalled();
+    expect(thread.post).toHaveBeenCalledWith(
+      'To post moments, please send a photo or video along with a caption, or share a YouTube link.'
+    );
+  });
+
   it('posts fallback message for unrecognised text without attachment', async () => {
     const thread = makeThread();
 

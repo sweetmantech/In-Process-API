@@ -1,40 +1,37 @@
 import { describe, it, expect } from 'vitest';
 import extractTelegramFileIds from '../extractTelegramFileIds';
 
+const attachment = (fileId?: string) =>
+  ({ fetchMetadata: fileId ? { fileId } : undefined }) as never;
+
 describe('extractTelegramFileIds', () => {
   describe('photo messages', () => {
-    it('extracts fileId from the last (largest) photo in the array', () => {
-      const message = {
-        raw: {
-          photo: [
-            { file_id: 'small_id' },
-            { file_id: 'medium_id' },
-            { file_id: 'large_id' },
-          ],
-        },
-      };
-      const { fileId } = extractTelegramFileIds(message as never);
+    it('extracts fileId from the attachment metadata', () => {
+      const message = { raw: {} };
+      const { fileId } = extractTelegramFileIds(
+        message as never,
+        attachment('large_id')
+      );
       expect(fileId).toBe('large_id');
     });
 
     it('returns no thumbFileId for photo messages', () => {
-      const message = { raw: { photo: [{ file_id: 'photo_id' }] } };
-      const { thumbFileId } = extractTelegramFileIds(message as never);
-      expect(thumbFileId).toBeUndefined();
-    });
-
-    it('throws when photo array is empty', () => {
-      const message = { raw: { photo: [] } };
-      expect(() => extractTelegramFileIds(message as never)).toThrow(
-        'No Telegram media file_id found'
+      const message = { raw: {} };
+      const { thumbFileId } = extractTelegramFileIds(
+        message as never,
+        attachment('photo_id')
       );
+      expect(thumbFileId).toBeUndefined();
     });
   });
 
   describe('video messages', () => {
-    it('extracts fileId from video', () => {
+    it('extracts fileId from the attachment metadata', () => {
       const message = { raw: { video: { file_id: 'video_id' } } };
-      const { fileId } = extractTelegramFileIds(message as never);
+      const { fileId } = extractTelegramFileIds(
+        message as never,
+        attachment('video_id')
+      );
       expect(fileId).toBe('video_id');
     });
 
@@ -42,24 +39,42 @@ describe('extractTelegramFileIds', () => {
       const message = {
         raw: { video: { file_id: 'video_id', thumb: { file_id: 'thumb_id' } } },
       };
-      const { fileId, thumbFileId } = extractTelegramFileIds(message as never);
+      const { fileId, thumbFileId } = extractTelegramFileIds(
+        message as never,
+        attachment('video_id')
+      );
       expect(fileId).toBe('video_id');
       expect(thumbFileId).toBe('thumb_id');
     });
 
     it('returns undefined thumbFileId when video has no thumb', () => {
       const message = { raw: { video: { file_id: 'video_id' } } };
-      const { thumbFileId } = extractTelegramFileIds(message as never);
+      const { thumbFileId } = extractTelegramFileIds(
+        message as never,
+        attachment('video_id')
+      );
+      expect(thumbFileId).toBeUndefined();
+    });
+  });
+
+  describe('document messages', () => {
+    it('extracts fileId for an image sent as a document', () => {
+      const message = { raw: {} };
+      const { fileId, thumbFileId } = extractTelegramFileIds(
+        message as never,
+        attachment('document_id')
+      );
+      expect(fileId).toBe('document_id');
       expect(thumbFileId).toBeUndefined();
     });
   });
 
   describe('missing media', () => {
-    it('throws when neither photo nor video is present', () => {
+    it('throws when the attachment has no fileId', () => {
       const message = { raw: {} };
-      expect(() => extractTelegramFileIds(message as never)).toThrow(
-        'No Telegram media file_id found'
-      );
+      expect(() =>
+        extractTelegramFileIds(message as never, attachment(undefined))
+      ).toThrow('No Telegram media file_id found');
     });
   });
 });

@@ -5,6 +5,7 @@ import upsertAccountNotification from '@/lib/supabase/account_notifications/upse
 import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import commandsHandler from '../commands/commandsHandler';
 import processMediaThread from '../processMediaThread';
+import resolveMediaAttachmentType from '../resolveMediaAttachmentType';
 import youtubeParser from '@/lib/link/youtubeParser';
 import processYoutubeLink from '../processYoutubeLink';
 import connectHandler from '../commands/connectHandler';
@@ -43,11 +44,15 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       if (handled) return;
 
       const attachment = message.attachments?.[0];
-      if (
-        attachment &&
-        (attachment.type === 'image' || attachment.type === 'video')
-      ) {
-        await processMediaThread(thread, message, attachment, text, artist);
+      const resolvedType = attachment && resolveMediaAttachmentType(attachment);
+      if (attachment && resolvedType) {
+        await processMediaThread(
+          thread,
+          message,
+          { ...attachment, type: resolvedType },
+          text,
+          artist
+        );
         return;
       }
 
