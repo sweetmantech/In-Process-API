@@ -1,18 +1,15 @@
-import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramChatBot } from '../bot';
 import type { TelegramThreadState } from '../telegramThreadState';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import commandsHandler from '../commands/commandsHandler';
 import processMediaThread from '../processMediaThread';
 import youtubeParser from '@/lib/link/youtubeParser';
 import processYoutubeLink from '../processYoutubeLink';
-import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
-import { Tables } from '@/lib/supabase/types';
-import type { ArtistContext } from '@/types/artist';
-import type { WalletType } from '@/types/wallets';
+import connectHandler from '../commands/connectHandler';
+import getArtistByTelegram from './getArtistByTelegram';
+
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
 
@@ -23,40 +20,25 @@ export function registerOnNewMention(bot: TelegramChatBot) {
       const telegramUsername = message.author.userName;
       if (!telegramUsername) return;
 
-      const { data } = await selectArtists({
-        telegram: telegramUsername,
-      });
-      const raw = data?.[0] ?? null;
-      const wallets = (raw?.wallets ?? []) as Tables<'in_process_wallets'>[];
-      const primaryWallet = getPrimaryWallet(wallets);
-      if (!primaryWallet) return;
-
-      const artist: ArtistContext | null = raw
-        ? {
-            artistId: raw.id,
-            primaryWallet: primaryWallet as Address,
-            wallets: wallets.map((w) => ({
-              address: w.address as Address,
-              type: w.type as WalletType,
-            })),
-          }
-        : null;
-
       const text = message.text?.trim() ?? '';
 
-      if (artist) {
-        await upsertAccountNotification({
-          wallet: primaryWallet,
-          telegram_chat_id: parseTelegramChatId(thread.channelId),
-        });
+      const artist = await getArtistByTelegram(telegramUsername);
+
+      if (!artist) {
+        await connectHandler(text, thread, telegramUsername);
+        return;
       }
+
+      await upsertAccountNotification({
+        wallet: artist.primaryWallet,
+        telegram_chat_id: parseTelegramChatId(thread.channelId),
+      });
 
       const handled = await commandsHandler(
         text,
         thread,
         telegramUsername,
-        raw,
-        primaryWallet as Address
+        artist
       );
       if (handled) return;
 

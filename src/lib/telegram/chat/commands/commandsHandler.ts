@@ -1,46 +1,34 @@
-import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '../telegramThreadState';
-import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
-import handleWelcome from './handleWelcome';
+import type { TelegramArtist } from '../handlers/getArtistByTelegram';
 import handleStart from './handleStart';
 import handleRemind from './handleRemind';
 import handleNotify from './handleNotify';
 import handleCollections from './handleCollections';
 import handleMe from './handleMe';
 
-type CommandArtist = NonNullable<
-  Awaited<ReturnType<typeof selectArtists>>['data']
->[number];
-
 const commandsHandler = async (
   text: string,
   thread: Thread<TelegramThreadState>,
   telegramUsername: string,
-  artist: CommandArtist | null,
-  artistAddress: Address
+  artist: TelegramArtist
 ): Promise<boolean> => {
-  if (!artist) {
-    await handleWelcome(thread);
-    return true;
-  }
-
+  const { primaryWallet, username } = artist;
   switch (text) {
     case '/start':
-      await handleStart(thread, artist.username, telegramUsername);
+      await handleStart(thread, username, telegramUsername);
       return true;
     case '/remind':
-      await handleRemind(thread, artistAddress);
+      await handleRemind(thread, primaryWallet);
       return true;
     case '/notify':
-      await handleNotify(thread, artistAddress);
+      await handleNotify(thread, primaryWallet);
       return true;
     case '/collections':
-      await handleCollections(thread, artistAddress);
+      await handleCollections(thread, primaryWallet);
       return true;
     case '/me':
-      if (!artistAddress) return false;
-      await handleMe(thread, artistAddress);
+      await handleMe(thread, primaryWallet);
       return true;
     default:
       return false;
