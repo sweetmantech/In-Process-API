@@ -3,6 +3,7 @@ import type { TelegramThreadState } from './telegramThreadState';
 import type { ArtistContext } from '@/types/artist';
 import fetchTelegramFile from './fetchTelegramFile';
 import processAttachmentUpload from './processAttachmentUpload';
+import extractExifCaptureDate from './extractExifCaptureDate';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 import sendReadyMessage from './sendReadyMessage';
 import sendArtistCollage from './sendArtistCollage';
@@ -34,19 +35,25 @@ const createMomentsFromGroup = async (
   const typingInterval = setInterval(() => void thread.startTyping(), 4000);
   try {
     const uploaded = await Promise.all(
-      pending.map((asset) => {
+      pending.map(async (asset) => {
+        const { buffer } = await fetchTelegramFile(asset.fileId);
         const attachment: Attachment = {
           type: asset.attachmentType,
           mimeType: asset.mimeType,
-          fetchData: () =>
-            fetchTelegramFile(asset.fileId).then((r) => r.buffer),
+          fetchData: () => Promise.resolve(buffer),
         };
-        return processAttachmentUpload(
-          attachment,
-          asset.fileId,
-          asset.name,
-          asset.thumbFileId
-        );
+        const [uploadResult, captureDate] = await Promise.all([
+          processAttachmentUpload(
+            attachment,
+            asset.fileId,
+            asset.name,
+            asset.thumbFileId
+          ),
+          asset.attachmentType === 'image'
+            ? extractExifCaptureDate(buffer)
+            : Promise.resolve(undefined),
+        ]);
+        return { ...uploadResult, captureDate };
       })
     );
 
