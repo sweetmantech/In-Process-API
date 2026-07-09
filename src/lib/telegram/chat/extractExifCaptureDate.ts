@@ -11,6 +11,14 @@ const extractExifCaptureDate = async (
       pick: ['DateTimeOriginal', 'OffsetTimeOriginal'],
       reviveValues: false,
     });
+
+    // DateTimeOriginal alone carries no timezone, and saleStart is written
+    // on-chain — so without a real OffsetTimeOriginal (EXIF 2.31+) to compute
+    // the true UTC instant, we don't guess. Skip EXIF entirely and let the
+    // caller fall back to upload time.
+    const offsetMs = parseExifOffsetMs(result?.OffsetTimeOriginal);
+    if (offsetMs === undefined) return undefined;
+
     const raw = result?.DateTimeOriginal;
     if (typeof raw !== 'string') return undefined;
 
@@ -27,15 +35,7 @@ const extractExifCaptureDate = async (
       Number(second)
     );
 
-    // DateTimeOriginal alone carries no timezone. When the camera also wrote
-    // OffsetTimeOriginal (EXIF 2.31+), use it to compute the true UTC instant;
-    // otherwise fall back to treating the wall-clock value as UTC so the
-    // result stays deterministic regardless of the host's runtime TZ.
-    const offsetMs = parseExifOffsetMs(result?.OffsetTimeOriginal);
-    const epochMs =
-      offsetMs === undefined ? localAsUtcMs : localAsUtcMs - offsetMs;
-
-    return Math.floor(epochMs / 1000);
+    return Math.floor((localAsUtcMs - offsetMs) / 1000);
   } catch {
     return undefined;
   }
