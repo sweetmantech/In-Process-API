@@ -16,5 +16,11 @@ export const TELEGRAM_PENDING_EMAIL_KEY = 'pending_email';
 /** How long a user has to reply with their email before the prompt expires. */
 export const TELEGRAM_PENDING_EMAIL_TTL_MS = 10 * 60 * 1_000;
 
+/** Set while the bot is waiting for the Telegram user to reply with their emailed verification code. */
+export const TELEGRAM_PENDING_CODE_KEY = 'pending_code';
+
+/** How long a user has to reply with the verification code before it expires. */
+export const TELEGRAM_PENDING_CODE_TTL_MS = 10 * 60 * 1_000;
+
 /** Debounce window for batching media (real Telegram albums and synthesized ungrouped bursts). */
 export const MEDIA_GROUP_WINDOW_MS = 10_000;

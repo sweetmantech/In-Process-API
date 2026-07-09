@@ -12,7 +12,7 @@ vi.mock('../../commands/commandsHandler', () => ({ default: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
 vi.mock('../../processYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('@/lib/link/youtubeParser', () => ({ default: vi.fn() }));
-vi.mock('../../connectHandler', () => ({ default: vi.fn() }));
+vi.mock('../../commands/connectHandler', () => ({ default: vi.fn() }));
 vi.mock('../getArtistByTelegram', () => ({ default: vi.fn() }));
 
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
@@ -21,7 +21,7 @@ import commandsHandler from '../../commands/commandsHandler';
 import processMediaThread from '../../processMediaThread';
 import processYoutubeLink from '../../processYoutubeLink';
 import youtubeParser from '@/lib/link/youtubeParser';
-import connectHandler from '../../connectHandler';
+import connectHandler from '../../commands/connectHandler';
 import getArtistByTelegram from '../getArtistByTelegram';
 import { registerOnNewMention } from '../onNewMention';
 import type { TelegramChatBot } from '../../bot';

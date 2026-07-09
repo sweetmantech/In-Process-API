@@ -7,7 +7,7 @@ import commandsHandler from '../commands/commandsHandler';
 import processMediaThread from '../processMediaThread';
 import youtubeParser from '@/lib/link/youtubeParser';
 import processYoutubeLink from '../processYoutubeLink';
-import connectHandler from '../connectHandler';
+import connectHandler from '../commands/connectHandler';
 import getArtistByTelegram from './getArtistByTelegram';
 
 const YOUTUBE_URL_REGEX =
