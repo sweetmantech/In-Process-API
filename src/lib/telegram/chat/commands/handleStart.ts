@@ -6,7 +6,7 @@ const handleStart = async (
   artistUsername: string | null,
   telegramUsername: string
 ) => {
-  const text = `Hello ${artistUsername || telegramUsername}, welcome to In Process! Your telegram has been verified! You can now send photos and captions to post them on In Process.`;
+  const text = `Hello ${artistUsername || telegramUsername}, Your telegram has been connected! You can now send photos and captions to post them on In Process.`;
   await thread.post(text);
 };
 

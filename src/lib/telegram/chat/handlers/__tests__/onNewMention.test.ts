@@ -125,7 +125,7 @@ describe('onNewMention', () => {
   it('delegates to commandsHandler and returns when handled', async () => {
     vi.mocked(commandsHandler).mockResolvedValue(true);
 
-    await capturedHandler!(makeThread(), makeMessage({ text: '/start' }));
+    await capturedHandler!(makeThread(), makeMessage({ text: '/remind' }));
 
     expect(processMediaThread).not.toHaveBeenCalled();
   });
@@ -145,7 +145,7 @@ describe('onNewMention', () => {
     await capturedHandler!(thread, makeMessage({ text: 'random text' }));
 
     expect(thread.post).toHaveBeenCalledWith(
-      'Please send a photo or video with a caption.'
+      'To post moments, please send a photo or video along with a caption, or share a YouTube link.'
     );
   });
 

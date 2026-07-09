@@ -6,11 +6,10 @@ import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import sendCodeHandler from '@/lib/oauth/sendCodeHandler';
 import clearPendingEmail from './clearPendingEmail';
 import setPendingCode from './setPendingCode';
-
-const INVALID_EMAIL_MESSAGE =
-  "That doesn't look like a valid email address. Please try again.";
-const CODE_SENT_MESSAGE =
-  "We've sent a 6-digit verification code to that email. Please reply with the code to confirm it's yours.";
+import {
+  TELEGRAM_INVALID_EMAIL_MESSAGE,
+  TELEGRAM_CODE_SENT_MESSAGE,
+} from './consts';
 
 async function connectTelegramToAccount(
   thread: Thread<TelegramThreadState>,
@@ -18,7 +17,7 @@ async function connectTelegramToAccount(
 ): Promise<void> {
   const result = telegramEmailSchema.safeParse(text);
   if (!result.success) {
-    await thread.post(INVALID_EMAIL_MESSAGE);
+    await thread.post(TELEGRAM_INVALID_EMAIL_MESSAGE);
     return;
   }
 
@@ -43,7 +42,7 @@ async function connectTelegramToAccount(
     username: artist?.username ?? null,
   });
   await clearPendingEmail(thread);
-  await thread.post(CODE_SENT_MESSAGE);
+  await thread.post(TELEGRAM_CODE_SENT_MESSAGE);
 }
 
 export default connectTelegramToAccount;
