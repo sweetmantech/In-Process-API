@@ -28,9 +28,46 @@ describe('extractExifCaptureDate', () => {
     await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
 
     expect(mockParse).toHaveBeenCalledWith(expect.any(Buffer), {
-      pick: ['DateTimeOriginal'],
+      pick: ['DateTimeOriginal', 'OffsetTimeOriginal'],
       reviveValues: false,
     });
+  });
+
+  it('uses OffsetTimeOriginal to compute the true UTC instant when present', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: '2026:07:09 23:32:10',
+      OffsetTimeOriginal: '+09:00',
+    });
+
+    const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
+
+    expect(result).toBe(
+      (Date.UTC(2026, 6, 9, 23, 32, 10) - 9 * 60 * 60_000) / 1000
+    );
+  });
+
+  it('subtracts a negative OffsetTimeOriginal correctly', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: '2026:07:09 23:32:10',
+      OffsetTimeOriginal: '-05:00',
+    });
+
+    const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
+
+    expect(result).toBe(
+      (Date.UTC(2026, 6, 9, 23, 32, 10) + 5 * 60 * 60_000) / 1000
+    );
+  });
+
+  it('falls back to treating the wall-clock as UTC when OffsetTimeOriginal is malformed', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: '2026:07:09 23:32:10',
+      OffsetTimeOriginal: 'garbage',
+    });
+
+    const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
+
+    expect(result).toBe(Date.UTC(2026, 6, 9, 23, 32, 10) / 1000);
   });
 
   it('returns undefined when there is no DateTimeOriginal tag', async () => {
