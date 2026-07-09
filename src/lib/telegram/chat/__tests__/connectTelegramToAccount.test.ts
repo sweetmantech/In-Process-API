@@ -43,20 +43,25 @@ describe('connectTelegramToAccount', () => {
     );
   });
 
-  it('replies with a not-found message when no wallet matches the email', async () => {
+  it('sends a verification code with a null artistId when no wallet matches the email', async () => {
     vi.mocked(getPrivyWalletAddressesByEmail).mockResolvedValue([]);
     const thread = makeThread();
 
     await connectTelegramToAccount(thread as never, 'user@example.com');
 
     expect(selectWallets).not.toHaveBeenCalled();
-    expect(sendCodeHandler).not.toHaveBeenCalled();
+    expect(sendCodeHandler).toHaveBeenCalledWith('user@example.com');
+    expect(setPendingCode).toHaveBeenCalledWith(thread, {
+      email: 'user@example.com',
+      artistId: null,
+      username: null,
+    });
     expect(thread.post).toHaveBeenCalledWith(
-      expect.stringContaining("couldn't find")
+      expect.stringContaining('verification code')
     );
   });
 
-  it('replies with a not-found message when the wallet has no linked artist', async () => {
+  it('sends a verification code with a null artistId when the wallet has no linked artist', async () => {
     vi.mocked(getPrivyWalletAddressesByEmail).mockResolvedValue([
       WALLET_ADDRESS,
     ]);
@@ -67,13 +72,18 @@ describe('connectTelegramToAccount', () => {
 
     await connectTelegramToAccount(thread as never, 'user@example.com');
 
-    expect(sendCodeHandler).not.toHaveBeenCalled();
+    expect(sendCodeHandler).toHaveBeenCalledWith('user@example.com');
+    expect(setPendingCode).toHaveBeenCalledWith(thread, {
+      email: 'user@example.com',
+      artistId: null,
+      username: null,
+    });
     expect(thread.post).toHaveBeenCalledWith(
-      expect.stringContaining("couldn't find")
+      expect.stringContaining('verification code')
     );
   });
 
-  it('sends a verification code and does not link the artist yet when a match is found', async () => {
+  it('sends a verification code with the matched artistId when a match is found', async () => {
     vi.mocked(getPrivyWalletAddressesByEmail).mockResolvedValue([
       WALLET_ADDRESS,
     ]);
@@ -93,6 +103,28 @@ describe('connectTelegramToAccount', () => {
     expect(clearPendingEmail).toHaveBeenCalledWith(thread);
     expect(thread.post).toHaveBeenCalledWith(
       expect.stringContaining('verification code')
+    );
+  });
+
+  it('replies with the same verification-code message regardless of whether a match was found', async () => {
+    vi.mocked(getPrivyWalletAddressesByEmail).mockResolvedValue([]);
+    const unmatchedThread = makeThread();
+    await connectTelegramToAccount(
+      unmatchedThread as never,
+      'user@example.com'
+    );
+
+    vi.mocked(getPrivyWalletAddressesByEmail).mockResolvedValue([
+      WALLET_ADDRESS,
+    ]);
+    vi.mocked(selectWallets).mockResolvedValue({
+      data: [{ artist: ARTIST }],
+    } as never);
+    const matchedThread = makeThread();
+    await connectTelegramToAccount(matchedThread as never, 'user@example.com');
+
+    expect(unmatchedThread.post.mock.calls[0]).toEqual(
+      matchedThread.post.mock.calls[0]
     );
   });
 });
