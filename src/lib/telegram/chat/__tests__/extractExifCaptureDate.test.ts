@@ -14,26 +14,66 @@ beforeEach(() => {
 });
 
 describe('extractExifCaptureDate', () => {
-  it('parses a raw EXIF DateTimeOriginal string as UTC', async () => {
-    mockParse.mockResolvedValue({ DateTimeOriginal: '2026:07:09 23:32:10' });
-
-    const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
-
-    expect(result).toBe(Date.UTC(2026, 6, 9, 23, 32, 10) / 1000);
-  });
-
-  it('requests raw (non-revived) values so the result is TZ-independent', async () => {
-    mockParse.mockResolvedValue({ DateTimeOriginal: '2026:07:09 23:32:10' });
+  it('requests raw (non-revived) values including OffsetTimeOriginal', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: '2026:07:09 23:32:10',
+      OffsetTimeOriginal: '+09:00',
+    });
 
     await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
 
     expect(mockParse).toHaveBeenCalledWith(expect.any(Buffer), {
-      pick: ['DateTimeOriginal'],
+      pick: ['DateTimeOriginal', 'OffsetTimeOriginal'],
       reviveValues: false,
     });
   });
 
-  it('returns undefined when there is no DateTimeOriginal tag', async () => {
+  it('computes the true UTC instant when OffsetTimeOriginal is present', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: '2026:07:09 23:32:10',
+      OffsetTimeOriginal: '+09:00',
+    });
+
+    const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
+
+    expect(result).toBe(
+      (Date.UTC(2026, 6, 9, 23, 32, 10) - 9 * 60 * 60_000) / 1000
+    );
+  });
+
+  it('subtracts a negative OffsetTimeOriginal correctly', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: '2026:07:09 23:32:10',
+      OffsetTimeOriginal: '-05:00',
+    });
+
+    const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
+
+    expect(result).toBe(
+      (Date.UTC(2026, 6, 9, 23, 32, 10) + 5 * 60 * 60_000) / 1000
+    );
+  });
+
+  it('skips EXIF entirely when OffsetTimeOriginal is absent, even if DateTimeOriginal is present', async () => {
+    mockParse.mockResolvedValue({ DateTimeOriginal: '2026:07:09 23:32:10' });
+
+    const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
+
+    expect(result).toBeUndefined();
+  });
+
+  it('skips EXIF when OffsetTimeOriginal is present but malformed', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: '2026:07:09 23:32:10',
+      OffsetTimeOriginal: 'garbage',
+    });
+
+    const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when there is no EXIF data at all', async () => {
     mockParse.mockResolvedValue(undefined);
 
     const result = await extractExifCaptureDate(Buffer.from('no-exif'));
@@ -41,16 +81,22 @@ describe('extractExifCaptureDate', () => {
     expect(result).toBeUndefined();
   });
 
-  it('returns undefined when DateTimeOriginal is not a string', async () => {
-    mockParse.mockResolvedValue({ DateTimeOriginal: 12345 });
+  it('returns undefined when DateTimeOriginal is not a string, even with a valid offset', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: 12345,
+      OffsetTimeOriginal: '+09:00',
+    });
 
     const result = await extractExifCaptureDate(Buffer.from('weird-exif'));
 
     expect(result).toBeUndefined();
   });
 
-  it('returns undefined when DateTimeOriginal does not match the expected format', async () => {
-    mockParse.mockResolvedValue({ DateTimeOriginal: 'not-a-date' });
+  it('returns undefined when DateTimeOriginal does not match the expected format, even with a valid offset', async () => {
+    mockParse.mockResolvedValue({
+      DateTimeOriginal: 'not-a-date',
+      OffsetTimeOriginal: '+09:00',
+    });
 
     const result = await extractExifCaptureDate(Buffer.from('malformed'));
 
