@@ -2,16 +2,32 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/metadata/getMetadataHandler', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/getMimeType', () => ({ default: vi.fn() }));
+vi.mock('@/lib/farcaster/getFarcasterUsernameByAddress', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/ens/resolveAddressToEns', () => ({ default: vi.fn() }));
 
 import { mapMetadataToSupabase } from '../mapMetadataToSupabase';
 import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
 import getMimeType from '@/lib/arweave/getMimeType';
+import getFarcasterUsernameByAddress from '@/lib/farcaster/getFarcasterUsernameByAddress';
+import resolveAddressToEns from '@/lib/ens/resolveAddressToEns';
 
 const mockGetMetadata = vi.mocked(getMetadataHandler);
 const mockGetMimeType = vi.mocked(getMimeType);
+const mockGetFarcasterUsername = vi.mocked(getFarcasterUsernameByAddress);
+const mockResolveEns = vi.mocked(resolveAddressToEns);
 
 describe('mapMetadataToSupabase', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // When metadata has no `artist` field, mapMetadataToSupabase falls back
+    // to a real Farcaster/ENS lookup for the creator address. Default both
+    // to "not found" so tests that don't care about this fallback don't hit
+    // the network and hang.
+    mockGetFarcasterUsername.mockResolvedValue(undefined);
+    mockResolveEns.mockResolvedValue(null);
+  });
 
   it('returns empty records for empty input', async () => {
     const result = await mapMetadataToSupabase([]);
