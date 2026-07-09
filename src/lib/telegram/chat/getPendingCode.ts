@@ -4,7 +4,7 @@ import getStateAdapter, { TELEGRAM_PENDING_CODE_KEY } from './stateAdapter';
 
 export interface PendingCode {
   email: string;
-  artistId: string;
+  artistId: string | null;
   username: string | null;
 }
 

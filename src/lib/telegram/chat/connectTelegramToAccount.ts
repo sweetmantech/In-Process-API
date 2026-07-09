@@ -9,8 +9,6 @@ import setPendingCode from './setPendingCode';
 
 const INVALID_EMAIL_MESSAGE =
   "That doesn't look like a valid email address. Please try again.";
-const NO_ACCOUNT_FOUND_MESSAGE =
-  "We couldn't find an In Process account for that email yet. Please sign up at https://inprocess.world, then reply here with your email again to connect your Telegram.";
 const CODE_SENT_MESSAGE =
   "We've sent a 6-digit verification code to that email. Please reply with the code to confirm it's yours.";
 
@@ -32,21 +30,17 @@ async function connectTelegramToAccount(
       )?.artist ?? null)
     : null;
 
-  if (!artist) {
-    // TODO: no In Process account exists for this email/wallet yet — support
-    // creating one directly from this Telegram flow instead of requiring web signup first.
-    await thread.post(NO_ACCOUNT_FOUND_MESSAGE);
-    return;
-  }
-
   // Require proof the sender owns this email before linking their Telegram
   // account to it — otherwise anyone could hijack an artist's account by
-  // typing in an email address they don't own.
+  // typing in an email address they don't own. Send the code and reply
+  // identically whether or not an artist was found: revealing that up front
+  // would let anyone probe arbitrary emails to learn which ones have an
+  // In Process account.
   await sendCodeHandler(email);
   await setPendingCode(thread, {
     email,
-    artistId: artist.id,
-    username: artist.username,
+    artistId: artist?.id ?? null,
+    username: artist?.username ?? null,
   });
   await clearPendingEmail(thread);
   await thread.post(CODE_SENT_MESSAGE);

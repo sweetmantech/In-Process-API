@@ -3,12 +3,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/privy/authenticatePrivyPasswordless', () => ({
   default: vi.fn(),
 }));
+vi.mock('@/lib/privy/ensurePrivySocialWallet', () => ({ default: vi.fn() }));
+vi.mock('@/lib/artists/getOrCreateArtist', () => ({ default: vi.fn() }));
 vi.mock('@/lib/supabase/in_process_artists/upsertArtists', () => ({
   upsertArtists: vi.fn(),
 }));
 vi.mock('../clearPendingCode', () => ({ default: vi.fn() }));
 
 import authenticatePrivyPasswordless from '@/lib/privy/authenticatePrivyPasswordless';
+import ensurePrivySocialWallet from '@/lib/privy/ensurePrivySocialWallet';
+import getOrCreateArtist from '@/lib/artists/getOrCreateArtist';
 import { upsertArtists } from '@/lib/supabase/in_process_artists/upsertArtists';
 import clearPendingCode from '../clearPendingCode';
 import verifyTelegramCode from '../verifyTelegramCode';
@@ -19,6 +23,8 @@ const PENDING = {
   artistId: 'uuid-artist-1234',
   username: 'alice',
 };
+const NEW_WALLET_ADDRESS = '0xNewWallet';
+const NEW_ARTIST_ID = 'uuid-new-artist';
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
@@ -28,6 +34,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(upsertArtists).mockResolvedValue([{ id: PENDING.artistId }]);
   vi.mocked(clearPendingCode).mockResolvedValue(undefined);
+  vi.mocked(ensurePrivySocialWallet).mockResolvedValue(NEW_WALLET_ADDRESS);
+  vi.mocked(getOrCreateArtist).mockResolvedValue({
+    artistId: NEW_ARTIST_ID,
+    primaryWallet: NEW_WALLET_ADDRESS,
+    wallets: [],
+  } as never);
 });
 
 describe('verifyTelegramCode', () => {
@@ -73,6 +85,38 @@ describe('verifyTelegramCode', () => {
       telegram: TG_USERNAME,
     });
     expect(clearPendingCode).toHaveBeenCalledWith(thread);
+    expect(ensurePrivySocialWallet).not.toHaveBeenCalled();
+    expect(getOrCreateArtist).not.toHaveBeenCalled();
     expect(thread.post).toHaveBeenCalledWith(expect.stringContaining('alice'));
+  });
+
+  it('creates a wallet and artist, then links telegram, when no artist was matched', async () => {
+    const authResult = { user: { id: 'privy-user-1' } };
+    vi.mocked(authenticatePrivyPasswordless).mockResolvedValue(
+      authResult as never
+    );
+    const thread = makeThread();
+    const unmatchedPending = { ...PENDING, artistId: null, username: null };
+
+    await verifyTelegramCode(
+      thread as never,
+      '123456',
+      TG_USERNAME,
+      unmatchedPending
+    );
+
+    expect(ensurePrivySocialWallet).toHaveBeenCalledWith(authResult);
+    expect(getOrCreateArtist).toHaveBeenCalledWith({
+      address: NEW_WALLET_ADDRESS,
+      type: 'privy',
+    });
+    expect(upsertArtists).toHaveBeenCalledWith({
+      id: NEW_ARTIST_ID,
+      telegram: TG_USERNAME,
+    });
+    expect(clearPendingCode).toHaveBeenCalledWith(thread);
+    expect(thread.post).toHaveBeenCalledWith(
+      expect.stringContaining('Welcome to In Process')
+    );
   });
 });
