@@ -24,3 +24,23 @@ export const TELEGRAM_PENDING_CODE_TTL_MS = 10 * 60 * 1_000;
 
 /** Debounce window for batching media (real Telegram albums and synthesized ungrouped bursts). */
 export const MEDIA_GROUP_WINDOW_MS = 10_000;
+
+/** Shown when a Telegram user without a linked account sends any message. */
+export const TELEGRAM_NOT_CONNECTED_MESSAGE =
+  'Welcome to In Process! To get started, please reply with the email you use for In Process so we can connect your Telegram.';
+
+/** Shown when the reply to the email prompt isn't a valid email address. */
+export const TELEGRAM_INVALID_EMAIL_MESSAGE =
+  "That doesn't look like a valid email address. Please try again.";
+
+/** Shown after a verification code has been emailed, whether or not an artist was matched (avoids leaking which emails have an account). */
+export const TELEGRAM_CODE_SENT_MESSAGE =
+  "We've sent a 6-digit verification code to that email. Please reply with the code to confirm it's yours.";
+
+/** Shown when the reply to the code prompt is malformed or Privy rejects the code. */
+export const TELEGRAM_INVALID_CODE_MESSAGE =
+  "That code doesn't look right. Please check your email and try again.";
+
+/** Shown once a Telegram account is successfully connected, whether to an existing or newly created artist. */
+export const telegramConnectedMessage = (username: string | null) =>
+  `You're all set! Your Telegram is now connected to your In Process account${username ? ` (${username})` : ''}. You can now send photos, videos, or YouTube links to create moments.`;

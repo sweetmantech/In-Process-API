@@ -116,7 +116,7 @@ describe('verifyTelegramCode', () => {
     });
     expect(clearPendingCode).toHaveBeenCalledWith(thread);
     expect(thread.post).toHaveBeenCalledWith(
-      expect.stringContaining('Welcome to In Process')
+      expect.stringContaining("You're all set")
     );
   });
 });
