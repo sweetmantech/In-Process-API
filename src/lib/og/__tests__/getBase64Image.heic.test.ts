@@ -26,8 +26,8 @@ describe('getBase64Image HEIC integration', () => {
     const result = await getBase64Image('ar://test-heic');
 
     expect(result).toMatch(/^data:image\/jpeg;base64,/);
-    expect(Buffer.from(result!.split(',')[1]!, 'base64').length).toBeGreaterThan(
-      0
-    );
+    expect(
+      Buffer.from(result!.split(',')[1]!, 'base64').length
+    ).toBeGreaterThan(0);
   });
 });
