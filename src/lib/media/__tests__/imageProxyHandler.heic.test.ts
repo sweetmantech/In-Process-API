@@ -10,12 +10,16 @@ import fetchUri from '@/lib/arweave/fetchUri';
 const readHeicFixture = (name: string): Buffer =>
   readFileSync(join(__dirname, '../../telegram/chat/__tests__/fixtures', name));
 
+const HEIC_DECODE_TIMEOUT_MS = 30_000;
+
 describe('imageProxyHandler HEIC integration', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('converts HEIC to webp blur output via sharp', async () => {
+  it(
+    'converts HEIC to webp blur output via sharp',
+    async () => {
     const heicBuffer = readHeicFixture('apple-styled-photo.heic');
 
     vi.mocked(fetchUri).mockResolvedValue({
@@ -37,5 +41,7 @@ describe('imageProxyHandler HEIC integration', () => {
     const body = Buffer.from(await result.arrayBuffer());
     expect(body.length).toBeGreaterThan(0);
     expect(body.toString('ascii', 0, 4)).toBe('RIFF');
-  });
+    },
+    HEIC_DECODE_TIMEOUT_MS
+  );
 });

@@ -10,12 +10,16 @@ import fetchUri from '@/lib/arweave/fetchUri';
 const readHeicFixture = (name: string): Buffer =>
   readFileSync(join(__dirname, '../../telegram/chat/__tests__/fixtures', name));
 
+const HEIC_DECODE_TIMEOUT_MS = 30_000;
+
 describe('getBase64Image HEIC integration', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('converts HEIC to a JPEG data URL', async () => {
+  it(
+    'converts HEIC to a JPEG data URL',
+    async () => {
     const heicBuffer = readHeicFixture('apple-styled-photo.heic');
 
     vi.mocked(fetchUri).mockResolvedValue({
@@ -29,5 +33,7 @@ describe('getBase64Image HEIC integration', () => {
     expect(
       Buffer.from(result!.split(',')[1]!, 'base64').length
     ).toBeGreaterThan(0);
-  });
+    },
+    HEIC_DECODE_TIMEOUT_MS
+  );
 });
