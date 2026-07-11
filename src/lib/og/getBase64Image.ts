@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import fetchUri from '../arweave/fetchUri';
+import prepareImageBufferForSharp from '@/lib/media/prepareImageBufferForSharp';
 
 const MAX_SIZE = 200;
 
@@ -13,8 +14,10 @@ const getBase64Image = async (
     if (!response.ok) return null;
 
     const data = await response.arrayBuffer();
+    const buffer = Buffer.from(data);
+    const sharpInput = await prepareImageBufferForSharp(buffer);
 
-    const resized = await sharp(Buffer.from(data))
+    const resized = await sharp(sharpInput)
       .resize(MAX_SIZE, MAX_SIZE, { fit: 'cover' })
       .jpeg({ quality: 70 })
       .toBuffer();

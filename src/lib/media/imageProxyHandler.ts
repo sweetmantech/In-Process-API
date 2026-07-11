@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 import fetchUri from '@/lib/arweave/fetchUri';
+import prepareImageBufferForSharp from '@/lib/media/prepareImageBufferForSharp';
 
 const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',
@@ -33,8 +34,9 @@ const imageProxyHandler = async ({
 
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
+  const sharpInput = await prepareImageBufferForSharp(buffer);
 
-  let pipeline = sharp(buffer).autoOrient();
+  let pipeline = sharp(sharpInput).autoOrient();
 
   // Resize if dimensions provided
   if (width || height) {
