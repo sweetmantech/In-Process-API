@@ -10,6 +10,7 @@ vi.mock(
 vi.mock('@/lib/telegram/parseTelegramChatId', () => ({ default: vi.fn() }));
 vi.mock('../../commands/commandsHandler', () => ({ default: vi.fn() }));
 vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
+vi.mock('../../resolveTelegramMediaAttachment', () => ({ default: vi.fn() }));
 vi.mock('../../processYoutubeLink', () => ({ default: vi.fn() }));
 vi.mock('@/lib/link/youtubeParser', () => ({ default: vi.fn() }));
 vi.mock('../../commands/connectHandler', () => ({ default: vi.fn() }));
@@ -19,6 +20,7 @@ import upsertAccountNotification from '@/lib/supabase/account_notifications/upse
 import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import commandsHandler from '../../commands/commandsHandler';
 import processMediaThread from '../../processMediaThread';
+import resolveTelegramMediaAttachment from '../../resolveTelegramMediaAttachment';
 import processYoutubeLink from '../../processYoutubeLink';
 import youtubeParser from '@/lib/link/youtubeParser';
 import connectHandler from '../../commands/connectHandler';
@@ -72,6 +74,7 @@ beforeEach(() => {
     error: null,
   } as never);
   vi.mocked(commandsHandler).mockResolvedValue(false);
+  vi.mocked(resolveTelegramMediaAttachment).mockResolvedValue(undefined);
   vi.mocked(processMediaThread).mockResolvedValue(undefined);
   vi.mocked(processYoutubeLink).mockResolvedValue(undefined);
   vi.mocked(youtubeParser).mockReturnValue(false);
@@ -133,6 +136,10 @@ describe('onNewMention', () => {
   it('processes image attachment when present', async () => {
     const attachment = { type: 'image', mimeType: 'image/jpeg' };
     const message = makeMessage({ attachments: [attachment] });
+    vi.mocked(resolveTelegramMediaAttachment).mockResolvedValue({
+      type: 'image',
+      mimeType: 'image/jpeg',
+    } as never);
 
     await capturedHandler!(makeThread(), message);
 
@@ -142,6 +149,10 @@ describe('onNewMention', () => {
   it('processes an image sent as a Telegram document', async () => {
     const attachment = { type: 'file', mimeType: 'image/jpeg' };
     const message = makeMessage({ attachments: [attachment] });
+    vi.mocked(resolveTelegramMediaAttachment).mockResolvedValue({
+      type: 'image',
+      mimeType: 'image/jpeg',
+    } as never);
 
     await capturedHandler!(makeThread(), message);
 
@@ -157,6 +168,10 @@ describe('onNewMention', () => {
   it('processes a video sent as a Telegram document', async () => {
     const attachment = { type: 'file', mimeType: 'video/mp4' };
     const message = makeMessage({ attachments: [attachment] });
+    vi.mocked(resolveTelegramMediaAttachment).mockResolvedValue({
+      type: 'video',
+      mimeType: 'video/mp4',
+    } as never);
 
     await capturedHandler!(makeThread(), message);
 
@@ -164,6 +179,32 @@ describe('onNewMention', () => {
       expect.anything(),
       message,
       expect.objectContaining({ type: 'video', mimeType: 'video/mp4' }),
+      '',
+      ARTIST
+    );
+  });
+
+  it('sniffs extensionless HEIC documents via resolveTelegramMediaAttachment', async () => {
+    const attachment = {
+      type: 'file',
+      mimeType: 'application/octet-stream',
+    };
+    const message = makeMessage({ attachments: [attachment] });
+    vi.mocked(resolveTelegramMediaAttachment).mockResolvedValue({
+      type: 'image',
+      mimeType: 'image/heic',
+    } as never);
+
+    await capturedHandler!(makeThread(), message);
+
+    expect(resolveTelegramMediaAttachment).toHaveBeenCalledWith(
+      message,
+      attachment
+    );
+    expect(processMediaThread).toHaveBeenCalledWith(
+      expect.anything(),
+      message,
+      expect.objectContaining({ type: 'image', mimeType: 'image/heic' }),
       '',
       ARTIST
     );

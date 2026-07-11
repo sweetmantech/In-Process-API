@@ -8,6 +8,8 @@ describe('getMimeTypeFromFilePath', () => {
     ['image.png', 'image/png'],
     ['animation.gif', 'image/gif'],
     ['photo.webp', 'image/webp'],
+    ['photo.heic', 'image/heic'],
+    ['photo.heif', 'image/heif'],
     ['video.mp4', 'video/mp4'],
     ['video.mov', 'video/quicktime'],
     ['video.avi', 'video/x-msvideo'],

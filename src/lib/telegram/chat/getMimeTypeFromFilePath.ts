@@ -4,6 +4,8 @@ const mimeTypeMap: Record<string, string> = {
   png: 'image/png',
   gif: 'image/gif',
   webp: 'image/webp',
+  heic: 'image/heic',
+  heif: 'image/heif',
   mp4: 'video/mp4',
   mov: 'video/quicktime',
   avi: 'video/x-msvideo',
