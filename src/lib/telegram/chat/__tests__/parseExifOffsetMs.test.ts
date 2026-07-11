@@ -10,19 +10,19 @@ describe('parseExifOffsetMs', () => {
     expect(parseExifOffsetMs('-05:00')).toBe(-5 * 60 * 60_000);
   });
 
-  it('parses a non-zero minutes offset', () => {
+  it('parses a half-hour offset', () => {
     expect(parseExifOffsetMs('+05:30')).toBe((5 * 60 + 30) * 60_000);
   });
 
-  it('returns undefined for undefined input', () => {
+  it('returns undefined for missing values', () => {
     expect(parseExifOffsetMs(undefined)).toBeUndefined();
   });
 
-  it('returns undefined for a malformed string', () => {
+  it('returns undefined for malformed strings', () => {
     expect(parseExifOffsetMs('not-an-offset')).toBeUndefined();
   });
 
-  it('returns undefined for a non-string value', () => {
+  it('returns undefined for non-string types', () => {
     expect(parseExifOffsetMs(540)).toBeUndefined();
   });
 });

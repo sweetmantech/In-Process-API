@@ -1,5 +1,8 @@
 import exifr from 'exifr';
-import parseExifOffsetMs from './parseExifOffsetMs';
+import patchExifrHeicDetection from './patchExifrHeicDetection';
+import resolveExifOffsetMs from './resolveExifOffsetMs';
+
+patchExifrHeicDetection();
 
 const EXIF_DATE_PATTERN = /^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
 
@@ -8,15 +11,15 @@ const extractExifCaptureDate = async (
 ): Promise<number | undefined> => {
   try {
     const result = await exifr.parse(buffer, {
-      pick: ['DateTimeOriginal', 'OffsetTimeOriginal'],
+      pick: ['DateTimeOriginal', 'OffsetTimeOriginal', 'OffsetTime'],
       reviveValues: false,
     });
 
     // DateTimeOriginal alone carries no timezone, and saleStart is written
-    // on-chain — so without a real OffsetTimeOriginal (EXIF 2.31+) to compute
-    // the true UTC instant, we don't guess. Skip EXIF entirely and let the
-    // caller fall back to upload time.
-    const offsetMs = parseExifOffsetMs(result?.OffsetTimeOriginal);
+    // on-chain — so without OffsetTimeOriginal or OffsetTime (EXIF 2.31+) to
+    // compute the true UTC instant, we don't guess. Skip EXIF entirely and
+    // let the caller fall back to upload time.
+    const offsetMs = resolveExifOffsetMs(result);
     if (offsetMs === undefined) return undefined;
 
     const raw = result?.DateTimeOriginal;
