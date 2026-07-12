@@ -6,6 +6,8 @@ import getTelegramFilePath from '@/lib/telegram/chat/attachment/getTelegramFileP
 import getMimeTypeFromFilePath from '@/lib/telegram/chat/attachment/getMimeTypeFromFilePath';
 import fetchTelegramFile from '@/lib/telegram/chat/attachment/fetchTelegramFile';
 import toFile from '@/lib/telegram/chat/attachment/toFile';
+import readMp4VideoRotationDegrees from '@/lib/media/readMp4VideoRotationDegrees';
+import rotateImageBuffer from '@/lib/media/rotateImageBuffer';
 
 const uploadVideoAttachment = async (
   attachment: Attachment,
@@ -20,6 +22,10 @@ const uploadVideoAttachment = async (
     getTelegramFilePath(fileId),
   ]);
   const mimeType = attachment.mimeType ?? getMimeTypeFromFilePath(filePath);
+  // Telegram's own thumbnail for a video sent as a document is a raw frame
+  // grab that ignores the container's display-rotation matrix, so correct
+  // it ourselves before storing it as the token's preview image.
+  const rotationDegrees = readMp4VideoRotationDegrees(buffer);
 
   const [{ playbackUrl, downloadUrl }, thumbResult] = await Promise.all([
     uploadVideoToMux(buffer, mimeType),
@@ -28,8 +34,11 @@ const uploadVideoAttachment = async (
 
   let imageUri = '';
   if (thumbResult) {
+    const thumbBuffer = rotationDegrees
+      ? await rotateImageBuffer(thumbResult.buffer, rotationDegrees)
+      : thumbResult.buffer;
     const thumbFile = toFile(
-      thumbResult.buffer,
+      thumbBuffer,
       `${name}-thumb`,
       thumbResult.mimeType
     );
