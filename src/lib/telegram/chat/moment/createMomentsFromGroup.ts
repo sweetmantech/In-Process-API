@@ -4,6 +4,7 @@ import type { ArtistContext } from '@/types/artist';
 import fetchTelegramFile from '@/lib/telegram/chat/attachment/fetchTelegramFile';
 import processAttachmentUpload from './processAttachmentUpload';
 import extractExifCaptureDate from '@/lib/telegram/chat/attachment/extractExifCaptureDate';
+import extractQuickTimeCaptureDate from '@/lib/telegram/chat/attachment/extractQuickTimeCaptureDate';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 import sendReadyMessage from '@/lib/telegram/chat/messaging/sendReadyMessage';
 import sendArtistCollage from '@/lib/telegram/chat/messaging/sendArtistCollage';
@@ -51,7 +52,7 @@ const createMomentsFromGroup = async (
           ),
           asset.attachmentType === 'image'
             ? extractExifCaptureDate(buffer)
-            : Promise.resolve(undefined),
+            : extractQuickTimeCaptureDate(buffer),
         ]);
         return { ...uploadResult, captureDate };
       })
