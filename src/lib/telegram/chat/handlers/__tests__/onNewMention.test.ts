@@ -9,9 +9,16 @@ vi.mock(
 );
 vi.mock('@/lib/telegram/parseTelegramChatId', () => ({ default: vi.fn() }));
 vi.mock('../../commands/commandsHandler', () => ({ default: vi.fn() }));
-vi.mock('../../processMediaThread', () => ({ default: vi.fn() }));
-vi.mock('../../resolveTelegramMediaAttachment', () => ({ default: vi.fn() }));
-vi.mock('../../processYoutubeLink', () => ({ default: vi.fn() }));
+vi.mock('@/lib/telegram/chat/moment/processMediaThread', () => ({
+  default: vi.fn(),
+}));
+vi.mock(
+  '@/lib/telegram/chat/attachment/resolveTelegramMediaAttachment',
+  () => ({ default: vi.fn() })
+);
+vi.mock('@/lib/telegram/chat/moment/processYoutubeLink', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/link/youtubeParser', () => ({ default: vi.fn() }));
 vi.mock('../../commands/connectHandler', () => ({ default: vi.fn() }));
 vi.mock('../getArtistByTelegram', () => ({ default: vi.fn() }));
@@ -19,14 +26,14 @@ vi.mock('../getArtistByTelegram', () => ({ default: vi.fn() }));
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import commandsHandler from '../../commands/commandsHandler';
-import processMediaThread from '../../processMediaThread';
-import resolveTelegramMediaAttachment from '../../resolveTelegramMediaAttachment';
-import processYoutubeLink from '../../processYoutubeLink';
+import processMediaThread from '@/lib/telegram/chat/moment/processMediaThread';
+import resolveTelegramMediaAttachment from '@/lib/telegram/chat/attachment/resolveTelegramMediaAttachment';
+import processYoutubeLink from '@/lib/telegram/chat/moment/processYoutubeLink';
 import youtubeParser from '@/lib/link/youtubeParser';
 import connectHandler from '../../commands/connectHandler';
 import getArtistByTelegram from '../getArtistByTelegram';
 import { registerOnNewMention } from '../onNewMention';
-import type { TelegramChatBot } from '../../bot';
+import type { TelegramChatBot } from '@/lib/telegram/chat/bot';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
 const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';

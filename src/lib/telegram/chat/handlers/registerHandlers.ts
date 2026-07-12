@@ -1,4 +1,4 @@
-import telegramChatBot from '../bot';
+import telegramChatBot from '@/lib/telegram/chat/bot';
 import { registerOnNewMention } from './onNewMention';
 import { registerOnNudgePeriod } from './onNudgePeriod';
 import { registerOnCollectionSelect } from './onCollectionSelect';

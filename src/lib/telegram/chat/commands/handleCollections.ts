@@ -1,12 +1,12 @@
 import type { Address } from 'viem';
 import type { Thread } from 'chat';
 import { Card, Actions, Button } from 'chat';
-import type { TelegramThreadState } from '../telegramThreadState';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 import getCollectionsRpc from '@/lib/supabase/in_process_collections/getCollectionsRpc';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTIONS_LOAD_MORE_ACTION_ID,
-} from '../consts';
+} from '@/lib/telegram/chat/consts';
 import truncateTelegramButtonLabel from '../../truncateTelegramButtonLabel';
 import { CHAIN_ID } from '@/lib/consts';
 

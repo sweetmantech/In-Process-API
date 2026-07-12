@@ -1,13 +1,13 @@
 import { getAddress, isAddress } from 'viem';
 import type { ActionEvent, ActionHandler } from 'chat';
 import { Actions, Button, Card, CardText } from 'chat';
-import type { TelegramChatBot } from '../bot';
+import type { TelegramChatBot } from '@/lib/telegram/chat/bot';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTION_SELECTION_CANCEL_ACTION_ID,
-} from '../consts';
-import type { TelegramThreadState } from '../telegramThreadState';
-import setSelectedCollectionAddress from '../setSelectedCollectionAddress';
+} from '@/lib/telegram/chat/consts';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
+import setSelectedCollectionAddress from '@/lib/telegram/chat/collection/setSelectedCollectionAddress';
 
 async function handleCollectionSelect(
   event: ActionEvent<TelegramThreadState>

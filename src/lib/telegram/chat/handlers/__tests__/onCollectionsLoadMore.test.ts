@@ -14,7 +14,7 @@ import { registerOnCollectionsLoadMore } from '../onCollectionsLoadMore';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTIONS_LOAD_MORE_ACTION_ID,
-} from '../../consts';
+} from '@/lib/telegram/chat/consts';
 import { CHAIN_ID } from '@/lib/consts';
 
 const ARTIST_ADDRESS = '0xaaa';

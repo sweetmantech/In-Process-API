@@ -1,6 +1,6 @@
 import type { Thread } from 'chat';
 import { Card, Actions, Button } from 'chat';
-import type { TelegramThreadState } from '../telegramThreadState';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';

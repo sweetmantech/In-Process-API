@@ -1,11 +1,11 @@
-import type { TelegramChatBot } from '../bot';
+import type { TelegramChatBot } from '@/lib/telegram/chat/bot';
 import { Card, Actions, Button } from 'chat';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import getCollectionsRpc from '@/lib/supabase/in_process_collections/getCollectionsRpc';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTIONS_LOAD_MORE_ACTION_ID,
-} from '../consts';
+} from '@/lib/telegram/chat/consts';
 import truncateTelegramButtonLabel from '../../truncateTelegramButtonLabel';
 import { CHAIN_ID } from '@/lib/consts';
 import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';

@@ -1,13 +1,13 @@
 import type { Thread } from 'chat';
-import type { TelegramChatBot } from '../bot';
-import type { TelegramThreadState } from '../telegramThreadState';
+import type { TelegramChatBot } from '@/lib/telegram/chat/bot';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import commandsHandler from '../commands/commandsHandler';
-import processMediaThread from '../processMediaThread';
-import resolveTelegramMediaAttachment from '../resolveTelegramMediaAttachment';
+import processMediaThread from '@/lib/telegram/chat/moment/processMediaThread';
+import resolveTelegramMediaAttachment from '@/lib/telegram/chat/attachment/resolveTelegramMediaAttachment';
 import youtubeParser from '@/lib/link/youtubeParser';
-import processYoutubeLink from '../processYoutubeLink';
+import processYoutubeLink from '@/lib/telegram/chat/moment/processYoutubeLink';
 import connectHandler from '../commands/connectHandler';
 import getArtistByTelegram from './getArtistByTelegram';
 

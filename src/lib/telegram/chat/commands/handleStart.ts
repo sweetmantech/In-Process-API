@@ -1,5 +1,5 @@
 import type { Thread } from 'chat';
-import type { TelegramThreadState } from '../telegramThreadState';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 
 const handleStart = async (
   thread: Thread<TelegramThreadState>,

@@ -1,8 +1,8 @@
 import type { ActionEvent, ActionHandler } from 'chat';
-import type { TelegramChatBot } from '../bot';
-import { COLLECTION_SELECTION_CANCEL_ACTION_ID } from '../consts';
-import type { TelegramThreadState } from '../telegramThreadState';
-import clearSelectedCollectionAddress from '../clearSelectedCollectionAddress';
+import type { TelegramChatBot } from '@/lib/telegram/chat/bot';
+import { COLLECTION_SELECTION_CANCEL_ACTION_ID } from '@/lib/telegram/chat/consts';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
+import clearSelectedCollectionAddress from '@/lib/telegram/chat/collection/clearSelectedCollectionAddress';
 
 async function handleCollectionSelectionCancel(
   event: ActionEvent<TelegramThreadState>

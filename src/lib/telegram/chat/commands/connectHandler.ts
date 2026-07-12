@@ -1,10 +1,10 @@
 import type { Thread } from 'chat';
-import type { TelegramThreadState } from '../telegramThreadState';
-import getPendingCode from '../getPendingCode';
-import getPendingEmail from '../getPendingEmail';
-import promptTelegramEmail from '../promptTelegramEmail';
-import connectTelegramToAccount from '../connectTelegramToAccount';
-import verifyTelegramCode from '../verifyTelegramCode';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
+import getPendingCode from '@/lib/telegram/chat/auth/getPendingCode';
+import getPendingEmail from '@/lib/telegram/chat/auth/getPendingEmail';
+import promptTelegramEmail from '@/lib/telegram/chat/auth/promptTelegramEmail';
+import connectTelegramToAccount from '@/lib/telegram/chat/auth/connectTelegramToAccount';
+import verifyTelegramCode from '@/lib/telegram/chat/auth/verifyTelegramCode';
 
 const connectHandler = async (
   text: string,

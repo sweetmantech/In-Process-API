@@ -1,6 +1,6 @@
 import type { Address } from 'viem';
 import type { Thread } from 'chat';
-import type { TelegramThreadState } from '../telegramThreadState';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import getEmailByWalletAddress from '@/lib/privy/getEmailByWalletAddress';
 

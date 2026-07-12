@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { validateTelegramChatEnv } from '../validateEnv';
+import { validateTelegramChatEnv } from '@/lib/telegram/chat/validateEnv';
 
 const REQUIRED = [
   'TELEGRAM_CHAT_BOT_TOKEN',

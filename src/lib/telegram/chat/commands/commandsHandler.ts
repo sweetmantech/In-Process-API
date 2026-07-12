@@ -1,5 +1,5 @@
 import type { Thread } from 'chat';
-import type { TelegramThreadState } from '../telegramThreadState';
+import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 import type { TelegramArtist } from '../handlers/getArtistByTelegram';
 import handleStart from './handleStart';
 import handleRemind from './handleRemind';

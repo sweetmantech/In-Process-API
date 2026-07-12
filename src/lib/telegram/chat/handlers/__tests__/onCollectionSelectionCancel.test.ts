@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../clearSelectedCollectionAddress', () => ({
-  default: vi.fn().mockResolvedValue(undefined),
-}));
+vi.mock(
+  '@/lib/telegram/chat/collection/clearSelectedCollectionAddress',
+  () => ({
+    default: vi.fn().mockResolvedValue(undefined),
+  })
+);
 
-import clearSelectedCollectionAddress from '../../clearSelectedCollectionAddress';
+import clearSelectedCollectionAddress from '@/lib/telegram/chat/collection/clearSelectedCollectionAddress';
 import { registerOnCollectionSelectionCancel } from '../onCollectionSelectionCancel';
-import { COLLECTION_SELECTION_CANCEL_ACTION_ID } from '../../consts';
+import { COLLECTION_SELECTION_CANCEL_ACTION_ID } from '@/lib/telegram/chat/consts';
 
 const makeBot = () => {
   const handler = { fn: (_event: unknown) => Promise.resolve() };

@@ -6,7 +6,7 @@ import { registerOnCollectionSelect } from '../onCollectionSelect';
 import {
   COLLECTION_SELECT_ACTION_ID,
   COLLECTION_SELECTION_CANCEL_ACTION_ID,
-} from '../../consts';
+} from '@/lib/telegram/chat/consts';
 
 const COL_ADDRESS = '0x0000000000000000000000000000000000000001';
 

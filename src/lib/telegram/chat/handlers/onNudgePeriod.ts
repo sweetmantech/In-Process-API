@@ -1,4 +1,4 @@
-import type { TelegramChatBot } from '../bot';
+import type { TelegramChatBot } from '@/lib/telegram/chat/bot';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';
