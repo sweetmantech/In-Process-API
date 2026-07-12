@@ -67,6 +67,46 @@ describe('extractTelegramFileIds', () => {
       expect(fileId).toBe('document_id');
       expect(thumbFileId).toBeUndefined();
     });
+
+    it('extracts thumbFileId when a video sent as a document has a thumb', () => {
+      const message = {
+        raw: {
+          document: { file_id: 'document_id', thumb: { file_id: 'thumb_id' } },
+        },
+      };
+      const { fileId, thumbFileId } = extractTelegramFileIds(
+        message as never,
+        attachment('document_id')
+      );
+      expect(fileId).toBe('document_id');
+      expect(thumbFileId).toBe('thumb_id');
+    });
+
+    it('returns undefined thumbFileId when the document has no thumb', () => {
+      const message = { raw: { document: { file_id: 'document_id' } } };
+      const { thumbFileId } = extractTelegramFileIds(
+        message as never,
+        attachment('document_id')
+      );
+      expect(thumbFileId).toBeUndefined();
+    });
+
+    it('prefers video.thumb over document.thumb when both are present', () => {
+      const message = {
+        raw: {
+          video: { file_id: 'video_id', thumb: { file_id: 'video_thumb_id' } },
+          document: {
+            file_id: 'video_id',
+            thumb: { file_id: 'document_thumb_id' },
+          },
+        },
+      };
+      const { thumbFileId } = extractTelegramFileIds(
+        message as never,
+        attachment('video_id')
+      );
+      expect(thumbFileId).toBe('video_thumb_id');
+    });
   });
 
   describe('missing media', () => {

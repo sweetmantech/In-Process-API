@@ -11,8 +11,11 @@ const extractTelegramFileIds = (
 
   const raw = message.raw as {
     video?: { thumb?: { file_id: string } };
+    document?: { thumb?: { file_id: string } };
   };
-  const thumbFileId = raw.video?.thumb?.file_id;
+  // A video sent as a Telegram "document" (to skip compression) carries its
+  // thumbnail under `document.thumb`, not `video.thumb`.
+  const thumbFileId = raw.video?.thumb?.file_id ?? raw.document?.thumb?.file_id;
 
   return { fileId, thumbFileId };
 };
