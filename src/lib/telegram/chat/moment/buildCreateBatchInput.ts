@@ -20,9 +20,10 @@ const buildCreateBatchInput = (
     salesConfig: {
       type: MomentType.Erc20Mint,
       pricePerToken: parseUnits('1', 6).toString(),
-      // Position the moment on the Timeline by when the photo was actually
-      // taken (EXIF) when available; Telegram strips EXIF from compressed
-      // "photo" sends, so fall back to upload time in that case.
+      // Position the moment on the Timeline by when the photo/video was
+      // actually captured (EXIF / QuickTime creation date) when available;
+      // Telegram strips this metadata from compressed "photo" sends, so
+      // fall back to upload time in that case.
       saleStart: u.captureDate ?? uploadTime,
       saleEnd: maxUint64.toString(),
       currency: USDC_ADDRESS[CHAIN_ID],
