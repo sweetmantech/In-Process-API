@@ -650,6 +650,7 @@ export type Database = {
           p_address: string;
           p_chain_id: number;
           p_collection: string;
+          p_collection_name?: string;
           p_created_at: string;
           p_creator: string;
           p_creator_username: string;
