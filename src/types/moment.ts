@@ -56,6 +56,9 @@ export interface TimelineMoment {
     address: string;
     username: string | null;
   };
+  collection: {
+    name: string;
+  };
   admins: string[];
   hidden: string[];
   created_at: string;
