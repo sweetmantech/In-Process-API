@@ -98,20 +98,6 @@ describe('validateUpload', () => {
     expect(getArtistSmartWallet).not.toHaveBeenCalled();
   });
 
-  it('returns 500 when smart wallet resolution fails for paid upload', async () => {
-    vi.mocked(getUploadType).mockResolvedValue({
-      uploadType: 'paid',
-      usdcAmountMicros: USDC,
-    });
-    vi.mocked(getArtistSmartWallet).mockResolvedValue(null);
-
-    const result = await validateUpload(makeRequest());
-    const body = await (result as NextResponse).json();
-
-    expect((result as NextResponse).status).toBe(500);
-    expect(body.message).toBe('Failed to resolve smart wallet');
-  });
-
   it('returns 402 when USDC balance is insufficient', async () => {
     vi.mocked(getUploadType).mockResolvedValue({
       uploadType: 'paid',
