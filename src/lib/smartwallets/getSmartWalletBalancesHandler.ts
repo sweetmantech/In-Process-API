@@ -20,13 +20,6 @@ const getSmartWalletBalancesHandler = async ({
     selectWallets({ artistIds: [artistId] }),
   ]);
 
-  if (!smartWalletAddress) {
-    return NextResponse.json(
-      { message: 'Smart wallet not found' },
-      { status: 404 }
-    );
-  }
-
   const primaryWallet = getPrimaryWallet(
     (wallets ?? []).filter(
       (w) => w.type !== 'smart'

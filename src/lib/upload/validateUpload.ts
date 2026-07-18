@@ -39,12 +39,6 @@ const validateUpload = async (req: NextRequest) => {
 
   if (uploadTypeResult.uploadType === 'paid') {
     const smartWalletAddress = await getArtistSmartWallet(authResult.artistId);
-    if (!smartWalletAddress) {
-      return NextResponse.json(
-        { message: 'Failed to resolve smart wallet' },
-        { status: 500 }
-      );
-    }
 
     const usdcBalance = await getSmartWalletUsdcBalance(smartWalletAddress);
     if (usdcBalance < uploadTypeResult.usdcAmountMicros) {
