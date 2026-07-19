@@ -5,7 +5,7 @@ import fetchTelegramFile from '@/lib/telegram/chat/attachment/fetchTelegramFile'
 import processAttachmentUpload from './processAttachmentUpload';
 import extractExifCaptureDate from '@/lib/telegram/chat/attachment/extractExifCaptureDate';
 import extractQuickTimeCaptureDate from '@/lib/telegram/chat/attachment/extractQuickTimeCaptureDate';
-import createMomentBatch from '@/lib/moment/createMomentBatch';
+import mintWithNonceRetry from './mintWithNonceRetry';
 import sendReadyMessage from '@/lib/telegram/chat/messaging/sendReadyMessage';
 import sendArtistCollage from '@/lib/telegram/chat/messaging/sendArtistCollage';
 import type { PendingMediaGroupAsset } from '@/types/telegram';
@@ -65,7 +65,10 @@ const createMomentsFromGroup = async (
       artist.primaryWallet
     );
 
-    const { contractAddress, tokenIds } = await createMomentBatch(batchInput);
+    const { contractAddress, tokenIds } = await mintWithNonceRetry(
+      thread,
+      batchInput
+    );
     if (explicitSelection) {
       await clearSelectedCollectionAddress(thread);
     }
