@@ -9,6 +9,9 @@ vi.mock('../notifyAirdrop', () => ({ default: vi.fn() }));
 vi.mock('@/lib/wallets/ensureWallets', () => ({
   ensureWallets: vi.fn(),
 }));
+vi.mock('@/lib/wallets/resolveCollectorNames', () => ({
+  default: vi.fn(),
+}));
 vi.mock('@/lib/supabase/in_process_transfers/upsertTransfers', () => ({
   upsertTransfers: vi.fn(),
 }));
@@ -17,6 +20,7 @@ import { processTransfersInBatches } from '../processTransfersInBatches';
 import { distribute } from '../distribute';
 import { mapTransfersToSupabase } from '../mapTransfersToSupabase';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
+import resolveCollectorNames from '@/lib/wallets/resolveCollectorNames';
 import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
 import notifyAirdrop from '../notifyAirdrop';
 import type { Transfers_t } from '@/types/envio';
@@ -24,6 +28,7 @@ import type { Transfers_t } from '@/types/envio';
 const mockDistribute = vi.mocked(distribute);
 const mockMap = vi.mocked(mapTransfersToSupabase);
 const mockEnsureArtists = vi.mocked(ensureWallets);
+const mockResolveCollectorNames = vi.mocked(resolveCollectorNames);
 const mockUpsert = vi.mocked(upsertTransfers);
 const mockNotifyAirdrop = vi.mocked(notifyAirdrop);
 
@@ -45,6 +50,7 @@ describe('processTransfersInBatches', () => {
     vi.clearAllMocks();
     mockDistribute.mockResolvedValue(undefined);
     mockEnsureArtists.mockResolvedValue(undefined as never);
+    mockResolveCollectorNames.mockResolvedValue(undefined);
     mockUpsert.mockResolvedValue(undefined);
   });
 
@@ -82,17 +88,19 @@ describe('processTransfersInBatches', () => {
       mockMap.mock.invocationCallOrder[0]
     );
     expect(mockEnsureArtists).toHaveBeenCalledWith(['0xab']);
+    expect(mockResolveCollectorNames).toHaveBeenCalledWith(['0xab']);
     expect(mockUpsert).toHaveBeenCalledWith(rows);
     expect(mockNotifyAirdrop).toHaveBeenCalledWith(batch);
   });
 
-  it('does not call ensureWallets when map returns no rows', async () => {
+  it('does not call ensureWallets or resolveCollectorNames when map returns no rows', async () => {
     mockMap.mockResolvedValue({ rows: [], processedTransfers: [] });
 
     await processTransfersInBatches([transfer('1')]);
 
     expect(mockDistribute).toHaveBeenCalled();
     expect(mockEnsureArtists).not.toHaveBeenCalled();
+    expect(mockResolveCollectorNames).not.toHaveBeenCalled();
     expect(mockUpsert).toHaveBeenCalledWith([]);
   });
 

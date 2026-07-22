@@ -2,31 +2,27 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/metadata/getMetadataHandler', () => ({ default: vi.fn() }));
 vi.mock('@/lib/arweave/getMimeType', () => ({ default: vi.fn() }));
-vi.mock('@/lib/farcaster/getFarcasterUsernameByAddress', () => ({
+vi.mock('@/lib/artists/resolveAddressDisplayName', () => ({
   default: vi.fn(),
 }));
-vi.mock('@/lib/ens/resolveAddressToEns', () => ({ default: vi.fn() }));
 
 import { mapMetadataToSupabase } from '../mapMetadataToSupabase';
 import getMetadataHandler from '@/lib/metadata/getMetadataHandler';
 import getMimeType from '@/lib/arweave/getMimeType';
-import getFarcasterUsernameByAddress from '@/lib/farcaster/getFarcasterUsernameByAddress';
-import resolveAddressToEns from '@/lib/ens/resolveAddressToEns';
+import resolveAddressDisplayName from '@/lib/artists/resolveAddressDisplayName';
 
 const mockGetMetadata = vi.mocked(getMetadataHandler);
 const mockGetMimeType = vi.mocked(getMimeType);
-const mockGetFarcasterUsername = vi.mocked(getFarcasterUsernameByAddress);
-const mockResolveEns = vi.mocked(resolveAddressToEns);
+const mockResolveDisplayName = vi.mocked(resolveAddressDisplayName);
 
 describe('mapMetadataToSupabase', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // When metadata has no `artist` field, mapMetadataToSupabase falls back
-    // to a real Farcaster/ENS lookup for the creator address. Default both
-    // to "not found" so tests that don't care about this fallback don't hit
-    // the network and hang.
-    mockGetFarcasterUsername.mockResolvedValue(undefined);
-    mockResolveEns.mockResolvedValue(null);
+    // to a Farcaster/ENS display-name lookup for the creator address.
+    // Default to "not found" so tests that don't care about this fallback
+    // don't need to configure it.
+    mockResolveDisplayName.mockResolvedValue(null);
   });
 
   it('returns empty records for empty input', async () => {
@@ -178,21 +174,17 @@ describe('mapMetadataToSupabase', () => {
     expect(result.records[0].animation_url).toBe('ipfs://content');
   });
 
-  it('uses owner address over collection.creator for artist name mapping', async () => {
-    mockGetMetadata.mockResolvedValue({ name: 'T', artist: 'Alice' } as any);
+  it('falls back to resolveAddressDisplayName for creator when artist field is missing', async () => {
+    mockGetMetadata.mockResolvedValue({ name: 'T' } as any);
+    mockResolveDisplayName.mockResolvedValue('bob.eth');
 
     const moments = [
-      {
-        id: 'mid',
-        uri: 'ipfs://meta',
-        owner: '0xOWNER',
-        collection: { creator: '0xCREATOR' },
-      },
+      { id: 'mid', uri: 'ipfs://meta', collection: { creator: '0xCREATOR' } },
     ];
     const result = await mapMetadataToSupabase(moments);
 
-    expect(result.artistNamesByAddresses.get('0xOWNER')).toBe('Alice');
-    expect(result.artistNamesByAddresses.has('0xCREATOR')).toBe(false);
+    expect(mockResolveDisplayName).toHaveBeenCalledWith('0xCREATOR');
+    expect(result.artistNamesByAddresses.get('0xCREATOR')).toBe('bob.eth');
   });
 
   describe('retriesGeneric backoff', () => {

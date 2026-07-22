@@ -15,12 +15,11 @@ type AnyMoment =
 
 export type MomentUriEntry = {
   contentUri?: string;
-  owner?: string;
 };
 
 /**
  * Builds a map keyed by "collection:tokenId".
- * For ZoraMedia moments, extracts contentUri (uri field) and owner
+ * For ZoraMedia moments, extracts contentUri (uri field)
  * since the stored uri is metadata_uri, not the content uri.
  */
 export function getMomentUris(
@@ -34,7 +33,6 @@ export function getMomentUris(
     if ('metadata_uri' in moment && moment.metadata_uri) {
       map.set(key, {
         contentUri: moment.uri ?? undefined,
-        owner: moment.owner,
       });
     }
   }
