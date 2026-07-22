@@ -22,7 +22,7 @@ describe('getMomentUris', () => {
     expect(getMomentUris([moment]).size).toBe(0);
   });
 
-  it('extracts contentUri and owner for ZoraMedia moments', () => {
+  it('extracts contentUri for ZoraMedia moments', () => {
     const moment: ZoraMedia_Moments_t = {
       id: '2',
       collection: '0xCOL',
@@ -38,7 +38,6 @@ describe('getMomentUris', () => {
     const map = getMomentUris([moment]);
     expect(map.get('0xCOL:7')).toEqual({
       contentUri: 'ipfs://content',
-      owner: '0xOWNER',
     });
   });
 
