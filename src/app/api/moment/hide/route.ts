@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateHideMomentBody(req);
     if (validated instanceof NextResponse) return validated;
-    return hideMomentHandler(validated);
+    return await hideMomentHandler(validated);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to hide tokens';

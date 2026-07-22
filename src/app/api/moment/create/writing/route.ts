@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateCreateWritingMoment(req);
     if (validated instanceof NextResponse) return validated;
-    return createWritingMomentHandler(validated);
+    return await createWritingMomentHandler(validated);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to create writing moment';

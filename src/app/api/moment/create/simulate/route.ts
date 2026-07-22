@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateCreateMoment(req);
     if (validated instanceof NextResponse) return validated;
-    return simulateCreateMomentHandler(validated);
+    return await simulateCreateMomentHandler(validated);
   } catch (e: any) {
     console.error(e);
     const message = e?.message ?? 'Unable to simulate moment creation.';

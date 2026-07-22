@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateAirdropMoment(req);
     if (validated instanceof NextResponse) return validated;
-    return airdropMomentHandler(validated);
+    return await airdropMomentHandler(validated);
   } catch (e: any) {
     const message = e?.message ?? 'Airdrop failed.';
     return Response.json({ message }, { status: 500 });

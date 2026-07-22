@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateCreateMomentBatch(req);
     if (validated instanceof NextResponse) return validated;
-    return createMomentBatchHandler(validated);
+    return await createMomentBatchHandler(validated);
   } catch (e: any) {
     console.log(e);
     const message = e?.message ?? 'failed to create moment batch';

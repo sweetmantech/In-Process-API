@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     const validated = await validateCollectMomentBody(req);
     if (validated instanceof Response) return validated;
-    return collectMomentHandler(validated);
+    return await collectMomentHandler(validated);
   } catch (e: any) {
     return Response.json(
       { message: e?.message ?? 'failed to collect moment' },
