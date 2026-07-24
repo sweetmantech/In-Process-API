@@ -22,6 +22,14 @@ export async function mapCommentsToSupabase(
         artist_address: comment.sender.toLowerCase(),
         comment: comment.comment ?? null,
         commented_at: blockTsToISOString(comment.commented_at),
+        comment_id: comment.comment_id ?? null,
+        reply_to_id: comment.reply_to_id ?? null,
+        nonce: comment.nonce ?? null,
+        sparks_quantity:
+          comment.sparks_quantity === undefined ||
+          comment.sparks_quantity === null
+            ? null
+            : comment.sparks_quantity,
       });
     }
   }

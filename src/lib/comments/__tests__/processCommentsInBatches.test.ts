@@ -41,7 +41,7 @@ describe('processCommentsInBatches', () => {
     expect(mockUpsert).not.toHaveBeenCalled();
   });
 
-  it('maps, ensures artists and upserts', async () => {
+  it('maps, ensures artists and upserts mint comments by artist/time/moment', async () => {
     const mapped = [
       {
         moment: 'mid',
@@ -55,7 +55,32 @@ describe('processCommentsInBatches', () => {
     await processCommentsInBatches([comment]);
 
     expect(mockEnsureArtists).toHaveBeenCalledWith(['0xabc']);
-    expect(mockUpsert).toHaveBeenCalledWith(mapped);
+    expect(mockUpsert).toHaveBeenCalledWith([], 'comment_id');
+    expect(mockUpsert).toHaveBeenCalledWith(
+      mapped,
+      'artist_address,commented_at,moment'
+    );
+  });
+
+  it('upserts protocol comments by comment_id', async () => {
+    const mapped = [
+      {
+        moment: 'mid',
+        artist_address: '0xabc',
+        comment: 'hi',
+        commented_at: 'ts',
+        comment_id: '0xcid',
+      },
+    ];
+    mockMap.mockResolvedValue(mapped);
+
+    await processCommentsInBatches([comment]);
+
+    expect(mockUpsert).toHaveBeenCalledWith(mapped, 'comment_id');
+    expect(mockUpsert).toHaveBeenCalledWith(
+      [],
+      'artist_address,commented_at,moment'
+    );
   });
 
   it('continues when a batch throws', async () => {

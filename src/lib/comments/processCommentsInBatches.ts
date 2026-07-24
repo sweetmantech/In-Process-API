@@ -14,7 +14,13 @@ export async function processCommentsInBatches(
       const batch = comments.slice(i, i + BATCH_SIZE);
       const mappedComments = await mapCommentsToSupabase(batch);
       await ensureWallets(mappedComments.map((c) => c.artist_address));
-      await upsertComments(mappedComments);
+
+      const protocolComments = mappedComments.filter((c) => c.comment_id);
+      const mintComments = mappedComments.filter((c) => !c.comment_id);
+
+      await upsertComments(protocolComments, 'comment_id');
+      await upsertComments(mintComments, 'artist_address,commented_at,moment');
+
       totalProcessed += mappedComments.length;
       console.log(
         `💬 Batch ${Math.floor(i / BATCH_SIZE) + 1}: Processed ${mappedComments.length} comments`

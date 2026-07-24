@@ -1,14 +1,16 @@
 import { supabase } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
 
+type CommentInsert =
+  Database['public']['Tables']['in_process_moment_comments']['Insert'];
+
 export async function upsertComments(
-  comments: Array<
-    Database['public']['Tables']['in_process_moment_comments']['Insert']
-  >
+  comments: Array<CommentInsert>,
+  onConflict: 'artist_address,commented_at,moment' | 'comment_id'
 ): Promise<void> {
   if (!comments.length) return;
   const { error } = await supabase
     .from('in_process_moment_comments')
-    .upsert(comments, { onConflict: 'artist_address,commented_at,moment' });
+    .upsert(comments, { onConflict });
   if (error) throw error;
 }
