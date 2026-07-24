@@ -368,23 +368,35 @@ export type Database = {
         Row: {
           artist_address: string;
           comment: string | null;
+          comment_id: string | null;
           commented_at: string;
           id: string;
           moment: string;
+          nonce: string | null;
+          reply_to_id: string | null;
+          sparks_quantity: string | null;
         };
         Insert: {
           artist_address: string;
           comment?: string | null;
+          comment_id?: string | null;
           commented_at?: string;
           id?: string;
           moment: string;
+          nonce?: string | null;
+          reply_to_id?: string | null;
+          sparks_quantity?: string | null;
         };
         Update: {
           artist_address?: string;
           comment?: string | null;
+          comment_id?: string | null;
           commented_at?: string;
           id?: string;
           moment?: string;
+          nonce?: string | null;
+          reply_to_id?: string | null;
+          sparks_quantity?: string | null;
         };
         Relationships: [
           {

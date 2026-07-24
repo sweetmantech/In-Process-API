@@ -43,6 +43,10 @@ export type InProcess_Comments_t = {
   readonly sender: string;
   readonly token_id: string; // BigInt from GraphQL comes as string
   readonly comment: string | undefined;
+  readonly comment_id?: string | null;
+  readonly reply_to_id?: string | null;
+  readonly nonce?: string | null;
+  readonly sparks_quantity?: string | null; // BigInt from GraphQL comes as string
   readonly chain_id: number;
   readonly commented_at: number;
   readonly transaction_hash: string;

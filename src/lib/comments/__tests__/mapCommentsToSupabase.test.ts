@@ -37,8 +37,33 @@ describe('mapCommentsToSupabase', () => {
         artist_address: '0xsender',
         comment: 'hello world',
         commented_at: new Date(1700000000 * 1000).toISOString(),
+        comment_id: null,
+        reply_to_id: null,
+        nonce: null,
+        sparks_quantity: null,
       },
     ]);
+  });
+
+  it('maps Zora Comments protocol fields for replies', async () => {
+    mockGetMomentIdMap.mockResolvedValue(
+      new Map([['0xcol:8453:2', 'moment-uuid']])
+    );
+    const result = await mapCommentsToSupabase([
+      {
+        ...comment,
+        comment_id: '0xabc',
+        reply_to_id: '0xparent',
+        nonce: '0x1',
+        sparks_quantity: '1',
+      },
+    ]);
+    expect(result[0]).toMatchObject({
+      comment_id: '0xabc',
+      reply_to_id: '0xparent',
+      nonce: '0x1',
+      sparks_quantity: '1',
+    });
   });
 
   it('stores null for undefined comment text', async () => {
