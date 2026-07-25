@@ -7,6 +7,7 @@ import { validate } from '@/lib/schema/validate';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const replyToId = searchParams.get('replyToId') || undefined;
     const queryParams = {
       moment: {
         collectionAddress: searchParams.get('collectionAddress') as Address,
@@ -14,6 +15,7 @@ export async function GET(req: NextRequest) {
         chainId: Number(searchParams.get('chainId')),
       },
       offset: Number(searchParams.get('offset')) || 0,
+      ...(replyToId ? { replyToId } : {}),
     };
 
     const validationResult = validate(commentsSchema, queryParams);

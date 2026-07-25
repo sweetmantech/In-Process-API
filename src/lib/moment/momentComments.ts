@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { commentsSchema } from '../schema/commentsSchema';
 import selectMoments from '../supabase/in_process_moments/selectMoments';
-import selectComments from '../supabase/in_process_moment_comments/selectComments';
+import getMomentCommentsRpc from '../supabase/in_process_moment_comments/getMomentCommentsRpc';
 import { MomentCommentsResult } from '@/types/moment';
 
 export type GetCommentsInput = z.infer<typeof commentsSchema>;
@@ -9,6 +9,7 @@ export type GetCommentsInput = z.infer<typeof commentsSchema>;
 export async function momentComments({
   moment,
   offset,
+  replyToId,
 }: GetCommentsInput): Promise<MomentCommentsResult> {
   const { data: moments, error: momentsError } = await selectMoments({
     moments: [moment],
@@ -24,22 +25,11 @@ export async function momentComments({
     throw new Error('Moment not found');
   }
 
-  const comments = await selectComments({
+  const comments = await getMomentCommentsRpc({
     momentId: momentData.id,
     offset,
+    replyToId,
   });
 
-  const formattedComments = comments.map((comment) => ({
-    id: comment.id,
-    comment: comment.comment ?? '',
-    sender: comment.artist_address,
-    username: comment.wallet?.artist?.username ?? '',
-    timestamp: comment.commented_at
-      ? new Date(comment.commented_at).getTime()
-      : 0,
-  }));
-
-  return {
-    comments: formattedComments,
-  };
+  return { comments };
 }

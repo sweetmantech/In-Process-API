@@ -16,6 +16,11 @@ export interface MintComment {
   sender: string;
   comment: string;
   timestamp: number;
+  commentId: string | null;
+  replyToId: string | null;
+  nonce: string | null;
+  replyCount: number;
+  replies: MintComment[];
 }
 
 export interface MomentMetadata {
