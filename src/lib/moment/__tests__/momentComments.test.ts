@@ -3,9 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../../supabase/in_process_moments/selectMoments', () => ({
   default: vi.fn(),
 }));
-vi.mock('../../supabase/in_process_moment_comments/getMomentCommentsRpc', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '../../supabase/in_process_moment_comments/getMomentCommentsRpc',
+  () => ({
+    default: vi.fn(),
+  })
+);
 
 import { momentComments } from '../momentComments';
 import selectMoments from '../../supabase/in_process_moments/selectMoments';
