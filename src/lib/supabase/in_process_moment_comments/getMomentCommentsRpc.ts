@@ -21,7 +21,7 @@ const getMomentCommentsRpc = async ({
     p_moment_id: momentId,
     p_offset: offset,
     p_limit: COMMENTS_PAGE_SIZE,
-    p_reply_to_id: replyToId ?? null,
+    ...(replyToId ? { p_reply_to_id: replyToId } : {}),
     p_reply_preview: REPLY_PREVIEW,
   });
 
