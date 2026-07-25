@@ -374,7 +374,7 @@ export type Database = {
           moment: string;
           nonce: string | null;
           reply_to_id: string | null;
-          sparks_quantity: string | null;
+          sparks_quantity: number | null;
         };
         Insert: {
           artist_address: string;
@@ -385,7 +385,7 @@ export type Database = {
           moment: string;
           nonce?: string | null;
           reply_to_id?: string | null;
-          sparks_quantity?: string | null;
+          sparks_quantity?: number | null;
         };
         Update: {
           artist_address?: string;
@@ -396,7 +396,7 @@ export type Database = {
           moment?: string;
           nonce?: string | null;
           reply_to_id?: string | null;
-          sparks_quantity?: string | null;
+          sparks_quantity?: number | null;
         };
         Relationships: [
           {
@@ -657,6 +657,21 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      build_moment_comment_json: {
+        Args: {
+          p_comment: string;
+          p_comment_id: string;
+          p_commented_at: string;
+          p_id: string;
+          p_nonce: string;
+          p_replies?: Json;
+          p_reply_count?: number;
+          p_reply_to_id: string;
+          p_sender: string;
+          p_username: string;
+        };
+        Returns: Json;
+      };
       build_moment_json: {
         Args: {
           p_address: string;
@@ -865,6 +880,16 @@ export type Database = {
       };
       get_moment_admins_json: {
         Args: { p_collection: string; p_token_id: number };
+        Returns: Json;
+      };
+      get_moment_comments: {
+        Args: {
+          p_limit?: number;
+          p_moment_id: string;
+          p_offset?: number;
+          p_reply_preview?: number;
+          p_reply_to_id?: string;
+        };
         Returns: Json;
       };
       get_moments_total_cnt: { Args: { p_chain_id?: number }; Returns: number };

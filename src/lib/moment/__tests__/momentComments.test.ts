@@ -3,16 +3,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../../supabase/in_process_moments/selectMoments', () => ({
   default: vi.fn(),
 }));
-vi.mock('../../supabase/in_process_moment_comments/selectComments', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '../../supabase/in_process_moment_comments/getMomentCommentsRpc',
+  () => ({
+    default: vi.fn(),
+  })
+);
 
 import { momentComments } from '../momentComments';
 import selectMoments from '../../supabase/in_process_moments/selectMoments';
-import selectComments from '../../supabase/in_process_moment_comments/selectComments';
+import getMomentCommentsRpc from '../../supabase/in_process_moment_comments/getMomentCommentsRpc';
 
 const mockSelectMoments = vi.mocked(selectMoments);
-const mockSelectComments = vi.mocked(selectComments);
+const mockRpc = vi.mocked(getMomentCommentsRpc);
 
 const validInput = {
   moment: {
@@ -27,73 +30,51 @@ const validInput = {
 describe('momentComments', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns formatted comments', async () => {
+  it('returns RPC comments for a moment', async () => {
     mockSelectMoments.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
-    mockSelectComments.mockResolvedValue([
+    mockRpc.mockResolvedValue([
       {
         id: 'comment-1',
         comment: 'Great track!',
-        artist_address: '0xabc',
-        wallet: { artist: { username: 'alice' } },
-        commented_at: '2025-01-01T00:00:00Z',
+        sender: '0xabc',
+        username: 'alice',
+        timestamp: 1,
+        commentId: null,
+        replyToId: null,
+        nonce: null,
+        replyCount: 0,
+        replies: [],
       },
-    ] as any);
+    ]);
 
     const result = await momentComments(validInput);
 
-    expect(result).toEqual({
-      comments: [
-        {
-          id: 'comment-1',
-          comment: 'Great track!',
-          sender: '0xabc',
-          username: 'alice',
-          timestamp: new Date('2025-01-01T00:00:00Z').getTime(),
-        },
-      ],
+    expect(mockRpc).toHaveBeenCalledWith({
+      momentId: 'moment-1',
+      offset: 0,
+      replyToId: undefined,
     });
+    expect(result.comments).toHaveLength(1);
+    expect(result.comments[0].id).toBe('comment-1');
   });
 
-  it('defaults comment to empty string when null', async () => {
+  it('passes replyToId to RPC', async () => {
     mockSelectMoments.mockResolvedValue({
       data: [{ id: 'moment-1' }],
       error: null,
     } as any);
-    mockSelectComments.mockResolvedValue([
-      {
-        id: 'c1',
-        comment: null,
-        artist_address: '0xabc',
-        wallet: { artist: { username: 'alice' } },
-        commented_at: null,
-      },
-    ] as any);
+    mockRpc.mockResolvedValue([]);
 
-    const result = await momentComments(validInput);
-    expect(result.comments[0].comment).toBe('');
-    expect(result.comments[0].timestamp).toBe(0);
-  });
+    await momentComments({ ...validInput, replyToId: '0xparent' });
 
-  it('defaults username to empty string when null', async () => {
-    mockSelectMoments.mockResolvedValue({
-      data: [{ id: 'moment-1' }],
-      error: null,
-    } as any);
-    mockSelectComments.mockResolvedValue([
-      {
-        id: 'c1',
-        comment: 'Hi',
-        artist_address: '0xabc',
-        wallet: { artist: { username: null } },
-        commented_at: null,
-      },
-    ] as any);
-
-    const result = await momentComments(validInput);
-    expect(result.comments[0].username).toBe('');
+    expect(mockRpc).toHaveBeenCalledWith({
+      momentId: 'moment-1',
+      offset: 0,
+      replyToId: '0xparent',
+    });
   });
 
   it('throws when selectMoments returns error', async () => {
@@ -111,19 +92,5 @@ describe('momentComments', () => {
     await expect(momentComments(validInput)).rejects.toThrow(
       'Moment not found'
     );
-  });
-
-  it('passes offset to selectComments', async () => {
-    mockSelectMoments.mockResolvedValue({
-      data: [{ id: 'moment-1' }],
-      error: null,
-    } as any);
-    mockSelectComments.mockResolvedValue([] as any);
-
-    await momentComments({ ...validInput, offset: 10 });
-    expect(mockSelectComments).toHaveBeenCalledWith({
-      momentId: 'moment-1',
-      offset: 10,
-    });
   });
 });

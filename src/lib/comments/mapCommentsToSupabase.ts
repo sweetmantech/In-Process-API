@@ -29,7 +29,7 @@ export async function mapCommentsToSupabase(
           comment.sparks_quantity === undefined ||
           comment.sparks_quantity === null
             ? null
-            : comment.sparks_quantity,
+            : Number(comment.sparks_quantity),
       });
     }
   }

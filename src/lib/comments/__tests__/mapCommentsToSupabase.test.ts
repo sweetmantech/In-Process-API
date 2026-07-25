@@ -62,7 +62,7 @@ describe('mapCommentsToSupabase', () => {
       comment_id: '0xabc',
       reply_to_id: '0xparent',
       nonce: '0x1',
-      sparks_quantity: '1',
+      sparks_quantity: 1,
     });
   });
 
