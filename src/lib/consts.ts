@@ -88,4 +88,10 @@ export const NOUNS_GOVERNOR_ADDRESS: Record<number, Address> = {
   [sepolia.id]: '0x35d2670d7c8931aacdd37c89ddcb0638c3c44a57',
 };
 
+/** In Process Comments proxy (free comments; not Zora's 0x7777… deployment). */
+export const COMMENTS_ADDRESS: Record<number, Address> = {
+  [base.id]: '0x81580CB752C90bfcebbCE1b257Aa632ea80021ba',
+  [baseSepolia.id]: '0xc88Ed284283d941124B61E5049AD276935693b8C',
+};
+
 export const SUPABASE_STORAGE_BUCKET = 'in_process_files';

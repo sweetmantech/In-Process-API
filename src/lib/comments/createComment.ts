@@ -1,0 +1,67 @@
+import { Address, Hash, Hex, OneOf, zeroAddress } from 'viem';
+import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
+import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
+import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
+import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
+import getCommentCall from '@/lib/viem/getCommentCall';
+import type { AuthResult } from '@/types/auth';
+
+export type CreateCommentInput = {
+  artist: AuthResult;
+  collection: { address: Address; chainId: number };
+  tokenId: string;
+  text: string;
+  replyTo?: {
+    commenter: Address;
+    contractAddress: Address;
+    tokenId: string;
+    nonce: string;
+  };
+  referrer?: Address;
+};
+
+export interface CreateCommentResult {
+  hash: Hash;
+  chainId: number;
+}
+
+export async function createComment({
+  artist,
+  collection,
+  tokenId,
+  text,
+  replyTo,
+  referrer,
+}: CreateCommentInput): Promise<CreateCommentResult> {
+  const smartAccount = await getWalletSmartAccount({
+    address: artist.primaryWallet,
+  });
+
+  const commentCall = getCommentCall({
+    chainId: collection.chainId,
+    commenter: smartAccount.address as Address,
+    collectionAddress: collection.address,
+    tokenId,
+    text,
+    replyTo: replyTo
+      ? {
+          commenter: replyTo.commenter,
+          contractAddress: replyTo.contractAddress,
+          tokenId: replyTo.tokenId,
+          nonce: replyTo.nonce as Hex,
+        }
+      : undefined,
+    referrer: referrer ?? zeroAddress,
+  });
+
+  const transaction = await sendUserOperation({
+    smartAccount,
+    network: IS_TESTNET ? 'base-sepolia' : 'base',
+    calls: [commentCall] as OneOf<Call<unknown, { [key: string]: unknown }>>[],
+  });
+
+  return {
+    hash: transaction.transactionHash as Hash,
+    chainId: CHAIN_ID,
+  };
+}
