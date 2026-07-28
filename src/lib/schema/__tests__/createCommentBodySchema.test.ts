@@ -59,4 +59,35 @@ describe('createCommentBodySchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('rejects non-digit tokenId strings', () => {
+    const result = createCommentBodySchema.safeParse({
+      tokenId: 'abc',
+      text: 'hello',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects non-digit replyTo.tokenId strings', () => {
+    const result = createCommentBodySchema.safeParse({
+      tokenId: '1',
+      text: 'reply',
+      replyTo: {
+        commenter: '0x1111111111111111111111111111111111111111',
+        contractAddress: '0x2222222222222222222222222222222222222222',
+        tokenId: '1.5',
+        nonce:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects negative tokenId numbers', () => {
+    const result = createCommentBodySchema.safeParse({
+      tokenId: -1,
+      text: 'hello',
+    });
+    expect(result.success).toBe(false);
+  });
 });
