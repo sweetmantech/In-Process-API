@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { AuthMethod } from '@/types/auth';
+import { POST } from '@/app/api/moment/comments/[network]/[contract]/route';
 
 vi.mock('@/authMiddleware', () => ({
   authMiddleware: vi.fn(),
@@ -112,5 +113,32 @@ describe('createCommentHandler', () => {
     });
 
     expect(await res.json()).toEqual({ hash: '0xhash', chainId: 8453 });
+  });
+
+  it('returns 403 when the primary wallet is not a holder or admin', async () => {
+    vi.mocked(createComment).mockRejectedValue({
+      cause: {
+        shortMessage: 'Execution reverted: NotTokenHolderOrAdmin()',
+      },
+    });
+
+    const req = new NextRequest('http://localhost/api', {
+      method: 'POST',
+      body: JSON.stringify({ tokenId: '1', text: 'hello' }),
+      headers: { 'content-type': 'application/json' },
+    });
+
+    const res = await POST(req, {
+      params: Promise.resolve({
+        network: 'eip155:8453',
+        contract: `erc1155:${COLLECTION}`,
+      }),
+    });
+
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({
+      message:
+        'Your primary wallet must hold or administer this token before it can post a comment.',
+    });
   });
 });
