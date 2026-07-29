@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import validateCreateCommentCAIP from '@/lib/comments/validateCreateCommentCAIP';
 import createCommentHandler from '@/lib/comments/createCommentHandler';
+import parseCreateCommentError from '@/lib/comments/parseCreateCommentError';
 
 export async function POST(
   req: NextRequest,
@@ -9,12 +10,10 @@ export async function POST(
   try {
     const validated = await validateCreateCommentCAIP(req, await params);
     if (validated instanceof NextResponse) return validated;
-    return createCommentHandler(validated);
+    return await createCommentHandler(validated);
   } catch (e: any) {
-    return NextResponse.json(
-      { message: e?.message ?? 'Failed to create comment' },
-      { status: 500 }
-    );
+    const { message, status } = parseCreateCommentError(e);
+    return NextResponse.json({ message }, { status });
   }
 }
 
