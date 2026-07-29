@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { AuthMethod } from '@/types/auth';
-import { POST } from '@/app/api/moment/comments/[network]/[contract]/route';
+import { POST } from '@/app/api/comments/[network]/[contract]/route';
 
 vi.mock('@/authMiddleware', () => ({
   authMiddleware: vi.fn(),
