@@ -2,7 +2,7 @@ import { Address, Hash, Hex, OneOf, zeroAddress } from 'viem';
 import { Call } from '@coinbase/coinbase-sdk/dist/types/calls';
 import { CHAIN_ID, IS_TESTNET } from '@/lib/consts';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
-import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
+import { getCommenterSmartAccount } from '@/lib/coinbase/getCommenterSmartAccount';
 import getCommentCall from '@/lib/viem/getCommentCall';
 import type { AuthResult } from '@/types/auth';
 
@@ -33,13 +33,11 @@ export async function createComment({
   replyTo,
   referrer,
 }: CreateCommentInput): Promise<CreateCommentResult> {
-  const smartAccount = await getWalletSmartAccount({
-    address: artist.primaryWallet,
-  });
+  const smartAccount = await getCommenterSmartAccount();
 
   const commentCall = getCommentCall({
     chainId: collection.chainId,
-    commenter: smartAccount.address as Address,
+    commenter: artist.primaryWallet,
     collectionAddress: collection.address,
     tokenId,
     text,

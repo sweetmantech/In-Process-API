@@ -9,7 +9,7 @@ const COMMENTER = '0x2222222222222222222222222222222222222222' as const;
 const CHAIN_ID = 8453;
 
 describe('getCommentCall', () => {
-  it('encodes a free top-level comment with no value and empty replyTo', () => {
+  it('encodes a free top-level delegateComment with no value and empty replyTo', () => {
     const call = getCommentCall({
       chainId: CHAIN_ID,
       commenter: COMMENTER,
@@ -25,7 +25,7 @@ describe('getCommentCall', () => {
       abi: commentsABI,
       data: call.data,
     });
-    expect(decoded.functionName).toBe('comment');
+    expect(decoded.functionName).toBe('delegateComment');
     expect(decoded.args?.[0]).toBe(COMMENTER);
     expect(decoded.args?.[1]).toBe(COLLECTION);
     expect(decoded.args?.[2]).toBe(3n);

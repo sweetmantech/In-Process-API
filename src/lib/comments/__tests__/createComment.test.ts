@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthMethod } from '@/types/auth';
 
-vi.mock('@/lib/coinbase/getWalletSmartAccount', () => ({
-  getWalletSmartAccount: vi.fn(),
+vi.mock('@/lib/coinbase/getCommenterSmartAccount', () => ({
+  getCommenterSmartAccount: vi.fn(),
 }));
 vi.mock('@/lib/coinbase/sendUserOperation', () => ({
   sendUserOperation: vi.fn(),
@@ -11,13 +11,13 @@ vi.mock('@/lib/viem/getCommentCall', () => ({
   default: vi.fn(),
 }));
 
-import { getWalletSmartAccount } from '@/lib/coinbase/getWalletSmartAccount';
+import { getCommenterSmartAccount } from '@/lib/coinbase/getCommenterSmartAccount';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getCommentCall from '@/lib/viem/getCommentCall';
 import { createComment } from '../createComment';
 
 const COLLECTION = '0x1111111111111111111111111111111111111111' as const;
-const SMART = '0x2222222222222222222222222222222222222222' as const;
+const COMMENTER_SMART = '0x2222222222222222222222222222222222222222' as const;
 const TX_HASH =
   '0xaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd' as const;
 
@@ -31,8 +31,8 @@ const artist = {
 describe('createComment', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getWalletSmartAccount).mockResolvedValue({
-      address: SMART,
+    vi.mocked(getCommenterSmartAccount).mockResolvedValue({
+      address: COMMENTER_SMART,
     } as any);
     vi.mocked(getCommentCall).mockReturnValue({
       to: '0xcomments',
@@ -43,7 +43,7 @@ describe('createComment', () => {
     } as any);
   });
 
-  it('sends a zero-value comment call from the primary-wallet smart account', async () => {
+  it('sends delegateComment from the in-process-commenter smart account', async () => {
     const result = await createComment({
       artist,
       collection: { address: COLLECTION, chainId: 8453 },
@@ -51,12 +51,10 @@ describe('createComment', () => {
       text: 'hello',
     });
 
-    expect(getWalletSmartAccount).toHaveBeenCalledWith({
-      address: artist.primaryWallet,
-    });
+    expect(getCommenterSmartAccount).toHaveBeenCalledOnce();
     expect(getCommentCall).toHaveBeenCalledWith(
       expect.objectContaining({
-        commenter: SMART,
+        commenter: artist.primaryWallet,
         collectionAddress: COLLECTION,
         tokenId: '1',
         text: 'hello',
@@ -65,6 +63,7 @@ describe('createComment', () => {
     );
     expect(sendUserOperation).toHaveBeenCalledWith(
       expect.objectContaining({
+        smartAccount: { address: COMMENTER_SMART },
         calls: [{ to: '0xcomments', data: '0xcalldata' }],
       })
     );

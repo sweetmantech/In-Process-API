@@ -90,8 +90,11 @@ export const NOUNS_GOVERNOR_ADDRESS: Record<number, Address> = {
 
 /** In Process Comments proxy (free comments; not Zora's 0x7777… deployment). */
 export const COMMENTS_ADDRESS: Record<number, Address> = {
-  [base.id]: '0x81580CB752C90bfcebbCE1b257Aa632ea80021ba',
-  [baseSepolia.id]: '0xc88Ed284283d941124B61E5049AD276935693b8C',
+  [base.id]: '0x89d1e8b71330cd1d5d651b2d3a62472e10dd567d',
+  [baseSepolia.id]: '0x3836fa55a5d35445d6ede75b4f0991e850546dec',
 };
+
+/** CDP account / smart-account name for the DELEGATE_COMMENTER operator. */
+export const IN_PROCESS_COMMENTER_ACCOUNT_NAME = 'in-process-commenter';
 
 export const SUPABASE_STORAGE_BUCKET = 'in_process_files';

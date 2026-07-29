@@ -51,7 +51,7 @@ const getCommentCall = ({
     to: commentsAddress,
     data: encodeFunctionData({
       abi: commentsABI,
-      functionName: 'comment',
+      functionName: 'delegateComment',
       args: [
         commenter,
         collectionAddress,
