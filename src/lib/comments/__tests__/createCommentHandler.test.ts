@@ -137,8 +137,7 @@ describe('createCommentHandler', () => {
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({
-      message:
-        'Your primary wallet must hold or administer this token before it can post a comment.',
+      message: 'Collect this moment before commenting.',
     });
   });
 });

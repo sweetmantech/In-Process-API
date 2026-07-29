@@ -1,7 +1,6 @@
 import hasNotTokenHolderOrAdminError from '@/lib/comments/hasNotTokenHolderOrAdminError';
 
-const HOLDER_ERROR_MESSAGE =
-  'Your primary wallet must hold or administer this token before it can post a comment.';
+const HOLDER_ERROR_MESSAGE = 'Collect this moment before commenting.';
 
 function parseCreateCommentError(error: unknown): {
   message: string;
