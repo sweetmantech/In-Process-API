@@ -2,8 +2,6 @@ import blockTsToISOString from '@/lib/blockTsToISOString';
 import type { InProcess_Comments_t } from '@/types/envio';
 import type { Database } from '@/lib/supabase/types';
 import { getMomentIdMap } from '@/lib/moment/getMomentIdMap';
-import resolveArtistAddressFromMaybeSmartWallet from '@/lib/wallets/resolveArtistAddressFromMaybeSmartWallet';
-import { Address } from 'viem';
 
 export async function mapCommentsToSupabase(
   momentComments: InProcess_Comments_t[]
@@ -15,35 +13,13 @@ export async function mapCommentsToSupabase(
   > = [];
   const momentIdMap = await getMomentIdMap(momentComments);
 
-  const artistAddressBySenderKey = new Map<string, string>();
-  await Promise.all(
-    [
-      ...new Map(
-        momentComments.map((comment) => [
-          `${comment.sender.toLowerCase()}:${comment.chain_id}`,
-          comment,
-        ])
-      ).values(),
-    ].map(async (comment) => {
-      const key = `${comment.sender.toLowerCase()}:${comment.chain_id}`;
-      const artistAddress = await resolveArtistAddressFromMaybeSmartWallet({
-        address: comment.sender as Address,
-        chainId: comment.chain_id,
-      });
-      artistAddressBySenderKey.set(key, artistAddress);
-    })
-  );
-
   for (const comment of momentComments) {
     const tripletKey = `${comment.collection.toLowerCase()}:${comment.chain_id}:${comment.token_id}`;
     const momentId = momentIdMap.get(tripletKey);
     if (momentId) {
-      const senderKey = `${comment.sender.toLowerCase()}:${comment.chain_id}`;
       mappedComments.push({
         moment: momentId,
-        artist_address:
-          artistAddressBySenderKey.get(senderKey) ??
-          comment.sender.toLowerCase(),
+        artist_address: comment.sender.toLowerCase(),
         comment: comment.comment ?? null,
         commented_at: blockTsToISOString(comment.commented_at),
         comment_id: comment.comment_id ?? null,

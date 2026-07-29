@@ -1,18 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/moment/getMomentIdMap', () => ({ getMomentIdMap: vi.fn() }));
-vi.mock('@/lib/wallets/resolveArtistAddressFromMaybeSmartWallet', () => ({
-  default: vi.fn(),
-}));
 
 import { mapCommentsToSupabase } from '../mapCommentsToSupabase';
 import { getMomentIdMap } from '@/lib/moment/getMomentIdMap';
-import resolveArtistAddressFromMaybeSmartWallet from '@/lib/wallets/resolveArtistAddressFromMaybeSmartWallet';
 
 const mockGetMomentIdMap = vi.mocked(getMomentIdMap);
-const mockResolveArtistAddress = vi.mocked(
-  resolveArtistAddressFromMaybeSmartWallet
-);
 
 const comment = {
   id: '1',
@@ -26,12 +19,7 @@ const comment = {
 };
 
 describe('mapCommentsToSupabase', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockResolveArtistAddress.mockImplementation(async ({ address }) =>
-      address.toLowerCase()
-    );
-  });
+  beforeEach(() => vi.clearAllMocks());
 
   it('returns empty array for empty input', async () => {
     mockGetMomentIdMap.mockResolvedValue(new Map());
@@ -93,32 +81,13 @@ describe('mapCommentsToSupabase', () => {
     expect(await mapCommentsToSupabase([comment])).toEqual([]);
   });
 
-  it('resolves smart-wallet sender to primary artist address', async () => {
+  it('lowercases sender address', async () => {
     mockGetMomentIdMap.mockResolvedValue(
       new Map([['0xcol:8453:2', 'moment-uuid']])
     );
-    mockResolveArtistAddress.mockResolvedValue('0xartist');
     const result = await mapCommentsToSupabase([
-      { ...comment, sender: '0xSmartWallet' },
+      { ...comment, sender: '0xAbCdEf' },
     ]);
-    expect(mockResolveArtistAddress).toHaveBeenCalledWith({
-      address: '0xSmartWallet',
-      chainId: 8453,
-    });
-    expect(result[0].artist_address).toBe('0xartist');
-  });
-
-  it('resolves each unique sender once per batch', async () => {
-    mockGetMomentIdMap.mockResolvedValue(
-      new Map([
-        ['0xcol:8453:2', 'moment-uuid'],
-        ['0xcol:8453:3', 'moment-uuid-2'],
-      ])
-    );
-    await mapCommentsToSupabase([
-      comment,
-      { ...comment, id: '2', token_id: '3' },
-    ]);
-    expect(mockResolveArtistAddress).toHaveBeenCalledTimes(1);
+    expect(result[0].artist_address).toBe('0xabcdef');
   });
 });
