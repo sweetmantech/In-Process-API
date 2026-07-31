@@ -1,4 +1,5 @@
 import fetchUri from '@/lib/arweave/fetchUri';
+import countWritingLines from '@/lib/writing/countWritingLines';
 
 interface WritingData {
   writingText: string;
@@ -17,14 +18,7 @@ const getWritingData = async (
     );
 
   const writingText = await response.text();
-  let totalLines = 0;
-  const paragraphs = writingText.split('\n');
-  paragraphs.map(
-    (paragraph) =>
-      (totalLines =
-        totalLines + parseInt(Number(paragraph.length / 64).toFixed()) + 1)
-  );
-  return { writingText, totalLines };
+  return { writingText, totalLines: countWritingLines(writingText) };
 };
 
 export default getWritingData;

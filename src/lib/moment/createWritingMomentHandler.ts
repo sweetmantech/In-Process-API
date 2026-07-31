@@ -3,7 +3,7 @@ import {
   type CreateWritingMomentInput,
 } from '@/lib/schema/createMomentSchema';
 import { convertWritingToContractSchema } from '@/lib/coinbase/convertWritingToContractSchema';
-import { uploadWritingWithJson } from '@/lib/writing/uploadWritingWithJson';
+import uploadWritingWithJson from '@/lib/writing/uploadWritingWithJson';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 
 const createWritingMomentHandler = async (data: CreateWritingMomentInput) => {
@@ -12,8 +12,7 @@ const createWritingMomentHandler = async (data: CreateWritingMomentInput) => {
     : (data.contract.name ?? data.title);
   const metadataUri = await uploadWritingWithJson(
     collectionName,
-    data.token.tokenContent,
-    data.account
+    data.token.tokenContent
   );
   const convertedData = convertWritingToContractSchema(data, metadataUri);
   const batchInput = createMomentBatchSchema.parse({
