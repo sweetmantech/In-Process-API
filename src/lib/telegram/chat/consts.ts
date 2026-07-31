@@ -25,6 +25,28 @@ export const TELEGRAM_PENDING_CODE_TTL_MS = 10 * 60 * 1_000;
 /** Debounce window for batching media (real Telegram albums and synthesized ungrouped bursts). */
 export const MEDIA_GROUP_WINDOW_MS = 10_000;
 
+/** Thread state key holding the plain-text body awaiting Yes/No confirmation as a text moment. */
+export const TELEGRAM_PENDING_TEXT_KEY = 'pending_text_body';
+
+/** How long a pending text body is kept before the Yes/No prompt expires. */
+export const TELEGRAM_PENDING_TEXT_TTL_MS = 10 * 60 * 1_000;
+
+/** Confirms the pending plain-text message should be minted as a writing moment. */
+export const TEXT_POST_CONFIRM_YES_ACTION_ID = 'ty';
+
+/** Declines minting the pending plain-text message as a writing moment. */
+export const TEXT_POST_CONFIRM_NO_ACTION_ID = 'tn';
+
+/** Shown when a connected user sends plain text with no media / YouTube link. */
+export const TELEGRAM_TEXT_POST_PROMPT = 'Is this a text post?';
+
+/** Shown when the user declines the text-post confirmation. */
+export const TELEGRAM_TEXT_POST_CANCELLED_MESSAGE = 'Ok, cancelled.';
+
+/** Shown when Yes is pressed but the pending body expired or was already used. */
+export const TELEGRAM_TEXT_POST_EXPIRED_MESSAGE =
+  'That text expired or was already posted. Send it again to create a text moment.';
+
 /** Shown when a Telegram user without a linked account sends any message. */
 export const TELEGRAM_NOT_CONNECTED_MESSAGE =
   'Welcome to In Process! To get started, please reply with the email you use for In Process so we can connect your Telegram.';
@@ -43,4 +65,8 @@ export const TELEGRAM_INVALID_CODE_MESSAGE =
 
 /** Shown once a Telegram account is successfully connected, whether to an existing or newly created artist. */
 export const telegramConnectedMessage = (username: string | null) =>
-  `You're all set! Your Telegram is now connected to your In Process account${username ? ` (${username})` : ''}. You can now send photos, videos, or YouTube links to create moments.`;
+  `You're all set! Your Telegram is now connected to your In Process account${username ? ` (${username})` : ''}. You can now send photos, videos, YouTube links, or plain text to create moments.`;
+
+/** Fallback when a message is not media, YouTube, or plain text suitable for a text moment. */
+export const TELEGRAM_MOMENT_HELP_MESSAGE =
+  'To post moments, please send a photo or video along with a caption, a YouTube link, or plain text.';

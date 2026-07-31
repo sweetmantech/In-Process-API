@@ -66,7 +66,7 @@ describe('registerOnCollectionSelect', () => {
       'selected_collection_address',
       normalized
     );
-    const text = `Next moment will be created in this collection:\n\`${normalized}\`\n\nSend a photo, video, YouTube link to create.`;
+    const text = `Next moment will be created in this collection:\n\`${normalized}\`\n\nSend a photo, video, YouTube link, or plain text to create.`;
     expect(event.thread?.post).toHaveBeenCalledWith(
       Card({
         children: [
