@@ -3,7 +3,7 @@ import { getAddress, type Address } from 'viem';
 import createMomentFromText from '@/lib/telegram/chat/moment/createMomentFromText';
 
 vi.mock('@/lib/writing/uploadWritingWithJson', () => ({
-  uploadWritingWithJson: vi.fn(),
+  default: vi.fn(),
 }));
 vi.mock('@/lib/moment/createMomentBatch', () => ({ default: vi.fn() }));
 vi.mock('@/lib/consts', () => ({
@@ -15,7 +15,7 @@ vi.mock('@/lib/consts', () => ({
   IS_TESTNET: false,
 }));
 
-import { uploadWritingWithJson } from '@/lib/writing/uploadWritingWithJson';
+import uploadWritingWithJson from '@/lib/writing/uploadWritingWithJson';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
@@ -44,8 +44,7 @@ describe('createMomentFromText', () => {
 
     expect(uploadWritingWithJson).toHaveBeenCalledWith(
       'Hello from Telegram',
-      CONTENT,
-      getAddress(ARTIST_ADDRESS)
+      CONTENT
     );
     expect(createMomentBatch).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -3,7 +3,7 @@ import type { ArtistContext } from '@/types/artist';
 import type { CreateContractResult } from '@/lib/schema/createMomentSchema';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 import { createMomentBatchSchema } from '@/lib/schema/createMomentSchema';
-import { uploadWritingWithJson } from '@/lib/writing/uploadWritingWithJson';
+import uploadWritingWithJson from '@/lib/writing/uploadWritingWithJson';
 import { CHAIN_ID, REFERRAL_RECIPIENT, USDC_ADDRESS } from '@/lib/consts';
 import { MomentType } from '@/types/moment';
 import deriveTextMomentTitle from './deriveTextMomentTitle';
@@ -14,11 +14,7 @@ const createMomentFromText = async (
   existingCollectionAddress?: Address
 ): Promise<CreateContractResult> => {
   const title = deriveTextMomentTitle(content);
-  const metadataUri = await uploadWritingWithJson(
-    title,
-    content,
-    artist.primaryWallet
-  );
+  const metadataUri = await uploadWritingWithJson(title, content);
 
   const contract = existingCollectionAddress
     ? { address: existingCollectionAddress }

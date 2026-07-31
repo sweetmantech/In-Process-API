@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createWritingMomentSchema } from '@/lib/schema/createMomentSchema';
 
 vi.mock('@/lib/writing/uploadWritingWithJson', () => ({
-  uploadWritingWithJson: vi.fn(),
+  default: vi.fn(),
 }));
 
 vi.mock('@/lib/moment/createMomentBatch', () => ({
   default: vi.fn(),
 }));
 
-import { uploadWritingWithJson } from '@/lib/writing/uploadWritingWithJson';
+import uploadWritingWithJson from '@/lib/writing/uploadWritingWithJson';
 import createMomentBatch from '@/lib/moment/createMomentBatch';
 import createWritingMomentHandler from '../createWritingMomentHandler';
 
@@ -54,11 +54,7 @@ describe('createWritingMomentHandler', () => {
   it('uploads writing JSON then mints via createMomentBatch', async () => {
     await createWritingMomentHandler(writingInput);
 
-    expect(uploadWritingWithJson).toHaveBeenCalledWith(
-      'Writings',
-      'body text',
-      ARTIST
-    );
+    expect(uploadWritingWithJson).toHaveBeenCalledWith('Writings', 'body text');
     expect(createMomentBatch).toHaveBeenCalledWith(
       expect.objectContaining({
         contract: expect.objectContaining({
