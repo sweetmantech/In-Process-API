@@ -10,6 +10,8 @@ import youtubeParser from '@/lib/link/youtubeParser';
 import processYoutubeLink from '@/lib/telegram/chat/moment/processYoutubeLink';
 import connectHandler from '../commands/connectHandler';
 import getArtistByTelegram from './getArtistByTelegram';
+import promptTextPostConfirmation from '@/lib/telegram/chat/moment/promptTextPostConfirmation';
+import { TELEGRAM_MOMENT_HELP_MESSAGE } from '@/lib/telegram/chat/consts';
 
 const YOUTUBE_URL_REGEX =
   /https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/|shorts\/)|youtu\.be\/)[\w-]+[^\s]*/i;
@@ -67,9 +69,12 @@ export function registerOnNewMention(bot: TelegramChatBot) {
         return;
       }
 
-      await thread.post(
-        'To post moments, please send a photo or video along with a caption, or share a YouTube link.'
-      );
+      if (text) {
+        await promptTextPostConfirmation(thread, text);
+        return;
+      }
+
+      await thread.post(TELEGRAM_MOMENT_HELP_MESSAGE);
     } catch (error) {
       console.error('[telegram-dm] onDirectMessage error:', error);
       await thread.post(`❌ something went wrong: ${error}`);

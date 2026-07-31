@@ -22,6 +22,9 @@ vi.mock('@/lib/telegram/chat/moment/processYoutubeLink', () => ({
 vi.mock('@/lib/link/youtubeParser', () => ({ default: vi.fn() }));
 vi.mock('../../commands/connectHandler', () => ({ default: vi.fn() }));
 vi.mock('../getArtistByTelegram', () => ({ default: vi.fn() }));
+vi.mock('@/lib/telegram/chat/moment/promptTextPostConfirmation', () => ({
+  default: vi.fn(),
+}));
 
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
@@ -32,6 +35,8 @@ import processYoutubeLink from '@/lib/telegram/chat/moment/processYoutubeLink';
 import youtubeParser from '@/lib/link/youtubeParser';
 import connectHandler from '../../commands/connectHandler';
 import getArtistByTelegram from '../getArtistByTelegram';
+import promptTextPostConfirmation from '@/lib/telegram/chat/moment/promptTextPostConfirmation';
+import { TELEGRAM_MOMENT_HELP_MESSAGE } from '@/lib/telegram/chat/consts';
 import { registerOnNewMention } from '../onNewMention';
 import type { TelegramChatBot } from '@/lib/telegram/chat/bot';
 
@@ -86,6 +91,7 @@ beforeEach(() => {
   vi.mocked(processYoutubeLink).mockResolvedValue(undefined);
   vi.mocked(youtubeParser).mockReturnValue(false);
   vi.mocked(connectHandler).mockResolvedValue(undefined);
+  vi.mocked(promptTextPostConfirmation).mockResolvedValue(undefined);
 
   registerOnNewMention(mockBot);
 });
@@ -225,19 +231,29 @@ describe('onNewMention', () => {
     await capturedHandler!(thread, message);
 
     expect(processMediaThread).not.toHaveBeenCalled();
-    expect(thread.post).toHaveBeenCalledWith(
-      'To post moments, please send a photo or video along with a caption, or share a YouTube link.'
-    );
+    expect(promptTextPostConfirmation).not.toHaveBeenCalled();
+    expect(thread.post).toHaveBeenCalledWith(TELEGRAM_MOMENT_HELP_MESSAGE);
   });
 
-  it('posts fallback message for unrecognised text without attachment', async () => {
+  it('prompts text-post confirmation for plain text without attachment', async () => {
     const thread = makeThread();
 
     await capturedHandler!(thread, makeMessage({ text: 'random text' }));
 
-    expect(thread.post).toHaveBeenCalledWith(
-      'To post moments, please send a photo or video along with a caption, or share a YouTube link.'
+    expect(promptTextPostConfirmation).toHaveBeenCalledWith(
+      thread,
+      'random text'
     );
+    expect(thread.post).not.toHaveBeenCalled();
+  });
+
+  it('posts help when there is no text and no usable attachment', async () => {
+    const thread = makeThread();
+
+    await capturedHandler!(thread, makeMessage({ text: '' }));
+
+    expect(promptTextPostConfirmation).not.toHaveBeenCalled();
+    expect(thread.post).toHaveBeenCalledWith(TELEGRAM_MOMENT_HELP_MESSAGE);
   });
 
   it('delegates a valid YouTube URL to processYoutubeLink', async () => {
@@ -248,5 +264,6 @@ describe('onNewMention', () => {
     await capturedHandler!(thread, makeMessage({ text: `listen ${yt}` }));
 
     expect(processYoutubeLink).toHaveBeenCalledWith(thread, yt, ARTIST);
+    expect(promptTextPostConfirmation).not.toHaveBeenCalled();
   });
 });
