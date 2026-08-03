@@ -1,10 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { CHAIN_ID, USDC_ADDRESS } from '@/lib/consts';
+import { zeroAddress } from 'viem';
 
-vi.mock('@/lib/supabase/in_process_transfers/getCollectorsStats', () => ({
-  default: vi.fn(),
+const mockRange = vi.fn();
+const mockOrder = vi.fn(() => ({ range: mockRange }));
+const mockNot = vi.fn(() => ({ order: mockOrder }));
+const mockEqChain = vi.fn(() => ({ not: mockNot }));
+const mockEqRecipient = vi.fn(() => ({ eq: mockEqChain }));
+const mockSelect = vi.fn(() => ({ eq: mockEqRecipient }));
+const mockFrom = vi.fn(() => ({ select: mockSelect }));
+
+vi.mock('@/lib/supabase/client', () => ({
+  supabase: { from: (...args: unknown[]) => mockFrom(...args) },
 }));
 
-import getCollectorsStats from '@/lib/supabase/in_process_transfers/getCollectorsStats';
 import getCollectingStats, {
   emptyCollectingStats,
 } from '../getCollectingStats';
@@ -12,52 +21,48 @@ import getCollectingStats, {
 describe('getCollectingStats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockFrom.mockReturnValue({ select: mockSelect });
+    mockSelect.mockReturnValue({ eq: mockEqRecipient });
+    mockEqRecipient.mockReturnValue({ eq: mockEqChain });
+    mockEqChain.mockReturnValue({ not: mockNot });
+    mockNot.mockReturnValue({ order: mockOrder });
+    mockOrder.mockReturnValue({ range: mockRange });
   });
 
-  it('returns collectors stats for the artist', async () => {
-    vi.mocked(getCollectorsStats).mockResolvedValue({
+  it('sums spend for transfers on the app chain', async () => {
+    mockRange.mockResolvedValue({
       data: [
-        {
-          artist_id: 'artist-1',
-          username: 'ziad',
-          wallets: [{ address: '0xabc', type: 'eoa' }],
-          collected_count: 12,
-          eth_spent: '1.5',
-          usdc_spent: '320.25',
-        },
+        { value: 0, currency: zeroAddress },
+        { value: 1.5, currency: zeroAddress },
+        { value: 2, currency: USDC_ADDRESS[CHAIN_ID] },
       ],
-      totalCount: 1,
+      error: null,
     });
 
     await expect(
       getCollectingStats('0xAbC0000000000000000000000000000000000001')
     ).resolves.toEqual({
-      collected_count: 12,
       eth_spent: '1.5',
-      usdc_spent: '320.25',
+      usdc_spent: '2',
     });
 
-    expect(getCollectorsStats).toHaveBeenCalledWith({
-      artist: '0xabc0000000000000000000000000000000000001',
-      period: 'all',
-      limit: 1,
-      page: 1,
-    });
-  });
-
-  it('returns empty stats when no collector row exists', async () => {
-    vi.mocked(getCollectorsStats).mockResolvedValue({
-      data: [],
-      totalCount: 0,
-    });
-
-    await expect(getCollectingStats('0xabc')).resolves.toEqual(
-      emptyCollectingStats
+    expect(mockFrom).toHaveBeenCalledWith('in_process_transfers');
+    expect(mockEqRecipient).toHaveBeenCalledWith(
+      'recipient',
+      '0xabc0000000000000000000000000000000000001'
     );
+    expect(mockEqChain).toHaveBeenCalledWith(
+      'moment.collection.chain_id',
+      CHAIN_ID
+    );
+    expect(mockNot).toHaveBeenCalledWith('value', 'is', null);
   });
 
-  it('returns empty stats when the RPC fails', async () => {
-    vi.mocked(getCollectorsStats).mockRejectedValue(new Error('rpc failed'));
+  it('returns empty stats when the query fails', async () => {
+    mockRange.mockResolvedValue({
+      data: null,
+      error: new Error('db failed'),
+    });
 
     await expect(getCollectingStats('0xabc')).resolves.toEqual(
       emptyCollectingStats

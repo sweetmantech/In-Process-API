@@ -34,7 +34,6 @@ describe('getCollectingStatsHandler', () => {
 
   it('returns collecting stats json', async () => {
     vi.mocked(getCollectingStats).mockResolvedValue({
-      collected_count: 3,
       eth_spent: '0.1',
       usdc_spent: '25',
     });
@@ -45,7 +44,6 @@ describe('getCollectingStatsHandler', () => {
     const json = await res.json();
 
     expect(json).toEqual({
-      collected_count: 3,
       eth_spent: '0.1',
       usdc_spent: '25',
     });
