@@ -163,6 +163,37 @@ describe('getTransfersHandler', () => {
         json.transfers[0].moment.collection.collection_artist
       ).toBeUndefined();
       expect(json.transfers[0].moment.sale).toBeNull();
+      expect(json.transfers[0].moment.comments).toBe(0);
+    });
+
+    it('normalizes moment.comments from supabase count embed', async () => {
+      vi.mocked(getTransfers).mockResolvedValue({
+        data: [
+          {
+            id: '1',
+            recipient: '0xaaaa',
+            collector: null,
+            moment: {
+              token_id: 1,
+              collection: {
+                address: '0xcollection',
+                chain_id: 8453,
+                protocol: 'in_process',
+                name: null,
+                creator: '0xcreator',
+                collection_artist: null,
+              },
+              comments: [{ count: 7 }],
+            },
+          },
+        ] as any,
+        count: 1,
+      });
+
+      const res = await getTransfersHandler(BASE_PARAMS);
+      const json = await res.json();
+
+      expect(json.transfers[0].moment.comments).toBe(7);
     });
 
     it('normalizes moment.sale from database sale row', async () => {
