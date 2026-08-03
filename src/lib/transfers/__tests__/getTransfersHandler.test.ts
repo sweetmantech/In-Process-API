@@ -136,6 +136,7 @@ describe('getTransfersHandler', () => {
                 address: '0xcollection',
                 chain_id: 8453,
                 protocol: 'in_process',
+                name: 'My Collection',
                 creator: '0xcreator',
                 collection_artist: { artist: { username: 'creator_user' } },
               },
@@ -156,10 +157,56 @@ describe('getTransfersHandler', () => {
         address: '0xcreator',
         username: 'creator_user',
       });
+      expect(json.transfers[0].moment.collection.name).toBe('My Collection');
       expect(json.transfers[0].moment.collection.creator).toBeUndefined();
       expect(
         json.transfers[0].moment.collection.collection_artist
       ).toBeUndefined();
+      expect(json.transfers[0].moment.sale).toBeNull();
+    });
+
+    it('normalizes moment.sale from database sale row', async () => {
+      vi.mocked(getTransfers).mockResolvedValue({
+        data: [
+          {
+            id: '1',
+            recipient: '0xaaaa',
+            collector: null,
+            moment: {
+              token_id: 1,
+              collection: {
+                address: '0xcollection',
+                chain_id: 8453,
+                protocol: 'in_process',
+                name: null,
+                creator: '0xcreator',
+                collection_artist: null,
+              },
+              sale: {
+                price_per_token: 0,
+                sale_start: 100,
+                sale_end: 200,
+                max_tokens_per_address: 5,
+                funds_recipient: '0xfunds',
+                currency: '0x0000000000000000000000000000000000000000',
+              },
+            },
+          },
+        ] as any,
+        count: 1,
+      });
+
+      const res = await getTransfersHandler(BASE_PARAMS);
+      const json = await res.json();
+
+      expect(json.transfers[0].moment.sale).toEqual({
+        pricePerToken: '0',
+        saleStart: 100,
+        saleEnd: 200,
+        maxTokensPerAddress: 5,
+        fundsRecipient: '0xfunds',
+        type: 'fixedPrice',
+      });
     });
 
     it('keeps fee_recipients inside moment payload', async () => {
