@@ -14,7 +14,7 @@ describe('getCollectingStats', () => {
     vi.clearAllMocks();
   });
 
-  it('returns collectors stats for the artist', async () => {
+  it('returns collectors spend stats for the artist', async () => {
     vi.mocked(getCollectorsStats).mockResolvedValue({
       data: [
         {
@@ -32,7 +32,6 @@ describe('getCollectingStats', () => {
     await expect(
       getCollectingStats('0xAbC0000000000000000000000000000000000001')
     ).resolves.toEqual({
-      collected_count: 12,
       eth_spent: '1.5',
       usdc_spent: '320.25',
     });
