@@ -34,6 +34,9 @@ const metadataFields = `
         animation_url,
         content`;
 
+const commentsCountFields = `
+      comments:in_process_moment_comments(count)`;
+
 export const paymentTransfersQuery = `
     ${transferRowFields},
     collector:in_process_wallets!recipient(artist:in_process_artists(username)),
@@ -49,7 +52,8 @@ export const paymentTransfersQuery = `
       metadata:in_process_metadata!inner(
         ${metadataFields}
       ),
-      ${saleFields}
+      ${saleFields},
+      ${commentsCountFields}
     )
   `
   .replace(/\s+/g, ' ')
@@ -66,7 +70,8 @@ export const transfersQuery = `
       metadata:in_process_metadata!inner(
         ${metadataFields}
       ),
-      ${saleFields}
+      ${saleFields},
+      ${commentsCountFields}
     )
   `
   .replace(/\s+/g, ' ')
