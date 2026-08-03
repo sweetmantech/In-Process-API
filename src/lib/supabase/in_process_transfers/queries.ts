@@ -8,6 +8,32 @@ const transferRowFields = `
     transferred_at,
     recipient`;
 
+const saleFields = `
+      sale:in_process_sales(
+        price_per_token,
+        sale_start,
+        sale_end,
+        max_tokens_per_address,
+        funds_recipient,
+        currency
+      )`;
+
+const collectionFields = `
+        address,
+        chain_id,
+        protocol,
+        name,
+        creator,
+        collection_artist:in_process_wallets!creator(artist:in_process_artists(username))`;
+
+const metadataFields = `
+        name,
+        description,
+        external_url,
+        image,
+        animation_url,
+        content`;
+
 export const paymentTransfersQuery = `
     ${transferRowFields},
     collector:in_process_wallets!recipient(artist:in_process_artists(username)),
@@ -18,20 +44,12 @@ export const paymentTransfersQuery = `
         percent_allocation
       ),
       collection:in_process_collections!inner(
-        address,
-        chain_id,
-        protocol,
-        creator,
-        collection_artist:in_process_wallets!creator(artist:in_process_artists(username))
+        ${collectionFields}
       ),
       metadata:in_process_metadata!inner(
-        name,
-        description,
-        external_url,
-        image,
-        animation_url,
-        content
-      )
+        ${metadataFields}
+      ),
+      ${saleFields}
     )
   `
   .replace(/\s+/g, ' ')
@@ -43,20 +61,12 @@ export const transfersQuery = `
     moment:in_process_moments!inner(
       token_id,
       collection:in_process_collections!inner(
-        address,
-        chain_id,
-        protocol,
-        creator,
-        collection_artist:in_process_wallets!creator(artist:in_process_artists(username))
+        ${collectionFields}
       ),
       metadata:in_process_metadata!inner(
-        name,
-        description,
-        external_url,
-        image,
-        animation_url,
-        content
-      )
+        ${metadataFields}
+      ),
+      ${saleFields}
     )
   `
   .replace(/\s+/g, ' ')
