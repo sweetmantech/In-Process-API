@@ -70,3 +70,15 @@ export const telegramConnectedMessage = (username: string | null) =>
 /** Fallback when a message is not media, YouTube, or plain text suitable for a text moment. */
 export const TELEGRAM_MOMENT_HELP_MESSAGE =
   'To post moments, please send a photo or video along with a caption, a YouTube link, or plain text.';
+
+/** Shown for /help — table of slash commands (aligned with FAQ telegram section). */
+export const TELEGRAM_HELP_MESSAGE = `Available commands:
+
+/start        – if your Telegram isn't linked yet, starts account connect (asks for your In Process email, then a 6-digit verification code; creates an account if needed). If already connected, shows a welcome confirming you're linked and ready to post
+/collections  – choose which collection your next moments will be minted into
+/remind       – toggle posting nudges on/off; when turning on, pick every day / every 3 days / every week
+/notify       – toggle airdrop notifications on/off; get alerted when someone sends your wallet an airdrop
+/me           – view the email address linked to your In Process account
+/help         – show this list of commands
+
+Once connected, you can also create moments by sending a photo or video (optional caption), a YouTube link, or plain text (Yes/No to confirm a text post).`;

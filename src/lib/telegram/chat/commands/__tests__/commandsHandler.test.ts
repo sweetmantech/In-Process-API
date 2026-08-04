@@ -6,17 +6,20 @@ vi.mock('./handleRemind', () => ({ default: vi.fn() }));
 vi.mock('./handleNotify', () => ({ default: vi.fn() }));
 vi.mock('./handleCollections', () => ({ default: vi.fn() }));
 vi.mock('./handleMe', () => ({ default: vi.fn() }));
+vi.mock('./handleHelp', () => ({ default: vi.fn() }));
 vi.mock('../handleStart', () => ({ default: vi.fn() }));
 vi.mock('../handleRemind', () => ({ default: vi.fn() }));
 vi.mock('../handleNotify', () => ({ default: vi.fn() }));
 vi.mock('../handleCollections', () => ({ default: vi.fn() }));
 vi.mock('../handleMe', () => ({ default: vi.fn() }));
+vi.mock('../handleHelp', () => ({ default: vi.fn() }));
 
 import handleStart from '../handleStart';
 import handleRemind from '../handleRemind';
 import handleNotify from '../handleNotify';
 import handleCollections from '../handleCollections';
 import handleMe from '../handleMe';
+import handleHelp from '../handleHelp';
 import commandsHandler from '../commandsHandler';
 
 const ARTIST_ADDRESS = '0xArtist' as Address;
@@ -48,6 +51,7 @@ beforeEach(() => {
   vi.mocked(handleNotify).mockResolvedValue(undefined);
   vi.mocked(handleCollections).mockResolvedValue(undefined);
   vi.mocked(handleMe).mockResolvedValue(undefined);
+  vi.mocked(handleHelp).mockResolvedValue(undefined);
 });
 
 describe('commandsHandler', () => {
@@ -95,6 +99,14 @@ describe('commandsHandler', () => {
     expect(result).toBe(true);
   });
 
+  it('calls handleHelp and returns true for /help', async () => {
+    const thread = makeThread();
+    const result = await callCommandsHandler('/help', thread);
+
+    expect(handleHelp).toHaveBeenCalledWith(thread);
+    expect(result).toBe(true);
+  });
+
   it('returns false for unrecognised text without calling any command handler', async () => {
     const result = await callCommandsHandler('just some text', makeThread());
 
@@ -104,5 +116,6 @@ describe('commandsHandler', () => {
     expect(handleNotify).not.toHaveBeenCalled();
     expect(handleCollections).not.toHaveBeenCalled();
     expect(handleMe).not.toHaveBeenCalled();
+    expect(handleHelp).not.toHaveBeenCalled();
   });
 });
