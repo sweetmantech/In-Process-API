@@ -6,6 +6,7 @@ import handleRemind from './handleRemind';
 import handleNotify from './handleNotify';
 import handleCollections from './handleCollections';
 import handleMe from './handleMe';
+import handleHelp from './handleHelp';
 
 const commandsHandler = async (
   text: string,
@@ -29,6 +30,9 @@ const commandsHandler = async (
       return true;
     case '/me':
       await handleMe(thread, primaryWallet);
+      return true;
+    case '/help':
+      await handleHelp(thread);
       return true;
     default:
       return false;
