@@ -25,6 +25,10 @@ export const SHORT_CHAIN_NAME: Record<number, 'base' | 'bsep' | 'eth'> = {
 export const REFERRAL_RECIPIENT = '0x749B7b7A6944d72266Be9500FC8C221B6A7554Ce';
 export const ROYALTY_BPS_DEFAULT = 1000; // Default royalty bps (10%)
 
+export const PROCESS_COLLECTION_URI =
+  'ar://FrDLosTVZP54g8xvLkGG0aWDGrKV46dDAz5umTJkiyA';
+export const PROCESS_COLLECTION_NAME = 'Process';
+
 export const PERMISSION_BIT_ADMIN = 2;
 
 export const USDC_ADDRESS: Record<number, Address> = {
