@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import validateCreateDefaultCollection from '@/lib/collection/validateCreateDefaultCollection';
 import createDefaultCollectionHandler from '@/lib/collection/createDefaultCollectionHandler';
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const validated = await validateCreateDefaultCollection(req);
     if (validated instanceof NextResponse) return validated;

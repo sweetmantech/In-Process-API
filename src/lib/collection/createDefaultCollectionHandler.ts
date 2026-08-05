@@ -8,14 +8,9 @@ import selectCollections from '@/lib/supabase/in_process_collections/selectColle
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import { withProcessCollectionCreateLock } from '@/lib/collection/withProcessCollectionCreateLock';
+import getProcessCollectionItem from '@/lib/collection/getProcessCollectionItem';
 
 type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
-
-const alreadyCreatedResponse = () =>
-  NextResponse.json(
-    { message: 'Process collection already created' },
-    { status: 200 }
-  );
 
 const createDefaultCollectionHandler = async (
   input: CreateCollectionInput
@@ -31,7 +26,11 @@ const createDefaultCollectionHandler = async (
         limit: 1,
       });
       if (existingCollections.length > 0) {
-        return alreadyCreatedResponse();
+        const collection = await getProcessCollectionItem({
+          address: existingCollections[0].address,
+          chainId: input.chainId,
+        });
+        return NextResponse.json(collection);
       }
 
       const result = await createCollection(input);
@@ -53,7 +52,11 @@ const createDefaultCollectionHandler = async (
         },
       ]);
 
-      return NextResponse.json(result);
+      const collection = await getProcessCollectionItem({
+        address,
+        chainId: result.chainId,
+      });
+      return NextResponse.json(collection);
     }
   );
 };

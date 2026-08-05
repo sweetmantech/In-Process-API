@@ -23,6 +23,10 @@ vi.mock('@/lib/wallets/ensureWallets', () => ({
   ensureWallets: vi.fn(),
 }));
 
+vi.mock('@/lib/collection/getProcessCollectionItem', () => ({
+  default: vi.fn(),
+}));
+
 vi.mock('@/lib/consts', () => ({
   PROCESS_COLLECTION_URI: 'ar://FrDLosTVZP54g8xvLkGG0aWDGrKV46dDAz5umTJkiyA',
   PROCESS_COLLECTION_NAME: 'Process',
@@ -33,6 +37,7 @@ import selectCollections from '@/lib/supabase/in_process_collections/selectColle
 import { createCollection } from '@/lib/collection/createCollection';
 import { upsertCollections } from '@/lib/supabase/in_process_collections/upsertCollections';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
+import getProcessCollectionItem from '@/lib/collection/getProcessCollectionItem';
 import createDefaultCollectionHandler from '@/lib/collection/createDefaultCollectionHandler';
 import { PROCESS_COLLECTION_NAME, PROCESS_COLLECTION_URI } from '@/lib/consts';
 
@@ -54,6 +59,19 @@ const createResult = {
   chainId: 8453,
 };
 
+const collectionItem = {
+  id: 'collection-1',
+  address: CONTRACT.toLowerCase(),
+  name: PROCESS_COLLECTION_NAME,
+  chain_id: 8453,
+  created_at: '2026-01-01T00:00:00.000Z',
+  uri: PROCESS_COLLECTION_URI,
+  protocol: 'in_process',
+  creator: ACCOUNT.toLowerCase(),
+  creator_username: null,
+  admins: [],
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(withProcessCollectionCreateLock).mockImplementation(
@@ -63,10 +81,11 @@ beforeEach(() => {
   vi.mocked(createCollection).mockResolvedValue(createResult);
   vi.mocked(upsertCollections).mockResolvedValue([{ id: 'collection-1' }]);
   vi.mocked(ensureWallets).mockResolvedValue(undefined as never);
+  vi.mocked(getProcessCollectionItem).mockResolvedValue(collectionItem);
 });
 
 describe('createDefaultCollectionHandler', () => {
-  it('creates, persists the collection, then returns under the lock', async () => {
+  it('creates, persists, and returns the collection list item', async () => {
     const result = await createDefaultCollectionHandler(input);
 
     expect(withProcessCollectionCreateLock).toHaveBeenCalledWith(
@@ -74,29 +93,27 @@ describe('createDefaultCollectionHandler', () => {
       8453,
       expect.any(Function)
     );
-    expect(selectCollections).toHaveBeenCalledWith({
-      artist: ACCOUNT,
-      uri: PROCESS_COLLECTION_URI,
-      chainId: 8453,
-      limit: 1,
-    });
     expect(createCollection).toHaveBeenCalledWith(input);
-    expect(ensureWallets).toHaveBeenCalledWith([ACCOUNT]);
+    expect(ensureWallets).toHaveBeenCalledWith([ACCOUNT.toLowerCase()]);
     expect(upsertCollections).toHaveBeenCalledWith([
       expect.objectContaining({
-        address: CONTRACT,
+        address: CONTRACT.toLowerCase(),
         chain_id: 8453,
-        creator: ACCOUNT,
+        creator: ACCOUNT.toLowerCase(),
         protocol: 'in_process',
         uri: PROCESS_COLLECTION_URI,
         name: PROCESS_COLLECTION_NAME,
       }),
     ]);
+    expect(getProcessCollectionItem).toHaveBeenCalledWith({
+      address: CONTRACT.toLowerCase(),
+      chainId: 8453,
+    });
     expect(result).toBeInstanceOf(NextResponse);
-    await expect(result.json()).resolves.toEqual(createResult);
+    await expect(result.json()).resolves.toEqual(collectionItem);
   });
 
-  it('returns 200 without creating when another request already created it', async () => {
+  it('returns the existing collection list item without creating', async () => {
     vi.mocked(selectCollections).mockResolvedValue([
       {
         id: 'collection-1',
@@ -108,10 +125,12 @@ describe('createDefaultCollectionHandler', () => {
 
     expect(createCollection).not.toHaveBeenCalled();
     expect(upsertCollections).not.toHaveBeenCalled();
+    expect(getProcessCollectionItem).toHaveBeenCalledWith({
+      address: CONTRACT,
+      chainId: 8453,
+    });
     expect(result).toBeInstanceOf(NextResponse);
     expect(result.status).toBe(200);
-    await expect(result.json()).resolves.toEqual({
-      message: 'Process collection already created',
-    });
+    await expect(result.json()).resolves.toEqual(collectionItem);
   });
 });
