@@ -38,3 +38,11 @@ export async function releaseLock(lock: Lock): Promise<void> {
     { keys: [lock.key], arguments: [lock.token] }
   );
 }
+
+export async function renewLock(lock: Lock, ttlMs: number): Promise<boolean> {
+  const result = await redisClient.eval(
+    `if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("pexpire", KEYS[1], ARGV[2]) else return 0 end`,
+    { keys: [lock.key], arguments: [lock.token, String(ttlMs)] }
+  );
+  return Number(result) === 1;
+}

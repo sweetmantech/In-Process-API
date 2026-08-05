@@ -1,8 +1,10 @@
 import type { Address } from 'viem';
-import { acquireLock, releaseLock } from '@/lib/redis/acquireLock';
+import { acquireLock, releaseLock, renewLock } from '@/lib/redis/acquireLock';
 
-// Matches createCollection's sendUserOperation wait window (same as mint lock).
+// Crash safety net between heartbeats. Renewed while create+persist runs, because
+// sendUserOperation can wait past waitForUserOperation's 60s for the receipt.
 const LOCK_TTL_MS = 90_000;
+const LOCK_RENEW_INTERVAL_MS = 30_000;
 const MAX_WAIT_MS = 120_000;
 
 /**
@@ -19,9 +21,13 @@ export async function withProcessCollectionCreateLock<T>(
     LOCK_TTL_MS,
     MAX_WAIT_MS
   );
+  const renewTimer = setInterval(() => {
+    void renewLock(lock, LOCK_TTL_MS);
+  }, LOCK_RENEW_INTERVAL_MS);
   try {
     return await fn();
   } finally {
+    clearInterval(renewTimer);
     await releaseLock(lock);
   }
 }
