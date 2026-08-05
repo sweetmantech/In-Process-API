@@ -2,7 +2,7 @@ import { getAddress, isAddress, type Address } from 'viem';
 import type { Thread } from 'chat';
 import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 import getSelectedCollectionAddress from './getSelectedCollectionAddress';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import ensureProcessCollection from '@/lib/collection/ensureProcessCollection';
 import { CHAIN_ID } from '@/lib/consts';
 
 type ResolvedMomentCollection = {
@@ -19,18 +19,15 @@ async function getCollectionAddress(
     return { collectionAddress: selected, explicitSelection: true };
   }
 
-  const data = await selectCollections({
-    artist: artistAddress,
-    chainId: CHAIN_ID,
-    limit: 1,
-  });
-
-  const first = data?.[0]?.address;
-  if (first && isAddress(first)) {
-    return { collectionAddress: getAddress(first), explicitSelection: false };
+  const collection = await ensureProcessCollection(artistAddress, CHAIN_ID);
+  if (!isAddress(collection.address)) {
+    return { collectionAddress: null, explicitSelection: false };
   }
 
-  return { collectionAddress: null, explicitSelection: false };
+  return {
+    collectionAddress: getAddress(collection.address),
+    explicitSelection: false,
+  };
 }
 
 export default getCollectionAddress;
