@@ -1,17 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getAddress, type Address } from 'viem';
 import getCollectionAddress from '@/lib/telegram/chat/collection/getCollectionAddress';
+import { CHAIN_ID } from '@/lib/consts';
 
 vi.mock('../getSelectedCollectionAddress', () => ({ default: vi.fn() }));
-vi.mock('@/lib/supabase/in_process_collections/selectCollections', () => ({
+vi.mock('@/lib/collection/ensureProcessCollection', () => ({
   default: vi.fn(),
 }));
 
 import getSelectedCollectionAddress from '@/lib/telegram/chat/collection/getSelectedCollectionAddress';
-import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import ensureProcessCollection from '@/lib/collection/ensureProcessCollection';
 
 const ARTIST_ADDRESS = '0x0000000000000000000000000000000000000123' as Address;
-const DEFAULT_COLLECTION =
+const PROCESS_COLLECTION =
   '0x0000000000000000000000000000000000000abc' as Address;
 const SELECTED_COLLECTION =
   '0x0000000000000000000000000000000000000def' as Address;
@@ -21,9 +22,9 @@ const makeThread = () => ({ channelId: 'telegram:chat-1' });
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getSelectedCollectionAddress).mockResolvedValue(null);
-  vi.mocked(selectCollections).mockResolvedValue([
-    { address: DEFAULT_COLLECTION, name: 'Default' } as never,
-  ]);
+  vi.mocked(ensureProcessCollection).mockResolvedValue({
+    address: PROCESS_COLLECTION,
+  } as never);
 });
 
 describe('getCollectionAddress', () => {
@@ -41,45 +42,32 @@ describe('getCollectionAddress', () => {
       collectionAddress: getAddress(SELECTED_COLLECTION),
       explicitSelection: true,
     });
-    expect(selectCollections).not.toHaveBeenCalled();
+    expect(ensureProcessCollection).not.toHaveBeenCalled();
   });
 
-  it('falls back to the first collection when none is selected', async () => {
+  it('ensures and falls back to the Process collection when none is selected', async () => {
     const result = await getCollectionAddress(
       makeThread() as never,
       ARTIST_ADDRESS
     );
 
-    expect(selectCollections).toHaveBeenCalledWith({
-      artist: ARTIST_ADDRESS,
-      chainId: expect.any(Number),
-      limit: 1,
-    });
-    expect(result).toEqual({
-      collectionAddress: getAddress(DEFAULT_COLLECTION),
-      explicitSelection: false,
-    });
-  });
-
-  it('returns null when the artist has no collections', async () => {
-    vi.mocked(selectCollections).mockResolvedValue([]);
-
-    const result = await getCollectionAddress(
-      makeThread() as never,
-      ARTIST_ADDRESS
+    expect(ensureProcessCollection).toHaveBeenCalledWith(
+      ARTIST_ADDRESS,
+      CHAIN_ID
     );
-
     expect(result).toEqual({
-      collectionAddress: null,
+      collectionAddress: getAddress(PROCESS_COLLECTION),
       explicitSelection: false,
     });
   });
 
-  it('throws when selectCollections fails', async () => {
-    vi.mocked(selectCollections).mockRejectedValue({ message: 'db error' });
+  it('throws when ensureProcessCollection fails', async () => {
+    vi.mocked(ensureProcessCollection).mockRejectedValue({
+      message: 'create failed',
+    });
 
     await expect(
       getCollectionAddress(makeThread() as never, ARTIST_ADDRESS)
-    ).rejects.toEqual({ message: 'db error' });
+    ).rejects.toEqual({ message: 'create failed' });
   });
 });
