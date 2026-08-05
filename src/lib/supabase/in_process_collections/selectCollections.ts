@@ -3,11 +3,13 @@ import { supabase } from '../client';
 const selectCollections = async ({
   addresses,
   artist,
+  uri,
   chainId,
   limit,
 }: {
   addresses?: string[];
   artist?: string;
+  uri?: string;
   chainId?: number;
   limit?: number;
 } = {}) => {
@@ -31,6 +33,7 @@ const selectCollections = async ({
       .eq('protocol', 'in_process');
   }
 
+  if (uri) query = query.eq('uri', uri);
   if (chainId) query = query.eq('chain_id', chainId);
   if (limit) query = query.limit(limit);
 
