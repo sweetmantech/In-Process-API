@@ -6,6 +6,7 @@ import {
   PROCESS_COLLECTION_URI,
 } from '@/lib/consts';
 import selectCollections from '@/lib/supabase/in_process_collections/selectCollections';
+import getProcessCollectionItem from '@/lib/collection/getProcessCollectionItem';
 import { createCollectionSchema } from '@/lib/schema/createCollectionSchema';
 import { z } from 'zod';
 
@@ -24,10 +25,11 @@ const validateCreateDefaultCollection = async (
     limit: 1,
   });
   if (existingCollections.length > 0) {
-    return NextResponse.json(
-      { message: 'Process collection already created' },
-      { status: 200 }
-    );
+    const collection = await getProcessCollectionItem({
+      address: existingCollections[0].address,
+      chainId: CHAIN_ID,
+    });
+    return NextResponse.json(collection);
   }
 
   return {
