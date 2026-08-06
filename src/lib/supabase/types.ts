@@ -851,6 +851,16 @@ export type Database = {
           wallets: Json;
         }[];
       };
+      get_timeline_stats: {
+        Args: {
+          p_artist: string;
+        };
+        Returns: {
+          created_count: number;
+          eth_archived: string;
+          usdc_archived: string;
+        }[];
+      };
       get_in_process_timeline: {
         Args: {
           p_chainid?: number;
