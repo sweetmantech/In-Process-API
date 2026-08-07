@@ -28,6 +28,9 @@ const timelineQuerySchema = z
     period: z.string().optional(),
     channel: z.string().optional(),
     type: z.enum(['mutual', 'default']).optional(),
+    protocol: z
+      .enum(['in_process', 'catalog', 'sound.xyz', 'zora_media', 'zora'])
+      .optional(),
     curated: z
       .string()
       .optional()

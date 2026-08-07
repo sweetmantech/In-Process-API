@@ -15,6 +15,7 @@ const getArtistTimeline = async ({
   period,
   channel,
   curated = false,
+  protocol,
 }: GetArtistTimelineParams): Promise<{
   data: GetArtistTimelineResponse | null;
   error: Error | null;
@@ -30,6 +31,7 @@ const getArtistTimeline = async ({
     p_period: period,
     p_channel: channel,
     p_curated: curated,
+    p_protocol: protocol,
   });
 
   if (error) {

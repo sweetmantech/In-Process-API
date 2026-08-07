@@ -27,6 +27,7 @@ const BASE_PARAMS = {
   collection: undefined as string | undefined,
   artist: undefined as string | undefined,
   type: undefined as 'mutual' | 'default' | undefined,
+  protocol: undefined as string | undefined,
   curated: false,
 };
 
@@ -177,6 +178,23 @@ describe('getTimelineHandler', () => {
 
       expect(getArtistTimeline).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'mutual' })
+      );
+    });
+
+    it('passes protocol to getArtistTimeline', async () => {
+      vi.mocked(getArtistTimeline).mockResolvedValue({
+        data: MOCK_DATA as any,
+        error: null,
+      });
+
+      await getTimelineHandler({
+        ...BASE_PARAMS,
+        artist: '0xartist',
+        protocol: 'in_process',
+      });
+
+      expect(getArtistTimeline).toHaveBeenCalledWith(
+        expect.objectContaining({ protocol: 'in_process' })
       );
     });
 

@@ -119,4 +119,29 @@ describe('validateTimelineQuery', () => {
       expect((result as typeof NextResponse.prototype).status).toBe(400);
     });
   });
+
+  describe('protocol param', () => {
+    it('accepts in_process', () => {
+      const result = validateTimelineQuery(
+        makeRequest({ protocol: 'in_process' })
+      );
+      expect((result as any).protocol).toBe('in_process');
+    });
+
+    it('accepts sound.xyz', () => {
+      const result = validateTimelineQuery(
+        makeRequest({ protocol: 'sound.xyz' })
+      );
+      expect((result as any).protocol).toBe('sound.xyz');
+    });
+
+    it('returns 400 for invalid protocol', async () => {
+      const { NextResponse } = await import('next/server');
+      const result = validateTimelineQuery(
+        makeRequest({ protocol: 'unknown' })
+      );
+      expect(result).toBeInstanceOf(NextResponse);
+      expect((result as typeof NextResponse.prototype).status).toBe(400);
+    });
+  });
 });
