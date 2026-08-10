@@ -1,5 +1,6 @@
 import { SHORT_CHAIN_NAME, SITE_ORIGINAL_URL } from '@/lib/consts';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
+import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import type { Transfers_t } from '@/types/envio';
 import { telegramChatBotClient } from '@/lib/telegram/client';
 import getAirdropOperator from './getAirdropOperator';
@@ -11,9 +12,20 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
     if (t.value && t.currency) continue;
     const recipient = t.recipient.toLowerCase();
     try {
-      const data = await selectAccountNotification(recipient);
-      const chatId = data?.telegram_chat_id;
-      if (!chatId) continue;
+      const { data: recipientWallets } = await selectWallets({
+        addresses: [recipient],
+      });
+      const artistId = recipientWallets?.[0]?.artist_id;
+      if (!artistId) continue;
+
+      const { data: artistWallets } = await selectWallets({
+        artistIds: [artistId],
+      });
+      const wallets = (artistWallets ?? []).map((wallet) => wallet.address);
+      if (!wallets.length) continue;
+
+      const data = await selectAccountNotification({ wallets });
+      if (!data) continue;
 
       const { address, username } = await getAirdropOperator(t);
 
@@ -21,7 +33,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
       if (await isSameArtist(address, recipient)) continue;
       const text = `${username || address} airdropped a moment to you. \n\n${SITE_ORIGINAL_URL}/collect/${SHORT_CHAIN_NAME[t.chain_id] ?? 'base'}:${t.collection.toLowerCase()}/${t.token_id}`;
 
-      await telegramChatBotClient.sendMessage(chatId, text);
+      await telegramChatBotClient.sendMessage(data.telegram_chat_id, text);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error(

@@ -27,13 +27,18 @@ const makeBot = () => {
   return { bot, handler };
 };
 
+const CHAT_ID = '1352384640';
+
 const makeEvent = (
   value: string,
   userName: string | null = TELEGRAM_USERNAME
 ) => ({
   value,
   user: { userName: userName ?? undefined },
-  thread: { post: vi.fn().mockResolvedValue(undefined) },
+  thread: {
+    post: vi.fn().mockResolvedValue(undefined),
+    channelId: `telegram:${CHAT_ID}`,
+  },
 });
 
 beforeEach(() => {
@@ -74,6 +79,7 @@ describe('registerOnNudgePeriod', () => {
       await handler.fn(makeEvent(value));
       expect(upsertAccountNotification).toHaveBeenCalledWith({
         wallet: ARTIST_WALLET,
+        telegram_chat_id: CHAT_ID,
         nudge_period: Number(value),
       });
     });
@@ -133,6 +139,17 @@ describe('registerOnNudgePeriod', () => {
     });
   });
 
+  it('does nothing when thread channelId is missing', async () => {
+    const { bot, handler } = makeBot();
+    registerOnNudgePeriod(bot as never);
+    await handler.fn({
+      value: '1',
+      user: { userName: TELEGRAM_USERNAME },
+      thread: { post: vi.fn() },
+    });
+    expect(upsertAccountNotification).not.toHaveBeenCalled();
+  });
+
   it('throws when upsertAccountNotification throws', async () => {
     vi.mocked(upsertAccountNotification).mockRejectedValue(
       new Error('db error')
@@ -147,5 +164,6 @@ describe('registerOnNudgePeriod', () => {
     registerOnNudgePeriod(bot as never);
     const event = { ...makeEvent('1'), thread: null };
     await expect(handler.fn(event)).resolves.not.toThrow();
+    expect(upsertAccountNotification).not.toHaveBeenCalled();
   });
 });

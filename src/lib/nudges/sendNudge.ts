@@ -14,6 +14,7 @@ const sendNudge = async ({
   await telegramChatBotClient.sendMessage(chatId, text);
   await upsertAccountNotification({
     wallet,
+    telegram_chat_id: chatId,
     last_nudge_sent_at: new Date().toISOString(),
   });
 };

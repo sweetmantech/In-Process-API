@@ -56,6 +56,7 @@ describe('sendNudge', () => {
     expect(upsertAccountNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         wallet: PARAMS.wallet,
+        telegram_chat_id: PARAMS.chatId,
         last_nudge_sent_at: expect.any(String),
       })
     );
