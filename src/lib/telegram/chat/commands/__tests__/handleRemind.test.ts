@@ -24,15 +24,20 @@ vi.mock('chat', () => ({
   Actions: vi.fn(() => []),
   Button: vi.fn(() => ({})),
 }));
+vi.mock('@/lib/telegram/parseTelegramChatId', () => ({
+  default: vi.fn(() => '1352384640'),
+}));
 
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
 import handleRemind from '../handleRemind';
 
 const ARTIST_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+const CHAT_ID = '1352384640';
 
 const makeThread = () => ({
   post: vi.fn().mockResolvedValue(undefined),
+  channelId: `telegram:${CHAT_ID}`,
 });
 
 beforeEach(() => {
@@ -48,8 +53,14 @@ describe('handleRemind', () => {
 
     await handleRemind(makeThread() as never, ARTIST_ID);
 
+    expect(selectAccountNotification).toHaveBeenCalledWith({
+      telegram_chat_id: CHAT_ID,
+    });
     expect(upsertAccountNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ nudge_period: 3 })
+      expect.objectContaining({
+        nudge_period: 3,
+        telegram_chat_id: CHAT_ID,
+      })
     );
   });
 
@@ -61,7 +72,10 @@ describe('handleRemind', () => {
     await handleRemind(makeThread() as never, ARTIST_ID);
 
     expect(upsertAccountNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ nudge_period: null })
+      expect.objectContaining({
+        nudge_period: null,
+        telegram_chat_id: CHAT_ID,
+      })
     );
   });
 

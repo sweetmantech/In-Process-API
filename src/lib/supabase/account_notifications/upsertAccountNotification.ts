@@ -6,7 +6,7 @@ const upsertAccountNotification = async (
 ): Promise<void> => {
   const { error } = await supabase
     .from('account_notifications')
-    .upsert(data, { onConflict: 'wallet' });
+    .upsert(data, { onConflict: 'telegram_chat_id' });
   if (error) throw error;
 };
 

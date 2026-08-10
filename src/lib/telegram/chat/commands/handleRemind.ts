@@ -3,17 +3,22 @@ import { Card, Actions, Button } from 'chat';
 import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
+import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';
 
 const handleRemind = async (
   thread: Thread<TelegramThreadState>,
   wallet: string
 ) => {
-  const data = await selectAccountNotification(wallet);
+  const telegramChatId = parseTelegramChatId(thread.channelId);
+  const data = await selectAccountNotification({
+    telegram_chat_id: telegramChatId,
+  });
 
   const disabled = data?.nudge_period == null;
   await upsertAccountNotification({
     wallet,
+    telegram_chat_id: telegramChatId,
     nudge_period: disabled ? 3 : null,
   });
 

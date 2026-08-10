@@ -39,21 +39,21 @@ export type Database = {
           last_nudge_sent_at: string | null;
           notify_enabled: boolean;
           nudge_period: number | null;
-          telegram_chat_id: string | null;
+          telegram_chat_id: string;
           wallet: string;
         };
         Insert: {
           last_nudge_sent_at?: string | null;
           notify_enabled?: boolean;
           nudge_period?: number | null;
-          telegram_chat_id?: string | null;
+          telegram_chat_id: string;
           wallet: string;
         };
         Update: {
           last_nudge_sent_at?: string | null;
           notify_enabled?: boolean;
           nudge_period?: number | null;
-          telegram_chat_id?: string | null;
+          telegram_chat_id?: string;
           wallet?: string;
         };
         Relationships: [

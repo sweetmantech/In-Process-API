@@ -1,6 +1,7 @@
 import type { TelegramChatBot } from '@/lib/telegram/chat/bot';
 import selectArtists from '@/lib/supabase/in_process_artists/selectArtists';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
+import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 import { NUDGE_PERIOD_ACTION_ID, NUDGE_PERIODS } from '@/lib/consts';
 import getPrimaryWallet from '@/lib/wallets/getPrimaryWallet';
 import { Tables } from '@/lib/supabase/types';
@@ -14,6 +15,9 @@ export function registerOnNudgePeriod(bot: TelegramChatBot) {
     const telegramUsername = event.user.userName;
     if (!telegramUsername) return;
 
+    const channelId = event.thread?.channelId;
+    if (!channelId) return;
+
     const { data } = await selectArtists({
       telegram: telegramUsername,
     });
@@ -26,6 +30,7 @@ export function registerOnNudgePeriod(bot: TelegramChatBot) {
 
     await upsertAccountNotification({
       wallet: primaryWallet,
+      telegram_chat_id: parseTelegramChatId(channelId),
       nudge_period: period,
     });
 

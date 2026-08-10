@@ -2,16 +2,21 @@ import type { Thread } from 'chat';
 import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadState';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
 import upsertAccountNotification from '@/lib/supabase/account_notifications/upsertAccountNotification';
+import parseTelegramChatId from '@/lib/telegram/parseTelegramChatId';
 
 const handleNotify = async (
   thread: Thread<TelegramThreadState>,
   wallet: string
 ) => {
-  const data = await selectAccountNotification(wallet);
+  const telegramChatId = parseTelegramChatId(thread.channelId);
+  const data = await selectAccountNotification({
+    telegram_chat_id: telegramChatId,
+  });
 
   const enabled = !(data?.notify_enabled ?? false);
   await upsertAccountNotification({
     wallet,
+    telegram_chat_id: telegramChatId,
     notify_enabled: enabled,
   });
 
