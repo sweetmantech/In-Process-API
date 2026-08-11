@@ -11,6 +11,7 @@ const mockParse = vi.mocked(exifr.parse);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 });
 
 describe('extractExifCaptureDate', () => {
@@ -73,6 +74,10 @@ describe('extractExifCaptureDate', () => {
     const result = await extractExifCaptureDate(Buffer.from('jpeg-bytes'));
 
     expect(result).toBeUndefined();
+    expect(console.warn).toHaveBeenCalledWith(
+      '[extractExifCaptureDate] falling back to upload time',
+      expect.objectContaining({ reason: 'missing_offset' })
+    );
   });
 
   it('skips EXIF when offset tags are present but malformed', async () => {
@@ -123,5 +128,9 @@ describe('extractExifCaptureDate', () => {
     const result = await extractExifCaptureDate(Buffer.from('image.webp'));
 
     expect(result).toBeUndefined();
+    expect(console.warn).toHaveBeenCalledWith(
+      '[extractExifCaptureDate] falling back to upload time',
+      expect.objectContaining({ reason: 'parse_threw' })
+    );
   });
 });
