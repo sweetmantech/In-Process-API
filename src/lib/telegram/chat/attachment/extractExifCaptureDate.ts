@@ -1,10 +1,31 @@
 import exifr from 'exifr';
 import patchExifrHeicDetection from './patchExifrHeicDetection';
 import resolveExifOffsetMs from './resolveExifOffsetMs';
+import readFtypBrands from '@/lib/media/readFtypBrands';
 
 patchExifrHeicDetection();
 
 const EXIF_DATE_PATTERN = /^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
+
+type ExifCaptureFallbackReason =
+  | 'parse_threw'
+  | 'missing_offset'
+  | 'missing_datetime'
+  | 'malformed_datetime';
+
+const logExifCaptureFallback = (
+  reason: ExifCaptureFallbackReason,
+  buffer: Buffer,
+  detail?: string
+): void => {
+  const brands = readFtypBrands(buffer);
+  console.warn('[extractExifCaptureDate] falling back to upload time', {
+    reason,
+    detail,
+    byteLength: buffer.length,
+    ftypBrands: brands,
+  });
+};
 
 const extractExifCaptureDate = async (
   buffer: Buffer
@@ -20,13 +41,26 @@ const extractExifCaptureDate = async (
     // compute the true UTC instant, we don't guess. Skip EXIF entirely and
     // let the caller fall back to upload time.
     const offsetMs = resolveExifOffsetMs(result);
-    if (offsetMs === undefined) return undefined;
+    if (offsetMs === undefined) {
+      logExifCaptureFallback(
+        'missing_offset',
+        buffer,
+        result?.DateTimeOriginal ? 'DateTimeOriginal present' : 'no DateTimeOriginal'
+      );
+      return undefined;
+    }
 
     const raw = result?.DateTimeOriginal;
-    if (typeof raw !== 'string') return undefined;
+    if (typeof raw !== 'string') {
+      logExifCaptureFallback('missing_datetime', buffer);
+      return undefined;
+    }
 
     const match = EXIF_DATE_PATTERN.exec(raw);
-    if (!match) return undefined;
+    if (!match) {
+      logExifCaptureFallback('malformed_datetime', buffer, raw);
+      return undefined;
+    }
     const [, year, month, day, hour, minute, second] = match;
 
     const localAsUtcMs = Date.UTC(
@@ -39,7 +73,12 @@ const extractExifCaptureDate = async (
     );
 
     return Math.floor((localAsUtcMs - offsetMs) / 1000);
-  } catch {
+  } catch (error) {
+    logExifCaptureFallback(
+      'parse_threw',
+      buffer,
+      error instanceof Error ? error.message : String(error)
+    );
     return undefined;
   }
 };
