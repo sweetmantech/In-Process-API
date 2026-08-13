@@ -16,7 +16,6 @@ const uploadWritingWithJson = async (
   const jsonObject = {
     name,
     description,
-    external_url: previewUri,
     image: previewUri,
     animation_url: writingUri,
     content: {
