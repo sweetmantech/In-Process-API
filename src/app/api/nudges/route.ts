@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     return await nudgesHandler();
   } catch (e: any) {
+    console.error('[GET /api/nudges]', e);
     return NextResponse.json(
       { message: e?.message ?? 'Failed' },
       { status: 500 }
