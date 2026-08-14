@@ -11,7 +11,10 @@ const processAttachmentUpload = async (
   if (attachment.type === 'image') {
     return uploadPhotoAttachment(attachment, fileId, name);
   }
-  return uploadVideoAttachment(attachment, fileId, name, thumbFileId);
+  if (attachment.type === 'video') {
+    return uploadVideoAttachment(attachment, fileId, name, thumbFileId);
+  }
+  throw new Error(`Unsupported attachment type: ${attachment.type}`);
 };
 
 export default processAttachmentUpload;

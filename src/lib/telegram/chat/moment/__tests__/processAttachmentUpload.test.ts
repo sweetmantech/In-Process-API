@@ -81,12 +81,13 @@ describe('processAttachmentUpload', () => {
     );
   });
 
-  it('calls uploadVideoAttachment for non-image types', async () => {
-    const attachment = { type: 'document', size: 200 };
-
-    await processAttachmentUpload(attachment as never, 'file-id', 'Doc');
-
-    expect(uploadVideoAttachment).toHaveBeenCalled();
-    expect(uploadPhotoAttachment).not.toHaveBeenCalled();
+  it('rejects unsupported attachment types', async () => {
+    await expect(
+      processAttachmentUpload(
+        { type: 'file', size: 200 } as never,
+        'file-id',
+        'Doc'
+      )
+    ).rejects.toThrow('Unsupported attachment type: file');
   });
 });

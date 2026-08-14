@@ -26,48 +26,17 @@ afterEach(() => {
 });
 
 describe('buildCreateBatchInput', () => {
-  it('uses the EXIF capture date as saleStart when present', () => {
-    const captureDate = Math.floor(
-      new Date('2026-07-08T13:32:10.000Z').getTime() / 1000
-    );
-
-    const result = buildCreateBatchInput(
-      [asset()],
-      [{ uri: 'ar://token-uri', captureDate }],
-      collectionAddress,
-      artistAddress
-    );
-
-    expect(result.tokens[0].salesConfig.saleStart).toBe(BigInt(captureDate));
-  });
-
-  it('falls back to upload time when there is no EXIF capture date', () => {
+  it('uses upload time as saleStart for every token', () => {
     const uploadTime = Math.floor(Date.now() / 1000);
 
     const result = buildCreateBatchInput(
-      [asset()],
-      [{ uri: 'ar://token-uri' }],
+      [asset({ fileId: 'file-1' }), asset({ fileId: 'file-2' })],
+      [{ uri: 'ar://token-uri-1' }, { uri: 'ar://token-uri-2' }],
       collectionAddress,
       artistAddress
     );
 
     expect(result.tokens[0].salesConfig.saleStart).toBe(BigInt(uploadTime));
-  });
-
-  it('resolves saleStart independently per token in a mixed batch', () => {
-    const captureDate = Math.floor(
-      new Date('2026-07-08T13:32:10.000Z').getTime() / 1000
-    );
-    const uploadTime = Math.floor(Date.now() / 1000);
-
-    const result = buildCreateBatchInput(
-      [asset({ fileId: 'file-1' }), asset({ fileId: 'file-2' })],
-      [{ uri: 'ar://token-uri-1', captureDate }, { uri: 'ar://token-uri-2' }],
-      collectionAddress,
-      artistAddress
-    );
-
-    expect(result.tokens[0].salesConfig.saleStart).toBe(BigInt(captureDate));
     expect(result.tokens[1].salesConfig.saleStart).toBe(BigInt(uploadTime));
   });
 });
