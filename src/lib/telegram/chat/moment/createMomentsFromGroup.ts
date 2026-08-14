@@ -3,8 +3,6 @@ import type { TelegramThreadState } from '@/lib/telegram/chat/telegramThreadStat
 import type { ArtistContext } from '@/types/artist';
 import fetchTelegramFile from '@/lib/telegram/chat/attachment/fetchTelegramFile';
 import processAttachmentUpload from './processAttachmentUpload';
-import extractExifCaptureDate from '@/lib/telegram/chat/attachment/extractExifCaptureDate';
-import extractQuickTimeCaptureDate from '@/lib/telegram/chat/attachment/extractQuickTimeCaptureDate';
 import mintWithNonceRetry from './mintWithNonceRetry';
 import sendReadyMessage from '@/lib/telegram/chat/messaging/sendReadyMessage';
 import sendArtistCollage from '@/lib/telegram/chat/messaging/sendArtistCollage';
@@ -43,18 +41,12 @@ const createMomentsFromGroup = async (
           mimeType: asset.mimeType,
           fetchData: () => Promise.resolve(buffer),
         };
-        const [uploadResult, captureDate] = await Promise.all([
-          processAttachmentUpload(
-            attachment,
-            asset.fileId,
-            asset.name,
-            asset.thumbFileId
-          ),
-          asset.attachmentType === 'image'
-            ? extractExifCaptureDate(buffer)
-            : extractQuickTimeCaptureDate(buffer),
-        ]);
-        return { ...uploadResult, captureDate };
+        return processAttachmentUpload(
+          attachment,
+          asset.fileId,
+          asset.name,
+          asset.thumbFileId
+        );
       })
     );
 
