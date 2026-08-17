@@ -1,5 +1,5 @@
-import { recoverMessageAddress } from 'viem';
-import { Address } from 'viem';
+import type { Address } from 'viem';
+import { getPublicClient } from '@/lib/viem/publicClient';
 import parseWalletConnectMessage from './parseWalletConnectMessage';
 import { WalletType } from '@/types/wallets';
 
@@ -15,12 +15,13 @@ const verifyWalletConnectAuth = async (
     throw new Error('Invalid wallet type');
   }
 
-  const recovered = await recoverMessageAddress({
+  const valid = await getPublicClient().verifyMessage({
+    address,
     message,
     signature: signature as `0x${string}`,
   });
 
-  if (recovered.toLowerCase() !== address.toLowerCase()) {
+  if (!valid) {
     throw new Error('Invalid wallet connect signature');
   }
 
