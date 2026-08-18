@@ -10,7 +10,6 @@ const ensurePrivyWalletByEmail = async (email: string): Promise<Address> => {
   if (!user) {
     user = await privyClient.users().create({
       linked_accounts: [{ type: 'email', address: normalizedEmail }],
-      wallets: [{ chain_type: 'ethereum' }],
     });
   }
 

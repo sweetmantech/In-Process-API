@@ -77,18 +77,11 @@ describe('ensurePrivyWalletByEmail', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it('creates a privy user with wallet when email is unknown', async () => {
+  it('creates a privy user then ensures a wallet when email is unknown', async () => {
     vi.mocked(getPrivyUserByEmail).mockResolvedValue(null);
     create.mockResolvedValue({
       id: 'did:privy:new',
-      linked_accounts: [
-        { type: 'email', address: EMAIL },
-        {
-          type: 'wallet',
-          wallet_client_type: 'privy',
-          address: NEW_WALLET,
-        },
-      ],
+      linked_accounts: [{ type: 'email', address: EMAIL }],
     });
     vi.mocked(ensurePrivySocialWallet).mockResolvedValue(NEW_WALLET);
 
@@ -96,19 +89,11 @@ describe('ensurePrivyWalletByEmail', () => {
 
     expect(create).toHaveBeenCalledWith({
       linked_accounts: [{ type: 'email', address: EMAIL }],
-      wallets: [{ chain_type: 'ethereum' }],
     });
     expect(ensurePrivySocialWallet).toHaveBeenCalledWith({
       user: {
         id: 'did:privy:new',
-        linked_accounts: [
-          { type: 'email', address: EMAIL },
-          {
-            type: 'wallet',
-            wallet_client_type: 'privy',
-            address: NEW_WALLET,
-          },
-        ],
+        linked_accounts: [{ type: 'email', address: EMAIL }],
       },
     });
     expect(wallet).toBe(NEW_WALLET);
