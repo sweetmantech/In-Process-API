@@ -4,7 +4,12 @@ vi.mock('@/lib/moment/airdropMoment', () => ({
   airdropMoment: vi.fn(),
 }));
 
+vi.mock('@/lib/moment/resolveAirdropRecipients', () => ({
+  default: vi.fn(),
+}));
+
 import { airdropMoment } from '@/lib/moment/airdropMoment';
+import resolveAirdropRecipients from '@/lib/moment/resolveAirdropRecipients';
 import airdropMomentHandler from '@/lib/moment/airdropMomentHandler';
 
 const ARTIST = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266';
@@ -21,21 +26,33 @@ const params = {
     tokenId: '1',
     chainId: 8453,
   },
+  artist: {
+    artistId: 'artist-uuid',
+    primaryWallet: ARTIST,
+    wallets: [ARTIST],
+  },
 };
 
 describe('airdropMomentHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(resolveAirdropRecipients).mockResolvedValue([
+      RECIPIENT as `0x${string}`,
+    ]);
     vi.mocked(airdropMoment).mockResolvedValue({
       hash: TX_HASH as `0x${string}`,
       chainId: 8453,
     });
   });
 
-  it('calls airdropMoment with the provided params', async () => {
+  it('resolves recipients before calling airdropMoment', async () => {
     await airdropMomentHandler(params);
 
-    expect(airdropMoment).toHaveBeenCalledWith(params);
+    expect(resolveAirdropRecipients).toHaveBeenCalledWith(params.recipients);
+    expect(airdropMoment).toHaveBeenCalledWith({
+      ...params,
+      recipients: [RECIPIENT],
+    });
   });
 
   it('returns JSON response with hash and chainId', async () => {
