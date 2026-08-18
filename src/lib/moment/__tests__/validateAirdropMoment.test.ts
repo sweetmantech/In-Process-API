@@ -46,6 +46,16 @@ describe('validateAirdropMoment', () => {
     expect((result as any).moment.chainId).toBe(8453);
   });
 
+  it('returns validated data when recipients include an email', async () => {
+    const email = 'collector@example.com';
+    const result = await validateAirdropMoment(
+      makeRequest({ ...validBody, recipients: [email] })
+    );
+
+    expect(result).not.toBeInstanceOf(NextResponse);
+    expect((result as any).recipients).toEqual([email]);
+  });
+
   it('returns 401 when auth fails', async () => {
     vi.mocked(authMiddleware).mockResolvedValue(
       NextResponse.json({ message: 'Unauthorized' }, { status: 401 })

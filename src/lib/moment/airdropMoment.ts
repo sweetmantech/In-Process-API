@@ -7,8 +7,12 @@ import { zoraCreator1155ImplABI } from '@zoralabs/protocol-deployments';
 import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { airdropMomentSchema } from '../schema/airdropMomentSchema';
 
-export type AirdropMomentInput = z.infer<typeof airdropMomentSchema> & {
+export type AirdropMomentInput = Omit<
+  z.infer<typeof airdropMomentSchema>,
+  'recipients'
+> & {
   artist: ArtistContext;
+  recipients: Address[];
 };
 
 export interface AirdropResult {

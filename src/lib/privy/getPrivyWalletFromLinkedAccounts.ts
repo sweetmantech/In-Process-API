@@ -1,15 +1,14 @@
-type LinkedAccount = {
-  wallet_client_type?: string;
-  address?: string;
-};
-
 const getPrivyWalletFromLinkedAccounts = (
-  linkedAccounts: LinkedAccount[] | undefined
+  linkedAccounts: ReadonlyArray<unknown> | undefined
 ): string | undefined => {
   const account = linkedAccounts?.find(
-    (a) => a.wallet_client_type === 'privy' && a.address
+    (a): a is { wallet_client_type: string; address: string } =>
+      typeof a === 'object' &&
+      a !== null &&
+      (a as { wallet_client_type?: string }).wallet_client_type === 'privy' &&
+      typeof (a as { address?: unknown }).address === 'string'
   );
-  return account?.address?.toLowerCase();
+  return account?.address.toLowerCase();
 };
 
 export default getPrivyWalletFromLinkedAccounts;

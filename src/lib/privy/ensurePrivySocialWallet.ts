@@ -1,10 +1,12 @@
-import type { PrivyPasswordlessAuthenticateResult } from '@/types/auth';
 import createPrivyEmbeddedWallet from '@/lib/privy/createPrivyEmbeddedWallet';
 import getPrivyWalletFromLinkedAccounts from '@/lib/privy/getPrivyWalletFromLinkedAccounts';
 
-const ensurePrivySocialWallet = async (
-  data: PrivyPasswordlessAuthenticateResult
-): Promise<string> => {
+const ensurePrivySocialWallet = async (data: {
+  user?: {
+    id?: string;
+    linked_accounts?: Parameters<typeof getPrivyWalletFromLinkedAccounts>[0];
+  };
+}): Promise<string> => {
   const existing = getPrivyWalletFromLinkedAccounts(data.user?.linked_accounts);
   if (existing) return existing;
 
