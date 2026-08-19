@@ -28,7 +28,7 @@ const CALLER = '0xcaller000000000000000000000000000000000';
 const COLLECTION = '0x0000000000000000000000000000000000000001';
 
 const makeRequest = (body: unknown) =>
-  new NextRequest('http://localhost/api/moment/sale', {
+  new NextRequest('http://localhost/api/sale', {
     method: 'POST',
     body: JSON.stringify(body),
     headers: { 'content-type': 'application/json' },
