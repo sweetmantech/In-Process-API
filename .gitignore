@@ -45,3 +45,7 @@ contracts
 
 #claude
 .claude
+
+# local preview / scripts
+/scripts
+/tmp
