@@ -97,7 +97,7 @@ describe('notifyCollectByEmail', () => {
         chain_id: 8453,
         creator: CREATOR_ADDRESS,
       },
-      metadata: { name: 'My Moment' },
+      metadata: { name: 'My Moment', image: 'ar://image-hash' },
     };
 
     vi.mocked(selectMoments).mockResolvedValue({
@@ -124,6 +124,7 @@ describe('notifyCollectByEmail', () => {
     expect(payload.html).toContain(
       'https://inprocess.world/collect/base:0xcol/1'
     );
+    expect(payload.html).toContain('https://turbo-gateway.com/image-hash');
   });
 
   it('caches creator email lookups per creator address', async () => {
@@ -134,7 +135,7 @@ describe('notifyCollectByEmail', () => {
         chain_id: 8453,
         creator: CREATOR_ADDRESS,
       },
-      metadata: { name: 'My Moment 1' },
+      metadata: { name: 'My Moment 1', image: null },
     };
     const momentRow2 = {
       token_id: 2,
@@ -143,7 +144,7 @@ describe('notifyCollectByEmail', () => {
         chain_id: 8453,
         creator: CREATOR_ADDRESS,
       },
-      metadata: { name: 'My Moment 2' },
+      metadata: { name: 'My Moment 2', image: null },
     };
 
     vi.mocked(selectMoments).mockResolvedValue({
