@@ -52,6 +52,13 @@ export async function notifyCollectByEmail(
   });
   if (error) throw error;
 
+  console.log('[collect-email][dev] prepared', {
+    paidTransfers: paidTransfers.length,
+    collectors: collectors.length,
+    requestedMoments: moments.length,
+    selectedMoments: (selectedMoments ?? []).length,
+  });
+
   const momentByKey = new Map<string, any>(
     (selectedMoments ?? []).map((m) => [
       `${m.collection.address.toLowerCase()}:${m.collection.chain_id}:${m.token_id}`,

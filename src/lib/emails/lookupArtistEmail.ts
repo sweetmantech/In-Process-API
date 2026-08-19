@@ -24,9 +24,15 @@ const lookupArtistEmail = async (
     .filter((w) => w.type === 'privy' || w.type == null)
     .map((w) => w.address);
 
+  console.log('[privy-email-lookup][dev] candidates', {
+    candidateWallets: candidateWallets.length,
+  });
+
   for (const candidateWallet of candidateWallets) {
     const isPrivy = await isPrivyWalletAddress(candidateWallet);
     if (!isPrivy) continue;
+
+    console.log('[privy-email-lookup][dev] verified privy wallet found');
 
     return await getEmailByWalletAddress(candidateWallet);
   }
