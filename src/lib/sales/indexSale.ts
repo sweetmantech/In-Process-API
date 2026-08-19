@@ -4,6 +4,7 @@ import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import selectSale from '@/lib/supabase/in_process_sales/selectSale';
 import { upsertSales } from '@/lib/supabase/in_process_sales/upsertSales';
 import { getFeeRecipientsForSale } from '@/lib/sales/getFeeRecipientsForSale';
+import { mapSaleToSupabaseRow } from '@/lib/sales/mapSaleToSupabaseRow';
 import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import deleteFeeRecipientsByMoment from '@/lib/supabase/in_process_moment_fee_recipients/deleteFeeRecipientsByMoment';
 import { upsertFeeRecipients } from '@/lib/supabase/in_process_moment_fee_recipients/upsertFeeRecipients';
@@ -33,16 +34,16 @@ const indexSale = async ({
   if (!existing) return;
 
   await upsertSales([
-    {
-      moment: dbMoment.id,
+    mapSaleToSupabaseRow({
+      momentId: dbMoment.id,
       currency: existing.currency,
-      funds_recipient: sale.fundsRecipient.toLowerCase(),
-      max_tokens_per_address: Number(sale.maxTokensPerAddress),
-      price_per_token: Number(sale.pricePerToken),
-      sale_end: Number(sale.saleEnd),
-      sale_start: Number(sale.saleStart),
-      created_at: existing.created_at,
-    },
+      fundsRecipient: sale.fundsRecipient,
+      maxTokensPerAddress: sale.maxTokensPerAddress,
+      pricePerToken: sale.pricePerToken,
+      saleEnd: sale.saleEnd,
+      saleStart: sale.saleStart,
+      createdAt: existing.created_at,
+    }),
   ]);
 
   const feeRecipients = await getFeeRecipientsForSale(
