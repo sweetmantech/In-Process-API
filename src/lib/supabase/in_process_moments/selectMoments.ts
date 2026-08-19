@@ -1,6 +1,10 @@
 import { supabase } from '../client';
 import { Moment } from '@/types/moment';
 import type { Database } from '@/lib/supabase/types';
+import {
+  momentsWithCollectionAndMetadataQuery,
+  momentsWithCollectionQuery,
+} from './queries';
 
 type MomentRow = Database['public']['Tables']['in_process_moments']['Row'];
 
@@ -14,46 +18,65 @@ export type MomentWithCollection = Omit<MomentRow, 'collection'> & {
   };
 };
 
-const selectMoments = async ({
-  moments,
-  artists,
-  chainId,
-  limit,
-}: {
+export type MomentMetadata = {
+  image: string | null;
+  name: string | null;
+  description: string | null;
+  external_url: string | null;
+  animation_url: string | null;
+  content: unknown;
+};
+
+export type SelectedMoment = MomentWithCollection & {
+  metadata?: MomentMetadata;
+};
+
+type SelectMomentsArgs = {
   moments?: Moment[];
   artists?: string[];
   chainId?: number;
   limit?: number;
-} = {}): Promise<{
-  data: MomentWithCollection[] | null;
+  includeMetadata?: boolean;
+};
+
+async function selectMoments(args: SelectMomentsArgs = {}): Promise<{
+  data: SelectedMoment[] | null;
   error: { message: string } | null;
-}> => {
+}> {
+  const includeMetadata = args.includeMetadata === true;
+
   let query = supabase
     .from('in_process_moments')
     .select(
-      '*, collection:in_process_collections!inner(id, address, chain_id, creator, protocol)'
+      includeMetadata
+        ? momentsWithCollectionAndMetadataQuery
+        : momentsWithCollectionQuery
     );
 
-  if (moments?.length) {
+  if (args.moments?.length) {
     query = query
       .in(
         'collection.address',
-        moments.map((m) => m.collectionAddress.toLowerCase())
+        args.moments.map((m) => m.collectionAddress.toLowerCase())
       )
       .in(
         'token_id',
-        moments.map((m) => Number(m.tokenId))
+        args.moments.map((m) => Number(m.tokenId))
       );
   }
 
-  if (artists) query = query.in('collection.creator', artists);
-  if (chainId) query = query.eq('collection.chain_id', chainId);
-  if (limit) query = query.limit(limit);
+  if (args.artists) query = query.in('collection.creator', args.artists);
+  if (args.chainId) query = query.eq('collection.chain_id', args.chainId);
+  if (args.limit) query = query.limit(args.limit);
   else query = query.order('created_at', { ascending: false });
 
   const { data, error } = await query;
   if (error) return { data: null, error };
-  return { data: (data ?? []) as MomentWithCollection[], error: null };
-};
+
+  return {
+    data: (data ?? []) as any,
+    error: null,
+  };
+}
 
 export default selectMoments;
