@@ -67,6 +67,7 @@ export async function notifyCollectByEmail(
   );
 
   const creatorEmailCache = new Map<string, string | null>();
+  const creatorTelegramChatIdCache = new Map<string, string | null>();
 
   for (const transfer of paidTransfers) {
     const moment = momentByKey.get(
@@ -78,6 +79,7 @@ export async function notifyCollectByEmail(
       collectorAddress: transfer.recipient,
       moment,
       creatorEmailCache,
+      creatorTelegramChatIdCache,
       collectorUsernameByAddress,
     });
   }
