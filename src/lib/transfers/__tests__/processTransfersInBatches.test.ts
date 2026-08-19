@@ -6,6 +6,7 @@ vi.mock('../mapTransfersToSupabase', () => ({
   mapTransfersToSupabase: vi.fn(),
 }));
 vi.mock('../notifyAirdrop', () => ({ default: vi.fn() }));
+vi.mock('../notifyCollectByEmail', () => ({ notifyCollectByEmail: vi.fn() }));
 vi.mock('@/lib/wallets/ensureWallets', () => ({
   ensureWallets: vi.fn(),
 }));
@@ -23,6 +24,7 @@ import { ensureWallets } from '@/lib/wallets/ensureWallets';
 import resolveCollectorNames from '@/lib/wallets/resolveCollectorNames';
 import { upsertTransfers } from '@/lib/supabase/in_process_transfers/upsertTransfers';
 import notifyAirdrop from '../notifyAirdrop';
+import { notifyCollectByEmail } from '../notifyCollectByEmail';
 import type { Transfers_t } from '@/types/envio';
 
 const mockDistribute = vi.mocked(distribute);
@@ -31,6 +33,7 @@ const mockEnsureArtists = vi.mocked(ensureWallets);
 const mockResolveCollectorNames = vi.mocked(resolveCollectorNames);
 const mockUpsert = vi.mocked(upsertTransfers);
 const mockNotifyAirdrop = vi.mocked(notifyAirdrop);
+const mockNotifyCollectByEmail = vi.mocked(notifyCollectByEmail);
 
 const transfer = (id: string): Transfers_t => ({
   id,
@@ -52,6 +55,7 @@ describe('processTransfersInBatches', () => {
     mockEnsureArtists.mockResolvedValue(undefined as never);
     mockResolveCollectorNames.mockResolvedValue(undefined);
     mockUpsert.mockResolvedValue(undefined);
+    mockNotifyCollectByEmail.mockResolvedValue(undefined);
   });
 
   it('does nothing for empty array', async () => {
@@ -90,6 +94,7 @@ describe('processTransfersInBatches', () => {
     expect(mockEnsureArtists).toHaveBeenCalledWith(['0xab']);
     expect(mockResolveCollectorNames).toHaveBeenCalledWith(['0xab']);
     expect(mockUpsert).toHaveBeenCalledWith(rows);
+    expect(mockNotifyCollectByEmail).toHaveBeenCalledWith(batch);
     expect(mockNotifyAirdrop).toHaveBeenCalledWith(batch);
   });
 

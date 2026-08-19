@@ -6,6 +6,7 @@ import type { Transfers_t } from '@/types/envio';
 import { distribute } from './distribute';
 import { mapTransfersToSupabase } from './mapTransfersToSupabase';
 import notifyAirdrop from './notifyAirdrop';
+import { notifyCollectByEmail } from './notifyCollectByEmail';
 
 export async function processTransfersInBatches(
   transfers: Transfers_t[]
@@ -41,6 +42,7 @@ export async function processTransfersInBatches(
       }
 
       await upsertTransfers(rows);
+      await notifyCollectByEmail(batch);
       await notifyAirdrop(processedTransfers);
       totalProcessed += rows.length;
       console.log(
