@@ -5,7 +5,7 @@ import getSplitRecipients from '@/lib/splits/getSplitRecipients';
 import type { Primary_Sales_t } from '@/types/envio';
 
 export async function getFeeRecipientsForSale(
-  sale: Primary_Sales_t,
+  sale: Pick<Primary_Sales_t, 'funds_recipient' | 'chain_id'>,
   momentId: string
 ): Promise<
   Array<
