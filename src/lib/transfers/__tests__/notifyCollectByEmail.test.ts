@@ -117,8 +117,9 @@ describe('notifyCollectByEmail', () => {
       from: RESEND_FROM_EMAIL,
       to: CREATOR_EMAIL,
     });
-    expect(payload.subject).toContain('Someone collected your moment:');
-    expect(payload.subject).toContain('My Moment');
+    expect(payload.subject).toContain(
+      'In Process notification: someone collected your moment'
+    );
     expect(payload.html).toContain('collector_alice');
     expect(payload.html).toContain(
       'https://inprocess.world/collect/base:0xcol/1'
