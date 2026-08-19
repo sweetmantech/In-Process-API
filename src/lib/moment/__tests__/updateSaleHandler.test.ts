@@ -16,10 +16,15 @@ vi.mock('@/lib/sales/getUpdateSaleCall', () => ({
   default: vi.fn(),
 }));
 
+vi.mock('@/lib/sales/indexSale', () => ({
+  default: vi.fn(),
+}));
+
 import getMomentOnChainInfo from '@/lib/viem/getInProcessMomentInfo';
 import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';
+import indexSale from '@/lib/sales/indexSale';
 import updateSaleHandler from '@/lib/moment/updateSaleHandler';
 import { MomentType } from '@/types/moment';
 
@@ -60,6 +65,7 @@ describe('updateSaleHandler', () => {
       transactionHash: TX_HASH,
     } as any);
     vi.mocked(getUpdateSaleCall).mockReturnValue(mockCall as any);
+    vi.mocked(indexSale).mockResolvedValue(undefined);
   });
 
   it('returns 404 when saleConfig is null', async () => {
@@ -251,7 +257,35 @@ describe('updateSaleHandler', () => {
     );
   });
 
-  it('throws when sendUserOperation rejects', async () => {
+  it('indexes the updated sale after a successful transaction', async () => {
+    const newRecipient = '0x000000000000000000000000000000000000beef';
+
+    await updateSaleHandler({
+      moment,
+      artist,
+      fundsRecipient: newRecipient,
+    });
+
+    expect(indexSale).toHaveBeenCalledWith({
+      moment,
+      sale: expect.objectContaining({ fundsRecipient: newRecipient }),
+    });
+  });
+
+  it('returns hash when indexing fails', async () => {
+    vi.mocked(indexSale).mockRejectedValue(new Error('upsert failed'));
+
+    const res = await updateSaleHandler({
+      moment,
+      artist,
+      pricePerToken: '1000',
+    });
+    const json = await res.json();
+
+    expect(json.hash).toBe(TX_HASH);
+  });
+
+  it('does not index when sendUserOperation rejects', async () => {
     vi.mocked(sendUserOperation).mockRejectedValue(
       new Error('Paymaster failed')
     );
@@ -263,5 +297,6 @@ describe('updateSaleHandler', () => {
         pricePerToken: '1000',
       })
     ).rejects.toThrow('Paymaster failed');
+    expect(indexSale).not.toHaveBeenCalled();
   });
 });

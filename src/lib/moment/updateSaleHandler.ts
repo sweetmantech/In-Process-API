@@ -5,6 +5,7 @@ import getInProcessMomentInfo from '@/lib/viem/getInProcessMomentInfo';
 import { getOperationalSmartWallet } from '@/lib/smartwallets/getOperationalSmartWallet';
 import { sendUserOperation } from '@/lib/coinbase/sendUserOperation';
 import getUpdateSaleCall from '@/lib/sales/getUpdateSaleCall';
+import indexSale from '@/lib/sales/indexSale';
 import { baseSepolia } from 'viem/chains';
 import { UpdateSaleBody } from '@/lib/moment/validateUpdateSaleBody';
 
@@ -51,6 +52,12 @@ const updateSaleHandler = async ({
     network: moment.chainId === baseSepolia.id ? 'base-sepolia' : 'base',
     calls: [updateSaleCall],
   });
+
+  try {
+    await indexSale({ moment, sale: newSale });
+  } catch (e) {
+    console.error('Error indexing sale:', e);
+  }
 
   return NextResponse.json({
     hash: transaction.transactionHash,
