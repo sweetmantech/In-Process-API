@@ -56,12 +56,6 @@ export default async function sendCollectEmailForTransfer({
       subject,
       html,
     });
-
-    const maskedTo =
-      email.length <= 6
-        ? '[masked]'
-        : `${email.slice(0, 3)}***${email.slice(-3)}`;
-    console.log('[collect-email][dev] sent', { to: maskedTo });
   } catch (e) {
     console.error('[resend] collect email send failed:', e);
   }
