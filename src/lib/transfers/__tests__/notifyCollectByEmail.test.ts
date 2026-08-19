@@ -9,12 +9,20 @@ vi.mock('@/lib/emails/lookupArtistEmail', () => ({
   default: vi.fn(),
 }));
 
+vi.mock('@/lib/emails/lookupArtistTelegramChatId', () => ({
+  default: vi.fn(),
+}));
+
 vi.mock('@/lib/resend/client', () => ({
   getResendClient: vi.fn(),
 }));
 
 vi.mock('@/lib/resend/validateResendEnv', () => ({
   validateResendEnv: vi.fn(),
+}));
+
+vi.mock('@/lib/telegram/client', () => ({
+  telegramChatBotClient: { sendMessage: vi.fn() },
 }));
 
 vi.mock('@/lib/supabase/in_process_moments/selectMoments', () => ({
@@ -28,8 +36,10 @@ vi.mock('@/lib/consts', () => ({
 
 import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import lookupArtistEmail from '@/lib/emails/lookupArtistEmail';
+import lookupArtistTelegramChatId from '@/lib/emails/lookupArtistTelegramChatId';
 import { getResendClient } from '@/lib/resend/client';
 import { validateResendEnv } from '@/lib/resend/validateResendEnv';
+import { telegramChatBotClient } from '@/lib/telegram/client';
 import selectMoments from '@/lib/supabase/in_process_moments/selectMoments';
 import notifyCollectByEmail from '../notifyCollectByEmail';
 
@@ -67,6 +77,7 @@ describe('notifyCollectByEmail', () => {
       fromEmail: RESEND_FROM_EMAIL,
     });
     vi.mocked(lookupArtistEmail).mockResolvedValue(CREATOR_EMAIL);
+    vi.mocked(lookupArtistTelegramChatId).mockResolvedValue(null);
 
     vi.mocked(selectWallets).mockResolvedValue({
       data: [
@@ -125,6 +136,36 @@ describe('notifyCollectByEmail', () => {
       'https://inprocess.world/collect/base:0xcol/1'
     );
     expect(payload.html).toContain('https://turbo-gateway.com/image-hash');
+    expect(telegramChatBotClient.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('falls back to Telegram when no Privy email exists', async () => {
+    const momentRow = {
+      token_id: 1,
+      collection: {
+        address: '0xcol',
+        chain_id: 8453,
+        creator: CREATOR_ADDRESS,
+      },
+      metadata: { name: 'My Moment', image: null },
+    };
+
+    vi.mocked(lookupArtistEmail).mockResolvedValue(null);
+    vi.mocked(lookupArtistTelegramChatId).mockResolvedValue('12345');
+    vi.mocked(selectMoments).mockResolvedValue({
+      data: [momentRow],
+      error: null,
+    } as any);
+
+    await notifyCollectByEmail([
+      makeTransfer({ value: '0', currency: '0xusdc' }),
+    ]);
+
+    expect(sendMock).not.toHaveBeenCalled();
+    expect(telegramChatBotClient.sendMessage).toHaveBeenCalledWith(
+      '12345',
+      'collector_alice collected your moment "My Moment".\n\nhttps://inprocess.world/collect/base:0xcol/1'
+    );
   });
 
   it('caches creator email lookups per creator address', async () => {
@@ -169,5 +210,6 @@ describe('notifyCollectByEmail', () => {
 
     expect(lookupArtistEmail).toHaveBeenCalledTimes(1);
     expect(sendMock).toHaveBeenCalledTimes(2);
+    expect(lookupArtistTelegramChatId).not.toHaveBeenCalled();
   });
 });

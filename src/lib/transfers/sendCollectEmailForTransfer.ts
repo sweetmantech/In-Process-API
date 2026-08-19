@@ -1,8 +1,10 @@
 import { SITE_ORIGINAL_URL, SHORT_CHAIN_NAME } from '@/lib/consts';
 import buildCollectNotificationHtml from '@/lib/emails/buildCollectNotificationHtml';
+import getCreatorTelegramChatIdCached from '@/lib/emails/getCreatorTelegramChatIdCached';
 import buildImageProxyUrl from '@/lib/media/buildImageProxyUrl';
 import getCreatorEmailCached from '@/lib/emails/getCreatorEmailCached';
 import sendResendEmail from '@/lib/resend/sendResendEmail';
+import { telegramChatBotClient } from '@/lib/telegram/client';
 
 type MomentForCollectEmail = {
   token_id: number;
@@ -21,20 +23,16 @@ export default async function sendCollectEmailForTransfer({
   collectorAddress,
   moment,
   creatorEmailCache,
+  creatorTelegramChatIdCache,
   collectorUsernameByAddress,
 }: {
   collectorAddress: string;
   moment: MomentForCollectEmail;
   creatorEmailCache: Map<string, string | null>;
+  creatorTelegramChatIdCache: Map<string, string | null>;
   collectorUsernameByAddress: Map<string, string | null>;
 }): Promise<void> {
   const creatorAddress = moment.collection.creator as string;
-  const email = await getCreatorEmailCached({
-    creatorAddress,
-    cache: creatorEmailCache,
-  });
-  if (!email) return;
-
   const normalizedCollectorAddress = collectorAddress.toLowerCase();
   const collectorUsername =
     collectorUsernameByAddress.get(normalizedCollectorAddress) ?? null;
@@ -49,21 +47,43 @@ export default async function sendCollectEmailForTransfer({
 
   const subject = 'In Process notification: someone collected your moment';
   const textCollector = collectorUsername ?? normalizedCollectorAddress;
-  const html = buildCollectNotificationHtml({
-    textCollector,
-    collectorUrl,
-    momentName,
-    collectUrl,
-    imageUrl,
+  const email = await getCreatorEmailCached({
+    creatorAddress,
+    cache: creatorEmailCache,
   });
 
-  try {
-    await sendResendEmail({
-      to: email,
-      subject,
-      html,
+  if (email) {
+    const html = buildCollectNotificationHtml({
+      textCollector,
+      collectorUrl,
+      momentName,
+      collectUrl,
+      imageUrl,
     });
+
+    try {
+      await sendResendEmail({
+        to: email,
+        subject,
+        html,
+      });
+      return;
+    } catch (e) {
+      console.error('[resend] collect email send failed:', e);
+    }
+  }
+
+  try {
+    const telegramChatId = await getCreatorTelegramChatIdCached({
+      creatorAddress,
+      cache: creatorTelegramChatIdCache,
+    });
+    if (!telegramChatId) return;
+
+    const text = `${textCollector} collected your moment.\n\n${collectUrl}`;
+
+    await telegramChatBotClient.sendMessage(telegramChatId, text);
   } catch (e) {
-    console.error('[resend] collect email send failed:', e);
+    console.error('[collect-telegram] collect notification send failed:', e);
   }
 }
