@@ -1,4 +1,5 @@
 import type { TransfersQueryParams } from '@/lib/schema/transfersQuerySchema';
+import resolveLinkedWalletAddresses from '@/lib/wallets/resolveLinkedWalletAddresses';
 import { supabase } from '../client';
 import { transfersQuery } from './queries';
 
@@ -17,7 +18,9 @@ const selectTransfers = async (params: TransfersQueryParams) => {
   }
 
   if (collector) {
-    query = query.eq('recipient', collector);
+    const linked = await resolveLinkedWalletAddresses(collector);
+    const recipients = linked.length > 0 ? linked : [collector.toLowerCase()];
+    query = query.in('recipient', recipients);
   }
 
   if (momentId !== undefined) {
