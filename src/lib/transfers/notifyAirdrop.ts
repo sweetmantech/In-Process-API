@@ -1,8 +1,8 @@
 import { SHORT_CHAIN_NAME, SITE_ORIGINAL_URL } from '@/lib/consts';
 import selectAccountNotification from '@/lib/supabase/account_notifications/selectAccountNotification';
-import selectWallets from '@/lib/supabase/in_process_wallets/selectWallets';
 import type { Transfers_t } from '@/types/envio';
 import { telegramChatBotClient } from '@/lib/telegram/client';
+import resolveLinkedWalletAddresses from '@/lib/wallets/resolveLinkedWalletAddresses';
 import getAirdropOperator from './getAirdropOperator';
 import isSameArtist from './isSameArtist';
 
@@ -12,16 +12,7 @@ const notifyAirdrop = async (batch: Transfers_t[]): Promise<void> => {
     if (t.value && t.currency) continue;
     const recipient = t.recipient.toLowerCase();
     try {
-      const { data: recipientWallets } = await selectWallets({
-        addresses: [recipient],
-      });
-      const artistId = recipientWallets?.[0]?.artist_id;
-      if (!artistId) continue;
-
-      const { data: artistWallets } = await selectWallets({
-        artistIds: [artistId],
-      });
-      const wallets = (artistWallets ?? []).map((wallet) => wallet.address);
+      const wallets = await resolveLinkedWalletAddresses(recipient);
       if (!wallets.length) continue;
 
       const data = await selectAccountNotification({ wallets });
