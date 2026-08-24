@@ -197,6 +197,29 @@ describe('onNewMention', () => {
     );
   });
 
+  it('processes a .wav document as a music post', async () => {
+    const attachment = { type: 'file', mimeType: 'audio/wav' };
+    const message = makeMessage({
+      text: 'my track',
+      attachments: [attachment],
+    });
+    vi.mocked(resolveTelegramMediaAttachment).mockResolvedValue({
+      type: 'audio',
+      mimeType: 'audio/wav',
+    } as never);
+
+    await capturedHandler!(makeThread(), message);
+
+    expect(processMediaThread).toHaveBeenCalledWith(
+      expect.anything(),
+      message,
+      expect.objectContaining({ type: 'audio', mimeType: 'audio/wav' }),
+      'my track',
+      ARTIST
+    );
+    expect(promptTextPostConfirmation).not.toHaveBeenCalled();
+  });
+
   it('sniffs extensionless HEIC documents via resolveTelegramMediaAttachment', async () => {
     const attachment = {
       type: 'file',

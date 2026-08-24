@@ -11,6 +11,13 @@ const mimeTypeMap: Record<string, string> = {
   avi: 'video/x-msvideo',
   mp3: 'audio/mpeg',
   ogg: 'audio/ogg',
+  wav: 'audio/wav',
+  m4a: 'audio/mp4',
+  aac: 'audio/aac',
+  flac: 'audio/flac',
+  aiff: 'audio/aiff',
+  aif: 'audio/aiff',
+  wma: 'audio/x-ms-wma',
   pdf: 'application/pdf',
 };
 

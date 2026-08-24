@@ -2,8 +2,12 @@ import type { Attachment } from 'chat';
 
 const resolveMediaAttachmentType = (
   attachment: Attachment
-): 'image' | 'video' | undefined => {
-  if (attachment.type === 'image' || attachment.type === 'video') {
+): 'image' | 'video' | 'audio' | undefined => {
+  if (
+    attachment.type === 'image' ||
+    attachment.type === 'video' ||
+    attachment.type === 'audio'
+  ) {
     return attachment.type;
   }
   if (attachment.type === 'file' && attachment.mimeType?.startsWith('image/')) {
@@ -11,6 +15,9 @@ const resolveMediaAttachmentType = (
   }
   if (attachment.type === 'file' && attachment.mimeType?.startsWith('video/')) {
     return 'video';
+  }
+  if (attachment.type === 'file' && attachment.mimeType?.startsWith('audio/')) {
+    return 'audio';
   }
   return undefined;
 };

@@ -1,6 +1,7 @@
 import type { Attachment } from 'chat';
 import uploadPhotoAttachment from './uploadPhotoAttachment';
 import uploadVideoAttachment from './uploadVideoAttachment';
+import uploadAudioAttachment from './uploadAudioAttachment';
 
 const processAttachmentUpload = async (
   attachment: Attachment,
@@ -13,6 +14,9 @@ const processAttachmentUpload = async (
   }
   if (attachment.type === 'video') {
     return uploadVideoAttachment(attachment, fileId, name, thumbFileId);
+  }
+  if (attachment.type === 'audio') {
+    return uploadAudioAttachment(attachment, fileId, name);
   }
   throw new Error(`Unsupported attachment type: ${attachment.type}`);
 };

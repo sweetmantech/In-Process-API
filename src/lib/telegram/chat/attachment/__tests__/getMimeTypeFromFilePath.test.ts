@@ -15,6 +15,13 @@ describe('getMimeTypeFromFilePath', () => {
     ['video.avi', 'video/x-msvideo'],
     ['audio.mp3', 'audio/mpeg'],
     ['audio.ogg', 'audio/ogg'],
+    ['audio.wav', 'audio/wav'],
+    ['audio.m4a', 'audio/mp4'],
+    ['audio.aac', 'audio/aac'],
+    ['audio.flac', 'audio/flac'],
+    ['audio.aiff', 'audio/aiff'],
+    ['audio.aif', 'audio/aiff'],
+    ['audio.wma', 'audio/x-ms-wma'],
     ['document.pdf', 'application/pdf'],
   ])('%s → %s', (path, expected) => {
     expect(getMimeTypeFromFilePath(path)).toBe(expected);
