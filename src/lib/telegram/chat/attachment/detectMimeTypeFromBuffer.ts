@@ -7,6 +7,7 @@ const GIF87_MAGIC = [0x47, 0x49, 0x46, 0x38, 0x37, 0x61];
 const GIF89_MAGIC = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61];
 const RIFF_MAGIC = [0x52, 0x49, 0x46, 0x46];
 const WEBP_MAGIC = [0x57, 0x45, 0x42, 0x50];
+const WAVE_MAGIC = [0x57, 0x41, 0x56, 0x45];
 
 const FTYP_IMAGE_BRANDS = new Set(['heic', 'heix', 'heim', 'heis', 'mif1']);
 const FTYP_HEIF_BRANDS = new Set([
@@ -31,7 +32,7 @@ const FTYP_VIDEO_BRANDS = new Set([
 ]);
 
 /**
- * Sniffs image/video MIME from magic bytes when the Telegram file path
+ * Sniffs image/video/audio MIME from magic bytes when the Telegram file path
  * has no useful extension (e.g. a document named "111").
  */
 const detectMimeTypeFromBuffer = (buffer: Buffer): string | undefined => {
@@ -45,11 +46,9 @@ const detectMimeTypeFromBuffer = (buffer: Buffer): string | undefined => {
   ) {
     return 'image/gif';
   }
-  if (
-    bufferStartsWith(buffer, RIFF_MAGIC) &&
-    bufferStartsWith(buffer.subarray(8), WEBP_MAGIC)
-  ) {
-    return 'image/webp';
+  if (bufferStartsWith(buffer, RIFF_MAGIC)) {
+    if (bufferStartsWith(buffer.subarray(8), WEBP_MAGIC)) return 'image/webp';
+    if (bufferStartsWith(buffer.subarray(8), WAVE_MAGIC)) return 'audio/wav';
   }
 
   const brands = readFtypBrands(buffer);

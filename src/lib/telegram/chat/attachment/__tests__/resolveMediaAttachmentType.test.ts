@@ -49,11 +49,19 @@ describe('resolveMediaAttachmentType', () => {
     expect(result).toBeUndefined();
   });
 
-  it('returns undefined for audio attachments', () => {
+  it('passes through an audio attachment', () => {
     const result = resolveMediaAttachmentType({
       type: 'audio',
       mimeType: 'audio/mpeg',
     } as never);
-    expect(result).toBeUndefined();
+    expect(result).toBe('audio');
+  });
+
+  it('resolves a document with an audio mimeType to audio', () => {
+    const result = resolveMediaAttachmentType({
+      type: 'file',
+      mimeType: 'audio/wav',
+    } as never);
+    expect(result).toBe('audio');
   });
 });
