@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 
-const deleteMediaCacheByHashes = async (hashes: string[]): Promise<void> => {
+const deleteMediaCache = async (hashes: string[]): Promise<void> => {
   if (hashes.length === 0) return;
   const { error } = await supabase
     .from('in_process_media_cache')
@@ -10,4 +10,4 @@ const deleteMediaCacheByHashes = async (hashes: string[]): Promise<void> => {
     throw new Error(`Failed to delete media cache rows: ${error.message}`);
 };
 
-export default deleteMediaCacheByHashes;
+export default deleteMediaCache;
