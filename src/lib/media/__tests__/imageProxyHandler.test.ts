@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextResponse } from 'next/server';
 import imageProxyHandler from '@/lib/media/imageProxyHandler';
+import { MEDIA_CACHE_TTL_DAYS } from '@/lib/media/mediaCacheConsts';
 
-// Mock sharp
 vi.mock('sharp', () => {
   const mockSharp = vi.fn(() => ({
     autoOrient: vi.fn().mockReturnThis(),
@@ -17,12 +17,21 @@ vi.mock('sharp', () => {
 });
 
 vi.mock('@/lib/arweave/fetchUri');
+vi.mock('@/lib/media/resolveMediaCacheUrl', () => ({
+  default: vi.fn().mockResolvedValue(null),
+}));
+vi.mock('@/lib/media/writeMediaCache', () => ({
+  default: vi.fn().mockResolvedValue(undefined),
+}));
 
 import fetchUri from '@/lib/arweave/fetchUri';
+import resolveMediaCacheUrl from '@/lib/media/resolveMediaCacheUrl';
+import writeMediaCache from '@/lib/media/writeMediaCache';
 
 describe('imageProxyHandler', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
+    vi.mocked(resolveMediaCacheUrl).mockResolvedValue(null);
   });
 
   it('should return processed image with default format (webp)', async () => {
@@ -42,8 +51,28 @@ describe('imageProxyHandler', () => {
     expect(result.status).toBe(200);
     expect(result.headers.get('Content-Type')).toBe('image/webp');
     expect(result.headers.get('Cache-Control')).toBe(
-      'public, max-age=31536000, immutable'
+      `public, max-age=${MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60}`
     );
+    expect(writeMediaCache).toHaveBeenCalled();
+    await Promise.resolve();
+  });
+
+  it('should redirect when media cache hits', async () => {
+    vi.mocked(resolveMediaCacheUrl).mockResolvedValue(
+      'https://example.supabase.co/storage/v1/object/public/in_process_files/media-cache/abc.webp'
+    );
+
+    const result = await imageProxyHandler({
+      url: 'https://example.com/image.jpg',
+      width: 420,
+      height: undefined,
+      quality: 75,
+      format: 'webp',
+    });
+
+    expect(result.status).toBe(302);
+    expect(result.headers.get('Location')).toContain('media-cache/abc.webp');
+    expect(fetchUri).not.toHaveBeenCalled();
   });
 
   it('should return avif format when requested', async () => {
