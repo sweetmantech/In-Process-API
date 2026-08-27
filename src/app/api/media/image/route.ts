@@ -20,6 +20,5 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
+// Processed images are immutable by (url,w,h,q,f); allow platform caching.
+export const revalidate = 31536000;

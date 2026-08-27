@@ -320,6 +320,30 @@ export type Database = {
           },
         ];
       };
+      in_process_media_cache: {
+        Row: {
+          created_at: string;
+          hash: string;
+          kind: string;
+          path: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          hash: string;
+          kind?: string;
+          path: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          hash?: string;
+          kind?: string;
+          path?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       in_process_metadata: {
         Row: {
           animation_url: string | null;
