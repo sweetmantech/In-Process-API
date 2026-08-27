@@ -1,11 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@/lib/supabase/in_process_media_cache/selectExpiredMediaCache', () => ({
-  default: vi.fn(),
-}));
-vi.mock('@/lib/supabase/in_process_media_cache/deleteMediaCacheByHashes', () => ({
-  default: vi.fn(),
-}));
+vi.mock(
+  '@/lib/supabase/in_process_media_cache/selectExpiredMediaCache',
+  () => ({
+    default: vi.fn(),
+  })
+);
+vi.mock(
+  '@/lib/supabase/in_process_media_cache/deleteMediaCacheByHashes',
+  () => ({
+    default: vi.fn(),
+  })
+);
 vi.mock('@/lib/media/removeSupabaseStoragePaths', () => ({
   default: vi.fn(),
 }));
@@ -31,10 +37,14 @@ describe('cleanupExpiredMediaCache', () => {
     vi.mocked(removeSupabaseStoragePaths).mockResolvedValue(1);
     vi.mocked(deleteMediaCacheByHashes).mockResolvedValue(undefined);
 
-    const result = await cleanupExpiredMediaCache(new Date('2026-08-27T12:00:00.000Z'));
+    const result = await cleanupExpiredMediaCache(
+      new Date('2026-08-27T12:00:00.000Z')
+    );
 
     expect(selectExpiredMediaCache).toHaveBeenCalled();
-    expect(removeSupabaseStoragePaths).toHaveBeenCalledWith(['media-cache/aaa.webp']);
+    expect(removeSupabaseStoragePaths).toHaveBeenCalledWith([
+      'media-cache/aaa.webp',
+    ]);
     expect(deleteMediaCacheByHashes).toHaveBeenCalledWith(['aaa']);
     expect(result.deletedFiles).toBe(1);
     expect(result.expiredFiles).toEqual(['media-cache/aaa.webp']);

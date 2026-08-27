@@ -17,7 +17,8 @@ const selectExpiredMediaCache = async (
     .order('created_at', { ascending: true })
     .limit(limit);
 
-  if (error) throw new Error(`Failed to select expired media cache: ${error.message}`);
+  if (error)
+    throw new Error(`Failed to select expired media cache: ${error.message}`);
   return data ?? [];
 };
 

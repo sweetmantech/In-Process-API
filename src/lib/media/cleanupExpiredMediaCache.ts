@@ -6,8 +6,13 @@ import deleteMediaCacheByHashes from '@/lib/supabase/in_process_media_cache/dele
 const CLEANUP_BATCH_LIMIT = 500;
 
 const cleanupExpiredMediaCache = async (now: Date = new Date()) => {
-  const cutoff = new Date(now.getTime() - MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60 * 1000);
-  const expiredRows = await selectExpiredMediaCache(cutoff, CLEANUP_BATCH_LIMIT);
+  const cutoff = new Date(
+    now.getTime() - MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60 * 1000
+  );
+  const expiredRows = await selectExpiredMediaCache(
+    cutoff,
+    CLEANUP_BATCH_LIMIT
+  );
   const expiredPaths = expiredRows.map((row) => row.path);
   const deletedFiles = await removeSupabaseStoragePaths(expiredPaths);
   await deleteMediaCacheByHashes(expiredRows.map((row) => row.hash));
