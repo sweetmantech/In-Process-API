@@ -1,6 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextResponse } from 'next/server';
 import mediaStreamHandler from '@/lib/media/mediaStreamHandler';
+import { MEDIA_CACHE_TTL_DAYS } from '@/lib/media/mediaCacheConsts';
+
+const afterTasks: Array<() => void | Promise<void>> = [];
+
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>();
+  return {
+    ...actual,
+    after: (task: () => void | Promise<void>) => {
+      afterTasks.push(task);
+    },
+  };
+});
+vi.mock('@/lib/arweave/fetchUri', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/media/resolveMediaCacheUrl', () => ({
+  default: vi.fn(),
+}));
+vi.mock('@/lib/media/cacheVideoFromUri', () => ({
+  default: vi.fn().mockResolvedValue(undefined),
+}));
+
+import fetchUri from '@/lib/arweave/fetchUri';
+import resolveMediaCacheUrl from '@/lib/media/resolveMediaCacheUrl';
+import cacheVideoFromUri from '@/lib/media/cacheVideoFromUri';
 
 const VIDEO = 'https://example.com/video.mp4';
 
@@ -21,11 +47,57 @@ const EXPECTED_STREAM_CACHE_CONTROL =
 describe('mediaStreamHandler', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    afterTasks.length = 0;
+    vi.mocked(resolveMediaCacheUrl).mockResolvedValue(null);
+  });
+
+  it('redirects when media cache hits', async () => {
+    vi.mocked(resolveMediaCacheUrl).mockResolvedValue(
+      'https://example.supabase.co/storage/v1/object/public/in_process_files/media-cache/abc.mp4'
+    );
+
+    const result = await mediaStreamHandler({
+      uri: VIDEO,
+      rangeHeader: 'bytes=0-499',
+    });
+
+    expect(result.status).toBe(302);
+    expect(result.headers.get('Location')).toContain('media-cache/abc.mp4');
+    expect(result.headers.get('Cache-Control')).toBe(
+      `public, max-age=${MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60}`
+    );
+    expect(fetchUri).not.toHaveBeenCalled();
+    expect(afterTasks).toHaveLength(0);
+  });
+
+  it('schedules background cache population on miss', async () => {
+    vi.mocked(fetchUri).mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: createMockStream(),
+      headers: h({
+        'content-type': 'video/mp4',
+        'content-length': '1000',
+      }),
+    } as Response);
+
+    await mediaStreamHandler({
+      uri: VIDEO,
+      rangeHeader: null,
+    });
+
+    expect(afterTasks).toHaveLength(1);
+    await afterTasks[0]();
+    expect(cacheVideoFromUri).toHaveBeenCalledWith({
+      uri: VIDEO,
+      hash: expect.any(String),
+      path: expect.stringMatching(/^media-cache\/[a-f0-9]+\.mp4$/),
+    });
   });
 
   describe('full content response (200)', () => {
     it('should return 200 with full content when no range header', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),
@@ -48,7 +120,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should return 200 when range requested but origin returns 200', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),
@@ -69,7 +141,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should send Range when client requests bytes (origin may still return 200)', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),
@@ -84,7 +156,7 @@ describe('mediaStreamHandler', () => {
         rangeHeader: 'bytes=0-499',
       });
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(fetchUri).toHaveBeenCalledWith(
         VIDEO,
         expect.objectContaining({
           headers: expect.objectContaining({
@@ -98,7 +170,7 @@ describe('mediaStreamHandler', () => {
 
   describe('partial content response (206)', () => {
     it('should return 206 with partial content when range honored', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 206,
         body: createMockStream(),
@@ -117,7 +189,7 @@ describe('mediaStreamHandler', () => {
       expect(result.status).toBe(206);
       expect(result.headers.get('Content-Length')).toBe('500');
       expect(result.headers.get('Content-Range')).toBe('bytes 0-499/1000');
-      expect(fetch).toHaveBeenCalledWith(
+      expect(fetchUri).toHaveBeenCalledWith(
         VIDEO,
         expect.objectContaining({
           headers: expect.objectContaining({ Range: 'bytes=0-499' }),
@@ -126,7 +198,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should handle open-ended range', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 206,
         body: createMockStream(),
@@ -148,7 +220,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should handle single byte range', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 206,
         body: createMockStream(),
@@ -172,7 +244,7 @@ describe('mediaStreamHandler', () => {
 
   describe('invalid range headers', () => {
     it('should return 200 for invalid range format', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),
@@ -192,7 +264,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should return 200 for multi-range header', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),
@@ -211,7 +283,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should propagate 416 when origin rejects out-of-bounds range', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: false,
         status: 416,
         statusText: 'Range Not Satisfiable',
@@ -230,7 +302,7 @@ describe('mediaStreamHandler', () => {
 
   describe('error handling', () => {
     it('should return error when fetch fails with 404', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: false,
         status: 404,
         body: null,
@@ -246,7 +318,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should return error when fetch fails with 500', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: false,
         status: 500,
         body: null,
@@ -262,7 +334,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should return 502 when response body is null', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
         body: null,
@@ -280,7 +352,7 @@ describe('mediaStreamHandler', () => {
 
   describe('response headers', () => {
     it('should set Cache-Control header', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),
@@ -298,7 +370,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should set Vary: Range on 206 responses', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 206,
         body: createMockStream(),
@@ -321,7 +393,7 @@ describe('mediaStreamHandler', () => {
     });
 
     it('should use Content-Type from origin response', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue({
+      vi.mocked(fetchUri).mockResolvedValue({
         ok: true,
         status: 200,
         body: createMockStream(),

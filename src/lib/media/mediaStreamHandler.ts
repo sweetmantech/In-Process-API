@@ -1,17 +1,55 @@
 import { NextResponse } from 'next/server';
+import { after } from 'next/server';
 import fetchUri from '@/lib/arweave/fetchUri';
 import buildUpstreamRangeHeader from './buildUpstreamRangeHeader';
 import parseHttpContentRange from './parseHttpContentRange';
+import buildMediaCacheHash from './buildMediaCacheHash';
+import buildMediaCachePath from './buildMediaCachePath';
+import inferMediaCacheExtension from './inferMediaCacheExtension';
+import resolveMediaCacheUrl from './resolveMediaCacheUrl';
+import cacheVideoFromUri from './cacheVideoFromUri';
+import { MEDIA_CACHE_TTL_DAYS } from './mediaCacheConsts';
 
 export type MediaStreamHandlerInput = {
   uri: string;
   rangeHeader: string | null;
 };
 
+const CACHE_CONTROL = `public, max-age=${MEDIA_CACHE_TTL_DAYS * 24 * 60 * 60}`;
+
+const STREAM_CACHE_CONTROL =
+  'public, max-age=31536000, immutable, s-maxage=31536000';
+
+const scheduleVideoCache = ({
+  uri,
+  hash,
+  path,
+}: {
+  uri: string;
+  hash: string;
+  path: string;
+}) => {
+  after(() =>
+    cacheVideoFromUri({ uri, hash, path }).catch((error) => {
+      console.error('Video cache populate failed:', error);
+    })
+  );
+};
+
 const mediaStreamHandler = async ({
   uri,
   rangeHeader,
 }: MediaStreamHandlerInput) => {
+  const hash = buildMediaCacheHash([uri]);
+  const path = buildMediaCachePath(hash, inferMediaCacheExtension(uri, null, 'mp4'));
+  const cachedUrl = await resolveMediaCacheUrl(path);
+  if (cachedUrl) {
+    return NextResponse.redirect(cachedUrl, {
+      status: 302,
+      headers: { 'Cache-Control': CACHE_CONTROL },
+    });
+  }
+
   const rangeRequestValue = buildUpstreamRangeHeader(rangeHeader);
 
   const upstreamHeaders: Record<string, string> = {
@@ -33,6 +71,8 @@ const mediaStreamHandler = async ({
   if (!response.body) {
     return NextResponse.json({ error: 'No response body' }, { status: 502 });
   }
+
+  scheduleVideoCache({ uri, hash, path });
 
   const originHeaders = response.headers ?? new Headers();
   const contentType =
@@ -78,7 +118,7 @@ const mediaStreamHandler = async ({
       'Content-Type': contentType,
       'Accept-Ranges': 'bytes',
       'Content-Length': contentLength.toString(),
-      'Cache-Control': 'public, max-age=31536000, immutable, s-maxage=31536000',
+      'Cache-Control': STREAM_CACHE_CONTROL,
       Vary: 'Range',
     });
 
@@ -98,7 +138,7 @@ const mediaStreamHandler = async ({
   const responseHeaders = new Headers({
     'Content-Type': contentType,
     'Accept-Ranges': 'bytes',
-    'Cache-Control': 'public, max-age=31536000, immutable, s-maxage=31536000',
+    'Cache-Control': STREAM_CACHE_CONTROL,
   });
   if (fullLength) {
     responseHeaders.set('Content-Length', fullLength);
