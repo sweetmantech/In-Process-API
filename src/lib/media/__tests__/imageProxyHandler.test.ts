@@ -164,4 +164,35 @@ describe('imageProxyHandler', () => {
     expect(result).toBeInstanceOf(NextResponse);
     expect(result.status).toBe(500);
   });
+
+  it('should process ICO favicon bytes fetched from ar://', async () => {
+    const png = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+    ]);
+    const ico = Buffer.alloc(6 + 16 + png.length);
+    ico.writeUInt16LE(0, 0);
+    ico.writeUInt16LE(1, 2);
+    ico.writeUInt16LE(1, 4);
+    ico.writeUInt8(16, 6);
+    ico.writeUInt8(16, 7);
+    ico.writeUInt32LE(png.length, 14);
+    ico.writeUInt32LE(22, 18);
+    png.copy(ico, 22);
+
+    vi.mocked(fetchUri).mockResolvedValue({
+      ok: true,
+      arrayBuffer: () => Promise.resolve(ico.buffer.slice(ico.byteOffset, ico.byteOffset + ico.byteLength)),
+    } as Response);
+
+    const result = await imageProxyHandler({
+      url: 'ar://58qRiy_HS-hFRDLFJcxZkoeO2GT_m1Ig2ZCk4ndzjpI',
+      width: 420,
+      height: undefined,
+      quality: 75,
+      format: 'webp',
+    });
+
+    expect(result.status).toBe(200);
+    expect(result.headers.get('Content-Type')).toBe('image/webp');
+  });
 });
