@@ -1,9 +1,8 @@
 import { supabase } from '@/lib/supabase/client';
-import computeDeltaPct from '@/lib/stats/computeDeltaPct';
+import toAnalyticsStatMetric from '@/lib/stats/toAnalyticsStatMetric';
 import type { AnalyticsStatsPeriod } from '@/types/analyticsStats';
 import {
   emptyAnalyticsStats,
-  type AnalyticsStatMetric,
   type AnalyticsStats,
 } from '@/types/analyticsStats';
 
@@ -20,27 +19,6 @@ type AnalyticsStatsRow = {
   active_artists_prev: number | string | null;
   collectors_prev: number | string | null;
   artists_collectors_prev: number | string | null;
-};
-
-const toCount = (value: number | string | null | undefined) =>
-  Number(value ?? 0);
-
-const toMetric = (
-  value: number | string | null | undefined,
-  prev: number | string | null | undefined,
-  includeComparison: boolean
-): AnalyticsStatMetric => {
-  const current = toCount(value);
-  if (!includeComparison) {
-    return { value: current, prev: null, delta_pct: null };
-  }
-
-  const previous = toCount(prev);
-  return {
-    value: current,
-    prev: previous,
-    delta_pct: computeDeltaPct(current, previous),
-  };
 };
 
 const getAnalyticsStats = async ({
@@ -65,36 +43,36 @@ const getAnalyticsStats = async ({
 
     return {
       period,
-      moments_created: toMetric(
-        row.moments_created,
-        row.moments_created_prev,
-        includeComparison
-      ),
-      moments_airdropped: toMetric(
-        row.moments_airdropped,
-        row.moments_airdropped_prev,
-        includeComparison
-      ),
-      moments_collected: toMetric(
-        row.moments_collected,
-        row.moments_collected_prev,
-        includeComparison
-      ),
-      active_artists: toMetric(
-        row.active_artists,
-        row.active_artists_prev,
-        includeComparison
-      ),
-      collectors: toMetric(
-        row.collectors,
-        row.collectors_prev,
-        includeComparison
-      ),
-      artists_collectors: toMetric(
-        row.artists_collectors,
-        row.artists_collectors_prev,
-        includeComparison
-      ),
+      moments_created: toAnalyticsStatMetric({
+        value: row.moments_created,
+        prev: row.moments_created_prev,
+        includeComparison,
+      }),
+      moments_airdropped: toAnalyticsStatMetric({
+        value: row.moments_airdropped,
+        prev: row.moments_airdropped_prev,
+        includeComparison,
+      }),
+      moments_collected: toAnalyticsStatMetric({
+        value: row.moments_collected,
+        prev: row.moments_collected_prev,
+        includeComparison,
+      }),
+      active_artists: toAnalyticsStatMetric({
+        value: row.active_artists,
+        prev: row.active_artists_prev,
+        includeComparison,
+      }),
+      collectors: toAnalyticsStatMetric({
+        value: row.collectors,
+        prev: row.collectors_prev,
+        includeComparison,
+      }),
+      artists_collectors: toAnalyticsStatMetric({
+        value: row.artists_collectors,
+        prev: row.artists_collectors_prev,
+        includeComparison,
+      }),
     };
   } catch (error) {
     console.error('[getAnalyticsStats]', error);
