@@ -745,6 +745,26 @@ export type Database = {
           web_count: number;
         }[];
       };
+      get_analytics_stats: {
+        Args: {
+          p_artist?: string;
+          p_period?: string;
+        };
+        Returns: {
+          active_artists: number;
+          active_artists_prev: number | null;
+          artists_collectors: number;
+          artists_collectors_prev: number | null;
+          collectors: number;
+          collectors_prev: number | null;
+          moments_airdropped: number;
+          moments_airdropped_prev: number | null;
+          moments_collected: number;
+          moments_collected_prev: number | null;
+          moments_created: number;
+          moments_created_prev: number | null;
+        }[];
+      };
       get_airdrop_transfers: {
         Args: {
           p_artist?: string;
