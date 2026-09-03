@@ -26,7 +26,6 @@ describe('getCollectingStats', () => {
           usdc_spent: '320.25',
         },
       ],
-      totalCount: 1,
     });
 
     await expect(
@@ -47,7 +46,6 @@ describe('getCollectingStats', () => {
   it('returns empty stats when no collector row exists', async () => {
     vi.mocked(getCollectorsStats).mockResolvedValue({
       data: [],
-      totalCount: 0,
     });
 
     await expect(getCollectingStats('0xabc')).resolves.toEqual(

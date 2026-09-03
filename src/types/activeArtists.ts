@@ -30,8 +30,6 @@ export interface ActiveArtistStats {
 }
 
 export interface ActiveArtistsStatsResponse {
-  data: ActiveArtistStats[];
-  total_count: number;
+  artists: ActiveArtistStats[];
   page: number;
-  total_pages: number;
 }

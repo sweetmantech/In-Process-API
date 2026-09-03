@@ -21,7 +21,7 @@ describe('getActiveArtistsHandler', () => {
     vi.clearAllMocks();
   });
 
-  it('returns data with pagination metadata on success', async () => {
+  it('returns artists and page on success', async () => {
     vi.mocked(getActiveArtistsStats).mockResolvedValue({
       data: [
         {
@@ -34,10 +34,8 @@ describe('getActiveArtistsHandler', () => {
           web_count: 4,
           api_count: 3,
           sms_count: 1,
-          total_count: 33,
         },
-      ] as any,
-      totalCount: 33,
+      ],
     });
 
     const res = await getActiveArtistsHandler(BASE_PARAMS);
@@ -45,15 +43,13 @@ describe('getActiveArtistsHandler', () => {
 
     expect(res.status).toBe(200);
     expect(json.artists).toHaveLength(1);
-    expect(json.total_count).toBe(33);
     expect(json.page).toBe(1);
-    expect(json.total_pages).toBe(2);
+    expect(json.total_count).toBeUndefined();
   });
 
   it('passes all params to getActiveArtistsStats', async () => {
     vi.mocked(getActiveArtistsStats).mockResolvedValue({
       data: [],
-      totalCount: 0,
     });
 
     await getActiveArtistsHandler({
@@ -75,17 +71,16 @@ describe('getActiveArtistsHandler', () => {
     });
   });
 
-  it('returns total_pages as 0 when totalCount is 0', async () => {
+  it('returns empty artists when rpc returns no rows', async () => {
     vi.mocked(getActiveArtistsStats).mockResolvedValue({
       data: [],
-      totalCount: 0,
     });
 
     const res = await getActiveArtistsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.total_count).toBe(0);
-    expect(json.total_pages).toBe(0);
+    expect(json.artists).toEqual([]);
+    expect(json.page).toBe(1);
   });
 
   it('propagates error when getActiveArtistsStats throws', async () => {
