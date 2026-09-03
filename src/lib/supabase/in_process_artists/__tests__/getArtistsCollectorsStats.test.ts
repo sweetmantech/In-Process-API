@@ -13,7 +13,6 @@ const makeRow = (overrides = {}) => ({
   wallets: [{ address: '0xartist', type: 'smart' }],
   total_created_count: 10,
   total_collected_count: 5,
-  total_count: 1,
   ...overrides,
 });
 
@@ -47,7 +46,6 @@ describe('getArtistsCollectorsStats', () => {
     });
 
     expect(result.data).toHaveLength(1);
-    expect(result.totalCount).toBe(1);
   });
 
   it('uses defaults when params are omitted', async () => {
@@ -68,18 +66,7 @@ describe('getArtistsCollectorsStats', () => {
     });
   });
 
-  it('extracts totalCount from first row total_count', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: [makeRow({ total_count: 99 }), makeRow({ total_count: 99 })],
-      error: null,
-    } as any);
-
-    const result = await getArtistsCollectorsStats({});
-
-    expect(result.totalCount).toBe(99);
-  });
-
-  it('returns totalCount 0 when data is empty', async () => {
+  it('returns empty data when rpc returns no rows', async () => {
     vi.mocked(supabase.rpc).mockResolvedValue({
       data: [],
       error: null,
@@ -87,7 +74,6 @@ describe('getArtistsCollectorsStats', () => {
 
     const result = await getArtistsCollectorsStats({});
 
-    expect(result.totalCount).toBe(0);
     expect(result.data).toEqual([]);
   });
 

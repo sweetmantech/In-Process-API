@@ -30,10 +30,9 @@ describe('getArtistsCollectorsStatsHandler', () => {
     vi.clearAllMocks();
   });
 
-  it('returns data with pagination on success', async () => {
+  it('returns artists and page on success', async () => {
     vi.mocked(getArtistsCollectorsStats).mockResolvedValue({
       data: [makeRow()],
-      totalCount: 50,
     });
 
     const res = await getArtistsCollectorsStatsHandler(BASE_PARAMS);
@@ -41,15 +40,13 @@ describe('getArtistsCollectorsStatsHandler', () => {
 
     expect(res.status).toBe(200);
     expect(json.artists).toHaveLength(1);
-    expect(json.total_count).toBe(50);
     expect(json.page).toBe(1);
-    expect(json.total_pages).toBe(3);
+    expect(json.total_count).toBeUndefined();
   });
 
   it('passes all params to getArtistsCollectorsStats', async () => {
     vi.mocked(getArtistsCollectorsStats).mockResolvedValue({
       data: [],
-      totalCount: 0,
     });
 
     await getArtistsCollectorsStatsHandler({
@@ -71,17 +68,16 @@ describe('getArtistsCollectorsStatsHandler', () => {
     });
   });
 
-  it('returns total_pages 0 when totalCount is 0', async () => {
+  it('returns empty artists when rpc returns no rows', async () => {
     vi.mocked(getArtistsCollectorsStats).mockResolvedValue({
       data: [],
-      totalCount: 0,
     });
 
     const res = await getArtistsCollectorsStatsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.total_count).toBe(0);
-    expect(json.total_pages).toBe(0);
+    expect(json.artists).toEqual([]);
+    expect(json.page).toBe(1);
   });
 
   it('includes artist_id, wallets and username in response', async () => {
@@ -93,7 +89,6 @@ describe('getArtistsCollectorsStatsHandler', () => {
           username: 'charlie',
         }),
       ],
-      totalCount: 1,
     });
 
     const res = await getArtistsCollectorsStatsHandler(BASE_PARAMS);
@@ -109,7 +104,6 @@ describe('getArtistsCollectorsStatsHandler', () => {
   it('includes total_created_count and total_collected_count in response', async () => {
     vi.mocked(getArtistsCollectorsStats).mockResolvedValue({
       data: [makeRow({ total_created_count: 42, total_collected_count: 7 })],
-      totalCount: 1,
     });
 
     const res = await getArtistsCollectorsStatsHandler(BASE_PARAMS);

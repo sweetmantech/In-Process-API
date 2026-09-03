@@ -21,7 +21,5 @@ export interface CollectorStats {
 
 export interface CollectorsStatsResponse {
   collectors: CollectorStats[];
-  total_count: number;
   page: number;
-  total_pages: number;
 }

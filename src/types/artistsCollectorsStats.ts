@@ -22,8 +22,6 @@ export interface ArtistsCollectorsStats {
 }
 
 export interface ArtistsCollectorsStatsResponse {
-  data: ArtistsCollectorsStats[];
-  total_count: number;
+  artists: ArtistsCollectorsStats[];
   page: number;
-  total_pages: number;
 }

@@ -11,7 +11,7 @@ const getCollectorsHandler = async ({
   sort_by,
   sort_order,
 }: z.infer<typeof collectorsQuerySchema>) => {
-  const { data, totalCount } = await getCollectorsStats({
+  const { data } = await getCollectorsStats({
     period,
     limit,
     page,
@@ -22,9 +22,7 @@ const getCollectorsHandler = async ({
 
   return NextResponse.json({
     collectors: data,
-    total_count: totalCount,
     page,
-    total_pages: Math.ceil(totalCount / limit),
   });
 };
 

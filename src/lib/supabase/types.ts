@@ -739,7 +739,6 @@ export type Database = {
           created_count: number;
           sms_count: number;
           telegram_count: number;
-          total_count: number;
           username: string;
           wallets: Json;
           web_count: number;
@@ -826,7 +825,6 @@ export type Database = {
         Returns: {
           artist_id: string;
           total_collected_count: number;
-          total_count: number;
           total_created_count: number;
           username: string;
           wallets: Json;
@@ -889,7 +887,6 @@ export type Database = {
           artist_id: string;
           collected_count: number;
           eth_spent: string;
-          total_count: number;
           usdc_spent: string;
           username: string;
           wallets: Json;

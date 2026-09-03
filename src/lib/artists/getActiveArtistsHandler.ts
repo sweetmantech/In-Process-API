@@ -20,7 +20,7 @@ const getActiveArtistsHandler = async ({
   sort_by: ActiveArtistsSortBy;
   sort_order: ActiveArtistsSortOrder;
 }) => {
-  const { data, totalCount } = await getActiveArtistsStats({
+  const { data } = await getActiveArtistsStats({
     period,
     limit,
     page,
@@ -31,9 +31,7 @@ const getActiveArtistsHandler = async ({
 
   return NextResponse.json({
     artists: data,
-    total_count: totalCount,
     page,
-    total_pages: Math.ceil(totalCount / limit),
   });
 };
 

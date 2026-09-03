@@ -31,10 +31,9 @@ describe('getCollectorsHandler', () => {
     vi.clearAllMocks();
   });
 
-  it('returns data with pagination on success', async () => {
+  it('returns collectors and page on success', async () => {
     vi.mocked(getCollectorsStats).mockResolvedValue({
       data: [makeRow()],
-      totalCount: 50,
     });
 
     const res = await getCollectorsHandler(BASE_PARAMS);
@@ -42,15 +41,13 @@ describe('getCollectorsHandler', () => {
 
     expect(res.status).toBe(200);
     expect(json.collectors).toHaveLength(1);
-    expect(json.total_count).toBe(50);
     expect(json.page).toBe(1);
-    expect(json.total_pages).toBe(3);
+    expect(json.total_count).toBeUndefined();
   });
 
   it('passes all params to getCollectorsStats', async () => {
     vi.mocked(getCollectorsStats).mockResolvedValue({
       data: [],
-      totalCount: 0,
     });
 
     await getCollectorsHandler({
@@ -72,17 +69,16 @@ describe('getCollectorsHandler', () => {
     });
   });
 
-  it('returns total_pages 0 when totalCount is 0', async () => {
+  it('returns empty collectors when rpc returns no rows', async () => {
     vi.mocked(getCollectorsStats).mockResolvedValue({
       data: [],
-      totalCount: 0,
     });
 
     const res = await getCollectorsHandler(BASE_PARAMS);
     const json = await res.json();
 
-    expect(json.total_count).toBe(0);
-    expect(json.total_pages).toBe(0);
+    expect(json.collectors).toEqual([]);
+    expect(json.page).toBe(1);
   });
 
   it('includes artist_id, wallets and username in response', async () => {
@@ -94,7 +90,6 @@ describe('getCollectorsHandler', () => {
           username: 'charlie',
         }),
       ],
-      totalCount: 1,
     });
 
     const res = await getCollectorsHandler(BASE_PARAMS);
@@ -110,7 +105,6 @@ describe('getCollectorsHandler', () => {
   it('includes eth_spent and usdc_spent in response', async () => {
     vi.mocked(getCollectorsStats).mockResolvedValue({
       data: [makeRow({ eth_spent: '0.5', usdc_spent: '25.0' })],
-      totalCount: 1,
     });
 
     const res = await getCollectorsHandler(BASE_PARAMS);
